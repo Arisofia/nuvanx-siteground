@@ -1,0 +1,84 @@
+name: Staging2 Redirect Owner Final
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-redirect-owner-final.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Prove vhost and inspect redirect owners
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$STAGING_ROOT"
+          echo '=== MU redirect plugin relevant lines ==='
+          for f in wp-content/mu-plugins/*.php; do
+            test -f "$f" || continue
+            if grep -qEi 'wp_(safe_)?redirect|template_redirect|redirect_canonical|nuvanx\.com|HTTP_HOST|REQUEST_URI' "$f"; then
+              echo "FILE=$f"
+              grep -nEi 'wp_(safe_)?redirect|template_redirect|redirect_canonical|nuvanx\.com|staging2|HTTP_HOST|REQUEST_URI' "$f" | head -n 160 || true
+            fi
+          done
+
+          echo '=== normal static vhost root probe ==='
+          token="nvx-root-probe-${RANDOM}-${RANDOM}"
+          name="${token}.txt"
+          printf 'STAGING_ROOT_PROBE:%s\n' "$token" > "$STAGING_ROOT/$name"
+          trap 'rm -f "$STAGING_ROOT/$name"' EXIT
+          test ! -e "$PROD_ROOT/$name"
+          echo "probe_name=$name"
+          for domain in staging2.nuvanx.com nuvanx.com; do
+            echo "DOMAIN=$domain"
+            curl -sS -D /tmp/h -o /tmp/b "https://${domain}/${name}" -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+            grep -Ei '^(HTTP/|location:|server:|sg-captcha:|x-redirect-by:|x-robots-tag:)' /tmp/h || true
+            printf 'body='; head -c 200 /tmp/b 2>/dev/null; echo
+          done
+          rm -f /tmp/h /tmp/b
+
+          echo '=== front request redirect trace without follow ==='
+          curl -sS -D /tmp/front-h -o /tmp/front-b 'https://staging2.nuvanx.com/' -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+          grep -Ei '^(HTTP/|location:|server:|sg-captcha:|x-redirect-by:|x-robots-tag:|set-cookie:)' /tmp/front-h | head -n 80 || true
+          rm -f /tmp/front-h /tmp/front-b
+          REMOTE
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

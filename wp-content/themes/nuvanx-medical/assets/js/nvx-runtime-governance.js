@@ -175,13 +175,7 @@
       document.body.classList.add('nvx-valoracion-modal-open');
       document.body.style.overflow = 'hidden';
 
-      try {
-        if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
-          window.HubSpotForms.initialize();
-        }
-      } catch (_e) {
-        // ignore
-      }
+      // HubSpot initialization is handled by initLazyHubSpot via MutationObserver
     }
 
     function closeModal() {
@@ -251,13 +245,10 @@
 
     const frame = document.querySelector('.hs-form-frame[data-portal-id]');
     if (!frame && !config.hubspotPortalId) return '';
-    const portalIdStr = config.hubspotPortalId || frame.dataset.portalId;
-    const portalId = String(portalIdStr || '').replace(/\D+/g, '');
-    if (!portalId) return '';
 
     const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
     const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
-    return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
+    return 'https://js-' + region + '.hsforms.net/forms/v2.js';
   }
 
   /**
@@ -283,13 +274,25 @@
 
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
-      if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
-        window.HubSpotForms.initialize();
+      
+      if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
+        const frames = document.querySelectorAll('.hs-form-frame[data-form-id][data-portal-id]');
+        frames.forEach(function(frame) {
+          if (frame.dataset.hsInitialized === '1') return;
+          frame.dataset.hsInitialized = '1';
+          
+          window.hbspt.forms.create({
+            region: frame.dataset.region || config.hubspotRegion || 'eu1',
+            portalId: frame.dataset.portalId || config.hubspotPortalId,
+            formId: frame.dataset.formId || config.hubspotFormId,
+            target: frame
+          });
+        });
       }
     }
 
     function loadHubSpot() {
-      if (window.HubSpotForms) {
+      if (window.hbspt && window.hbspt.forms) {
         initializeForms();
         return Promise.resolve();
       }

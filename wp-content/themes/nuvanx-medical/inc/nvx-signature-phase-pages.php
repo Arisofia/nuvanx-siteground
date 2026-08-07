@@ -135,6 +135,22 @@ function nvx_signature_phase_current_key(): ?string {
 }
 
 /**
+ * Identifies the governed landing page by content (for filter context).
+ *
+ * @param string $content The post content.
+ * @return string|null The matching catalog key, or null when not found.
+ */
+function nvx_signature_phase_key_by_content( string $content ): ?string {
+	foreach ( nvx_signature_phase_catalog() as $key => $page ) {
+		$slug = $page['slug'] ?? '';
+		if ( '' !== $slug && false !== strpos( $content, $slug ) ) {
+			return $key;
+		}
+	}
+	return null;
+}
+
+/**
  * Builds an HTML section containing a titled list of items.
  *
  * @param string $title The section heading.
@@ -224,28 +240,6 @@ function nvx_signature_hub_catalog(): array {
 			'seo_title' => 'Protocolos Signature Madrid | NUVANX',
 			'seo_desc'  => 'Protocolos Signature NUVANX en Madrid: rutas clínicas de diagnóstico para contorno, calidad de piel, textura, tono y perfil facial.',
 		),
-		'contour-architecture' => array(
-			'slug'      => 'remodelacion-corporal-laser-madrid',
-			'marker'    => 'NUVANX_PROTOCOL_PAGE:contour-architecture',
-			'kind'      => 'contour',
-			'kicker'    => $contour,
-			'h1'        => 'Remodelación corporal láser diseñada según tu anatomía.',
-			'lead'      => $short . ' evalúa grasa localizada, laxitud y continuidad entre zonas antes de indicar una tecnología. El plan se diseña por anatomía, no por una lista de aparatos.',
-			'intro'     => 'Abdomen, flancos, brazos, espalda, muslos, rodillas o contorno masculino pueden formar parte del mismo marco de decisión. Cada zona se presupuesta solo si tiene indicación documentada tras la exploración.',
-			'seo_title' => 'Remodelación corporal láser Madrid | ' . $short,
-			'seo_desc'  => 'Remodelación corporal láser en Madrid con ' . $contour . ': valoración por zonas de grasa, laxitud y continuidad anatómica.',
-		),
-		'post-maternity'       => array(
-			'slug'      => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
-			'marker'    => 'NUVANX_PROTOCOL_PAGE:post-maternity',
-			'kind'      => 'post-maternity',
-			'kicker'    => 'NUVANX Post-Maternity Contour™',
-			'h1'        => 'Tratamiento postparto: abdomen y contorno corporal en Madrid.',
-			'lead'      => 'Lectura respetuosa de abdomen, flancos y calidad del tejido después del embarazo. Se separa grasa subcutánea, laxitud, diástasis y expectativas realistas antes de proponer cualquier modalidad.',
-			'intro'     => 'El postparto no es un protocolo estándar. La valoración considera lactancia, tiempo desde el parto, pared abdominal, cicatrices y disponibilidad de recuperación. Si no hay indicación proporcionada, se explica la alternativa o la espera.',
-			'seo_title' => 'Tratamiento postparto abdomen y contorno Madrid | NUVANX',
-			'seo_desc'  => 'Valoración postparto de abdomen y contorno corporal en Madrid: grasa, laxitud y pared abdominal con criterio clínico antes de indicar tratamiento.',
-		),
 	);
 }
 
@@ -284,21 +278,27 @@ function nvx_signature_hub_key_by_marker( string $content ): ?string {
  * Resolve the Signature hub key for the current page (slug or CMS marker).
  */
 function nvx_signature_hub_current_key( ?string $content = null ): ?string {
-	if ( ! is_page() || is_404() ) {
-		return null;
+	// If content is provided, check marker first (works in filter context)
+	if ( null !== $content && false !== strpos( $content, 'NUVANX_PROTOCOL_PAGE:' ) ) {
+		return nvx_signature_hub_key_by_marker( $content );
 	}
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	$key  = nvx_signature_hub_key_by_slug( $slug );
-	if ( null !== $key ) {
-		return $key;
+	// If in page context, check by slug
+	if ( is_page() && ! is_404() ) {
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+		$key  = nvx_signature_hub_key_by_slug( $slug );
+		if ( null !== $key ) {
+			return $key;
+		}
+
+		// Fallback to marker check from post content
+		if ( null === $content ) {
+			$content = (string) get_post_field( 'post_content', get_queried_object_id() );
+		}
+		return nvx_signature_hub_key_by_marker( $content );
 	}
 
-	if ( null === $content ) {
-		$content = (string) get_post_field( 'post_content', get_queried_object_id() );
-	}
-
-	return nvx_signature_hub_key_by_marker( $content );
+	return null;
 }
 
 /**
@@ -533,24 +533,6 @@ function nvx_signature_hub_markup( array $hub ): string {
 	return $html;
 }
 
-/** Replace thin CMS hub shells with theme-owned Signature hub markup. */
-function nvx_signature_hub_filter_content( string $content ): string {
-	// Check if this is a Signature hub page using the current key detection
-	$hub_key = nvx_signature_hub_current_key( $content );
-	if ( null === $hub_key ) {
-		return $content;
-	}
-
-	// Get the hub data from catalog
-	$hub = nvx_signature_hub_catalog()[ $hub_key ] ?? null;
-	if ( ! is_array( $hub ) ) {
-		return $content;
-	}
-
-	$markup = nvx_signature_hub_markup( $hub );
-	return '' !== $markup ? $markup : $content;
-}
-add_filter( 'the_content', 'nvx_signature_hub_filter_content', NVX_HOOK_PRIO_SIGNATURE_HUB );
 
 /**
  * Canonical short-path map for Contour and Post-Maternity public hubs.

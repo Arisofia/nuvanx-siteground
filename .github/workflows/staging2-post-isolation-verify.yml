@@ -1,0 +1,179 @@
+name: Staging2 Post-Isolation Verify
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-post-isolation-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      EXPECTED_STAGING_DB: dbshcocboodiwr
+      EXPECTED_STAGING_USER: ucdduxjmx7puu
+      EXPECTED_PROD_DB: db0ecrycwv2tgb
+      EXPECTED_PROD_USER: u2qrtdbzk9grh
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          port="${STAGING2_SSH_PORT:-18765}"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          chmod 600 "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2-verify
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $port
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify WordPress isolation and inventory integrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2-verify \
+            "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' EXPECTED_STAGING_DB='$EXPECTED_STAGING_DB' EXPECTED_STAGING_USER='$EXPECTED_STAGING_USER' EXPECTED_PROD_DB='$EXPECTED_PROD_DB' EXPECTED_PROD_USER='$EXPECTED_PROD_USER' bash -se" <<'REMOTE'
+          set -euo pipefail
+          fail(){ echo "FAIL: $*" >&2; exit 1; }
+          test -d "$STAGING_ROOT" || fail 'staging root missing'
+          test -d "$PROD_ROOT" || fail 'production root missing'
+          test "$STAGING_ROOT" != "$PROD_ROOT" || fail 'roots are identical'
+
+          sdb="$(cd "$STAGING_ROOT" && wp config get DB_NAME)"
+          suser="$(cd "$STAGING_ROOT" && wp config get DB_USER)"
+          pdb="$(cd "$PROD_ROOT" && wp config get DB_NAME)"
+          puser="$(cd "$PROD_ROOT" && wp config get DB_USER)"
+          siteurl="$(cd "$STAGING_ROOT" && wp option get siteurl)"
+          home="$(cd "$STAGING_ROOT" && wp option get home)"
+          blog_public="$(cd "$STAGING_ROOT" && wp option get blog_public)"
+          theme="$(cd "$STAGING_ROOT" && wp theme list --status=active --field=name)"
+          nvx_env="$(cd "$STAGING_ROOT" && wp eval 'echo defined("NVX_ENV") ? NVX_ENV : "";')"
+          wp_env="$(cd "$STAGING_ROOT" && wp eval 'echo function_exists("wp_get_environment_type") ? wp_get_environment_type() : "";')"
+
+          test "$sdb" = "$EXPECTED_STAGING_DB" || fail "staging DB mismatch: $sdb"
+          test "$suser" = "$EXPECTED_STAGING_USER" || fail "staging DB user mismatch: $suser"
+          test "$pdb" = "$EXPECTED_PROD_DB" || fail "production DB mismatch: $pdb"
+          test "$puser" = "$EXPECTED_PROD_USER" || fail "production DB user mismatch: $puser"
+          test "$siteurl" = 'https://staging2.nuvanx.com' || fail "siteurl mismatch: $siteurl"
+          test "$home" = 'https://staging2.nuvanx.com' || fail "home mismatch: $home"
+          test "$blog_public" = '0' || fail "blog_public mismatch: $blog_public"
+          test "$theme" = 'nuvanx-medical' || fail "theme mismatch: $theme"
+          test "$nvx_env" = 'staging' || fail "NVX_ENV mismatch: $nvx_env"
+          test "$wp_env" = 'staging' || fail "WP environment mismatch: $wp_env"
+
+          echo '=== wordpress isolation ==='
+          echo "roots_distinct=yes"
+          echo "staging_db=$sdb"
+          echo "staging_db_user=$suser"
+          echo "production_db=$pdb"
+          echo "production_db_user=$puser"
+          echo "staging_siteurl=$siteurl"
+          echo "staging_home=$home"
+          echo "staging_blog_public=$blog_public"
+          echo "staging_theme=$theme"
+          echo "nvx_env=$nvx_env"
+          echo "wp_environment_type=$wp_env"
+
+          echo '=== active plugins staging ==='
+          cd "$STAGING_ROOT"
+          wp plugin list --status=active --fields=name,version,status --format=csv
+
+          echo '=== active plugins production ==='
+          cd "$PROD_ROOT"
+          wp plugin list --status=active --fields=name,version,status --format=csv
+
+          echo '=== integration-related options (names only, no values) ==='
+          cd "$STAGING_ROOT"
+          prefix="$(wp db prefix)"
+          wp db query "SELECT option_name FROM ${prefix}options WHERE option_name REGEXP 'klaviyo|sitekit|google|analytics|facebook|meta|pixel|hubspot|joinchat|whatsapp|webhook|doctoralia|smtp|mail|wpvibe|ylabs' ORDER BY option_name" --skip-column-names 2>/dev/null | head -n 250 || true
+
+          echo '=== integration code references (paths only) ==='
+          grep -RIlE 'klaviyo|hubspot|facebook|connect\.facebook|fbevents|gtag\(|googletagmanager|google-analytics|webhook|doctoralia|joinchat|whatsapp|wp_mail\(' \
+            "$STAGING_ROOT/wp-content/themes/nuvanx-medical" "$STAGING_ROOT/wp-content/mu-plugins" 2>/dev/null | sed "s#^$STAGING_ROOT/##" | head -n 200 || true
+
+          echo 'WORDPRESS_ISOLATION_VERIFY=PASS'
+          REMOTE
+
+      - name: Verify public staging routes safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re, subprocess, sys, tempfile, urllib.parse
+
+          routes = [
+              '/',
+              '/soluciones-medicas/',
+              '/equipo-medico/',
+              '/blog/',
+              '/endolift-primeras-72-horas-que-esperar/',
+          ]
+          base = 'https://staging2.nuvanx.com'
+          failures=[]
+          for path in routes:
+              with tempfile.NamedTemporaryFile() as f:
+                  cp = subprocess.run([
+                      'curl','--silent','--show-error','--location','--max-redirs','5',
+                      '--output',f.name,'--write-out','%{http_code}\n%{url_effective}',base+path
+                  ], text=True, capture_output=True)
+                  if cp.returncode:
+                      failures.append(f'{path}: curl failed: {cp.stderr.strip()}')
+                      continue
+                  parts=cp.stdout.splitlines()
+                  status=parts[0] if parts else ''
+                  final_url=parts[1] if len(parts)>1 else ''
+                  host=urllib.parse.urlparse(final_url).hostname or ''
+                  f.seek(0)
+                  html=f.read().decode('utf-8','replace')
+              metas=re.findall(r'<meta\b[^>]*>', html, flags=re.I)
+              robots=''
+              for tag in metas:
+                  if re.search(r'\bname\s*=\s*["\']robots["\']', tag, flags=re.I):
+                      m=re.search(r'\bcontent\s*=\s*["\']([^"\']*)["\']', tag, flags=re.I)
+                      robots=m.group(1).strip().lower() if m else ''
+                      break
+              print(f'route={path} status={status} final_host={host} robots={robots or "missing"}')
+              if status != '200': failures.append(f'{path}: status {status}')
+              if host != 'staging2.nuvanx.com': failures.append(f'{path}: final host {host}')
+              directives={x.strip() for x in robots.split(',') if x.strip()}
+              if 'noindex' not in directives: failures.append(f'{path}: noindex missing')
+              if 'nofollow' not in directives: failures.append(f'{path}: nofollow missing')
+          if failures:
+              print('PUBLIC_BOUNDARY_VERIFY=FAIL')
+              for item in failures: print('FAIL:', item)
+              sys.exit(1)
+          print('PUBLIC_BOUNDARY_VERIFY=PASS')
+          PY
+
+      - name: Destroy SSH material
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

@@ -14,7 +14,7 @@ jobs:
   deploy:
     uses: ./.github/workflows/deploy-staging2.yml
     with:
-      sha: 6fb3bb8e4d1c2790b7d3e2e7f0a086944ddf8ed5
+      sha: 3b99fb5787d3b6f189503e82e20bf6b9e65e6c7e
       run_block_c_acceptance: true
     secrets:
       STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}

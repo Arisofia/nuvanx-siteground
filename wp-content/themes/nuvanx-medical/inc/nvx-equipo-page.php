@@ -420,7 +420,7 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['equipo_staff'] ?? array();
 
 	$html  = '<section class="nvx-brand-section nvx-equipo-staff" aria-labelledby="nvx-equipo-staff-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-heading">' . esc_html( $data['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body">' . esc_html( $data['body'] ?? '' ) . '</p>';
@@ -448,7 +448,7 @@ function nvx_equipo_render_items_section( array $section ): string {
 	$items         = $section['items'] ?? array();
 
 	$html  = '<section class="' . esc_attr( $section_class ) . '" aria-labelledby="' . esc_attr( $section_id ) . '">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
 	}
@@ -540,7 +540,7 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 		: 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
 
 	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
-	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';

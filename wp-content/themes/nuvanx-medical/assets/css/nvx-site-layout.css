@@ -1,19 +1,32 @@
 /* Page frame is full-bleed so heroes match the home video edge-to-edge.
    Gutters live on section inners / readable columns — not on the page shell. */
-.nvx-shell, .nvx-brand-section__inner, .nvx-page__content, .entry-content {
+.nvx-shell,
+.nvx-brand-section__inner,
+.nvx-page__content,
+.entry-content {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 0;
   box-sizing: border-box;
   transition: padding-inline 300ms ease;
+}
+
+/* Canonical content shell — no inner padding, consistent with soluciones-medicas */
+.nvx-content-shell {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 0;
+  box-sizing: border-box;
 }
 
 /* Page content frame: diseño elegante con mejor prose */
 
 /* Content is full-width so heroes fill the viewport like home video */
 .nvx-page__content.nvx-prose,
-.entry-content, .nvx-prose {
+.entry-content,
+.nvx-prose {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -61,7 +74,7 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 0;
   box-sizing: border-box;
 }
 
@@ -118,10 +131,9 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 0;
   box-sizing: border-box;
 }
-
 
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
@@ -176,23 +188,23 @@
   isolation: isolate;
   width: 100%;
   margin: 0;
-  padding-block: clamp(56px, 8vw, calc(var(--nvx-space-1) * 13)) clamp(var(--nvx-space-8), 9vw, 120px);
+  padding-block: clamp(56px, 8vw, calc(var(--nvx-space-1) * 13))
+    clamp(var(--nvx-space-8), 9vw, 120px);
   padding-inline: 0;
   overflow: hidden;
   scroll-margin-top: var(--nvx-space-12);
   /* Fallback palette sampled from fondo-formulario.webp */
-  background:
-    linear-gradient(
-      155deg,
-      var(--nvx-form-stage-warm) 0%,
-      var(--nvx-form-stage-mid) 46%,
-      var(--nvx-form-stage-cool) 100%
-    );
+  background: linear-gradient(
+    155deg,
+    var(--nvx-form-stage-warm) 0%,
+    var(--nvx-form-stage-mid) 46%,
+    var(--nvx-form-stage-cool) 100%
+  );
   background-color: var(--nvx-form-stage-fallback);
 }
 
 .nvx-form-stage::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -205,17 +217,16 @@
 }
 
 .nvx-form-stage::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    linear-gradient(
-      180deg,
-      var(--nvx-surface-base) 0%,
-      var(--nvx-surface-soft) 40%,
-      var(--nvx-surface-soft) 100%
-    );
+  background: linear-gradient(
+    180deg,
+    var(--nvx-surface-base) 0%,
+    var(--nvx-surface-soft) 40%,
+    var(--nvx-surface-soft) 100%
+  );
   pointer-events: none;
 }
 
@@ -234,20 +245,25 @@
    ═══════════════════════════════════════════════════════════ */
 
 /* Reading measure — long-form columns only (not cards, grids, CTAs, UI) */
-.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-copy) > :where(p, ul, ol, blockquote),
+.nvx-main
+  :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-copy)
+  > :where(p, ul, ol, blockquote),
 .nvx-main .nvx-brand-section__inner > :where(p, .nvx-brand-body),
-.nvx-main :where(
-  .nvx-endolift-body--measure,
-  .nvx-aes-body--lead,
-  .nvx-method-lead,
-  .nvx-brand-faq-content p,
-  .nvx-lead
-) {
+.nvx-main
+  :where(
+    .nvx-endolift-body--measure,
+    .nvx-aes-body--lead,
+    .nvx-method-lead,
+    .nvx-brand-faq-content p,
+    .nvx-lead
+  ) {
   max-width: var(--nvx-measure);
 }
 
 /* Title line length on long-form intros only */
-.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-section-intro) :where(h2, .nvx-heading) {
+.nvx-main
+  :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-section-intro)
+  :where(h2, .nvx-heading) {
   max-width: 22ch;
 }
 
@@ -276,15 +292,15 @@
 }
 
 .nvx-content-figure img,
-.nvx-main :is(
-  .nvx-page__content,
-  .entry-content,
-  .nvx-prose,
-  .nvx-brand-section__inner
-) :where(
-  figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula),
-  .wp-block-image
-) img,
+.nvx-main
+  :is(.nvx-page__content, .entry-content, .nvx-prose, .nvx-brand-section__inner)
+  :where(
+    figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(
+        .nvx-aes-formula
+      ),
+    .wp-block-image
+  )
+  img,
 .nvx-main img.nvx-media--body {
   display: block;
   width: 100%;
@@ -303,14 +319,17 @@
 }
 
 /* Defensive: if a hero img still has --body class, restore full-bleed cover */
-.nvx-main .nvx-brand-hero__media img, .nvx-main .nvx-page-hero__media img {
+.nvx-main .nvx-brand-hero__media img,
+.nvx-main .nvx-page-hero__media img {
   max-height: none;
   height: 100%;
   border-radius: 0;
 }
 
 .nvx-content-figure figcaption,
-.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-brand-section__inner) figcaption {
+.nvx-main
+  :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-brand-section__inner)
+  figcaption {
   margin-top: var(--nvx-margin-caption);
   padding-inline: var(--nvx-space-1);
   font-family: var(--nvx-sans);

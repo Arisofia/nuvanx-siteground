@@ -211,7 +211,7 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 0;
 }
 
 .nvx-blog-hero__category {
@@ -597,7 +597,7 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 0;
   box-sizing: border-box;
 }
 

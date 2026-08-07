@@ -262,6 +262,7 @@ SWAPPED=1
 
 echo "== Verify exact production release on disk =="
 (
+  trap - ERR
   cd "$PROD_ROOT"
   test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$SHA"
   test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
@@ -273,6 +274,7 @@ echo "== Verify exact production release on disk =="
 
 echo "== Purge production caches =="
 (
+  trap - ERR
   cd "$PROD_ROOT"
   wp cache flush
   purge_siteground_dynamic_cache

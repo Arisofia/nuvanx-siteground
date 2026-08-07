@@ -1,0 +1,93 @@
+name: Staging2 Filesystem Independence Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-fs-independence-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Remove production filesystem dependency from staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          fail(){ echo "FAIL: $*" >&2; exit 1; }
+          test "$STAGING_ROOT" != "$PROD_ROOT" || fail 'roots identical'
+          test "$(cd "$STAGING_ROOT" && wp config get DB_NAME)" = 'dbshcocboodiwr' || fail 'staging DB identity mismatch'
+          test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = 'db0ecrycwv2tgb' || fail 'production DB identity mismatch'
+          test -f "$STAGING_ROOT/.htaccess" || fail 'staging .htaccess missing'
+
+          echo '=== before absolute production-path references ==='
+          grep -nF '/home/customer/www/nuvanx.com/' "$STAGING_ROOT/.htaccess" "$STAGING_ROOT/wp-config.php" "$STAGING_ROOT/.user.ini" "$STAGING_ROOT/php.ini" 2>/dev/null || true
+
+          if grep -qF 'SetEnv PHPRC /home/customer/www/nuvanx.com/public_html/php.ini' "$STAGING_ROOT/.htaccess"; then
+            if test ! -f "$STAGING_ROOT/php.ini"; then
+              test -f "$PROD_ROOT/php.ini" || fail 'production php.ini missing; cannot create independent staging copy'
+              cp "$PROD_ROOT/php.ini" "$STAGING_ROOT/php.ini"
+              chmod --reference="$PROD_ROOT/php.ini" "$STAGING_ROOT/php.ini" 2>/dev/null || chmod 644 "$STAGING_ROOT/php.ini"
+              echo 'staging_php_ini=created_from_snapshot'
+            else
+              echo 'staging_php_ini=already_present'
+            fi
+            cp "$STAGING_ROOT/.htaccess" "$STAGING_ROOT/.htaccess.pre-fs-isolation"
+            sed -i 's#SetEnv PHPRC /home/customer/www/nuvanx.com/public_html/php.ini#SetEnv PHPRC /home/customer/www/staging2.nuvanx.com/public_html/php.ini#' "$STAGING_ROOT/.htaccess"
+            echo 'staging_phprc_reference=updated'
+          else
+            echo 'staging_phprc_reference=no_exact_prod_reference'
+          fi
+
+          test -f "$STAGING_ROOT/php.ini" || fail 'staging php.ini missing after remediation'
+          grep -qF 'SetEnv PHPRC /home/customer/www/staging2.nuvanx.com/public_html/php.ini' "$STAGING_ROOT/.htaccess" || fail 'staging PHPRC does not point to staging php.ini'
+
+          echo '=== after absolute production-path references ==='
+          remaining="$(grep -nF '/home/customer/www/nuvanx.com/' "$STAGING_ROOT/.htaccess" "$STAGING_ROOT/wp-config.php" "$STAGING_ROOT/.user.ini" "$STAGING_ROOT/php.ini" 2>/dev/null || true)"
+          if test -n "$remaining"; then
+            printf '%s\n' "$remaining"
+            fail 'absolute production filesystem references remain in staging config files'
+          fi
+          echo 'absolute_production_filesystem_references=NONE'
+          echo 'FILESYSTEM_CONFIG_ISOLATION=PASS'
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

@@ -31,12 +31,22 @@ fail() {
 }
 
 purge_siteground_cache_if_available() {
+  local speed_optimizer_main='wp-content/plugins/sg-cachepress/sg-cachepress.php'
+
   if wp help sg >/dev/null 2>&1; then
     wp sg purge
-    echo 'siteground_wp_cli_purge=PASS'
-  else
-    echo 'siteground_wp_cli_purge=SKIPPED command_unavailable'
+    echo 'siteground_wp_cli_purge=PASS mode=active-plugin'
+    return 0
   fi
+
+  if [[ -f "$speed_optimizer_main" ]] && wp --require="$speed_optimizer_main" help sg >/dev/null 2>&1; then
+    wp --require="$speed_optimizer_main" sg purge
+    echo 'siteground_wp_cli_purge=PASS mode=require-inactive-plugin'
+    return 0
+  fi
+
+  echo 'ERROR: SiteGround Dynamic Cache is present but no supported WP-CLI purge command can be loaded.' >&2
+  return 1
 }
 
 while [[ $# -gt 0 ]]; do

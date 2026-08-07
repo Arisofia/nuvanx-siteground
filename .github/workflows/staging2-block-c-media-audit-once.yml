@@ -1,0 +1,100 @@
+name: Staging2 Block C Media Audit Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-block-c-media-audit-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing host}"; : "${USER:?Missing user}"; : "${KEY:?Missing key}"; : "${KH:?Missing known hosts}"
+          port="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port $port
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Audit exact Block C media paths read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          test "$(cd "$STAGING_ROOT" && wp config get DB_NAME)" = dbshcocboodiwr
+          test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = db0ecrycwv2tgb
+          paths=(
+            '2026/06/nvx-fachada-chamberi-final-760.webp'
+            '2026/06/nvx-laser-medico-nuvanx-madrid-900-768x516.webp'
+            '2026/06/nvx-laser-medico-nuvanx-madrid-900.webp'
+            '2026/07/Endolift-facial.webp'
+            '2026/07/btl-exilite-ipl-madrid.webp'
+            '2026/07/clinica-nuvanx-madrid-chamberi-goya-1024x682.webp'
+            '2026/07/clinica-nuvanx-madrid-chamberi-goya-768x512.webp'
+            '2026/07/clinica-nuvanx-madrid-chamberi-goya.webp'
+            '2026/07/consulta-medica-personalizada-nuvanx-madrid.webp'
+            '2026/07/endolaser-corporal-grasa-localizada.webp'
+            '2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro-1024x341.webp'
+            '2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro-1536x512.webp'
+            '2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro-768x256.webp'
+            '2026/07/nuvanx.commedicina-estetica-1024x439.webp'
+            '2026/07/nuvanx.commedicina-estetica-1536x658.webp'
+            '2026/07/nuvanx.commedicina-estetica-768x329.webp'
+            '2026/07/nvx-home-video-portada-hero-12s-720p.mp4'
+            '2026/07/nvx-home-video-portada-poster.webp'
+          )
+          prod_yes=0; prod_no=0; staging_yes=0; staging_no=0
+          for rel in "${paths[@]}"; do
+            s="$STAGING_ROOT/wp-content/uploads/$rel"
+            p="$PROD_ROOT/wp-content/uploads/$rel"
+            se=NO; pe=NO; ss=''; ps=''; sb=0; pb=0
+            if [[ -f "$s" ]]; then se=YES; ss="$(sha256sum "$s"|awk '{print $1}')"; sb="$(wc -c < "$s"|tr -d ' ')"; staging_yes=$((staging_yes+1)); else staging_no=$((staging_no+1)); fi
+            if [[ -f "$p" ]]; then pe=YES; ps="$(sha256sum "$p"|awk '{print $1}')"; pb="$(wc -c < "$p"|tr -d ' ')"; prod_yes=$((prod_yes+1)); else prod_no=$((prod_no+1)); fi
+            echo "MEDIA rel=$rel staging=$se production=$pe staging_bytes=$sb production_bytes=$pb staging_sha=${ss:-NA} production_sha=${ps:-NA}"
+          done
+          echo "THEME_FALLBACK staging=$([[ -f "$STAGING_ROOT/wp-content/themes/nuvanx-medical/assets/img/nvx-home-video-default-poster.webp" ]] && echo YES || echo NO) production=$([[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/img/nvx-home-video-default-poster.webp" ]] && echo YES || echo NO)"
+          cd "$STAGING_ROOT"
+          poster_id="$(wp eval 'echo (int) get_theme_mod("nvx_home_video_poster_id", 0);')"
+          echo "HOME_POSTER_THEME_MOD id=$poster_id"
+          if [[ "$poster_id" =~ ^[0-9]+$ ]] && [[ "$poster_id" -gt 0 ]]; then
+            echo "HOME_POSTER_ATTACHMENT rel=$(wp post meta get "$poster_id" _wp_attached_file 2>/dev/null || true) url=$(wp eval "echo wp_get_attachment_url($poster_id);" 2>/dev/null || true)"
+          fi
+          echo "MEDIA_AUDIT_SUMMARY staging_yes=$staging_yes staging_no=$staging_no production_yes=$prod_yes production_no=$prod_no"
+          echo 'MEDIA_AUDIT=PASS_READ_ONLY'
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

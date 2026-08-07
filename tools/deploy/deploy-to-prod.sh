@@ -10,6 +10,7 @@
 # - directory cutover avoids rsyncing partial files into the live theme
 # - exact .nvx-deploy-sha marker is part of the staged release
 # - any post-cutover failure restores the previous live theme automatically
+# - SiteGround dynamic-cache purge restores the original Speed Optimizer state
 set -Eeuo pipefail
 
 PROD_ROOT=""
@@ -83,6 +84,62 @@ cleanup_uncommitted_release() {
 }
 trap cleanup_uncommitted_release EXIT
 
+# SiteGround exposes `wp sg purge` only while Speed Optimizer is active on some
+# installations. Temporarily activate it only when needed, purge, and always
+# restore the original plugin state before returning.
+purge_siteground_dynamic_cache() {
+  local plugin='sg-cachepress'
+  local activated_temporarily=0
+  local purge_rc=0
+  local restore_rc=0
+
+  cd "$PROD_ROOT"
+
+  if wp help sg >/dev/null 2>&1; then
+    wp sg purge
+    echo 'SITEGROUND_DYNAMIC_PURGE=PASS mode=existing-command'
+    return 0
+  fi
+
+  if ! wp plugin is-installed "$plugin" >/dev/null 2>&1; then
+    echo 'SITEGROUND_DYNAMIC_PURGE=SKIPPED reason=sg-command-and-plugin-unavailable'
+    return 0
+  fi
+
+  if ! wp plugin is-active "$plugin" >/dev/null 2>&1; then
+    wp plugin activate "$plugin" --quiet
+    activated_temporarily=1
+  fi
+
+  if wp help sg >/dev/null 2>&1; then
+    wp sg purge || purge_rc=$?
+  else
+    echo "ERROR: SiteGround command unavailable after transient Speed Optimizer activation" >&2
+    purge_rc=1
+  fi
+
+  if [[ "$activated_temporarily" -eq 1 ]]; then
+    wp plugin deactivate "$plugin" --quiet || restore_rc=$?
+    if wp plugin is-active "$plugin" >/dev/null 2>&1; then
+      echo "ERROR: Speed Optimizer remained active after transient cache purge" >&2
+      restore_rc=1
+    fi
+  fi
+
+  if [[ "$restore_rc" -ne 0 ]]; then
+    return "$restore_rc"
+  fi
+  if [[ "$purge_rc" -ne 0 ]]; then
+    return "$purge_rc"
+  fi
+
+  if [[ "$activated_temporarily" -eq 1 ]]; then
+    echo 'SITEGROUND_DYNAMIC_PURGE=PASS mode=transient-plugin-activation restored=inactive'
+  else
+    echo 'SITEGROUND_DYNAMIC_PURGE=PASS mode=plugin-already-active'
+  fi
+}
+
 echo "== Guard production identity =="
 (
   cd "$PROD_ROOT"
@@ -99,8 +156,6 @@ echo "== Guard production identity =="
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme is $theme" >&2; exit 1; }
 )
 
-# Production MU ownership was reconciled before Block B. A deploy must never
-# silently mutate these shared/plugin responsibilities again.
 for legacy_mu in \
   nuvanx-valoracion-native-hubspot-form.php \
   nuvanx-contacto-hubspot-form.php \
@@ -146,8 +201,7 @@ do
   [[ -f "$STAGED_THEME/$required" ]] || { echo "ERROR: staged release missing $required" >&2; exit 1; }
 done
 grep -Fq 'nvx-patterns-editorial.css' "$STAGED_THEME/functions.php"
-find "$STAGED_THEME" -path '*/vendor' -prune -o -name '*.php' -type f -print0 \
-  | xargs -0 -n1 php -l >/dev/null
+find "$STAGED_THEME" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
 find "$STAGED_THEME/assets/css" -maxdepth 1 -type f -name 'nvx-*.min.css' -delete 2>/dev/null || true
 
 echo "== Mandatory pre-deploy rollback snapshot =="
@@ -172,7 +226,7 @@ fi
 echo "ROLLBACK_SNAPSHOT=PASS path=$BACKUP_DIR"
 
 rollback_after_swap() {
-  rc=$?
+  local rc=$?
   trap - ERR
   set +e
   if [[ "$SWAPPED" -eq 1 ]]; then
@@ -187,7 +241,7 @@ rollback_after_swap() {
     (
       cd "$PROD_ROOT"
       wp cache flush || true
-      wp sg purge || true
+      purge_siteground_dynamic_cache || true
       wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
     )
     restored="$(cat "$BACKUP_DIR/previous-sha.txt" 2>/dev/null || true)"
@@ -202,8 +256,6 @@ rollback_after_swap() {
 trap rollback_after_swap ERR
 
 echo "== Directory cutover =="
-# No live files are overwritten in place: the complete validated release is
-# prepared first, then directories are renamed on the same filesystem.
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
 mv "$STAGED_THEME" "$LIVE_THEME"
 SWAPPED=1
@@ -223,13 +275,12 @@ echo "== Purge production caches =="
 (
   cd "$PROD_ROOT"
   wp cache flush
-  wp sg purge
+  purge_siteground_dynamic_cache
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }'
 )
 
-# Final disk verification after cache operations.
 test "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" = "$SHA"
 
 trap - ERR

@@ -44,16 +44,6 @@ function nvx_theme_setup(): void {
 }
 add_action( 'after_setup_theme', 'nvx_theme_setup' );
 
-/**
- * Suppress broken database media logo in staging environments.
- */
-add_filter( 'theme_mod_custom_logo', function( $value ) {
-	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
-		return false;
-	}
-	return $value;
-} );
-
 /** Enqueue canonical font resources once with high-priority preconnects. */
 function nvx_theme_fonts(): void {
 	$font_url = 'https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap';

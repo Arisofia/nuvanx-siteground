@@ -109,9 +109,6 @@ function nvx_force_404_empty_cases() {
 	if ( ! is_page() ) {
 		return;
 	}
-	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
-		return;
-	}
 	$cases_id = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'casos-de-pacientes' )
 		: 0;

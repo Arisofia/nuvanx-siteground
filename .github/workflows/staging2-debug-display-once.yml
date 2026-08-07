@@ -1,0 +1,78 @@
+name: Staging2 Debug Display Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-debug-display-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          port="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/k"; chmod 600 "$HOME/.ssh/k"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port $port
+            IdentityFile $HOME/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Read staging and production debug state
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          read_cfg() {
+            root="$1"; label="$2"
+            cd "$root"
+            echo "=== $label ==="
+            echo "db=$(wp config get DB_NAME)"
+            echo "home=$(wp option get home)"
+            echo "wp_debug=$(wp config get WP_DEBUG 2>/dev/null || echo UNDEFINED)"
+            echo "wp_debug_display=$(wp config get WP_DEBUG_DISPLAY 2>/dev/null || echo UNDEFINED)"
+            echo "wp_environment=$(wp config get WP_ENVIRONMENT_TYPE 2>/dev/null || echo UNDEFINED)"
+            php -r 'echo "php_display_errors=" . ini_get("display_errors") . PHP_EOL; echo "php_error_reporting=" . error_reporting() . PHP_EOL;'
+            if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then
+              echo -n 'deploy_sha='; tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha; echo
+            else
+              echo 'deploy_sha=MISSING'
+            fi
+          }
+          read_cfg "$STAGING_ROOT" STAGING
+          read_cfg "$PROD_ROOT" PRODUCTION
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/k" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

@@ -64,13 +64,31 @@ jobs:
           printf 'roots_distinct='; test "$STAGING_ROOT" != "$PROD_ROOT" && echo yes || echo no
 
           echo '=== cli availability ==='
-          for cmd in wp mysql mysqldump php rsync; do
+          for cmd in wp mysql mysqldump php rsync siteground siteground-cli sg sgctl sitectl uapi whmapi1 cpapi2; do
             if command -v "$cmd" >/dev/null 2>&1; then
               echo "$cmd=yes"
             else
               echo "$cmd=no"
             fi
           done
+
+          echo '=== likely provisioning binaries ==='
+          found=0
+          for dir in /usr/local/bin /usr/bin /opt/bin "$HOME/bin"; do
+            test -d "$dir" || continue
+            while IFS= read -r candidate; do
+              base="$(basename "$candidate")"
+              case "$base" in
+                *siteground*|sgctl|sitectl|uapi|whmapi1|cpapi2|*mysql*admin*)
+                  echo "provisioning_candidate=$candidate"
+                  found=1
+                  ;;
+              esac
+            done < <(find "$dir" -maxdepth 1 -type f -perm -u+x 2>/dev/null | sort)
+          done
+          if test "$found" -eq 0; then
+            echo 'provisioning_candidate=none_detected'
+          fi
 
           test -f "$STAGING_ROOT/wp-config.php"
           test -f "$PROD_ROOT/wp-config.php"
@@ -100,6 +118,11 @@ jobs:
             else
               echo 'mysql_global_create_database_privilege=NO_EVIDENCE'
             fi
+            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE USER.* ON \*\.\*'; then
+              echo 'mysql_create_user_privilege=LIKELY_YES'
+            else
+              echo 'mysql_create_user_privilege=NO_EVIDENCE'
+            fi
             if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON'; then
               echo 'mysql_has_all_privileges_some_scope=yes'
             else
@@ -107,6 +130,7 @@ jobs:
             fi
           else
             echo 'mysql_global_create_database_privilege=UNAVAILABLE_mysql_cli_missing'
+            echo 'mysql_create_user_privilege=UNAVAILABLE_mysql_cli_missing'
           fi
 
           echo '=== result ==='

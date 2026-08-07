@@ -15,7 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Whether the current request is the canonical treatments hub template. */
 function nvx_theme_is_treatments_hub(): bool {
-	return is_page_template( 'templates/page-tratamientos.php' ) || is_page_template( 'page-tratamientos.php' );
+	return is_page_template( 'templates/page-tratamientos.php' ) 
+		|| is_page_template( 'page-tratamientos.php' )
+		|| is_page_template( 'templates/page-tratamiento.php' )
+		|| is_page_template( 'page-tratamiento.php' );
 }
 
 /** Whether the current request is the treatments hub page by slug. */

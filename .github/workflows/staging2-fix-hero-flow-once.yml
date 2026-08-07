@@ -39,53 +39,34 @@ jobs:
           p = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css')
           s = p.read_text(encoding='utf-8')
 
-          old_inner = '''.nvx-brand-hero .nvx-brand-hero__inner,
-          .nvx-page-hero .nvx-page-hero__inner,
-          .nvx-page-hero .nvx-hero__inner,
-          .nvx-hero .nvx-hero__inner,
-          .nvx-brand-hero .nvx-shell {
-            display: block;
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            max-width: none;
-            min-height: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }'''.replace('          ', '')
+          inner_start = s.index('.nvx-brand-hero .nvx-brand-hero__inner,')
+          inner_end = s.index('/* Hero media oculto', inner_start)
+          inner = s[inner_start:inner_end]
+          required_inner = {
+              'position: absolute;': 'position: relative;',
+              'inset: 0;': 'inset: auto;',
+              'min-height: 100%;': 'min-height: 0;',
+              'height: 100%;': 'height: auto;',
+          }
+          for old, new in required_inner.items():
+              count = inner.count(old)
+              if count != 1:
+                  raise SystemExit(f'Hero-inner invariant mismatch for {old!r}: found {count}')
+              inner = inner.replace(old, new, 1)
+          s = s[:inner_start] + inner + s[inner_end:]
 
-          new_inner = '''.nvx-brand-hero .nvx-brand-hero__inner,
-          .nvx-page-hero .nvx-page-hero__inner,
-          .nvx-page-hero .nvx-hero__inner,
-          .nvx-hero .nvx-hero__inner,
-          .nvx-brand-hero .nvx-shell {
-            display: block;
-            position: relative;
-            inset: auto;
-            width: 100%;
-            max-width: none;
-            min-height: 0;
-            height: auto;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }'''.replace('          ', '')
-
-          if s.count(old_inner) != 1:
-              raise SystemExit(f'Expected exactly one canonical hero-inner block; found {s.count(old_inner)}')
-          s = s.replace(old_inner, new_inner, 1)
-
-          old_copy = '''  min-height: 100%;
-          height: 100%;
-          margin-inline: auto;'''.replace('          ', '')
-          new_copy = '''  min-height: 0;
-          height: auto;
-          margin-inline: auto;'''.replace('          ', '')
-          if s.count(old_copy) != 1:
-              raise SystemExit(f'Expected exactly one hero-copy height block; found {s.count(old_copy)}')
-          s = s.replace(old_copy, new_copy, 1)
+          copy_start = s.index('.nvx-brand-hero__copy,')
+          copy_end = s.index('@keyframes fadeInUp', copy_start)
+          copy = s[copy_start:copy_end]
+          for old, new in (
+              ('min-height: 100%;', 'min-height: 0;'),
+              ('height: 100%;', 'height: auto;'),
+          ):
+              count = copy.count(old)
+              if count != 1:
+                  raise SystemExit(f'Hero-copy invariant mismatch for {old!r}: found {count}')
+              copy = copy.replace(old, new, 1)
+          s = s[:copy_start] + copy + s[copy_end:]
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -98,7 +79,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          css='wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css'
           python - <<'PY'
           from pathlib import Path
           s = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css').read_text()
@@ -106,6 +86,7 @@ jobs:
           end = s.index('/* Hero media oculto', start)
           inner = s[start:end]
           assert 'position: relative;' in inner
+          assert 'inset: auto;' in inner
           assert 'height: auto;' in inner
           assert 'min-height: 0;' in inner
           assert 'position: absolute;' not in inner

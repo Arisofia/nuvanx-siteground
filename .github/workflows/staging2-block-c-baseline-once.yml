@@ -1,0 +1,84 @@
+name: Staging2 Block C Baseline Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-block-c-baseline-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-block-c-baseline
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      EXPECTED_HOST: staging2.nuvanx.com
+      EXPECTED_SHA: 13bf60a9b561d38e996eec59ad6868a3f45c48e3
+      CI: true
+    steps:
+      - name: Checkout QA harness
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Validate Block C harness contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/block-c-visual-qa.mjs
+          node -e "const r=require('./wp-content/themes/nuvanx-medical/inc/data/routes.json'); if(Object.keys(r).length!==52){throw new Error('Expected 52 routes, got '+Object.keys(r).length)}; console.log('routes=52');"
+          grep -Fq "1440, height: 1100" scripts/staging2/block-c-visual-qa.mjs
+          grep -Fq "1024, height: 768" scripts/staging2/block-c-visual-qa.mjs
+          grep -Fq "390, height: 844" scripts/staging2/block-c-visual-qa.mjs
+
+      - name: Install Playwright dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+
+      - name: Run 52 routes × 3 exact viewports
+        id: block_c
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/staging2/block-c-visual-qa.mjs 2>&1 | tee /tmp/block-c-run.log
+
+      - name: Upload Block C evidence
+        if: always()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: staging2-block-c-baseline-13bf60a9b561d38e996eec59ad6868a3f45c48e3
+          path: |
+            scripts/staging2/block-c-artifacts/
+            /tmp/block-c-run.log
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 6
+
+      - name: Enforce Block C result
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ '${{ steps.block_c.outcome }}' != 'success' ]]; then
+            echo 'Block C baseline contains FIX/BLOCKED cases. See artifact for 156-case evidence.' >&2
+            exit 1
+          fi
+          echo 'BLOCK_C_BASELINE=PASS'

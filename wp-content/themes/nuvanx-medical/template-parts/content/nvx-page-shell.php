@@ -190,34 +190,6 @@ while ( have_posts() ) :
 		}
 	}
 	?>
-
-	<?php if ( is_single() ) : ?>
-		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
-			<?php
-				$prev                 = get_previous_post();
-				$next                 = get_next_post();
-				$quarantined_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
-					? nvx_quarantined_comparison_post_ids()
-					: array();
-			if ( $prev && in_array( (int) $prev->ID, $quarantined_post_ids, true ) ) {
-				$prev = null;
-			}
-			if ( $next && in_array( (int) $next->ID, $quarantined_post_ids, true ) ) {
-				$next = null;
-			}
-			if ( $prev ) {
-				?>
-				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" rel="prev">&larr; <?php echo esc_html( get_the_title( $prev ) ); ?></a>
-					<?php
-			}
-			if ( $next ) {
-				?>
-				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $next ) ); ?>" rel="next"><?php echo esc_html( get_the_title( $next ) ); ?> &rarr;</a>
-					<?php
-			}
-			?>
-		</nav>
-	<?php endif; ?>
 </article>
 	<?php
 endwhile;

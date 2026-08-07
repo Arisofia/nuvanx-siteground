@@ -161,6 +161,8 @@ $method_steps = array(
 		</div>
 	</section>
 
+<?php
 // Close standard content wrapper
 echo '</div>';
-</div>
+echo '</div>';
+?>

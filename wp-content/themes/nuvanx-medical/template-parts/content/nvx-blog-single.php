@@ -20,8 +20,7 @@ while ( have_posts() ) :
 	$tags       = is_array( $tags ) ? $tags : array();
 	$hero_class = has_post_thumbnail() ? 'nvx-blog-hero' : 'nvx-blog-hero nvx-blog-hero--text-only';
 	?>
-	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-blog-article' ); ?>>
-		<header class="<?php echo esc_attr( $hero_class ); ?>" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
+	<header class="<?php echo esc_attr( $hero_class ); ?>" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
 			<div class="nvx-brand-section__inner nvx-blog-hero__inner">
 				<div class="nvx-blog-hero__copy">
 					<?php if ( $primary instanceof WP_Term ) : ?>
@@ -147,6 +146,5 @@ while ( have_posts() ) :
 				<?php endif; ?>
 			</div>
 		</div>
-	</article>
 	<?php
 endwhile;

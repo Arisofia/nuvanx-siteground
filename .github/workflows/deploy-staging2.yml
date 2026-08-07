@@ -142,7 +142,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${DEPLOY_SHA}"
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${DEPLOY_SHA}"
           [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
           echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
           ssh nvx-staging2 "WP_ROOT='$WP_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
@@ -171,7 +171,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}"
+          REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme'"
           rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
@@ -364,10 +364,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: staging2-boundary-${{ inputs.sha }}
+          name: staging2-boundary-${{ inputs.sha }}-attempt-${{ github.run_attempt }}
           path: scripts/staging2/artifacts/staging2-boundary.json
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Remove temporary remote payload
         if: always()

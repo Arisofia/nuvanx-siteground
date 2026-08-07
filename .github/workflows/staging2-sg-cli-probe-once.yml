@@ -1,0 +1,67 @@
+name: Staging2 SG CLI Probe Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-sg-cli-probe-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/k"; chmod 600 "$HOME/.ssh/k"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile $HOME/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Probe Speed Optimizer WP-CLI loading without activation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$WP_ROOT"
+          echo "plugin_status=$(wp plugin status sg-cachepress 2>/dev/null | head -1 || true)"
+          main='wp-content/plugins/sg-cachepress/sg-cachepress.php'
+          test -f "$main"
+          if wp --require="$main" help sg >/dev/null 2>&1; then
+            echo 'sg_cli_via_require=AVAILABLE'
+          else
+            echo 'sg_cli_via_require=UNAVAILABLE'
+          fi
+          echo "plugin_status_after=$(wp plugin status sg-cachepress 2>/dev/null | head -1 || true)"
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/k" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

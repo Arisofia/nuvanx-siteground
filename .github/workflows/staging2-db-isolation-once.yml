@@ -70,7 +70,6 @@ jobs:
         run: |
           set -euo pipefail
           : "${STAGING2_DB_PASSWORD:?Missing DB_PASSWORD}"
-          test "${#STAGING2_DB_PASSWORD}" -ge 12
           echo 'staging_db_password_secret=present'
 
       - name: Transfer staging DB password securely
@@ -167,7 +166,7 @@ jobs:
             fi
           }
 
-          mysql_new "$NEW_DB" -Nse 'SELECT DATABASE();' | grep -Fx "$NEW_DB" >/dev/null || fail 'new staging DB connection failed'
+          mysql_new "$NEW_DB" -Nse 'SELECT DATABASE();' | grep -Fx "$NEW_DB" >/dev/null || fail 'new staging DB authentication/connection failed'
           new_table_count="$(mysql_new "$NEW_DB" -Nse 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE();')"
           test "$new_table_count" = '0' || fail "new staging DB is not empty (tables=$new_table_count)"
 

@@ -1,7 +1,7 @@
 name: Deploy Staging2
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       sha:
         description: Full commit SHA to deploy to staging2
@@ -12,6 +12,17 @@ on:
         required: true
         default: false
         type: boolean
+    secrets:
+      STAGING2_SSH_HOST:
+        required: true
+      STAGING2_SSH_PORT:
+        required: false
+      STAGING2_SSH_USER:
+        required: true
+      STAGING2_SSH_PRIVATE_KEY:
+        required: true
+      STAGING2_SSH_KNOWN_HOSTS:
+        required: true
 
 permissions:
   contents: read
@@ -23,7 +34,7 @@ concurrency:
 jobs:
   deploy:
     name: Deploy immutable SHA and verify Block A boundary
-    if: github.ref == 'refs/heads/master' && github.actor == 'github-actions[bot]'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

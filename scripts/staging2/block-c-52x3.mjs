@@ -151,6 +151,23 @@ async function waitForVisualStability(page) {
   await page.waitForTimeout(400);
 }
 
+async function activateLazyImages(page) {
+  await page.evaluate(async () => {
+    const scrollingElement = document.scrollingElement || document.documentElement;
+    const maxY = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
+    const step = Math.max(360, Math.floor(window.innerHeight * 0.8));
+    for (let y = 0; y <= maxY; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((resolve) => setTimeout(resolve, 45));
+    }
+    window.scrollTo(0, maxY);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    window.scrollTo(0, 0);
+  }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+  await page.waitForTimeout(180);
+}
+
 async function collectGeometry(page) {
   return page.evaluate(() => {
     const vw = window.innerWidth;
@@ -189,6 +206,8 @@ async function collectGeometry(page) {
     const hero = document.querySelector('.nvx-home-hero, .nvx-brand-hero, .nvx-blog-hero, .nvx-page-header, .nvx-strategy-intro, [class*="hero"]');
     const nav = document.querySelector('header nav, .nvx-site-header nav, .nvx-header nav, .nvx-primary-nav');
     const video = document.querySelector('.nvx-home-hero video, video');
+    const navToggleSelector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
+    const navToggleVisible = Array.from(document.querySelectorAll(navToggleSelector)).some(visible);
 
     const h1s = Array.from(document.querySelectorAll('h1')).filter(visible);
     const h1 = h1s[0] || null;
@@ -214,9 +233,29 @@ async function collectGeometry(page) {
       .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120));
 
     const brokenImages = Array.from(document.images)
-      .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && img.currentSrc)
+      .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.getAttribute('src')))
       .slice(0, 12)
       .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)');
+
+    const unresolvedLazyImages = Array.from(document.images)
+      .filter((img) => {
+        if (!visible(img) || img.naturalWidth > 0 || img.currentSrc) return false;
+        return Boolean(
+          img.getAttribute('data-src') ||
+          img.getAttribute('data-lazy-src') ||
+          img.getAttribute('data-original') ||
+          img.getAttribute('data-srcset')
+        );
+      })
+      .slice(0, 12)
+      .map((img) =>
+        img.getAttribute('data-src') ||
+        img.getAttribute('data-lazy-src') ||
+        img.getAttribute('data-original') ||
+        img.getAttribute('data-srcset') ||
+        img.alt ||
+        '(unknown lazy image)'
+      );
 
     const visibleSections = main
       ? Array.from(main.querySelectorAll('section, article')).filter(visible)
@@ -250,12 +289,13 @@ async function collectGeometry(page) {
       visibleCtaCount: visibleCtas.length,
       invalidCtas,
       brokenImages,
+      unresolvedLazyImages,
       fontsStatus: document.fonts?.status || 'unknown',
       bodyFontFamily: bodyStyle.fontFamily || '',
       bodyFontSize: bodyStyle.fontSize || '',
       visibleSectionCount: visibleSections.length,
       navVisible: visible(nav),
-      navToggleVisible: visible(document.querySelector('button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]')),
+      navToggleVisible,
       videoVisible: visible(video),
       videoRect: rectData(video),
     };
@@ -272,28 +312,41 @@ async function findVisibleLocator(page, selector) {
   return null;
 }
 
-async function testMobileMenu(page, viewport, issues) {
-  if (viewport.width > 480) return;
+async function testResponsiveMenu(page, viewport, geometry, issues) {
+  const compactNavigationExpected = viewport.width <= 480 || (!geometry.navVisible && geometry.navToggleVisible);
+  if (!compactNavigationExpected) return;
+
+  const label = viewport.width <= 480 ? 'Mobile' : `Tablet ${viewport.width}px`;
   const toggle = await findVisibleLocator(
     page,
     'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]'
   );
   if (!toggle) {
-    issues.push('Mobile: no visible menu toggle found');
+    issues.push(`${label}: no visible menu toggle found`);
     return;
   }
+
   try {
-    const before = await toggle.getAttribute('aria-expanded');
+    const beforeExpanded = await toggle.getAttribute('aria-expanded');
+    const beforeVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
     await toggle.click({ timeout: 2500 });
-    await page.waitForTimeout(180);
-    const after = await toggle.getAttribute('aria-expanded');
-    const visibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
-    if (before === after && visibleMenuItems === 0) {
-      issues.push('Mobile: menu toggle did not expose navigation');
+    await page.waitForTimeout(220);
+    const afterExpanded = await toggle.getAttribute('aria-expanded');
+    const afterVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
+
+    const ariaOpened = beforeExpanded !== 'true' && afterExpanded === 'true';
+    const linksExposed = afterVisibleMenuItems > beforeVisibleMenuItems && afterVisibleMenuItems > 0;
+    if (!ariaOpened && !linksExposed) {
+      issues.push(`${label}: menu toggle did not expose navigation`);
     }
+    if (afterVisibleMenuItems === 0) {
+      issues.push(`${label}: compact navigation opened without visible links`);
+    }
+
     await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(100);
   } catch (error) {
-    issues.push(`Mobile: menu toggle interaction failed: ${error.message}`);
+    issues.push(`${label}: menu toggle interaction failed: ${error.message}`);
   }
 }
 
@@ -324,6 +377,8 @@ for (const viewport of viewports) {
     const page = await context.newPage();
     const consoleErrors = [];
     const networkErrors = [];
+    const imageHttpErrors = [];
+    const productionMediaLeaks = [];
     const issues = [];
     const blockers = [];
 
@@ -338,6 +393,37 @@ for (const viewport of viewports) {
       const target = request.url();
       if (target.startsWith(baseUrl)) {
         networkErrors.push(`${target}: ${request.failure()?.errorText || 'request failed'}`);
+      }
+      if (request.resourceType() === 'image') {
+        let hostname = '';
+        try {
+          hostname = new URL(target).hostname;
+        } catch {
+          hostname = '';
+        }
+        if (hostname === expectedHost) {
+          imageHttpErrors.push(`${target}: ${request.failure()?.errorText || 'request failed'}`);
+        }
+      }
+    });
+    page.on('response', (resourceResponse) => {
+      const request = resourceResponse.request();
+      if (request.resourceType() !== 'image') return;
+      const target = resourceResponse.url();
+      let parsed = null;
+      try {
+        parsed = new URL(target);
+      } catch {
+        return;
+      }
+      if (parsed.hostname === expectedHost && resourceResponse.status() >= 400) {
+        imageHttpErrors.push(`${target}: HTTP ${resourceResponse.status()}`);
+      }
+      if (
+        (parsed.hostname === 'nuvanx.com' || parsed.hostname === 'www.nuvanx.com') &&
+        parsed.pathname.includes('/wp-content/uploads/')
+      ) {
+        productionMediaLeaks.push(target);
       }
     });
 
@@ -370,6 +456,7 @@ for (const viewport of viewports) {
       if (blockers.length === 0) {
         await handleCookieConsent(page);
         await waitForVisualStability(page);
+        await activateLazyImages(page);
 
         metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
         if (metaSha !== expectedSha) blockers.push(`Deployment SHA mismatch: ${metaSha || 'missing'} != ${expectedSha}`);
@@ -396,12 +483,15 @@ for (const viewport of viewports) {
         if (geometry.visibleCtaCount === 0 && !shortContentRoutes.has(route)) issues.push('No visible CTA found');
         if (geometry.invalidCtas.length > 0) issues.push(`Invalid visible CTA href (#/empty): ${geometry.invalidCtas.join(' | ')}`);
         if (geometry.brokenImages.length > 0) issues.push(`Broken visible images: ${geometry.brokenImages.join(' | ')}`);
+        if (geometry.unresolvedLazyImages.length > 0) issues.push(`Lazy images unresolved after full-page activation: ${geometry.unresolvedLazyImages.join(' | ')}`);
+        if (imageHttpErrors.length > 0) issues.push(`Image request errors: ${[...new Set(imageHttpErrors)].slice(0, 8).join(' | ')}`);
+        if (productionMediaLeaks.length > 0) issues.push(`Staging media leaked to production host: ${[...new Set(productionMediaLeaks)].slice(0, 8).join(' | ')}`);
         if (geometry.fontsStatus !== 'loaded') issues.push(`Fonts did not reach loaded state (${geometry.fontsStatus})`);
         if (!geometry.bodyFontFamily) issues.push('Body computed font-family is empty');
         if (geometry.mainTextLength < 80 && !shortContentRoutes.has(route)) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
-        if (geometry.visibleSectionCount < 2 && !shortContentRoutes.has(route)) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible top-level main sections/wrappers`);
+        if (geometry.visibleSectionCount < 2 && geometry.mainTextLength < 400 && !shortContentRoutes.has(route)) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
         if (viewport.width >= 1024 && !geometry.navVisible && !geometry.navToggleVisible) issues.push('Desktop/tablet header navigation or menu toggle is not visible');
-        if (viewport.width <= 480) await testMobileMenu(page, viewport, issues);
+        await testResponsiveMenu(page, viewport, geometry, issues);
         if (route === '/') {
           if (!geometry.videoVisible) issues.push('Home hero video is not visible');
           if (geometry.videoRect && (geometry.videoRect.width < 100 || geometry.videoRect.height < 100)) issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
@@ -450,6 +540,8 @@ for (const viewport of viewports) {
       geometry,
       consoleErrors: consoleErrors.slice(0, 30),
       networkErrors: networkErrors.slice(0, 30),
+      imageHttpErrors: [...new Set(imageHttpErrors)].slice(0, 30),
+      productionMediaLeaks: [...new Set(productionMediaLeaks)].slice(0, 30),
       screenshot,
       fatal,
     };

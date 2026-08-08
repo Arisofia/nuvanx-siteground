@@ -22,7 +22,7 @@ jobs:
       - name: Checkout target branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fix/google-attribution-legacy-form-20260808
+          ref: fix/google-attribution-legacy-form-v2-20260808
           path: target
           fetch-depth: 0
           persist-credentials: true
@@ -49,4 +49,4 @@ jobs:
           git config user.email 'admin@nuvanx.com'
           git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
           git commit -m 'fix(attribution): support legacy HubSpot form callbacks'
-          git push origin HEAD:fix/google-attribution-legacy-form-20260808
+          git push origin HEAD:fix/google-attribution-legacy-form-v2-20260808

@@ -1,0 +1,77 @@
+name: Scope Legal Page Layout Once
+
+on:
+  push:
+    branches: [fix/legal-page-scope]
+    paths:
+      - .github/workflows/scope-legal-page-layout-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/legal-page-scope
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Mark only legal pages and scope CSS to that class
+        shell: bash
+        run: |
+          set -euo pipefail
+          phpfile='wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php'
+          cssfile='wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php')
+          s=p.read_text('utf-8')
+          old="\t\tarray( 'politica-privacidad', 'aviso-legal' ),"
+          new="\t\tarray( 'politica-privacidad', 'politica-de-cookies', 'aviso-legal', 'mas-informacion-sobre-las-cookies', 'politica-de-cookies-ue' ),"
+          if s.count(old)!=1:
+              raise SystemExit(f'legal slug array changed: {s.count(old)}')
+          s=s.replace(old,new,1)
+          anchor="\t$classes          = array( 'nvx-page' );\n\tif ( is_single() ) {"
+          replacement="\t$classes          = array( 'nvx-page' );\n\tif ( $is_legal_page ) {\n\t\t$classes[] = 'nvx-page--legal';\n\t}\n\tif ( is_single() ) {"
+          if s.count(anchor)!=1:
+              raise SystemExit(f'class anchor changed: {s.count(anchor)}')
+          p.write_text(s.replace(anchor,replacement,1),'utf-8')
+
+          p=Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
+          s=p.read_text('utf-8')
+          old='.nvx-page > .nvx-blog-article.nvx-brand-readable'
+          new='.nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable'
+          count=s.count(old)
+          if count < 4:
+              raise SystemExit(f'expected legal selector occurrences, got {count}')
+          s=s.replace(old,new)
+          if old in s:
+              raise SystemExit('unscoped legal selector remains')
+          p.write_text(s,'utf-8')
+          print(f'LEGAL_SCOPED_SELECTORS={count}')
+          PY
+          git diff --check
+          changed="$(git diff --name-only | sort)"
+          expected="$(printf '%s\n' "$cssfile" "$phpfile" | sort)"
+          test "$changed" = "$expected"
+          grep -Fq "nvx-page--legal" "$phpfile"
+          grep -Fq ".nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable" "$cssfile"
+          ! grep -Fq ".nvx-page > .nvx-blog-article.nvx-brand-readable" "$cssfile"
+          node scripts/lint/no-hardcoded-colors.mjs
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+          find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          while IFS= read -r -d '' f; do node --check "$f"; done < <(find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.js' -type f -print0)
+      - name: Commit legal scope only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Audit Controller'
+          git config user.email 'audit-controller@nuvanx.invalid'
+          git add wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          git diff --cached --check
+          git commit -m 'fix(visual): scope legal document layout to legal pages'
+          git push origin HEAD:fix/legal-page-scope

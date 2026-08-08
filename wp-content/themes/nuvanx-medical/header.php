@@ -9,10 +9,13 @@ defined( 'ABSPATH' ) || exit;
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <?php
 // Single document title: theme-support title-tag + document-governance normalizer.
-// Static analyzers that only read this file do not see the runtime <title>; the
-// live document still has exactly one title after governance runs.
+if ( ! current_theme_supports( 'title-tag' ) ) :
+	?>
+	<title><?php echo esc_html( wp_get_document_title() ); ?></title>
+	<?php
+endif;
+wp_head();
 ?>
-<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <a class="nvx-skip-link" href="#nvx-main"><?php esc_html_e( 'Saltar al contenido principal', 'nuvanx-medical' ); ?></a>

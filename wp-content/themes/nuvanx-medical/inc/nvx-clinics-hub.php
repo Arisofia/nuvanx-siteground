@@ -574,7 +574,7 @@ function nvxClinicsClassWithoutButtonChrome( string $class ): string {
 				if ( '' === $c ) {
 					return false;
 				}
-				return ! preg_match( '/^(nvx-brand-btn|nvx-brand-btn|nvx-btn)(--[\w-]+)?$/i', $c )
+				return ! preg_match( '/^(nvx-brand-btn|nvx-btn)(--[\w-]+)?$/i', $c )
 					&& 'nvx-clinic-map-cta' !== $c;
 			}
 		)
@@ -683,7 +683,7 @@ function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, b
 
 /** Classify and style single CTA link node. */
 function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
-	$isBtn     = (bool) preg_match( '/\b(nvx-brand-btn|nvx-brand-btn|nvx-btn)\b/i', $class );
+	$isBtn     = (bool) preg_match( '/\b(nvx-brand-btn|nvx-btn)\b/i', $class );
 	$treatment = nvxClinicsCtaTreatment( $link, $href, $text, $isBtn );
 
 	switch ( $treatment ) {
@@ -1070,7 +1070,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Registro sanitario CS20144', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-clinic-chamberi-title" class="nvx-brand-title">' . esc_html__( 'Centro Clínico NUVANX Chamberí', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'A dos minutos de la Plaza de Olavide. Valoración, Endolift®, láser CO₂ y seguimiento en un centro autorizado por la Comunidad de Madrid.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-brand-list" role="list">';
+	$html .= '<ul class="nvx-brand-list">';
 	$html .= '<li><svg class="nvx-icon" aria-hidden="true"><use href="#icon-location"></use></svg> ' . esc_html( $chamberi_addr ) . '</li>';
 	$html .= '<li><svg class="nvx-icon" aria-hidden="true"><use href="#icon-phone"></use></svg> <a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $chamberi_phone ) . '">' . esc_html( $chamberi_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $chamberi_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
 	$html .= '<li>' . esc_html__( 'Horario:', 'nuvanx-medical' ) . ' ' . esc_html( $chamberi_hours ) . '</li>';
@@ -1087,7 +1087,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Registro sanitario CS20073', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-clinic-goya-title" class="nvx-brand-title">' . esc_html__( 'Centro Clínico NUVANX Salamanca–Goya', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En el Barrio de Salamanca. Misma dirección médica y protocolos que Chamberí, con atención y valoración en sede propia.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-brand-list" role="list">';
+	$html .= '<ul class="nvx-brand-list">';
 	$html .= '<li><svg class="nvx-icon" aria-hidden="true"><use href="#icon-location"></use></svg> ' . esc_html( $goya_addr ) . '</li>';
 	$html .= '<li><svg class="nvx-icon" aria-hidden="true"><use href="#icon-phone"></use></svg> <a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $goya_phone ) . '">' . esc_html( $goya_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $goya_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
 	$html .= '<li>' . esc_html__( 'Horario:', 'nuvanx-medical' ) . ' ' . esc_html( $goya_hours ) . '</li>';

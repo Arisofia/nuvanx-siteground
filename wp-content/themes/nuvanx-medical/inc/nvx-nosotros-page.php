@@ -187,11 +187,11 @@ function nvx_nosotros_clinics_markup(): string {
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $c['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html( $c['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $c['lead'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-contact-clinics" role="list">';
+	$html .= '<ul class="nvx-contact-clinics">';
 
 	foreach ( $clinics as $clinic ) {
 		$clinic_id = 'nvx-clinic-' . sanitize_title( $clinic['name'] ?? '' );
-		$html     .= '<li role="listitem">';
+		$html     .= '<li>';
 		$html     .= '<article class="nvx-contact-clinic" aria-labelledby="' . esc_attr( $clinic_id ) . '">';
 		$html     .= '<h3 id="' . esc_attr( $clinic_id ) . '" class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
 		$html     .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
@@ -232,7 +232,7 @@ function nvx_nosotros_team_markup(): string {
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $t['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html( $t['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $t['lead'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-nosotros-team-grid" role="list">';
+	$html .= '<ul class="nvx-nosotros-team-grid">';
 
 	$index = 0;
 	foreach ( (array) ( $t['members'] ?? array() ) as $m ) {
@@ -248,7 +248,7 @@ function nvx_nosotros_team_markup(): string {
 		$member_id = 'nvx-team-card-' . $index;
 		$bio_label = esc_attr( ( $t['bio_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
 		$doc_label = esc_attr( ( $t['doctoralia_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
-		$html     .= '<li role="listitem">';
+		$html     .= '<li>';
 		$html     .= '<article class="nvx-nosotros-team-card" aria-labelledby="' . esc_attr( $member_id ) . '">';
 		$html     .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $m['role'] ?? '' ) . '</p>';
 		$html     .= '<h3 id="' . esc_attr( $member_id ) . '" class="nvx-feature-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
@@ -283,7 +283,7 @@ function nvx_nosotros_principles_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
-	$html .= '<ul class="nvx-feature-zone-list" role="list">';
+	$html .= '<ul class="nvx-feature-zone-list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-feature-zone">';
 		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';

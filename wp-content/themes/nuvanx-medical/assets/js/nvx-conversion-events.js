@@ -10,7 +10,8 @@
 		var token = String(value || '')
 			.toLowerCase()
 			.replace(/[^a-z0-9_-]+/g, '_')
-			.replace(/^_+|_+$/g, '')
+			.replace(/^_+/, '')
+			.replace(/_+$/, '')
 			.slice(0, 80);
 		return token || fallback || 'unknown';
 	}

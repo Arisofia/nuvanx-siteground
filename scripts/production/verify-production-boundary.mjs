@@ -127,7 +127,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA routes=8"
 `;
 
   const output = execFileSync(
-    'ssh',
+    '/usr/bin/ssh',
     [
       'nvx-prod',
       `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} bash -se`,

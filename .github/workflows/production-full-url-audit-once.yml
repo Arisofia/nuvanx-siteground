@@ -1,0 +1,404 @@
+name: Production Full URL Audit Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-full-url-audit-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-full-url-audit-4775310
+  cancel-in-progress: false
+
+env:
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  BASE_URL: https://nuvanx.com
+  EXPECTED_HOST: nuvanx.com
+  EXPECTED_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+
+jobs:
+  audit:
+    name: Full production URL audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null && command -v tar >/dev/null"
+          echo 'PRODUCTION_AUDIT_SSH=PASS'
+
+      - name: Capture every production URL from hosting network
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_AUDIT="/tmp/nvx-prod-full-audit-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_AUDIT=$REMOTE_AUDIT" >> "$GITHUB_ENV"
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_SHA='$EXPECTED_SHA' AUDIT='$REMOTE_AUDIT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          rm -rf "$AUDIT"
+          mkdir -p "$AUDIT/html" "$AUDIT/sitemaps"
+          cd "$PROD_ROOT"
+
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          disk_sha="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          test "$disk_sha" = "$EXPECTED_SHA"
+          printf '%s\n' "$disk_sha" > "$AUDIT/disk-sha.txt"
+
+          ua='NUVANX-Production-Origin-Audit/1.0'
+          sitemap_index="$BASE_URL/sitemap_index.xml"
+          result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: application/xml,text/xml,*/*' -o "$AUDIT/sitemaps/index.xml" -w '%{http_code}|%{url_effective}' "$sitemap_index")"
+          code="${result%%|*}"
+          test "$code" = '200'
+          ! grep -Fq '/.well-known/sgcaptcha/' "$AUDIT/sitemaps/index.xml"
+
+          grep -oE '<loc>[^<]+' "$AUDIT/sitemaps/index.xml" | sed 's#<loc>##' > "$AUDIT/child-sitemaps.txt"
+          test -s "$AUDIT/child-sitemaps.txt"
+
+          : > "$AUDIT/sitemap-urls.txt"
+          sm_i=0
+          while IFS= read -r sm; do
+            [[ -n "$sm" ]] || continue
+            sm_i=$((sm_i + 1))
+            sm_file="$AUDIT/sitemaps/child-${sm_i}.xml"
+            sm_result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: application/xml,text/xml,*/*' -o "$sm_file" -w '%{http_code}|%{url_effective}' "$sm")"
+            sm_code="${sm_result%%|*}"
+            test "$sm_code" = '200'
+            ! grep -Fq '/.well-known/sgcaptcha/' "$sm_file"
+            grep -oE '<loc>[^<]+' "$sm_file" | sed 's#<loc>##' >> "$AUDIT/sitemap-urls.txt" || true
+          done < "$AUDIT/child-sitemaps.txt"
+
+          sort -u "$AUDIT/sitemap-urls.txt" -o "$AUDIT/sitemap-urls.txt"
+          test -s "$AUDIT/sitemap-urls.txt"
+
+          cp "$AUDIT/sitemap-urls.txt" "$AUDIT/all-urls.txt"
+          cat >> "$AUDIT/all-urls.txt" <<EOF
+          $BASE_URL/
+          $BASE_URL/blog/
+          $BASE_URL/contacto/
+          $BASE_URL/madrid/valoracion/
+          $BASE_URL/aviso-legal/
+          $BASE_URL/politica-privacidad/
+          $BASE_URL/politica-de-cookies-ue/
+          $BASE_URL/casos-de-pacientes/
+          EOF
+          sed -i 's/^[[:space:]]*//' "$AUDIT/all-urls.txt"
+          sort -u "$AUDIT/all-urls.txt" -o "$AUDIT/all-urls.txt"
+
+          : > "$AUDIT/capture.tsv"
+          idx=0
+          while IFS= read -r url; do
+            [[ -n "$url" ]] || continue
+            idx=$((idx + 1))
+            key="$(printf '%04d' "$idx")"
+            headers="$AUDIT/html/${key}.headers"
+            body="$AUDIT/html/${key}.html"
+            result="$(curl -sS -L --max-redirs 8 --max-time 35 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$url" || printf '000|%s' "$url")"
+            code="${result%%|*}"
+            effective="${result#*|}"
+            printf '%s\t%s\t%s\t%s\n' "$key" "$url" "$code" "$effective" >> "$AUDIT/capture.tsv"
+            echo "CAPTURE url=$url code=$code final=$effective"
+          done < "$AUDIT/all-urls.txt"
+
+          printf 'sitemap_urls=%s\n' "$(wc -l < "$AUDIT/sitemap-urls.txt" | tr -d ' ')" > "$AUDIT/inventory.txt"
+          printf 'all_urls=%s\n' "$(wc -l < "$AUDIT/all-urls.txt" | tr -d ' ')" >> "$AUDIT/inventory.txt"
+          tar -C "$AUDIT" -czf "${AUDIT}.tgz" .
+          echo "REMOTE_CAPTURE=PASS urls=$(wc -l < "$AUDIT/all-urls.txt" | tr -d ' ') sha=$disk_sha"
+          REMOTE
+
+          mkdir -p audit/raw audit/report
+          scp "nvx-prod:${REMOTE_AUDIT}.tgz" audit/raw/capture.tgz
+          tar -xzf audit/raw/capture.tgz -C audit/raw
+
+      - name: Analyze HTML shell, SEO and internal links
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv, json, re
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlsplit, urlunsplit
+
+          root = Path('audit/raw')
+          report = Path('audit/report')
+          report.mkdir(parents=True, exist_ok=True)
+          expected_sha = '4775310be2b7dcdda18f8fd6de8e40041c2eb555'
+          expected_host = 'nuvanx.com'
+          sitemap_urls = set(x.strip() for x in (root/'sitemap-urls.txt').read_text().splitlines() if x.strip())
+
+          class AuditParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.title_count = 0
+                  self.h1_count = 0
+                  self.header_count = 0
+                  self.footer_count = 0
+                  self.main_count = 0
+                  self.header_cta_count = 0
+                  self.canonicals = []
+                  self.styles = []
+                  self.links = []
+                  self.robots = []
+                  self.html_lang = ''
+              def handle_starttag(self, tag, attrs):
+                  d = dict(attrs)
+                  classes = set((d.get('class') or '').split())
+                  if tag == 'html': self.html_lang = d.get('lang') or ''
+                  if tag == 'title': self.title_count += 1
+                  if tag == 'h1': self.h1_count += 1
+                  if tag == 'header' and d.get('id') == 'nvx-header' and 'nvx-header' in classes: self.header_count += 1
+                  if tag == 'footer' and 'nvx-footer' in classes: self.footer_count += 1
+                  if tag == 'main' and d.get('id') == 'nvx-main': self.main_count += 1
+                  if d.get('id') == 'nvx-header-cta': self.header_cta_count += 1
+                  if tag == 'link':
+                      rel = (d.get('rel') or '').lower().split()
+                      href = d.get('href') or ''
+                      if 'canonical' in rel: self.canonicals.append(href)
+                      if 'stylesheet' in rel: self.styles.append(href)
+                  if tag == 'a' and d.get('href'): self.links.append(d['href'])
+                  if tag == 'meta' and (d.get('name') or '').lower() == 'robots': self.robots.append((d.get('content') or '').lower())
+
+          rows = []
+          internal = set()
+          capture_rows = []
+          with (root/'capture.tsv').open(newline='') as f:
+              for line in f:
+                  key, url, code, effective = line.rstrip('\n').split('\t', 3)
+                  capture_rows.append((key, url, code, effective))
+
+          required_css = ['nvx-tokens.css','nvx-site-layout.css','nvx-header.css','nvx-footer.css']
+          for key, url, code, effective in capture_rows:
+              body_path = root/'html'/f'{key}.html'
+              header_path = root/'html'/f'{key}.headers'
+              body = body_path.read_text(errors='replace') if body_path.exists() else ''
+              headers = header_path.read_text(errors='replace') if header_path.exists() else ''
+              p = AuditParser()
+              try: p.feed(body)
+              except Exception: pass
+
+              final_host = (urlsplit(effective).hostname or '').lower()
+              captcha = '/.well-known/sgcaptcha/' in body or bool(re.search(r'^sg-captcha:\s*challenge', headers, re.I|re.M))
+              staging_leak = 'staging2.nuvanx.com' in body
+              sha_ok = expected_sha in body
+              noindex_header = bool(re.search(r'^x-robots-tag:.*(?:noindex|nofollow)', headers, re.I|re.M))
+              noindex_meta = any('noindex' in x or 'nofollow' in x for x in p.robots)
+              canonical = p.canonicals[0] if len(p.canonicals) == 1 else ''
+              canonical_host = (urlsplit(canonical).hostname or '').lower() if canonical else ''
+              css = {name: any(name in href for href in p.styles) for name in required_css}
+              is_sitemap = url in sitemap_urls
+
+              failures = []
+              warnings = []
+              if code != '200': failures.append(f'http={code}')
+              if final_host != expected_host: failures.append(f'final_host={final_host or "missing"}')
+              if captcha: failures.append('siteground_captcha')
+              if staging_leak: failures.append('staging_leak')
+              if not sha_ok: failures.append('sha_missing')
+              if p.header_count != 1: failures.append(f'header_count={p.header_count}')
+              if p.footer_count != 1: failures.append(f'footer_count={p.footer_count}')
+              if p.main_count != 1: failures.append(f'main_count={p.main_count}')
+              if p.header_cta_count != 1: failures.append(f'header_cta_count={p.header_cta_count}')
+              if p.title_count != 1: failures.append(f'title_count={p.title_count}')
+              if p.h1_count != 1: failures.append(f'h1_count={p.h1_count}')
+              if len(p.canonicals) != 1: failures.append(f'canonical_count={len(p.canonicals)}')
+              elif canonical_host != expected_host: failures.append(f'canonical_host={canonical_host or "missing"}')
+              for css_name, present in css.items():
+                  if not present: failures.append(f'missing_css:{css_name}')
+              if not p.html_lang.lower().startswith('es'): warnings.append(f'html_lang={p.html_lang or "missing"}')
+              if is_sitemap and (noindex_header or noindex_meta): failures.append('sitemap_url_noindex')
+              elif not is_sitemap and (noindex_header or noindex_meta): warnings.append('noindex_extra_route')
+              for required_text in ['669 319 836','647 505 107','CS20144','CS20073']:
+                  if required_text not in body: failures.append(f'footer_missing:{required_text}')
+              for legal_path in ['/aviso-legal/','/politica-privacidad/','/politica-de-cookies-ue/']:
+                  if legal_path not in body: failures.append(f'footer_legal_missing:{legal_path}')
+
+              base = effective or url
+              for href in p.links:
+                  href = href.strip()
+                  if not href or href.startswith(('#','mailto:','tel:','javascript:','data:')): continue
+                  absolute = urljoin(base, href)
+                  parts = urlsplit(absolute)
+                  host = (parts.hostname or '').lower()
+                  if host not in {'nuvanx.com','www.nuvanx.com'}: continue
+                  path = parts.path or '/'
+                  if re.search(r'\.(?:jpg|jpeg|png|webp|gif|svg|pdf|zip|css|js|woff2?|ttf|ico|xml)$', path, re.I): continue
+                  normalized = urlunsplit(('https','nuvanx.com',path,'',''))
+                  internal.add(normalized)
+
+              status = 'FAIL' if failures else ('WARN' if warnings else 'PASS')
+              rows.append({
+                  'status': status, 'url': url, 'http': code, 'final_url': effective,
+                  'in_sitemap': is_sitemap, 'title_count': p.title_count, 'h1_count': p.h1_count,
+                  'header_count': p.header_count, 'footer_count': p.footer_count, 'main_count': p.main_count,
+                  'header_cta_count': p.header_cta_count, 'canonical': canonical,
+                  'robots_noindex': noindex_header or noindex_meta, 'sha_ok': sha_ok,
+                  'captcha': captcha, 'staging_leak': staging_leak,
+                  'css_tokens': css['nvx-tokens.css'], 'css_layout': css['nvx-site-layout.css'],
+                  'css_header': css['nvx-header.css'], 'css_footer': css['nvx-footer.css'],
+                  'failures': ';'.join(failures), 'warnings': ';'.join(warnings)
+              })
+
+          fields = list(rows[0].keys()) if rows else []
+          with (report/'url-audit.csv').open('w', newline='', encoding='utf-8') as f:
+              w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
+          (report/'url-audit.json').write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+          (report/'internal-links.txt').write_text('\n'.join(sorted(internal)) + ('\n' if internal else ''))
+
+          summary = {
+              'expected_sha': expected_sha,
+              'captured_urls': len(rows),
+              'sitemap_urls': len(sitemap_urls),
+              'pass': sum(r['status']=='PASS' for r in rows),
+              'warn': sum(r['status']=='WARN' for r in rows),
+              'fail': sum(r['status']=='FAIL' for r in rows),
+              'internal_links_unique': len(internal),
+              'failed_urls': [r['url'] for r in rows if r['status']=='FAIL'],
+              'warning_urls': [r['url'] for r in rows if r['status']=='WARN'],
+          }
+          (report/'summary-prelinks.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
+          print(json.dumps(summary, ensure_ascii=False))
+          PY
+
+      - name: Verify every unique internal HTML link from hosting network
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp audit/report/internal-links.txt "nvx-prod:$REMOTE_AUDIT/internal-links.txt"
+          ssh nvx-prod "BASE_URL='$BASE_URL' AUDIT='$REMOTE_AUDIT' bash -se" > audit/report/internal-links-status.tsv <<'REMOTE'
+          set -Eeuo pipefail
+          ua='NUVANX-Production-Origin-Link-Audit/1.0'
+          while IFS= read -r url; do
+            [[ -n "$url" ]] || continue
+            headers="$(mktemp)"; body="$(mktemp)"
+            result="$(curl -sS -L --max-redirs 8 --max-time 35 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$url" || printf '000|%s' "$url")"
+            code="${result%%|*}"; effective="${result#*|}"
+            captcha=0; staging=0
+            if grep -Fq '/.well-known/sgcaptcha/' "$body" || grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"; then captcha=1; fi
+            if grep -Fq 'staging2.nuvanx.com' "$body"; then staging=1; fi
+            printf '%s\t%s\t%s\t%s\t%s\n' "$url" "$code" "$effective" "$captcha" "$staging"
+            rm -f "$headers" "$body"
+          done < "$AUDIT/internal-links.txt"
+          REMOTE
+
+      - name: Finalize audit and fail only on verified defects
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv, json
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          report = Path('audit/report')
+          rows = list(csv.DictReader((report/'url-audit.csv').open(encoding='utf-8')))
+          link_rows = []
+          if (report/'internal-links-status.tsv').exists():
+              for line in (report/'internal-links-status.tsv').read_text(errors='replace').splitlines():
+                  if not line.strip(): continue
+                  url, code, effective, captcha, staging = line.split('\t', 4)
+                  host = (urlsplit(effective).hostname or '').lower()
+                  failures = []
+                  if code != '200': failures.append(f'http={code}')
+                  if host != 'nuvanx.com': failures.append(f'final_host={host or "missing"}')
+                  if captcha == '1': failures.append('siteground_captcha')
+                  if staging == '1': failures.append('staging_leak')
+                  link_rows.append({'url':url,'http':code,'final_url':effective,'status':'FAIL' if failures else 'PASS','failures':';'.join(failures)})
+
+          with (report/'internal-links-audit.csv').open('w', newline='', encoding='utf-8') as f:
+              w = csv.DictWriter(f, fieldnames=['url','http','final_url','status','failures']); w.writeheader(); w.writerows(link_rows)
+          (report/'internal-links-audit.json').write_text(json.dumps(link_rows, ensure_ascii=False, indent=2))
+
+          failed_urls = [r for r in rows if r['status'] == 'FAIL']
+          warned_urls = [r for r in rows if r['status'] == 'WARN']
+          failed_links = [r for r in link_rows if r['status'] == 'FAIL']
+          summary = {
+              'expected_sha': '4775310be2b7dcdda18f8fd6de8e40041c2eb555',
+              'url_count': len(rows),
+              'url_pass': sum(r['status']=='PASS' for r in rows),
+              'url_warn': len(warned_urls),
+              'url_fail': len(failed_urls),
+              'internal_link_count': len(link_rows),
+              'internal_link_pass': sum(r['status']=='PASS' for r in link_rows),
+              'internal_link_fail': len(failed_links),
+              'failed_urls': [{'url':r['url'],'failures':r['failures']} for r in failed_urls],
+              'warnings': [{'url':r['url'],'warnings':r['warnings']} for r in warned_urls],
+              'failed_internal_links': failed_links,
+          }
+          (report/'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
+
+          md = ['# NUVANX production full URL audit','',f"- Expected SHA: `{summary['expected_sha']}`",f"- URLs audited: **{summary['url_count']}**",f"- URL PASS/WARN/FAIL: **{summary['url_pass']} / {summary['url_warn']} / {summary['url_fail']}**",f"- Unique internal HTML links: **{summary['internal_link_count']}**",f"- Internal links PASS/FAIL: **{summary['internal_link_pass']} / {summary['internal_link_fail']}**",'']
+          if failed_urls:
+              md += ['## Failed URLs',''] + [f"- `{r['url']}` — {r['failures']}" for r in failed_urls] + ['']
+          if warned_urls:
+              md += ['## Warnings',''] + [f"- `{r['url']}` — {r['warnings']}" for r in warned_urls] + ['']
+          if failed_links:
+              md += ['## Failed internal links',''] + [f"- `{r['url']}` — {r['failures']}" for r in failed_links] + ['']
+          (report/'SUMMARY.md').write_text('\n'.join(md), encoding='utf-8')
+          print(json.dumps(summary, ensure_ascii=False))
+          if failed_urls or failed_links:
+              raise SystemExit(1)
+          PY
+
+      - name: Upload full production audit evidence
+        if: always()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: production-full-url-audit-4775310-attempt-${{ github.run_attempt }}
+          path: audit/report/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Remove remote audit capture
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${REMOTE_AUDIT:-}" ]] && [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-prod "case '$REMOTE_AUDIT' in /tmp/nvx-prod-full-audit-*) rm -rf '$REMOTE_AUDIT' '${REMOTE_AUDIT}.tgz' ;; *) exit 1 ;; esac" || true
+          fi
+
+      - name: Destroy production SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

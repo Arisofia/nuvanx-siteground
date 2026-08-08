@@ -43,27 +43,29 @@ jobs:
           text = text.replace(old, new, 1)
 
           marker = "/**\n * Collects page and post IDs that should be excluded from public indexing.\n"
-          helper = r'''/**
- * Resolve superseded legal-document page IDs by slug.
- *
- * These URLs permanently redirect to the canonical Complianz EU cookie policy
- * and therefore must not remain discoverable in XML sitemaps.
- *
- * @return int[]
- */
-function nvx_superseded_legal_page_ids(): array {
-	$ids = array();
-	foreach ( array( 'politica-de-cookies', 'mas-informacion-sobre-las-cookies' ) as $slug ) {
-		$page_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( $slug ) : 0;
-		if ( $page_id > 0 ) {
-			$ids[] = $page_id;
-		}
-	}
-
-	return array_values( array_unique( $ids ) );
-}
-
-'''
+          helper = "\n".join([
+              '/**',
+              ' * Resolve superseded legal-document page IDs by slug.',
+              ' *',
+              ' * These URLs permanently redirect to the canonical Complianz EU cookie policy',
+              ' * and therefore must not remain discoverable in XML sitemaps.',
+              ' *',
+              ' * @return int[]',
+              ' */',
+              'function nvx_superseded_legal_page_ids(): array {',
+              "\t$ids = array();",
+              "\tforeach ( array( 'politica-de-cookies', 'mas-informacion-sobre-las-cookies' ) as $slug ) {",
+              "\t\t$page_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( $slug ) : 0;",
+              "\t\tif ( $page_id > 0 ) {",
+              "\t\t\t$ids[] = $page_id;",
+              "\t\t}",
+              "\t}",
+              '',
+              "\treturn array_values( array_unique( $ids ) );",
+              '}',
+              '',
+              '',
+          ])
           if marker not in text:
               raise SystemExit('noindex helper insertion point not found')
           text = text.replace(marker, helper + marker, 1)
@@ -75,71 +77,73 @@ function nvx_superseded_legal_page_ids(): array {
           text = text.replace(old, new, 1)
 
           anchor = "add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', 'nvx_exclude_sensitive_pages_from_sitemap_ids' );\n"
-          taxonomy = r'''
-
-/**
- * Keep deliberately noindex archive taxonomies out of Yoast XML sitemaps.
- *
- * Robots policy already marks category/tag archives noindex, follow. Listing
- * those same archives in a sitemap sends a contradictory indexing signal.
- *
- * @param bool   $excluded Existing Yoast exclusion state.
- * @param string $taxonomy Taxonomy name.
- * @return bool
- */
-function nvx_exclude_noindex_taxonomies_from_yoast_sitemap( $excluded, $taxonomy ): bool {
-	if ( in_array( (string) $taxonomy, array( 'category', 'post_tag' ), true ) ) {
-		return true;
-	}
-
-	return (bool) $excluded;
-}
-add_filter( 'wpseo_sitemap_exclude_taxonomy', 'nvx_exclude_noindex_taxonomies_from_yoast_sitemap', 10, 2 );
-'''
+          taxonomy = "\n".join([
+              '',
+              '/**',
+              ' * Keep deliberately noindex archive taxonomies out of Yoast XML sitemaps.',
+              ' *',
+              ' * @param bool   $excluded Existing Yoast exclusion state.',
+              ' * @param string $taxonomy Taxonomy name.',
+              ' * @return bool',
+              ' */',
+              'function nvx_exclude_noindex_taxonomies_from_yoast_sitemap( $excluded, $taxonomy ): bool {',
+              "\tif ( in_array( (string) $taxonomy, array( 'category', 'post_tag' ), true ) ) {",
+              "\t\treturn true;",
+              "\t}",
+              '',
+              "\treturn (bool) $excluded;",
+              '}',
+              "add_filter( 'wpseo_sitemap_exclude_taxonomy', 'nvx_exclude_noindex_taxonomies_from_yoast_sitemap', 10, 2 );",
+              '',
+          ])
           if anchor not in text:
               raise SystemExit('Yoast sitemap insertion point not found')
           text = text.replace(anchor, anchor + taxonomy, 1)
 
-          old = r'''function nvx_exclude_sensitive_pages_from_menus( $items ) {
-	if ( ! is_array( $items ) ) {
-		return $items;
-	}
-	$noindex_ids = nvx_noindex_page_ids();
-	foreach ( $items as $key => $item ) {
-		if ( 'post_type' === $item->type && in_array( (int) $item->object_id, $noindex_ids, true ) ) {
-			unset( $items[ $key ] );
-		}
-	}
-	return $items;
-}'''
-          new = r'''function nvx_exclude_sensitive_pages_from_menus( $items ) {
-	if ( ! is_array( $items ) ) {
-		return $items;
-	}
-
-	$noindex_ids = nvx_noindex_page_ids();
-	$cases_id    = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-	$cases_public = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
-
-	foreach ( $items as $key => $item ) {
-		$is_blocked_post = isset( $item->type, $item->object_id )
-			&& 'post_type' === $item->type
-			&& in_array( (int) $item->object_id, $noindex_ids, true );
-
-		$is_blocked_cases_url = false;
-		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {
-			$path = (string) wp_parse_url( $item->url, PHP_URL_PATH );
-			$path = '/' . trim( $path, '/' ) . '/';
-			$is_blocked_cases_url = '/casos-de-pacientes/' === $path;
-		}
-
-		if ( $is_blocked_post || $is_blocked_cases_url ) {
-			unset( $items[ $key ] );
-		}
-	}
-
-	return $items;
-}'''
+          old = "\n".join([
+              'function nvx_exclude_sensitive_pages_from_menus( $items ) {',
+              "\tif ( ! is_array( $items ) ) {",
+              "\t\treturn $items;",
+              "\t}",
+              "\t$noindex_ids = nvx_noindex_page_ids();",
+              "\tforeach ( $items as $key => $item ) {",
+              "\t\tif ( 'post_type' === $item->type && in_array( (int) $item->object_id, $noindex_ids, true ) ) {",
+              "\t\t\tunset( $items[ $key ] );",
+              "\t\t}",
+              "\t}",
+              "\treturn $items;",
+              '}',
+          ])
+          new = "\n".join([
+              'function nvx_exclude_sensitive_pages_from_menus( $items ) {',
+              "\tif ( ! is_array( $items ) ) {",
+              "\t\treturn $items;",
+              "\t}",
+              '',
+              "\t$noindex_ids  = nvx_noindex_page_ids();",
+              "\t$cases_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;",
+              "\t$cases_public = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );",
+              '',
+              "\tforeach ( $items as $key => $item ) {",
+              "\t\t$is_blocked_post = isset( $item->type, $item->object_id )",
+              "\t\t\t&& 'post_type' === $item->type",
+              "\t\t\t&& in_array( (int) $item->object_id, $noindex_ids, true );",
+              '',
+              "\t\t$is_blocked_cases_url = false;",
+              "\t\tif ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {",
+              "\t\t\t$path = (string) wp_parse_url( $item->url, PHP_URL_PATH );",
+              "\t\t\t$path = '/' . trim( $path, '/' ) . '/';",
+              "\t\t\t$is_blocked_cases_url = '/casos-de-pacientes/' === $path;",
+              "\t\t}",
+              '',
+              "\t\tif ( $is_blocked_post || $is_blocked_cases_url ) {",
+              "\t\t\tunset( $items[ $key ] );",
+              "\t\t}",
+              "\t}",
+              '',
+              "\treturn $items;",
+              '}',
+          ])
           if old not in text:
               raise SystemExit('menu hygiene replacement target not found')
           text = text.replace(old, new, 1)
@@ -155,9 +159,9 @@ add_filter( 'wpseo_sitemap_exclude_taxonomy', 'nvx_exclude_noindex_taxonomies_fr
           set -euo pipefail
           php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
           grep -Fq "'/valoracion-medica/'" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
-          grep -Fq "wpseo_sitemap_exclude_taxonomy" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
-          grep -Fq "nvx_superseded_legal_page_ids" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
-          grep -Fq "is_blocked_cases_url" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq 'wpseo_sitemap_exclude_taxonomy' wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq 'nvx_superseded_legal_page_ids' wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq 'is_blocked_cases_url' wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
           git diff --check
           git diff -- wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
 

@@ -59,7 +59,7 @@ while ( have_posts() ) :
 	// Never inject a shell H1 there or the crawl contract sees duplicates.
 	$is_legal_page = is_page() && in_array(
 		(string) get_post_field( 'post_name', get_the_ID() ),
-		array( 'politica-privacidad', 'aviso-legal' ),
+		array( 'politica-privacidad', 'politica-de-cookies', 'aviso-legal', 'mas-informacion-sobre-las-cookies', 'politica-de-cookies-ue' ),
 		true
 	);
 	// Theme-owned hero only when content does not already own the page hierarchy.
@@ -70,6 +70,9 @@ while ( have_posts() ) :
 	// Title-only header only if no content H1 and no theme/content/managed hero.
 	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	$classes          = array( 'nvx-page' );
+	if ( $is_legal_page ) {
+		$classes[] = 'nvx-page--legal';
+	}
 	if ( is_single() ) {
 		$classes[] = 'nvx-page--single';
 	}

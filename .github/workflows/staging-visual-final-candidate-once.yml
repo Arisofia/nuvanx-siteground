@@ -1,0 +1,18 @@
+name: Staging Visual Final Candidate Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging-visual-final-candidate-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-and-accept:
+    uses: ./.github/workflows/deploy-staging2.yml
+    with:
+      sha: d5c7194d522c6a4d13cc0ad068e9a15d62f9cef4
+      run_block_c_acceptance: true
+    secrets: inherit

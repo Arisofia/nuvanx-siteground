@@ -1,0 +1,132 @@
+name: Staging2 Postdeploy Integrity Candidate Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-postdeploy-integrity-candidate-once.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: staging2-postdeploy-integrity-d54dfa7
+  cancel-in-progress: false
+
+jobs:
+  deploy-candidate:
+    uses: ./.github/workflows/deploy-staging2.yml
+    with:
+      sha: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+      run_block_c_acceptance: false
+    secrets: inherit
+
+  normalize-staging-content-links:
+    needs: deploy-candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict staging SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging "test -d '$WP_ROOT' && command -v wp >/dev/null"
+
+      - name: Normalize canonical valuation links in staging content
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "WP_ROOT='$WP_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$WP_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+
+          wp eval '
+          $slugs = [
+              "remodelacion-corporal-laser-madrid",
+              "tratamiento-postparto-abdomen-contorno-corporal-madrid",
+          ];
+          foreach ( $slugs as $slug ) {
+              $page = get_page_by_path( $slug, OBJECT, "page" );
+              if ( ! $page instanceof WP_Post ) {
+                  echo "CONTENT_LINK_PAGE_ABSENT slug={$slug}\n";
+                  continue;
+              }
+              $content = (string) $page->post_content;
+              $updated = str_replace(
+                  [
+                      "https://nuvanx.com/valoracion-medica/",
+                      "https://staging2.nuvanx.com/valoracion-medica/",
+                      "/valoracion-medica/",
+                  ],
+                  [
+                      "https://nuvanx.com/madrid/valoracion/",
+                      "https://staging2.nuvanx.com/madrid/valoracion/",
+                      "/madrid/valoracion/",
+                  ],
+                  $content,
+                  $count
+              );
+              if ( $count > 0 ) {
+                  $result = wp_update_post( [ "ID" => (int) $page->ID, "post_content" => $updated ], true );
+                  if ( is_wp_error( $result ) ) {
+                      fwrite( STDERR, "CONTENT_LINK_UPDATE_FAIL slug={$slug} error=" . $result->get_error_message() . "\n" );
+                      exit( 1 );
+                  }
+              }
+              echo "CONTENT_LINK_NORMALIZED slug={$slug} replacements={$count}\n";
+          }'
+
+          wp cache flush
+          if wp help sg >/dev/null 2>&1; then wp sg purge || true; fi
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+
+          remaining="$(wp db query "SELECT COUNT(*) FROM $(wp db prefix)posts WHERE post_status='publish' AND post_content LIKE '%/valoracion-medica/%';" --skip-column-names)"
+          test "$remaining" = '0'
+          echo 'STAGING_CONTENT_LINK_NORMALIZATION=PASS'
+          REMOTE
+
+      - name: Destroy staging SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+  block-c-acceptance:
+    needs: normalize-staging-content-links
+    uses: ./.github/workflows/staging2-acceptance.yml
+    with:
+      sha: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    secrets: inherit

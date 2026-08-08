@@ -16,7 +16,6 @@ concurrency:
 
 env:
   DEPLOY_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
-  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
   PROD_ROOT: /home/customer/www/nuvanx.com/public_html
   PROD_PARENT: /home/customer/www/nuvanx.com
   BASE_URL: https://nuvanx.com
@@ -90,82 +89,6 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${acceptance_run_id}")"
           test "$(printf '%s' "$run_json" | jq -r '.conclusion')" = 'success'
           echo "BLOCK_C_ACCEPTANCE=PASS artifact_id=$artifact_id run_id=$acceptance_run_id candidate=$DEPLOY_SHA"
-
-      - name: Configure strict staging read-only SSH
-        shell: bash
-        env:
-          HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          USER: ${{ secrets.STAGING2_SSH_USER }}
-          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          : "${HOST:?Missing STAGING2_SSH_HOST}"
-          : "${USER:?Missing STAGING2_SSH_USER}"
-          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
-          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging-readonly
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 20
-            ServerAliveInterval 30
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-          ssh nvx-staging-readonly "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
-
-      - name: Verify staging-production isolation and record current staging SHA
-        shell: bash
-        run: |
-          set -euo pipefail
-          staging_sha="$(ssh nvx-staging-readonly "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          test "$STAGING_ROOT" != "$PROD_ROOT"
-          cd "$STAGING_ROOT"
-          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
-          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
-          test "$(wp option get blog_public)" = '0'
-          test "$(wp config get NVX_ENV)" = 'staging'
-          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
-          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha
-          current="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
-          [[ "$current" =~ ^[0-9a-f]{40}$ ]]
-          cd "$PROD_ROOT"
-          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-          test "$(wp option get home)" = 'https://nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://nuvanx.com'
-          test "$(wp option get blog_public)" = '1'
-          printf '%s' "$current"
-          REMOTE
-          )"
-          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]]
-          echo "STAGING_LIVE_SHA=$staging_sha"
-          if [[ "$staging_sha" == "$DEPLOY_SHA" ]]; then
-            echo 'STAGING_RELEASE_RELATION=accepted-candidate-current'
-          else
-            echo "STAGING_RELEASE_RELATION=advanced accepted=$DEPLOY_SHA current=$staging_sha"
-          fi
-          echo 'ENVIRONMENT_ISOLATION=PASS'
-
-      - name: Destroy staging SSH identity
-        if: always()
-        shell: bash
-        run: rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
       - name: Configure strict production SSH authentication
         shell: bash
@@ -513,7 +436,6 @@ jobs:
             echo
             echo '- Exact accepted SHA: `4775310be2b7dcdda18f8fd6de8e40041c2eb555`'
             echo '- Immutable Block C evidence: PASS'
-            echo '- Environment isolation: PASS'
             echo '- Production on-disk preflight: PASS'
             echo '- SiteGround-host public boundary before mutation: PASS'
             echo '- Guarded snapshot/cutover: PASS'

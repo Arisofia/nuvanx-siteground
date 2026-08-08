@@ -64,6 +64,7 @@ jobs:
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 20
+            ConnectionAttempts 5
           EOF
           chmod 600 "$HOME/.ssh/config"
 

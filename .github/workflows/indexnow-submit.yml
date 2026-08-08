@@ -74,6 +74,7 @@ jobs:
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 20
+            ConnectionAttempts 5
             ServerAliveInterval 30
             ServerAliveCountMax 2
           EOF

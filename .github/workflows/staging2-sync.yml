@@ -1,0 +1,27 @@
+name: Staging2 Master Sync
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'scripts/staging2/**'
+      - 'scripts/validate-page-templates.mjs'
+      - 'tools/deploy/**'
+      - 'tools/wp-cli/hygiene-content-fix.php'
+      - '.github/workflows/deploy-staging2.yml'
+      - '.github/workflows/staging2-acceptance.yml'
+      - '.github/workflows/staging2-sync.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_and_accept:
+    name: Sync master to Staging2 and run Block C
+    uses: ./.github/workflows/deploy-staging2.yml
+    with:
+      sha: ${{ github.sha }}
+      run_block_c_acceptance: true
+    secrets: inherit

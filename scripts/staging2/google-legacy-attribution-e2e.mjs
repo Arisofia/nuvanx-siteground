@@ -242,7 +242,11 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
 
     const initialConsent = await page.evaluate(() => typeof window.wp_has_consent === 'function' ? window.wp_has_consent('marketing') : 'missing');
     console.log(`SCENARIO_${scenario}_INITIAL_MARKETING=${initialConsent}`);
-    if (initialConsent === true) await setMarketing(page, false);
+    if (initialConsent === true) {
+      await setMarketing(page, false);
+      // The adapter clears the field asynchronously; wait for the clear before asserting absence.
+      await waitField(frame, 'nvx_google_click_id', (value) => !value, `${scenario} pre-consent clear`);
+    }
 
     await assertFieldNever(frame, 'nvx_google_click_id', gclid, `${scenario} pre-consent leak`);
     const nativeBefore = await fieldValue(frame, 'hs_google_click_id');

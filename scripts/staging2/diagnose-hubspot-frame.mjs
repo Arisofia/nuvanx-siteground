@@ -3,13 +3,25 @@ import { chromium } from 'playwright';
 const base = 'https://staging2.nuvanx.com';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const target = `${base}/madrid/valoracion/?gclid=NVXDIAG-${Date.now()}`;
+
+// HubSpot v4 embed/frame URLs commonly carry tracking parameters (hutk, portal/page ids)
+// in the query string; keep only origin+pathname so nothing sensitive lands in public CI logs.
+function sanitizeUrl(value) {
+  try {
+    const url = new URL(value);
+    return `${url.origin}${url.pathname}`;
+  } catch (_) {
+    return '';
+  }
+}
+
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
   const failures = [];
   page.on('requestfailed', (request) => {
     const url = request.url();
-    if (/hubspot|hsforms|js-eu1|forms-eu1/i.test(url)) failures.push({ url, error: request.failure()?.errorText || '' });
+    if (/hubspot|hsforms|js-eu1|forms-eu1/i.test(url)) failures.push({ url: sanitizeUrl(url), error: request.failure()?.errorText || '' });
   });
   let response = null;
   for (let attempt = 1; attempt <= 8; attempt += 1) {
@@ -54,7 +66,8 @@ try {
     name: node.getAttribute('name'),
     id: node.id,
   })));
-  console.log(`IFRAMES=${JSON.stringify(iframeMeta)}`);
+  // Strip query strings from iframe src before logging; HubSpot embeds carry tracking tokens there.
+  console.log(`IFRAMES=${JSON.stringify(iframeMeta.map((meta) => ({ ...meta, src: sanitizeUrl(meta.src) })))}`);
   // Only log structural attributes: raw innerHTML / innerText can carry HubSpot tracking
   // tokens (hutk, session ids) or cookie-derived values into public CI logs.
   console.log(`FRAME_COUNT=${page.frames().length}`);
@@ -73,7 +86,7 @@ try {
     } catch (error) {
       inspectError = `FRAME_INSPECT_ERROR:${error.message}`;
     }
-    console.log(`FRAME_${i}=${JSON.stringify({ url: frame.url(), forms, fields, inspectError })}`);
+    console.log(`FRAME_${i}=${JSON.stringify({ url: sanitizeUrl(frame.url()), forms, fields, inspectError })}`);
   }
   console.log(`HUBSPOT_REQUEST_FAILURES=${JSON.stringify(failures)}`);
 } finally {

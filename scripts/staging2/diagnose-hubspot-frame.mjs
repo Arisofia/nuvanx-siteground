@@ -22,6 +22,27 @@ try {
     }
     await page.waitForTimeout(2500);
   }
+
+  const finalStatus = response?.status() || 0;
+  const finalUrl = page.url();
+  const finalPathname = (() => {
+    try {
+      return new URL(finalUrl).pathname;
+    } catch {
+      return '';
+    }
+  })();
+
+  if (!response || finalStatus !== 200 || finalPathname !== '/madrid/valoracion/') {
+    console.log(
+      `NAV failed: status=${finalStatus} pathname="${finalPathname}" url=${finalUrl}`,
+    );
+    throw new Error(
+      `Navigation to canonical route failed: expected status=200 and pathname="/madrid/valoracion/" ` +
+      `but got status=${finalStatus} pathname="${finalPathname}" url=${finalUrl}`,
+    );
+  }
+
   await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
   await page.waitForTimeout(12000);
 

@@ -11,7 +11,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -28,13 +28,66 @@ jobs:
           cd scripts/staging2
           npm ci --ignore-scripts
           ./node_modules/.bin/playwright install --with-deps chromium
-      - name: Validate live Staging2 Google attribution runtime
+      - name: Configure strict Staging2 SSH and SOCKS proxy
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-origin
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+            ExitOnForwardFailure yes
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging-origin "test -d '/home/customer/www/staging2.nuvanx.com/public_html' && command -v curl >/dev/null"
+          ssh -f -N -D 127.0.0.1:1080 nvx-staging-origin
+          for attempt in 1 2 3; do
+            code="$(curl --socks5-hostname 127.0.0.1:1080 -sS -L --max-time 30 -o /tmp/nvx-staging-e2e.html -w '%{http_code}' 'https://staging2.nuvanx.com/madrid/valoracion/' || true)"
+            echo "SOCKS_ORIGIN_PROBE attempt=$attempt status=$code"
+            if [[ "$code" = '200' ]]; then break; fi
+            sleep 2
+          done
+          test "$code" = '200'
+      - name: Execute full Google attribution release E2E
         shell: bash
         env:
           BASE_URL: https://staging2.nuvanx.com
           FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
           EXPECTED_SHA: c5b0877cac199b5b86ab1c515e477733fd5a6074
+          SOCKS_PROXY: socks5://127.0.0.1:1080
+          QA_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
           cd scripts/staging2
-          node google-attribution-audit.mjs
+          node google-attribution-release-e2e.mjs
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: |
+          pkill -f 'ssh.*127.0.0.1:1080' || true
+          rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

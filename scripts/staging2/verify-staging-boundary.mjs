@@ -4,7 +4,9 @@ import { spawnSync } from 'node:child_process';
 
 let baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
 try {
-  baseUrl = new URL(baseUrl).origin;
+  const parsed = new URL(baseUrl);
+  if (parsed.origin === 'null') throw new Error('opaque origin');
+  baseUrl = parsed.origin;
 } catch {
   console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
   process.exit(1);

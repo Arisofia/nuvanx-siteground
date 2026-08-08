@@ -2,81 +2,85 @@
 
 Mutating deploy scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
-## Identity
+## Identity and invariants
 
 - Canonical branch: `master`
 - Deployment identity: full lowercase 40-character Git SHA
 - Staging2: `https://staging2.nuvanx.com`
 - Production: `https://nuvanx.com`
+- Live theme marker: `wp-content/themes/nuvanx-medical/.nvx-deploy-sha`
 
-Branch names and tags may select a checkout. They are never proof of what is live. The live marker is:
+Branch names and tags select source. They are not proof of what is live.
 
-```text
-wp-content/themes/nuvanx-medical/.nvx-deploy-sha
-```
+## Persistent workflow model
 
-exposed as:
+The repository keeps reusable deployment gates rather than push-triggered one-shot callers:
 
-```html
-<meta name="nvx-deploy-sha" content="<40-character-sha>" />
-```
+1. `.github/workflows/deploy-staging2.yml` — `workflow_call`, exact-SHA Staging2 deployment with rollback snapshot and isolation checks.
+2. `.github/workflows/staging2-acceptance.yml` — `workflow_call`, exact-SHA Block C acceptance.
+3. `.github/workflows/deploy.yml` — `workflow_call`, production readiness gate. Its production mutation job remains disabled with `if: false` until explicit authorization.
 
-## Staging2 (automated GitHub workflow)
+A normal push to `master` does **not** deploy either environment. An authorized release orchestration must explicitly call these reusable workflows and pass the exact candidate SHA.
 
-Push to `master` automatically triggers the **Deploy Staging2** workflow (`.github/workflows/deploy-staging2.yml`).
+## Staging2 deployment
 
-### Scope
+The reusable Staging2 workflow validates that the requested SHA is contained in `origin/master`, snapshots the current staging state, uploads an isolated release, runs the guarded deployment scripts, applies content hygiene, purges caches and verifies the deployed marker and environment identity.
+
+Scope:
 
 ```text
 wp-content/themes/nuvanx-medical/
-wp-content/mu-plugins/   (required NUVANX MU plugins only)
+wp-content/mu-plugins/   # required NUVANX MU plugins only
 ```
 
-The workflow does not deploy production, does not copy the database, and does not replace the full WordPress tree. Pull requests only run the non-mutating contract job.
+It does not copy the production database or replace the entire WordPress tree.
 
-### Environment secrets (`staging2`)
+### Required Staging2 secrets
 
-| Secret | Purpose |
-|--------|---------|
-| `STAGING2_SSH_HOST` | SiteGround SSH hostname |
-| `STAGING2_SSH_PORT` | SSH port (normally `18765`) |
-| `STAGING2_SSH_USER` | SSH username |
-| `STAGING2_SSH_PRIVATE_KEY` | BatchMode private key (no passphrase) |
-| `STAGING2_SSH_KNOWN_HOSTS` | Pinned host key; no runtime `ssh-keyscan` |
+- `STAGING2_SSH_HOST`
+- `STAGING2_SSH_PORT`
+- `STAGING2_SSH_USER`
+- `STAGING2_SSH_PRIVATE_KEY`
+- `STAGING2_SSH_KNOWN_HOSTS`
 
-### Run a deployment
+## Canonical Staging2 acceptance
 
-1. Merge the change into `master`.
-2. The workflow automatically runs on push. If running manually, set `git_sha` (or `DEPLOY_SHA` input) to the full 40-character SHA.
-3. The workflow refuses any SHA not contained in `origin/master`.
+The permanent acceptance workflow validates the origin boundary from SiteGround, classifies external SiteGround AntiBot/network failures separately, validates templates, installs the scoped Playwright dependencies, and executes:
 
-### Remote sequence
+```text
+scripts/staging2/block-c-52x3.mjs
+scripts/staging2/valoracion-placement.mjs
+```
 
-1. Upload an isolated release under  
-   `/home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<sha>-<run_id>/`
-2. Run `tools/deploy/deploy-to-staging2.sh` (root/URL/theme guards, PHP lint, backup, rsync, SHA stamp, cache purge).
-3. Run `tools/deploy/deploy-required-mu-plugins.sh` for Staging2.
-4. Verify the remote `.nvx-deploy-sha` marker.
-5. The separate `staging2-rendered-acceptance.yml` workflow triggers automatically, running `scripts/staging2/browser-acceptance.mjs` against the deployed SHA.
-6. Remove the temporary remote release directory.
+The exact-SHA evidence artifact is named:
 
-Success criteria: remote marker match + full browser acceptance green.
+```text
+staging2-block-c-<sha>
+```
 
-## Production (automated GitHub workflow)
+For local/manual execution, install dependencies in `scripts/staging2/`, then execute the scripts from the repository root so their artifact paths remain canonical:
 
-When a push to `master` completes the **Deploy Staging2** workflow successfully, the **Production Gate & Atomic Deploy to SiteGround** workflow (`.github/workflows/deploy.yml`) is automatically triggered.
+```bash
+cd scripts/staging2
+npm ci --ignore-scripts
+npx playwright install chromium
+cd ../..
+EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/block-c-52x3.mjs
+EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
+```
 
-### Automated Production Flow
+## Production readiness and deployment
 
-1. Verification that `Deploy Staging2` passed for the current Git SHA.
-2. Checkout of code and SSH connection to SiteGround via secret `PROD_SSH_PRIVATE_KEY`.
-3. Upload of theme files to `/tmp/nuvanx-medical-build`.
-4. Execution of `tools/deploy/deploy-to-prod.sh` with `--confirm`.
-5. Automatic cleanup of temporary release files.
+`.github/workflows/deploy.yml` verifies:
 
-### Host-level emergency manual deploy
+- candidate is an exact full SHA contained in `master`;
+- a successful, non-expired Block C artifact exists for that exact SHA;
+- Staging2 disk marker equals the candidate;
+- production identity and hardened deploy tooling pass read-only guards.
 
-If manual host-level deployment is ever required directly on SiteGround:
+The production mutation job is intentionally disabled in the permanent workflow. Promotion requires an explicit authorization path; it must never occur merely because `master` changed.
+
+Host-level emergency deployment, when explicitly authorized:
 
 ```bash
 export WP_PROD=/home/customer/www/nuvanx.com/public_html
@@ -88,14 +92,7 @@ NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
   --confirm
 ```
 
-That script:
-
-- rsyncs the theme with `--delete`
-- copies only the required NUVANX form MU plugins
-- disables SiteGround CSS minify/combine and removes stale `nvx-*.min.css`
-- requires production `siteurl`/`home` = `https://nuvanx.com` and staging = Staging2
-
-### Production cache flush
+Production cache flush:
 
 ```bash
 NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
@@ -103,14 +100,10 @@ NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
   --confirm
 ```
 
-### Staging2 verification (required before promote)
+## Repository hygiene
 
-```bash
-BASE_URL=https://staging2.nuvanx.com node scripts/staging2/browser-acceptance.mjs
-```
-
-After production promote, confirm the production theme marker and critical routes manually; the Staging2 acceptance script enforces Staging2 noindex policy and is not a production smoke suite.
+Operational evidence belongs in GitHub Actions artifacts or Git history, not as permanent root-level audit dumps. `vendor/`, `composer.phar`, `.vscode/`, `audit/`, one-shot workflows and self-mutating workflows are prohibited by `.github/workflows/workflow-hygiene.yml`.
 
 ## Release record
 
-Each release should record: Git SHA, workflow run URL, active theme, `siteurl`/`home`, PHP/WordPress versions, MU plugins, backup path, browser-acceptance result, rollback target. Never write secret values into docs or HTML.
+For every release retain the exact SHA, acceptance run/artifact, environment identity, backup/rollback target and production validation evidence. Never store secret values in repository documents or HTML.

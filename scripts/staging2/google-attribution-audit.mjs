@@ -117,7 +117,7 @@ try {
   }
   
   const valuesBefore = state.fieldsBefore
-    .filter((field) => field.name.startsWith('nvx_'))
+    .filter((field) => /(^|\/)nvx_/.test(String(field.name || '')))
     .flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
   if (valuesBefore.includes(gclid)) {
     throw new Error('GCLID leaked to HubSpot field BEFORE marketing consent was allowed');

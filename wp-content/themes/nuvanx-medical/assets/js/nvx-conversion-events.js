@@ -425,7 +425,7 @@
 	var legacyFormRoots = [];
 	var legacyEmailForAudit = '';
 	var legacyEmailClearTimer = null;
-	var legacyNativeGclidWritten = false;
+	var legacyNativeGclidInputs = new WeakSet();
 
 	/**
 	 * Clears the temporarily captured email address used for legacy attribution audits.
@@ -483,12 +483,31 @@
 	}
 
 	/**
+	 * Resolves a form-like value to the canonical form root, rejecting non-canonical forms.
+	 * @param {*} formLike - A legacy form reference or form-like value used to locate the form root.
+	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; when present it must match FORM_ID.
+	 * @return {Element|null} The canonical form root, or `null` when it cannot be resolved or is not canonical.
+	 */
+	function canonicalLegacyRoot(formLike, formId) {
+		if (formId !== undefined && String(formId || '').toLowerCase() !== FORM_ID) return null;
+		var root = legacyFormRoot(formLike);
+		if (!root) return null;
+		// Fall back to the frame's own data-form-id when the hook did not provide one.
+		if (formId === undefined) {
+			var frame = typeof root.closest === 'function' ? root.closest('[data-form-id]') : null;
+			if (frame && String(frame.getAttribute('data-form-id') || '').toLowerCase() !== FORM_ID) return null;
+		}
+		return root;
+	}
+
+	/**
 	 * Populates a legacy HubSpot form with Google click attribution fields when marketing consent is available.
 	 * @param {*} formLike - A legacy form reference or form-like value used to locate the form root.
+	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; gates population to the canonical form.
 	 * @return {boolean} `true` if any field was modified, `false` otherwise.
 	 */
-	function populateLegacyClickFields(formLike) {
-		var root = legacyFormRoot(formLike);
+	function populateLegacyClickFields(formLike, formId) {
+		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return false;
 		if (legacyFormRoots.indexOf(root) === -1) legacyFormRoots.push(root);
 
@@ -498,18 +517,19 @@
 			var value = consent ? clickValues[param] : '';
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
+				var input = root.querySelector('[name="' + propertyName + '"]');
 				if (!consent && propertyName.indexOf('nvx_') !== 0) {
 					// Fail-closed: clear the native field only if this adapter wrote the GCLID into it.
-					if (propertyName === 'hs_google_click_id' && legacyNativeGclidWritten) {
+					if (propertyName === 'hs_google_click_id' && input && legacyNativeGclidInputs.has(input)) {
 						modified = setLegacyField(root, propertyName, '') || modified;
+						legacyNativeGclidInputs.delete(input);
 					}
 					return;
 				}
 				modified = setLegacyField(root, propertyName, value) || modified;
-				if (consent && propertyName === 'hs_google_click_id' && value) legacyNativeGclidWritten = true;
+				if (consent && propertyName === 'hs_google_click_id' && value && input) legacyNativeGclidInputs.add(input);
 			});
 		});
-		if (!consent) legacyNativeGclidWritten = false;
 		return modified;
 	}
 
@@ -529,12 +549,13 @@
 	/**
 	 * Captures a valid email address from a legacy form for consent-gated attribution auditing.
 	 * @param {Object} formLike - A legacy form element or form-like value used to locate the email field.
+	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; gates capture to the canonical form.
 	 */
-	function captureLegacyEmail(formLike) {
+	function captureLegacyEmail(formLike, formId) {
 		clearLegacyEmail();
-		populateLegacyClickFields(formLike);
+		populateLegacyClickFields(formLike, formId);
 		if (!hasMarketingConsent()) return;
-		var root = legacyFormRoot(formLike);
+		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return;
 		var emailInput = root.querySelector('[name="email"]');
 		if (!emailInput) return;
@@ -582,11 +603,11 @@
 	}
 
 	window.NUVANXGoogleAttributionLegacy = Object.freeze({
-		onFormReady: function (formLike) {
-			populateLegacyClickFields(formLike);
+		onFormReady: function (formLike, formId) {
+			populateLegacyClickFields(formLike, formId);
 		},
-		onBeforeFormSubmit: function (formLike) {
-			captureLegacyEmail(formLike);
+		onBeforeFormSubmit: function (formLike, formId) {
+			captureLegacyEmail(formLike, formId);
 		},
 	});
 

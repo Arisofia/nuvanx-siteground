@@ -313,13 +313,13 @@
               onFormReady: function ($form) {
                 try {
                   const hooks = window.NUVANXGoogleAttributionLegacy;
-                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form);
+                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form, frame.dataset.formId);
                 } catch (_error) {}
               },
               onBeforeFormSubmit: function ($form) {
                 try {
                   const hooks = window.NUVANXGoogleAttributionLegacy;
-                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form);
+                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form, frame.dataset.formId);
                 } catch (_error) {}
               }
             });

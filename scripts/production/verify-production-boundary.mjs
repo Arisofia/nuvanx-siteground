@@ -76,9 +76,9 @@ for route in \
 do
   headers="$(mktemp)"
   body="$(mktemp)"
-  result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "${BASE_URL}${route}")"
-  code="${result%%|*}"
-  effective="${result#*|}"
+  result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
+  code="$(printf '%s' "$result" | cut -d'|' -f1)"
+  effective="$(printf '%s' "$result" | cut -d'|' -f2-)"
   test "$code" = '200'
   case "$effective" in
     https://nuvanx.com/*|https://nuvanx.com) ;;
@@ -90,7 +90,7 @@ do
 
   robots_meta="$(grep -Eio "<meta[^>]+name=['\"]robots['\"][^>]*>" "$body" | head -n 1 || true)"
   xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
-  combined="${robots_meta} ${xrobots}"
+  combined="$robots_meta $xrobots"
   if printf '%s' "$combined" | grep -Eiq 'noindex|nofollow'; then
     echo "PRODUCTION_ORIGIN_FAIL route=$route reason=noindex-or-nofollow robots=$combined" >&2
     rm -f "$headers" "$body"

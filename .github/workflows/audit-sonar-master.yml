@@ -1,0 +1,86 @@
+name: Audit Sonar Master
+
+on:
+  push:
+    branches:
+      - audit/repo-clean-20260808-1840
+    paths:
+      - .github/workflows/audit-sonar-master.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Query current master Sonar blockers
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          PROJECT_KEY: Arisofia_nuvanx-siteground
+          TARGET_BRANCH: master
+        run: |
+          set -euo pipefail
+          test -n "${SONAR_TOKEN:-}" || { echo "SONAR_TOKEN missing"; exit 1; }
+          auth=(-H "Authorization: Bearer ${SONAR_TOKEN}")
+          base='https://sonarcloud.io/api'
+
+          curl -fsS --retry 3 --max-time 30 "${auth[@]}" --get \
+            --data-urlencode "projectKey=${PROJECT_KEY}" \
+            --data-urlencode "branch=${TARGET_BRANCH}" \
+            "${base}/qualitygates/project_status" -o /tmp/gate.json
+          echo '=== QUALITY GATE ==='
+          python -m json.tool /tmp/gate.json
+
+          curl -fsS --retry 3 --max-time 30 "${auth[@]}" --get \
+            --data-urlencode "component=${PROJECT_KEY}" \
+            --data-urlencode "branch=${TARGET_BRANCH}" \
+            --data-urlencode "metricKeys=new_duplicated_lines_density,new_duplicated_lines,new_lines,new_security_rating,new_reliability_rating" \
+            "${base}/measures/component" -o /tmp/measures.json
+          echo '=== NEW CODE METRICS ==='
+          python -m json.tool /tmp/measures.json
+
+          curl -fsS --retry 3 --max-time 30 "${auth[@]}" --get \
+            --data-urlencode "component=${PROJECT_KEY}" \
+            --data-urlencode "branch=${TARGET_BRANCH}" \
+            --data-urlencode "metricKeys=new_duplicated_lines_density,new_duplicated_lines,new_lines" \
+            --data-urlencode "strategy=leaves" \
+            --data-urlencode "ps=500" \
+            "${base}/measures/component_tree" -o /tmp/tree.json
+          echo '=== DUPLICATION CONTRIBUTORS ==='
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/tree.json',encoding='utf-8'))
+          rows=[]
+          for c in data.get('components',[]):
+              vals={}
+              for m in c.get('measures',[]):
+                  p=(m.get('periods') or [m.get('period') or {}])[0]
+                  vals[m['metric']]=float(p.get('value',m.get('value',0)) or 0)
+              if vals.get('new_lines',0) or vals.get('new_duplicated_lines',0):
+                  rows.append((vals.get('new_duplicated_lines',0),vals.get('new_duplicated_lines_density',0),vals.get('new_lines',0),c.get('path')))
+          for row in sorted(rows,reverse=True):
+              print({'new_duplicated_lines':row[0],'density':row[1],'new_lines':row[2],'path':row[3]})
+          PY
+
+          for quality in SECURITY RELIABILITY; do
+            curl -fsS --retry 3 --max-time 30 "${auth[@]}" --get \
+              --data-urlencode "componentKeys=${PROJECT_KEY}" \
+              --data-urlencode "branch=${TARGET_BRANCH}" \
+              --data-urlencode "resolved=false" \
+              --data-urlencode "impactSoftwareQualities=${quality}" \
+              --data-urlencode "inNewCodePeriod=true" \
+              --data-urlencode "ps=500" \
+              "${base}/issues/search" -o "/tmp/${quality}.json"
+            echo "=== ${quality} ISSUES ==="
+            QUALITY="$quality" python - <<'PY'
+          import json, os
+          q=os.environ['QUALITY']
+          data=json.load(open(f'/tmp/{q}.json',encoding='utf-8'))
+          print('total=',data.get('total') or data.get('paging',{}).get('total'))
+          for i in data.get('issues',[]):
+              print({k:i.get(k) for k in ('key','rule','component','line','message','severity','type','creationDate','impacts','cleanCodeAttribute')})
+          PY
+          done

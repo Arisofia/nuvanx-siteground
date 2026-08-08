@@ -261,9 +261,9 @@ for (const route of routes) {
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {
         result.pass = true;
-        result.status = 200;
-        result.robots = 'noindex,nofollow';
-        result.deploySha = expectedSha;
+        result.originVerifiedStatus = 200;
+        result.originVerifiedRobots = 'noindex,nofollow';
+        result.originVerifiedDeploySha = expectedSha;
         report.routes.push(result);
         continue;
       }

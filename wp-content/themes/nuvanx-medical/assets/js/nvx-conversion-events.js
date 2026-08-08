@@ -410,6 +410,124 @@
 		}
 	}
 
+	var legacyFormRoots = [];
+	var legacyEmailForAudit = '';
+
+	function legacyFormRoot(formLike) {
+		var root = formLike;
+		try {
+			if (root && typeof root.get === 'function') root = root.get(0);
+			else if (root && root.jquery && root[0]) root = root[0];
+			else if (root && root[0] && root[0].nodeType === 1) root = root[0];
+		} catch (_error) {
+			return null;
+		}
+		return root && typeof root.querySelector === 'function' ? root : null;
+	}
+
+	function setLegacyField(root, propertyName, value) {
+		if (!root) return false;
+		var input = root.querySelector('[name="' + propertyName + '"]');
+		if (!input) return false;
+		try {
+			input.value = value;
+			if (value) input.setAttribute('value', value);
+			else input.removeAttribute('value');
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			input.dispatchEvent(new Event('change', { bubbles: true }));
+			return true;
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	function populateLegacyClickFields(formLike) {
+		var root = legacyFormRoot(formLike);
+		if (!root) return false;
+		if (legacyFormRoots.indexOf(root) === -1) legacyFormRoots.push(root);
+
+		var consent = hasMarketingConsent();
+		var modified = false;
+		Object.keys(FIELD_MAP).forEach(function (param) {
+			var value = consent ? clickValues[param] : '';
+			if (!value && consent) return;
+			FIELD_MAP[param].forEach(function (propertyName) {
+				if (!consent && propertyName.indexOf('nvx_') !== 0) return;
+				modified = setLegacyField(root, propertyName, value) || modified;
+			});
+		});
+		return modified;
+	}
+
+	function refreshLegacyForms() {
+		legacyFormRoots = legacyFormRoots.filter(function (root) {
+			return root && root.isConnected;
+		});
+		legacyFormRoots.forEach(function (root) {
+			populateLegacyClickFields(root);
+		});
+	}
+
+	function captureLegacyEmail(formLike) {
+		legacyEmailForAudit = '';
+		populateLegacyClickFields(formLike);
+		if (!hasMarketingConsent()) return;
+		var root = legacyFormRoot(formLike);
+		if (!root) return;
+		var emailInput = root.querySelector('[name="email"]');
+		if (!emailInput) return;
+		var email = normalizeEmail(emailInput.value);
+		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
+		legacyEmailForAudit = email;
+	}
+
+	async function transmitLegacySuccess() {
+		var email = legacyEmailForAudit;
+		legacyEmailForAudit = '';
+		if (!email || !hasMarketingConsent() || sent || inFlight) return;
+		var emailHash = await sha256(email);
+		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return;
+		transmitAudit({
+			email_hash: emailHash,
+			gclid: clickValues.gclid || null,
+			gbraid: clickValues.gbraid || null,
+			wbraid: clickValues.wbraid || null,
+			gclsrc: clickValues.gclsrc || null,
+			form_id: FORM_ID,
+			landing_url: canonicalLandingUrl(),
+		});
+	}
+
+	function isTrustedHubSpotOrigin(origin) {
+		if (!origin || origin === 'null') return false;
+		try {
+			var host = new URL(origin).hostname.toLowerCase();
+			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	window.NUVANXGoogleAttributionLegacy = Object.freeze({
+		onFormReady: function (formLike) {
+			populateLegacyClickFields(formLike);
+		},
+		onBeforeFormSubmit: function (formLike) {
+			captureLegacyEmail(formLike);
+		},
+	});
+
+	document.addEventListener('wp_listen_for_consent_change', refreshLegacyForms);
+	document.addEventListener('wp_consent_type_defined', refreshLegacyForms);
+
+	window.addEventListener('message', function (event) {
+		if (!isTrustedHubSpotOrigin(event.origin)) return;
+		var data = event.data || {};
+		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
+		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
+		transmitLegacySuccess();
+	});
+
 	window.addEventListener('hs-form-event:on-submission:success', async function (event) {
 		if (sent || inFlight || !hasMarketingConsent()) return;
 		var detail = event && event.detail ? event.detail : {};

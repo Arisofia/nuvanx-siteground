@@ -129,6 +129,32 @@ function fillValue(name, type, email) {
   return 'QA';
 }
 
+// HubSpot v4 renders consent checkboxes with the real <input> visually hidden behind a
+// styled label, so element.check() reports "did not change its state". Fall back to
+// clicking the associated label (aria-labelledby) so the checkbox actually toggles.
+async function checkHubSpotBox(frame, el) {
+  if (await el.isChecked().catch(() => false)) return;
+  try {
+    await el.check({ force: true });
+    if (await el.isChecked().catch(() => false)) return;
+  } catch (_) {
+    // Styled checkbox: the input itself is not clickable, fall through to the label.
+  }
+  const labelId = await el.getAttribute('aria-labelledby');
+  if (labelId) {
+    // Escape via attribute selector rather than #id so unusual label ids never break the query,
+    // and because CSS.escape is a DOM API unavailable in this Node/Playwright context.
+    await frame.locator(`[id="${labelId.replace(/"/g, '\\"')}"]`).click({ force: true }).catch(() => {});
+    if (await el.isChecked().catch(() => false)) return;
+  }
+  // Last resort: toggle the checked state directly and dispatch the events HubSpot listens to.
+  await el.evaluate((node) => {
+    node.checked = true;
+    node.dispatchEvent(new Event('input', { bubbles: true }));
+    node.dispatchEvent(new Event('change', { bubbles: true }));
+  }).catch(() => {});
+}
+
 async function fillForm(frame, email) {
   const controls = frame.locator('form input, form textarea, form select');
   const count = await controls.count();
@@ -144,7 +170,7 @@ async function fillForm(frame, email) {
     if (type === 'hidden' || type === 'submit' || type === 'button' || /google|gclid|gbraid|wbraid|gclsrc|utm|attribution/i.test(name)) continue;
     try {
       if (type === 'checkbox') {
-        if (required && !(await el.isChecked())) await el.check({ force: true });
+        if (required) await checkHubSpotBox(frame, el);
       } else if (type === 'radio') {
         if (required && !radioDone.has(name)) {
           await el.check({ force: true });

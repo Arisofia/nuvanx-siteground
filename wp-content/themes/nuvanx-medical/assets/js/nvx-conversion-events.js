@@ -163,3 +163,251 @@
 		trackSuccessfulSubmission: trackSuccessfulSubmission,
 	});
 }());
+
+(function () {
+	'use strict';
+
+	var attributionConfig = window.nvxConversionEvents || {};
+	var forms = attributionConfig.forms || {};
+	var FORM_ID = String(forms.valoracion || '5042522a-0bc5-4381-ac3e-5aee8649b69c').toLowerCase();
+	var ENDPOINT = String(attributionConfig.googleAttributionEndpoint || 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution');
+	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+	var eligiblePath = normalizedPath === '/madrid/valoracion';
+	var sent = false;
+	var inFlight = false;
+	var clickValues = collectClickValues();
+	var FIELD_MAP = {
+		gclid: ['nvx_google_click_id', 'hs_google_click_id'],
+		gbraid: ['nvx_google_braid'],
+		wbraid: ['nvx_google_wbraid'],
+		gclsrc: ['nvx_google_gclsrc'],
+	};
+
+	function cleanClickValue(value, maxLength) {
+		var normalized = String(value || '').trim();
+		if (!normalized || normalized.length > maxLength) return '';
+		return /^[A-Za-z0-9._~:+-]+$/.test(normalized) ? normalized : '';
+	}
+
+	function collectClickValues() {
+		var params = new URLSearchParams(window.location.search || '');
+		return {
+			gclid: cleanClickValue(params.get('gclid'), 512),
+			gbraid: cleanClickValue(params.get('gbraid'), 512),
+			wbraid: cleanClickValue(params.get('wbraid'), 512),
+			gclsrc: cleanClickValue(params.get('gclsrc'), 128),
+		};
+	}
+
+	function hasGoogleClickIdentifier(values) {
+		return Boolean(values && (values.gclid || values.gbraid || values.wbraid));
+	}
+
+	function hasMarketingConsent() {
+		try {
+			return typeof window.wp_has_consent === 'function' && window.wp_has_consent('marketing') === true;
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	window.NUVANXGoogleAttributionQA = Object.freeze({
+		eligiblePath: eligiblePath,
+		hasClickId: hasGoogleClickIdentifier(clickValues),
+		clickTypes: ['gclid', 'gbraid', 'wbraid'].filter(function (key) { return Boolean(clickValues[key]); }),
+		marketingConsent: hasMarketingConsent,
+	});
+
+	if (!eligiblePath || !hasGoogleClickIdentifier(clickValues)) return;
+
+	function isCanonicalForm(form) {
+		if (!form || typeof form.getFormId !== 'function') return false;
+		try {
+			return String(form.getFormId() || '').toLowerCase() === FORM_ID;
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	function fieldCandidates(propertyName) {
+		return ['0-1/' + propertyName, propertyName];
+	}
+
+	async function populateHubSpotClickFields(form) {
+		if (!hasMarketingConsent() || !isCanonicalForm(form)) return false;
+		if (typeof form.getFormFieldValues !== 'function' || typeof form.setFieldValue !== 'function') return false;
+
+		var fields;
+		try {
+			fields = await form.getFormFieldValues();
+		} catch (_error) {
+			return false;
+		}
+		if (!Array.isArray(fields) || !hasMarketingConsent()) return false;
+
+		var availableNames = new Set(fields.map(function (field) {
+			return field && typeof field.name === 'string' ? field.name : '';
+		}).filter(Boolean));
+		var populated = false;
+
+		Object.keys(FIELD_MAP).forEach(function (param) {
+			var value = clickValues[param];
+			if (!value) return;
+			FIELD_MAP[param].forEach(function (propertyName) {
+				fieldCandidates(propertyName).forEach(function (fieldName) {
+					if (!availableNames.has(fieldName)) return;
+					try {
+						form.setFieldValue(fieldName, [value]);
+						populated = true;
+					} catch (_error) {
+						// Never interfere with the patient form if an optional field cannot be set.
+					}
+				});
+			});
+		});
+
+		return populated;
+	}
+
+	function populateExistingForms() {
+		if (!hasMarketingConsent()) return;
+		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
+		try {
+			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) {
+				populateHubSpotClickFields(form);
+			});
+		} catch (_error) {
+			// Form may not be ready yet; on-ready and consent listeners provide retries.
+		}
+	}
+
+	window.addEventListener('hs-form-event:on-ready', function (event) {
+		var detail = event && event.detail ? event.detail : {};
+		if (String(detail.formId || '').toLowerCase() !== FORM_ID || !hasMarketingConsent()) return;
+		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return;
+		try {
+			populateHubSpotClickFields(window.HubSpotFormsV4.getFormFromEvent(event));
+		} catch (_error) {
+			// Fail closed and leave the public form untouched.
+		}
+	});
+
+	document.addEventListener('wp_listen_for_consent_change', function (event) {
+		var changed = event && event.detail ? event.detail : {};
+		if (changed.marketing === 'allow') populateExistingForms();
+	});
+	document.addEventListener('wp_consent_type_defined', populateExistingForms);
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', populateExistingForms, { once: true });
+	} else {
+		populateExistingForms();
+	}
+	window.setTimeout(populateExistingForms, 500);
+	window.setTimeout(populateExistingForms, 1500);
+
+	function canonicalLandingUrl() {
+		try {
+			var current = new URL(window.location.href);
+			return current.origin + current.pathname;
+		} catch (_error) {
+			return '';
+		}
+	}
+
+	function normalizeEmail(value) {
+		return String(value || '').trim().toLowerCase();
+	}
+
+	function bytesToHex(buffer) {
+		return Array.from(new Uint8Array(buffer))
+			.map(function (byte) { return byte.toString(16).padStart(2, '0'); })
+			.join('');
+	}
+
+	async function sha256(value) {
+		if (!window.crypto || !window.crypto.subtle || typeof TextEncoder === 'undefined') return '';
+		var digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+		return bytesToHex(digest);
+	}
+
+	function getFieldValue(fields, propertyName) {
+		var names = fieldCandidates(propertyName);
+		for (var index = 0; index < fields.length; index += 1) {
+			var field = fields[index] || {};
+			if (names.indexOf(String(field.name || '')) === -1) continue;
+			if (Array.isArray(field.value)) return String(field.value[0] || '');
+			return String(field.value || '');
+		}
+		return '';
+	}
+
+	async function buildAuditPayload(event) {
+		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
+
+		var form;
+		try {
+			form = window.HubSpotFormsV4.getFormFromEvent(event);
+		} catch (_error) {
+			return null;
+		}
+		if (!isCanonicalForm(form) || typeof form.getFormFieldValues !== 'function') return null;
+
+		var fields;
+		try {
+			fields = await form.getFormFieldValues();
+		} catch (_error) {
+			return null;
+		}
+		if (!Array.isArray(fields) || !hasMarketingConsent()) return null;
+
+		var email = normalizeEmail(getFieldValue(fields, 'email'));
+		if (!email || email.length > 320 || email.indexOf('@') <= 0) return null;
+
+		var emailHash = await sha256(email);
+		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return null;
+
+		return {
+			email_hash: emailHash,
+			gclid: clickValues.gclid || null,
+			gbraid: clickValues.gbraid || null,
+			wbraid: clickValues.wbraid || null,
+			gclsrc: clickValues.gclsrc || null,
+			form_id: FORM_ID,
+			landing_url: canonicalLandingUrl(),
+		};
+	}
+
+	async function transmitAudit(payload) {
+		if (sent || inFlight || !payload || !hasMarketingConsent()) return;
+		inFlight = true;
+		try {
+			var response = await window.fetch(ENDPOINT, {
+				method: 'POST',
+				mode: 'cors',
+				credentials: 'omit',
+				cache: 'no-store',
+				referrerPolicy: 'strict-origin-when-cross-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+				keepalive: true,
+			});
+			if (response.ok) sent = true;
+		} catch (_error) {
+			// Attribution audit failure must never interfere with the patient form flow.
+		} finally {
+			inFlight = false;
+		}
+	}
+
+	window.addEventListener('hs-form-event:on-submission:success', async function (event) {
+		if (sent || inFlight || !hasMarketingConsent()) return;
+		var detail = event && event.detail ? event.detail : {};
+		if (String(detail.formId || '').toLowerCase() !== FORM_ID) return;
+
+		// Privacy fail-closed: no email access or hashing occurs without marketing consent.
+		var payload = await buildAuditPayload(event);
+		if (!payload || !hasMarketingConsent()) return;
+		await transmitAudit(payload);
+	});
+}());

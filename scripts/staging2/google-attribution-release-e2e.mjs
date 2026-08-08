@@ -4,8 +4,9 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const formId = (process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c').trim().toLowerCase();
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const qaRunId = String(process.env.QA_RUN_ID || Date.now()).replace(/[^0-9A-Za-z-]/g, '').slice(0, 48);
-const proxyServer = (process.env.SOCKS_PROXY || '').trim();
+const originIp = (process.env.ORIGIN_IP || '').trim();
 if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
+if (originIp && !/^[0-9a-fA-F:.]+$/.test(originIp)) throw new Error('ORIGIN_IP contains invalid characters');
 
 const allowGclid = `NVXRELALLOW-${qaRunId}`;
 const denyGclid = `NVXRELDENY-${qaRunId}`;
@@ -171,9 +172,9 @@ async function runScenario(browser, { gclid, email, allow }) {
   }
 }
 
-const launchOptions = { headless: true, args: ['--no-sandbox'] };
-if (proxyServer) launchOptions.proxy = { server: proxyServer };
-const browser = await chromium.launch(launchOptions);
+const args = ['--no-sandbox'];
+if (originIp) args.push(`--host-resolver-rules=MAP staging2.nuvanx.com ${originIp}`);
+const browser = await chromium.launch({ headless: true, args });
 try {
   await runScenario(browser, { gclid: allowGclid, email: allowEmail, allow: true });
   await runScenario(browser, { gclid: denyGclid, email: denyEmail, allow: false });

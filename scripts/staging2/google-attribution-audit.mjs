@@ -76,6 +76,7 @@ try {
         clickTypes: window.NUVANXGoogleAttributionQA.clickTypes,
       } : null,
       formCount: 0,
+      canonicalFormFound: false,
       fieldsBefore: [],
       fieldsAfterAllow: [],
       requestedGclid: gclid,
@@ -88,6 +89,7 @@ try {
     out.formCount = forms.length;
     const form = forms.find((candidate) => String(candidate?.getFormId?.() || '').toLowerCase() === formId);
     if (!form || typeof form.getFormFieldValues !== 'function') return out;
+    out.canonicalFormFound = true;
     const project = (fields) => (fields || [])
       .filter((field) => /google|gclid|gbraid|wbraid|gclsrc/i.test(String(field?.name || '')))
       .map((field) => ({ name: field.name, value: field.value }));
@@ -108,6 +110,9 @@ try {
   if (state.wpHasConsentType !== 'function') throw new Error('wp_has_consent is not available on live Staging2');
   if (!state.qa?.eligiblePath || !state.qa?.hasClickId) throw new Error('Google attribution QA helper not active for synthetic GCLID');
   if (state.formCount < 1) throw new Error('Canonical HubSpot V4 form instance not available');
+  if (!state.canonicalFormFound) {
+    throw new Error(`Canonical HubSpot form id "${formId}" not found among ${state.formCount} registered form(s)`);
+  }
   if (!state.fieldsBefore.some((field) => /nvx_google_click_id|hs_google_click_id/.test(field.name))) {
     throw new Error('HubSpot canonical form does not expose a GCLID target field');
   }

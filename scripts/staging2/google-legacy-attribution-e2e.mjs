@@ -281,7 +281,29 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
   const button = frame.locator('form button[type="submit"],form input[type="submit"]').first();
   if (!await button.count()) throw new Error('HubSpot submit control missing');
   await button.scrollIntoViewIfNeeded();
+  const submitMeta = await button.evaluate((node) => ({
+    tag: node.tagName.toLowerCase(),
+    type: node.getAttribute('type') || '',
+    disabled: Boolean(node.disabled),
+    ariaDisabled: node.getAttribute('aria-disabled') || '',
+  }));
+  console.log(`SUBMIT_CONTROL_${scenario}=${JSON.stringify(submitMeta)}`);
   await button.click();
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const state = await submissionState(page);
+    if (network.requests.length > 0 || state.successMessages > 0 || state.generateLeadDelta > 0) break;
+    await sleep(250);
+  }
+  const afterClick = await submissionState(page);
+  if (network.requests.length === 0 && afterClick.successMessages === 0 && afterClick.generateLeadDelta === 0) {
+    await button.evaluate((node) => {
+      const form = node.form;
+      if (!form || typeof form.requestSubmit !== 'function') throw new Error('HTMLFormElement.requestSubmit unavailable');
+      form.requestSubmit(node);
+    });
+    console.log(`SUBMIT_FALLBACK_${scenario}=requestSubmit`);
+  }
 
   try {
     await page.waitForFunction(() => {
@@ -307,9 +329,6 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
     for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
     await sleep(3000);
     if (auditRequests.length !== 1) {
-      // The theme fires the audit POST only from the hs-form-event:on-submission:success
-      // CustomEvent. If success was detected solely via the HubSpot postMessage, that
-      // CustomEvent never ran and no audit request can appear — surface that explicitly.
       const missingCustomEvent = auditRequests.length === 0 && !state.successSources.includes('hubspot_form_event');
       const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
       throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
@@ -321,8 +340,6 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
     const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
     if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
   } else {
-    // Observe at least as long as the ALLOW branch (~13s) so a late audit POST cannot slip
-    // through this privacy assertion unnoticed; abort early the moment any request appears.
     for (let attempt = 0; attempt < 40 && auditRequests.length === 0; attempt += 1) await sleep(250);
     if (auditRequests.length === 0) await sleep(3000);
     if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
@@ -344,8 +361,6 @@ async function runScenario(browser, scenario) {
         const measurement = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204|\/ccm\/collect|\/g\/collect|\/collect/i.test(url.pathname);
         block = googleHost && measurement;
       } catch {}
-      // Swallow "Target closed" rejections: background HubSpot beacons can still be in flight
-      // when the context closes at teardown, and an unhandled route rejection clutters CI logs.
       return block ? route.abort().catch(() => {}) : route.continue().catch(() => {});
     });
     page.on('request', (request) => {

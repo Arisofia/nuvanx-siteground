@@ -13,6 +13,7 @@ const routes = [
 ];
 const transientAttempts = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '5', 10);
 const transientBaseDelayMs = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_DELAY_MS || '3000', 10);
+const requestTimeoutMs = Number.parseInt(process.env.STAGING_BOUNDARY_REQUEST_TIMEOUT_MS || '15000', 10);
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
@@ -24,6 +25,10 @@ if (!Number.isInteger(transientAttempts) || transientAttempts < 1 || transientAt
 }
 if (!Number.isInteger(transientBaseDelayMs) || transientBaseDelayMs < 250 || transientBaseDelayMs > 30000) {
   console.error('STAGING_BOUNDARY_TRANSIENT_DELAY_MS must be an integer from 250 to 30000.');
+  process.exit(1);
+}
+if (!Number.isInteger(requestTimeoutMs) || requestTimeoutMs < 1000 || requestTimeoutMs > 60000) {
+  console.error('STAGING_BOUNDARY_REQUEST_TIMEOUT_MS must be an integer from 1000 to 60000.');
   process.exit(1);
 }
 
@@ -55,6 +60,7 @@ async function fetchWithTransientRetry(current, retryLog) {
   for (let attempt = 1; attempt <= transientAttempts; attempt += 1) {
     const response = await fetch(current, {
       redirect: 'manual',
+      signal: AbortSignal.timeout(requestTimeoutMs),
       headers: {
         'user-agent': 'NUVANX-Staging-Boundary/1.1',
         accept: 'text/html,application/xhtml+xml',
@@ -121,6 +127,7 @@ const report = {
   checkedAt: new Date().toISOString(),
   transientAttempts,
   transientBaseDelayMs,
+  requestTimeoutMs,
   routes: [],
   failures: [],
 };
@@ -196,5 +203,5 @@ const retryCount = report.routes.reduce(
   0
 );
 console.log(
-  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}, are noindex/nofollow, expose SHA ${expectedSha}, transient_retries=${retryCount}.`
+  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}, are noindex/nofollow, expose SHA ${expectedSha}, transient_retries=${retryCount}, request_timeout_ms=${requestTimeoutMs}.`
 );

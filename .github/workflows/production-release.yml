@@ -1,5 +1,5 @@
 name: Production Release
-run-name: Production release ${{ github.sha }}
+run-name: Production release request ${{ github.sha }}
 
 on:
   push:
@@ -15,10 +15,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve_candidate:
+    name: Resolve accepted production candidate
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.candidate.outputs.sha }}
+    steps:
+      - name: Check out release control branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Read immutable candidate manifest
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f release/production-candidate.txt
+          candidate="$(tr -d '[:space:]' < release/production-candidate.txt)"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'release/production-candidate.txt must contain one full lowercase 40-character SHA.' >&2
+            exit 1
+          }
+          echo "sha=$candidate" >> "$GITHUB_OUTPUT"
+          echo "PRODUCTION_RELEASE_CANDIDATE=$candidate"
+
   release:
-    name: Promote exact accepted release SHA
+    name: Promote exact accepted payload SHA
+    needs: resolve_candidate
     uses: ./.github/workflows/deploy.yml
     with:
-      sha: ${{ github.sha }}
+      sha: ${{ needs.resolve_candidate.outputs.sha }}
       authorize_production: true
     secrets: inherit

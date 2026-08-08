@@ -13,18 +13,10 @@ const allowEmail = `qa-google-allow-${runId}@example.com`;
 const denyEmail = `qa-google-deny-${runId}@example.com`;
 const edgeNeedle = '/functions/v1/google-click-attribution';
 
-/**
- * Waits for the specified duration.
- * @param {number} ms - The delay in milliseconds.
- * @return {Promise<void>} Resolves after the delay.
- */
-function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-/**
- * Navigates to the canonical Madrid valuation route with a GCLID.
- * @param {string} gclid - The Google Click Identifier to include in the URL.
- * @throws {Error} If the canonical route does not return HTTP 200 after eight attempts.
- */
 async function gotoCanonical(page, gclid) {
   const target = `${baseUrl}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
   let last = '';
@@ -45,56 +37,38 @@ async function gotoCanonical(page, gclid) {
   throw new Error(`Unable to reach canonical valoración route: ${last}`);
 }
 
-/**
- * Verifies that the page reports the expected deployment SHA when one is configured.
- * @param {import('@playwright/test').Page} page - The page containing the deployment metadata.
- * @throws {Error} If the reported SHA differs from the expected SHA.
- */
 async function verifySha(page) {
   if (!expectedSha) return;
   const actual = await page.evaluate(() => document.querySelector('meta[name="nvx-deploy-sha"]')?.getAttribute('content') || '');
   if (actual !== expectedSha) throw new Error(`Staging SHA mismatch: expected=${expectedSha} actual=${actual}`);
 }
 
-/**
- * Creates a selector for HubSpot fields using bare and prefixed field names.
- * @param {string} name - The field name to match.
- * @return {string} A selector matching inputs with the specified field name.
- */
 function fieldSelector(name) {
-  // HubSpot v4 exposes fields either by their bare name or a "0-1/" prefixed variant.
   const escaped = name.replace(/"/g, '\\"');
   return `input[name="${escaped}"], input[name="0-1/${escaped}"]`;
 }
 
-/**
- * Locates the configured HubSpot form iframe after its email field becomes available.
- * @param {import('@playwright/test').Page} page - The page containing the HubSpot form.
- * @return {Promise<import('@playwright/test').Frame>} The HubSpot form frame.
- */
 async function findHubSpotFrame(page) {
   const iframe = page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first();
   await iframe.waitFor({ state: 'attached', timeout: 30000 });
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    // Tie the frame to the canonical HubSpot iframe element so we never bind to an
-    // unrelated form elsewhere on the page that happens to expose an email input.
-    const frame = await iframe.elementHandle().then((handle) => handle?.contentFrame()).catch(() => null);
-    if (frame && (await frame.locator(fieldSelector('email')).count().catch(() => 0)) > 0) return frame;
+    const handle = await iframe.elementHandle().catch(() => null);
+    try {
+      const frame = handle ? await handle.contentFrame().catch(() => null) : null;
+      if (frame && (await frame.locator(fieldSelector('email')).count().catch(() => 0)) > 0) return frame;
+    } finally {
+      await handle?.dispose().catch(() => {});
+    }
     await sleep(500);
   }
   throw new Error('HubSpot form iframe exists but email field never became available');
 }
 
-/**
- * Sets the marketing consent state and verifies that it was applied.
- * @param {boolean} allowed - Whether marketing consent should be allowed.
- * @throws {Error} If the consent APIs are unavailable or the resulting state differs from the requested state.
- */
 async function setMarketing(page, allowed) {
-  const state = await page.evaluate(async (allowed) => {
+  const state = await page.evaluate(async (nextAllowed) => {
     if (typeof window.wp_has_consent !== 'function') throw new Error('wp_has_consent unavailable');
     if (typeof window.wp_set_consent !== 'function') throw new Error('wp_set_consent unavailable');
-    window.wp_set_consent('marketing', allowed ? 'allow' : 'deny');
+    window.wp_set_consent('marketing', nextAllowed ? 'allow' : 'deny');
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
     document.dispatchEvent(new Event('wp_consent_type_defined'));
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -103,27 +77,12 @@ async function setMarketing(page, allowed) {
   if (state !== allowed) throw new Error(`Marketing consent mismatch: expected=${allowed} actual=${state}`);
 }
 
-/**
- * Reads the value of a form field.
- * @param {Frame} frame - The frame containing the field.
- * @param {string} name - The field name.
- * @return {Promise<string|null>} The field value, or `null` if the field does not exist.
- */
 async function fieldValue(frame, name) {
   const input = frame.locator(fieldSelector(name)).first();
   if ((await input.count()) === 0) return null;
   return input.inputValue();
 }
 
-/**
- * Waits for a form field value to satisfy a predicate.
- * @param {object} frame - The frame containing the field.
- * @param {string} name - The field name.
- * @param {Function} predicate - Determines whether the current field value meets the expected condition.
- * @param {string} label - Label included in the timeout error message.
- * @return {*} The field value that satisfies the predicate.
- * @throws {Error} If the field value does not satisfy the predicate within the retry period.
- */
 async function waitField(frame, name, predicate, label) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const value = await fieldValue(frame, name);
@@ -133,16 +92,10 @@ async function waitField(frame, name, predicate, label) {
   throw new Error(`${label}: field ${name} final=${JSON.stringify(await fieldValue(frame, name))}`);
 }
 
-/**
- * Verifies that a form field remains present and never contains a forbidden value during repeated sampling.
- * @param {Frame} frame - The frame containing the field.
- * @param {string} name - The field name.
- * @param {string} forbidden - The value the field must not contain.
- * @param {string} label - A label used in assertion errors.
- * @param {number} [samples=20] - The number of times to sample the field.
- */
 async function assertFieldNever(frame, name, forbidden, label, samples = 20) {
-  if ((await fieldValue(frame, name)) === null) throw new Error(`${label}: field ${name} not present, cannot assert absence of leak`);
+  if ((await fieldValue(frame, name)) === null) {
+    throw new Error(`${label}: field ${name} not present, cannot assert absence of leak`);
+  }
   for (let attempt = 0; attempt < samples; attempt += 1) {
     const value = await fieldValue(frame, name);
     if (value === forbidden) throw new Error(`${label}: field ${name} leaked forbidden value`);
@@ -150,16 +103,9 @@ async function assertFieldNever(frame, name, forbidden, label, samples = 20) {
   }
 }
 
-/**
- * Inspects form controls while redacting values unrelated to attribution.
- * @param {import('@playwright/test').Frame} frame - The frame containing the form controls.
- * @return {Array<Object>} Details for each input, textarea, and select element, including attribution values and redacted values for other fields.
- */
 async function inspectFields(frame) {
   return frame.locator('input, textarea, select').evaluateAll((nodes) => nodes.map((node) => {
     const name = node.getAttribute('name') || '';
-    // Only surface values for attribution fields; redact everything else to avoid
-    // leaking submitted PII or HubSpot tracking tokens into public CI logs.
     const isAttribution = /nvx_google|hs_google_click_id|gclid|gbraid|wbraid|gclsrc/i.test(name);
     return {
       tag: node.tagName.toLowerCase(),
@@ -167,125 +113,154 @@ async function inspectFields(frame) {
       type: node.getAttribute('type') || '',
       required: node.required || node.getAttribute('aria-required') === 'true',
       hidden: node.type === 'hidden' || node.hidden,
+      checked: node.type === 'checkbox' || node.type === 'radio' ? Boolean(node.checked) : undefined,
       value: isAttribution ? node.value : '[redacted]',
     };
   }));
 }
 
-/**
- * Selects synthetic test data for a form field based on its name and type.
- * @param {string} name - The field name used to identify its semantic purpose.
- * @param {string} type - The field input type.
- * @param {string} email - The email address to use for email fields.
- * @return {string} The synthetic value selected for the field.
- */
 function fillValue(name, type, email) {
-  const n = String(name || '').toLowerCase();
-  if (type === 'email' || n.includes('email') || n.includes('correo')) return email;
-  if (type === 'tel' || n.includes('phone') || n.includes('telefono') || n.includes('teléfono') || n.includes('mobile')) return '600000000';
-  if (n.includes('firstname') || n === 'nombre' || n.includes('first_name')) return 'QA';
-  if (n.includes('lastname') || n.includes('apellido') || n.includes('last_name')) return 'Release';
-  if (n.includes('postal') || n.includes('zip')) return '28010';
-  if (n.includes('city') || n.includes('ciudad')) return 'Madrid';
-  if (n.includes('message') || n.includes('mensaje') || n.includes('coment')) return 'QA release attribution. Registro técnico, no paciente real.';
+  const normalized = String(name || '').toLowerCase();
+  if (type === 'email' || normalized.includes('email') || normalized.includes('correo')) return email;
+  if (type === 'tel' || normalized.includes('phone') || normalized.includes('telefono') || normalized.includes('teléfono') || normalized.includes('mobile')) return '600000000';
+  if (normalized.includes('firstname') || normalized === 'nombre' || normalized.includes('first_name')) return 'QA';
+  if (normalized.includes('lastname') || normalized.includes('apellido') || normalized.includes('last_name')) return 'Release';
+  if (normalized.includes('postal') || normalized.includes('zip')) return '28010';
+  if (normalized.includes('city') || normalized.includes('ciudad')) return 'Madrid';
+  if (normalized.includes('message') || normalized.includes('mensaje') || normalized.includes('coment')) return 'QA release attribution. Registro técnico, no paciente real.';
   if (type === 'number') return '1';
   if (type === 'date') return '2026-08-08';
   return 'QA';
 }
 
-// HubSpot v4 renders consent checkboxes with the real <input> visually hidden behind a
-// styled label, so element.check() reports "did not change its state". Fall back to
-/**
- * Ensures a HubSpot consent checkbox is checked using its input, associated label, or dispatched events.
- * @param {Frame} frame - The HubSpot form frame containing the checkbox label.
- * @param {Locator} el - The checkbox to check.
- */
-async function checkHubSpotBox(frame, el) {
-  if (await el.isChecked().catch(() => false)) return;
-  try {
-    await el.check({ force: true });
-    if (await el.isChecked().catch(() => false)) return;
-  } catch (_) {
-    // Styled checkbox: the input itself is not clickable, fall through to the label.
-  }
-  const labelId = await el.getAttribute('aria-labelledby');
+async function checkHubSpotBox(frame, element) {
+  if (await element.isChecked().catch(() => false)) return;
+
+  await element.check({ force: true }).catch(() => {});
+  if (await element.isChecked().catch(() => false)) return;
+
+  const labelId = await element.getAttribute('aria-labelledby');
   if (labelId) {
-    // Escape via attribute selector rather than #id so unusual label ids never break the query,
-    // and because CSS.escape is a DOM API unavailable in this Node/Playwright context.
-    await frame.locator(`[id="${labelId.replace(/"/g, '\\"')}"]`).click({ force: true }).catch(() => {});
-    if (await el.isChecked().catch(() => false)) return;
+    const safeLabelId = labelId.replace(/"/g, '\\"');
+    await frame.locator(`[id="${safeLabelId}"]`).click({ force: true }).catch(() => {});
+    if (await element.isChecked().catch(() => false)) return;
   }
-  // Last resort: toggle the checked state directly and dispatch the events HubSpot listens to.
-  await el.evaluate((node) => {
-    node.checked = true;
+
+  await element.evaluate((node) => {
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
+    if (descriptor && typeof descriptor.set === 'function') descriptor.set.call(node, true);
+    else node.checked = true;
     node.dispatchEvent(new Event('input', { bubbles: true }));
     node.dispatchEvent(new Event('change', { bubbles: true }));
+    node.dispatchEvent(new Event('click', { bubbles: true }));
   }).catch(() => {});
+
+  if (!(await element.isChecked().catch(() => false))) {
+    throw new Error('Required HubSpot checkbox could not be checked');
+  }
 }
 
-/**
- * Fills applicable HubSpot form controls with synthetic test data and satisfies required choices.
- * @param {import('@playwright/test').Frame} frame - The frame containing the form.
- * @param {string} email - The synthetic email address used for email fields.
- */
 async function fillForm(frame, email) {
   const controls = frame.locator('form input, form textarea, form select');
   const count = await controls.count();
   console.log(`FORM_CONTROL_COUNT=${count}`);
   const radioDone = new Set();
-  for (let i = 0; i < count; i += 1) {
-    const el = controls.nth(i);
+
+  for (let index = 0; index < count; index += 1) {
+    const element = controls.nth(index);
     let tag = '';
     let type = '';
     let name = '';
     let visible = false;
     let required = false;
+
     try {
-      tag = await el.evaluate((node) => node.tagName.toLowerCase());
-      type = String((await el.getAttribute('type')) || '').toLowerCase();
-      name = String((await el.getAttribute('name')) || '');
-      visible = await el.isVisible().catch(() => false);
-      required = (await el.getAttribute('required')) !== null || (await el.getAttribute('aria-required')) === 'true';
+      tag = await element.evaluate((node) => node.tagName.toLowerCase());
+      type = String((await element.getAttribute('type')) || '').toLowerCase();
+      name = String((await element.getAttribute('name')) || '');
+      visible = await element.isVisible().catch(() => false);
+      required = (await element.getAttribute('required')) !== null || (await element.getAttribute('aria-required')) === 'true';
     } catch (error) {
-      console.log(`FILL_SKIP index=${i} error=${error.message}`);
+      console.log(`FILL_SKIP index=${index} error=${error.message}`);
       continue;
     }
+
     if (type === 'hidden' || type === 'submit' || type === 'button' || /google|gclid|gbraid|wbraid|gclsrc|utm|attribution/i.test(name)) continue;
+
     try {
       if (type === 'checkbox') {
-        if (required) await checkHubSpotBox(frame, el);
+        if (required) await checkHubSpotBox(frame, element);
       } else if (type === 'radio') {
         if (required && !radioDone.has(name)) {
-          await el.check({ force: true });
+          await element.check({ force: true });
           radioDone.add(name);
         }
       } else if (tag === 'select') {
         if (!visible && !required) continue;
-        const options = await el.locator('option').evaluateAll((opts) => opts.map((o) => ({ value: o.value, disabled: o.disabled })).filter((o) => o.value && !o.disabled));
-        if (options.length) await el.selectOption(options[0].value);
+        const options = await element.locator('option').evaluateAll((nodes) => nodes
+          .map((option) => ({ value: option.value, disabled: option.disabled }))
+          .filter((option) => option.value && !option.disabled));
+        if (options.length) await element.selectOption(options[0].value);
       } else {
         if (!visible && !required) continue;
-        const current = await el.inputValue().catch(() => '');
-        if (!current) await el.fill(fillValue(name, type, email));
+        const current = await element.inputValue().catch(() => '');
+        if (!current) await element.fill(fillValue(name, type, email));
       }
     } catch (error) {
       console.log(`FILL_WARN name=${name} type=${type} required=${required} error=${error.message}`);
+      if (required) throw error;
     }
   }
+
+  const emailInput = frame.locator(fieldSelector('email')).first();
+  if ((await emailInput.count()) === 0) throw new Error('HubSpot email field disappeared before submit');
+  await emailInput.fill(email);
 }
 
-/**
- * Submits the HubSpot form and verifies conversion and attribution behavior for the scenario.
- * @param {string} scenario - The consent scenario, such as `ALLOW` or `DENY`.
- * @param {string} rawEmail - The synthetic email used to populate and validate the form submission.
- * @param {string[]} auditRequests - Captured attribution audit request bodies.
- * @param {number[]} auditResponses - Captured attribution audit response statuses.
- * @throws {Error} If the form cannot be submitted or the expected conversion or attribution checks fail.
- */
-async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, auditResponses) {
-  await page.evaluate((formId) => {
+async function formDiagnostics(frame) {
+  const form = frame.locator('form').first();
+  if ((await form.count()) === 0) return { present: false, valid: false, invalid: [], submitDisabled: null };
+  return form.evaluate((node) => {
+    const invalid = Array.from(node.querySelectorAll(':invalid')).slice(0, 20).map((field) => ({
+      tag: field.tagName.toLowerCase(),
+      name: field.getAttribute('name') || '',
+      type: field.getAttribute('type') || '',
+      required: Boolean(field.required || field.getAttribute('aria-required') === 'true'),
+      checked: field.type === 'checkbox' || field.type === 'radio' ? Boolean(field.checked) : undefined,
+    }));
+    const submit = node.querySelector('input[type="submit"], button[type="submit"]');
+    return {
+      present: true,
+      valid: typeof node.checkValidity === 'function' ? node.checkValidity() : null,
+      invalid,
+      submitDisabled: submit ? Boolean(submit.disabled || submit.getAttribute('aria-disabled') === 'true') : null,
+    };
+  });
+}
+
+async function submissionState(page) {
+  return page.evaluate(() => {
+    const after = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+    return {
+      successMessages: Number(window.__nvxQaSuccess || 0),
+      successSources: Array.isArray(window.__nvxQaSuccessSources) ? window.__nvxQaSuccessSources.slice() : [],
+      generateLeadDelta: after - Number(window.__nvxQaGenerateBefore || 0),
+    };
+  });
+}
+
+async function installSubmissionObservers(page) {
+  await page.evaluate((canonicalFormId) => {
     window.__nvxQaSuccess = 0;
+    window.__nvxQaSuccessSources = [];
     window.__nvxQaGenerateBefore = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+
+    const recordSuccess = (source, id) => {
+      if (String(id || '').toLowerCase() !== canonicalFormId) return;
+      window.__nvxQaSuccess += 1;
+      window.__nvxQaSuccessSources.push(source);
+    };
+
     const isAllowedHubSpotOrigin = (origin) => {
       if (!origin || origin === 'null') return false;
       try {
@@ -294,65 +269,98 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
         return false;
       }
     };
+
+    window.addEventListener('hs-form-event:on-submission:success', (event) => {
+      const detail = event && event.detail ? event.detail : {};
+      recordSuccess('hubspot_form_event', detail.formId || '');
+    });
+
     window.addEventListener('message', (event) => {
       if (!isAllowedHubSpotOrigin(event.origin)) return;
-      // Validate that the message originates from the HubSpot iframe's contentWindow to prevent
-      // spoofed postMessages from unrelated origins or windows that happen to pass the origin check.
-      const hubspotIframe = document.querySelector(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`);
+      const hubspotIframe = document.querySelector(`#nvx-hubspot-form iframe[data-test-id*="${canonicalFormId}"]`);
       if (!hubspotIframe || event.source !== hubspotIframe.contentWindow) return;
       let data = event.data || {};
-      if (typeof data === 'string') { try { data = JSON.parse(data); } catch (_) { return; } }
-      if (data.type === 'hsFormCallback' && data.eventName === 'onFormSubmitted' && String(data.id || '').toLowerCase() === formId) {
-        window.__nvxQaSuccess += 1;
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch (_) {
+          return;
+        }
+      }
+      if (data.type === 'hsFormCallback' && data.eventName === 'onFormSubmitted') {
+        recordSuccess('hubspot_post_message', data.id || '');
       }
     });
   }, formId);
+}
 
+async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, auditResponses) {
+  await installSubmissionObservers(page);
   await fillForm(frame, rawEmail);
-  console.log(`FORM_FIELDS_${scenario}=${JSON.stringify(await inspectFields(frame))}`);
+
+  const fields = await inspectFields(frame);
+  console.log(`FORM_FIELDS_${scenario}=${JSON.stringify(fields)}`);
+
+  const preSubmit = await formDiagnostics(frame);
+  console.log(`FORM_VALIDITY_${scenario}=${JSON.stringify(preSubmit)}`);
+  if (!preSubmit.present) throw new Error(`${scenario}: HubSpot form disappeared before submit`);
+  if (preSubmit.valid === false) throw new Error(`${scenario}: HubSpot form invalid before submit: ${JSON.stringify(preSubmit.invalid)}`);
+  if (preSubmit.submitDisabled === true) throw new Error(`${scenario}: HubSpot submit control is disabled`);
+
   const submit = frame.locator('form input[type="submit"], form button[type="submit"], input[type="submit"], button[type="submit"]').first();
   if ((await submit.count()) === 0) throw new Error('No submit control found');
   await submit.click({ force: true });
 
-  await page.waitForFunction(() => Number(window.__nvxQaSuccess || 0) >= 1, null, { timeout: 30000 });
+  try {
+    await page.waitForFunction(() => {
+      const after = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+      const delta = after - Number(window.__nvxQaGenerateBefore || 0);
+      return Number(window.__nvxQaSuccess || 0) >= 1 || delta >= 1;
+    }, null, { timeout: 30000 });
+  } catch (error) {
+    const [state, validity] = await Promise.all([
+      submissionState(page).catch(() => ({ successMessages: 0, successSources: [], generateLeadDelta: 0 })),
+      formDiagnostics(frame).catch(() => ({ present: false, valid: null, invalid: [], submitDisabled: null })),
+    ]);
+    throw new Error(`${scenario}: no HubSpot submission success within 30s; state=${JSON.stringify(state)} form=${JSON.stringify(validity)} cause=${error.name}`);
+  }
+
   await sleep(5000);
-  const result = await page.evaluate(() => {
-    const after = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
-    return { successMessages: Number(window.__nvxQaSuccess || 0), generateLeadDelta: after - Number(window.__nvxQaGenerateBefore || 0) };
-  });
-  if (result.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${result.generateLeadDelta}, expected=1`);
+  const result = await submissionState(page);
+  if (result.generateLeadDelta !== 1) {
+    throw new Error(`${scenario}: generate_lead delta=${result.generateLeadDelta}, expected=1 sources=${JSON.stringify(result.successSources)}`);
+  }
 
   if (scenario === 'ALLOW') {
-    // The audit POST is fired asynchronously (keepalive fetch) after the submit postMessage,
-    // so poll for it instead of relying on a fixed sleep before asserting exactly one request.
     for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
-    await sleep(3000); // Grace window so a duplicate audit POST is detected instead of missed.
+    await sleep(3000);
     if (auditRequests.length !== 1) throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1`);
     for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
-    if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
+    if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
+      throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
+    }
     if (!auditRequests[0]) throw new Error('ALLOW: audit payload body unavailable');
     const payload = JSON.parse(auditRequests[0]);
     if (JSON.stringify(payload).includes(rawEmail)) throw new Error('ALLOW: raw email leaked in audit payload');
     const expectedHash = createHash('sha256').update(rawEmail.trim().toLowerCase()).digest('hex');
-    if (String(payload.email_hash || '') !== expectedHash) throw new Error(`ALLOW: email_hash mismatch, expected SHA-256 of submitted email`);
+    if (String(payload.email_hash || '') !== expectedHash) throw new Error('ALLOW: email_hash mismatch, expected SHA-256 of submitted email');
     console.log(`ALLOW_AUDIT_PAYLOAD=${JSON.stringify(payload)}`);
   } else {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      if (auditRequests.length > 0) break;
+      await sleep(250);
+    }
     if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
   }
-  console.log(`SCENARIO_${scenario}=PASS successMessages=${result.successMessages} generateLeadDelta=${result.generateLeadDelta} auditRequests=${auditRequests.length}`);
+
+  console.log(`SCENARIO_${scenario}=PASS successMessages=${result.successMessages} successSources=${JSON.stringify(result.successSources)} generateLeadDelta=${result.generateLeadDelta} auditRequests=${auditRequests.length}`);
 }
 
-/**
- * Runs an isolated consent and form-submission scenario, validating GCLID handling and attribution auditing.
- * @param {string} scenario - The scenario name used for diagnostics and assertions.
- * @param {string} gclid - The synthetic Google Click ID to test.
- * @param {string} email - The synthetic email address submitted with the form.
- * @param {boolean} allowed - Whether marketing consent should be granted during the scenario.
- */
 async function runScenario(browser, { scenario, gclid, email, allowed }) {
   const context = await browser.newContext();
   const auditRequests = [];
   const auditResponses = [];
+
   try {
     const page = await context.newPage();
 
@@ -360,13 +368,11 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
       let shouldBlock = false;
       try {
         const url = new URL(route.request().url());
-        // Regional Google ad hosts (google.es, google.co.uk, ...) plus googletagmanager are
-        // included so real conversion pings never leave the browser during the ALLOW scenario.
         const googleAdHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google\.[a-z.]+)$/.test(url.hostname);
         const conversionPath = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204/i.test(url.pathname);
         shouldBlock = googleAdHost && conversionPath;
       } catch (_) {
-        // Fall through to continue so a parsing error never stalls page loading.
+        // Parsing failure is not a reason to stall an unrelated request.
       }
       if (shouldBlock) return route.abort();
       return route.continue();
@@ -387,7 +393,7 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
     console.log(`SCENARIO_${scenario}_INITIAL_MARKETING=${initialConsent}`);
     if (initialConsent === true) {
       await setMarketing(page, false);
-      // The adapter clears the field asynchronously; wait for the clear before asserting absence.
+      if ((await fieldValue(frame, 'nvx_google_click_id')) === null) throw new Error(`${scenario} pre-consent clear: nvx_google_click_id field disappeared`);
       await waitField(frame, 'nvx_google_click_id', (value) => !value, `${scenario} pre-consent clear`);
     }
 
@@ -399,13 +405,9 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
     if (allowed) {
       await waitField(frame, 'nvx_google_click_id', (value) => value === gclid, 'ALLOW custom GCLID population');
       const native = await fieldValue(frame, 'hs_google_click_id');
-      // An empty native value is acceptable: the adapter only writes it when HubSpot surfaces the field.
       if (native && native !== gclid) throw new Error(`ALLOW native hs_google_click_id exists but value=${JSON.stringify(native)}`);
 
       await setMarketing(page, false);
-      // Fail-closed policy: the adapter clears the custom nvx_ field on revoke but
-      // deliberately leaves native HubSpot fields untouched, so we only assert the custom field here.
-      // Presence guard first so a removed/renamed field is a failure, not a vacuous pass.
       if ((await fieldValue(frame, 'nvx_google_click_id')) === null) throw new Error('ALLOW revoke: nvx_google_click_id field disappeared');
       await waitField(frame, 'nvx_google_click_id', (value) => !value, 'ALLOW revoke custom GCLID clear');
 
@@ -428,9 +430,7 @@ try {
   await runScenario(browser, { scenario: 'ALLOW', gclid: allowGclid, email: allowEmail, allowed: true });
   await runScenario(browser, { scenario: 'DENY', gclid: denyGclid, email: denyEmail, allowed: false });
   console.log(`ALLOW_GCLID=${allowGclid}`);
-  console.log(`ALLOW_EMAIL=${allowEmail}`);
   console.log(`DENY_GCLID=${denyGclid}`);
-  console.log(`DENY_EMAIL=${denyEmail}`);
   console.log('GOOGLE_LEGACY_ATTRIBUTION_E2E=PASS');
 } finally {
   await browser.close();

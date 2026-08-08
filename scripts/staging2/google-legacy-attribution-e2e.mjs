@@ -215,55 +215,61 @@ async function checkHubSpotBox(frame, element) {
 }
 
 async function fillForm(frame, email) {
-  const controls = frame.locator('form input, form textarea, form select');
-  const count = await controls.count();
-  console.log(`FORM_CONTROL_COUNT=${count}`);
+  // Snapshot stable ElementHandles once and iterate those instead of controls.nth(index).
+  // HubSpot forms can reveal/hide dependent fields as values are entered, which shifts
+  // locator indices and would cause fields to be skipped or re-visited; handles stay bound
+  // to their original element regardless of DOM reordering.
+  const handles = await frame.locator('form input, form textarea, form select').elementHandles();
+  console.log(`FORM_CONTROL_COUNT=${handles.length}`);
   const radioDone = new Set();
 
-  for (let index = 0; index < count; index += 1) {
-    const element = controls.nth(index);
-    let tag = '';
-    let type = '';
-    let name = '';
-    let visible = false;
-    let required = false;
+  try {
+    for (const element of handles) {
+      let tag = '';
+      let type = '';
+      let name = '';
+      let visible = false;
+      let required = false;
 
-    try {
-      tag = await element.evaluate((node) => node.tagName.toLowerCase());
-      type = String((await element.getAttribute('type')) || '').toLowerCase();
-      name = String((await element.getAttribute('name')) || '');
-      visible = await element.isVisible().catch(() => false);
-      required = (await element.getAttribute('required')) !== null || (await element.getAttribute('aria-required')) === 'true';
-    } catch (error) {
-      console.log(`FILL_SKIP index=${index} error=${error.message}`);
-      continue;
-    }
-
-    if (type === 'hidden' || type === 'submit' || type === 'button' || /google|gclid|gbraid|wbraid|gclsrc|utm|attribution/i.test(name)) continue;
-
-    try {
-      if (type === 'checkbox') {
-        if (required) await checkHubSpotBox(frame, element);
-      } else if (type === 'radio') {
-        if (required && !radioDone.has(name)) {
-          await element.check({ force: true });
-          radioDone.add(name);
-        }
-      } else if (tag === 'select') {
-        if (!visible && !required) continue;
-        const options = await element.locator('option').evaluateAll((nodes) => nodes
-          .map((option) => ({ value: option.value, disabled: option.disabled }))
-          .filter((option) => option.value && !option.disabled));
-        if (options.length) await element.selectOption(options[0].value);
-      } else {
-        if (!visible && !required) continue;
-        const current = await element.inputValue().catch(() => '');
-        if (!current) await element.fill(fillValue(name, type, email));
+      try {
+        tag = await element.evaluate((node) => node.tagName.toLowerCase());
+        type = String((await element.getAttribute('type')) || '').toLowerCase();
+        name = String((await element.getAttribute('name')) || '');
+        visible = await element.isVisible().catch(() => false);
+        required = (await element.getAttribute('required')) !== null || (await element.getAttribute('aria-required')) === 'true';
+      } catch (error) {
+        console.log(`FILL_SKIP error=${error.message}`);
+        continue;
       }
-    } catch (error) {
-      console.log(`FILL_WARN name=${name} type=${type} required=${required} error=${error.message}`);
-      if (required) throw error;
+
+      if (type === 'hidden' || type === 'submit' || type === 'button' || /google|gclid|gbraid|wbraid|gclsrc|utm|attribution/i.test(name)) continue;
+
+      try {
+        if (type === 'checkbox') {
+          if (required) await checkHubSpotBox(frame, element);
+        } else if (type === 'radio') {
+          if (required && !radioDone.has(name)) {
+            await element.check({ force: true });
+            radioDone.add(name);
+          }
+        } else if (tag === 'select') {
+          if (!visible && !required) continue;
+          const options = await element.evaluate((node) => Array.from(node.options || [])
+            .map((option) => ({ value: option.value, disabled: option.disabled }))
+            .filter((option) => option.value && !option.disabled));
+          if (options.length) await element.selectOption(options[0].value);
+        } else {
+          if (!visible && !required) continue;
+          const current = await element.inputValue().catch(() => '');
+          if (!current) await element.fill(fillValue(name, type, email));
+        }
+      } catch (error) {
+        console.log(`FILL_WARN name=${name} type=${type} required=${required} error=${error.message}`);
+        if (required) throw error;
+      }
     }
+  } finally {
+    await Promise.all(handles.map((handle) => handle.dispose().catch(() => {})));
   }
 
   const emailInput = frame.locator(fieldSelector('email')).first();

@@ -28,20 +28,29 @@ try {
     if (/hubspot|hsforms|js-eu1|forms-eu1/i.test(url)) failures.push({ url: sanitizeUrl(url), error: request.failure()?.errorText || '' });
   });
   let response = null;
+  // Remember the best observed response across attempts so a later throw does not
+  // report status=0 when an earlier attempt actually returned an HTTP response.
+  let observedStatus = 0;
+  let observedUrl = '';
   for (let attempt = 1; attempt <= 8; attempt += 1) {
     response = null;
     try {
       response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      console.log(`NAV attempt=${attempt} status=${response?.status() || 0} url=${page.url()}`);
-      if (response?.status() === 200 && new URL(page.url()).pathname === '/madrid/valoracion/') break;
+      const status = response?.status() || 0;
+      if (status) {
+        observedStatus = status;
+        observedUrl = page.url();
+      }
+      console.log(`NAV attempt=${attempt} status=${status} url=${page.url()}`);
+      if (status === 200 && new URL(page.url()).pathname === '/madrid/valoracion/') break;
     } catch (error) {
       console.log(`NAV attempt=${attempt} error=${error.message}`);
     }
     await page.waitForTimeout(2500);
   }
 
-  const finalStatus = response?.status() || 0;
-  const finalUrl = page.url();
+  const finalStatus = response?.status() || observedStatus || 0;
+  const finalUrl = response ? page.url() : (observedUrl || page.url());
   const finalPathname = (() => {
     try {
       return new URL(finalUrl).pathname;

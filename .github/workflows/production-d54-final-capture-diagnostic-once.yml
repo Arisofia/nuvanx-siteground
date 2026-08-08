@@ -1,0 +1,117 @@
+name: Production d54 Final Capture Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-d54-final-capture-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-diag
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-diag "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null"
+          test "$(ssh -n nvx-prod-diag "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_SHA"
+          echo 'DIAG_IDENTITY=PASS'
+
+      - name: Print capture preconditions without fail-fast
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -n nvx-prod-diag "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -u
+          cd "$PROD_ROOT" || exit 1
+          ua='NUVANX-Production-Final-Diagnostic/1.0'
+          tmp="/tmp/nvx-final-diag-$$"
+          mkdir -p "$tmp"
+          trap 'rm -rf "$tmp"' EXIT
+
+          echo "DISK_SHA=$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha 2>/dev/null || echo MISSING)"
+          echo "DB=$(wp config get DB_NAME 2>/dev/null || echo ERROR)"
+          echo "HOME=$(wp option get home 2>/dev/null || echo ERROR)"
+          echo "SITEURL=$(wp option get siteurl 2>/dev/null || echo ERROR)"
+          echo "BLOG_PUBLIC=$(wp option get blog_public 2>/dev/null || echo ERROR)"
+          echo "THEME=$(wp theme list --status=active --field=name 2>/dev/null || echo ERROR)"
+
+          sm_code="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -H 'Accept: application/xml,text/xml,*/*' -o "$tmp/index.xml" -w '%{http_code}' "$BASE_URL/sitemap_index.xml" || echo CURLFAIL)"
+          echo "SITEMAP_INDEX_HTTP=$sm_code"
+          echo "SITEMAP_INDEX_BYTES=$(wc -c < "$tmp/index.xml" 2>/dev/null || echo 0)"
+          echo "SITEMAP_INDEX_CAPTCHA=$(grep -Fq '/.well-known/sgcaptcha/' "$tmp/index.xml" 2>/dev/null && echo YES || echo NO)"
+          echo "SITEMAP_HAS_CATEGORY=$(grep -Fq '/category-sitemap.xml' "$tmp/index.xml" 2>/dev/null && echo YES || echo NO)"
+          echo "SITEMAP_HAS_POST_TAG=$(grep -Eq '/(post_tag|tag)-sitemap.xml' "$tmp/index.xml" 2>/dev/null && echo YES || echo NO)"
+          echo 'SITEMAP_CHILDREN_BEGIN'
+          grep -oE '<loc>[^<]+' "$tmp/index.xml" 2>/dev/null | sed 's#<loc>##' || true
+          echo 'SITEMAP_CHILDREN_END'
+
+          prefix="$(wp db prefix 2>/dev/null || true)"
+          if [[ -n "$prefix" ]]; then
+            legacy="$(wp db query "SELECT COUNT(*) FROM ${prefix}posts WHERE post_status='publish' AND post_content LIKE '%/valoracion-medica/%';" --skip-column-names 2>/dev/null || echo QUERYFAIL)"
+          else
+            legacy='PREFIXFAIL'
+          fi
+          echo "LEGACY_VALORACION_COUNT=$legacy"
+
+          alias_result="$(curl -sS --max-time 30 -A "$ua" -D "$tmp/alias.headers" -o "$tmp/alias.html" -w '%{http_code}|%{redirect_url}|%{url_effective}' "$BASE_URL/valoracion-medica/" || echo CURLFAIL)"
+          echo "ALIAS_RESULT=$alias_result"
+          echo "ALIAS_CAPTCHA=$(grep -Fq '/.well-known/sgcaptcha/' "$tmp/alias.html" 2>/dev/null && echo YES || echo NO)"
+
+          cases_result="$(curl -sS --max-time 30 -A "$ua" -D "$tmp/cases.headers" -o "$tmp/cases.html" -w '%{http_code}|%{url_effective}' "$BASE_URL/casos-de-pacientes/" || echo CURLFAIL)"
+          echo "CASES_RESULT=$cases_result"
+          echo "CASES_CAPTCHA=$(grep -Fq '/.well-known/sgcaptcha/' "$tmp/cases.html" 2>/dev/null && echo YES || echo NO)"
+
+          page_sm="$(grep -oE '<loc>[^<]+' "$tmp/index.xml" 2>/dev/null | sed 's#<loc>##' | grep '/page-sitemap.xml' | head -n 1 || true)"
+          echo "PAGE_SITEMAP_URL=$page_sm"
+          if [[ -n "$page_sm" ]]; then
+            page_code="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -o "$tmp/page.xml" -w '%{http_code}' "$page_sm" || echo CURLFAIL)"
+            echo "PAGE_SITEMAP_HTTP=$page_code"
+            echo "PAGE_HAS_OLD_COOKIES=$(grep -Fq '/politica-de-cookies/' "$tmp/page.xml" 2>/dev/null && echo YES || echo NO)"
+            echo "PAGE_HAS_MORE_COOKIES=$(grep -Fq '/mas-informacion-sobre-las-cookies/' "$tmp/page.xml" 2>/dev/null && echo YES || echo NO)"
+            echo "PAGE_HAS_CASES=$(grep -Fq '/casos-de-pacientes/' "$tmp/page.xml" 2>/dev/null && echo YES || echo NO)"
+          fi
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

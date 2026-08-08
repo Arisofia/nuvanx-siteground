@@ -37,6 +37,11 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/staging2/apply-visual-block1.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
+          p.write_text(p.read_text('utf-8').rstrip() + '\n', 'utf-8')
+          PY
 
       - name: Validate every PHP file
         shell: bash

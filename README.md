@@ -23,6 +23,7 @@ Git history is the archive for retired audits, diagnostics and incident-era impl
 | `staging2-acceptance.yml` | Reusable canonical Block C acceptance (`workflow_call`) |
 | `deploy.yml` | Reusable production readiness gate; production mutation remains explicitly disabled until authorized |
 | `workflow-hygiene.yml` | Repository hygiene and anti-self-mutation gate on PRs and `master` |
+| `google-attribution-runtime-audit.yml` | Manually verifiable run of the Playwright e2e validation for HubSpot GCLID plumbing |
 
 A push to `master` does **not** automatically deploy Staging2 or production. Release orchestration must explicitly call the reusable deployment workflows with an exact accepted SHA.
 
@@ -33,6 +34,7 @@ Staging browser acceptance is owned by:
 - `scripts/staging2/block-c-52x3.mjs`
 - `scripts/staging2/valoracion-placement.mjs`
 - `scripts/staging2/verify-staging-boundary.mjs`
+- `scripts/staging2/google-attribution-audit.mjs`
 - `scripts/validate-page-templates.mjs`
 
 Install browser dependencies only in the scoped package:

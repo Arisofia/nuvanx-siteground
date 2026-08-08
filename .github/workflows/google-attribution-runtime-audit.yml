@@ -1,0 +1,55 @@
+name: Google Attribution Runtime Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL of the target environment'
+        required: true
+        default: 'https://staging2.nuvanx.com'
+      form_id:
+        description: 'HubSpot Form ID to assert against'
+        required: true
+        default: '5042522a-0bc5-4381-ac3e-5aee8649b69c'
+      expected_sha:
+        description: 'Expected nvx-deploy-sha content (optional)'
+        required: false
+        default: ''
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Inspect live consent and canonical HubSpot form
+        shell: bash
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'https://staging2.nuvanx.com' }}
+          FORM_ID: ${{ github.event.inputs.form_id || '5042522a-0bc5-4381-ac3e-5aee8649b69c' }}
+          EXPECTED_SHA: ${{ github.event.inputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node google-attribution-audit.mjs

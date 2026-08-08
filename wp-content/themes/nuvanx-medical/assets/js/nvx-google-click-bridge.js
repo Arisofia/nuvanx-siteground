@@ -43,6 +43,7 @@
   function aliasParamOnUrl(url, param) {
     var changed = false;
     PARAM_FIELDS[param].forEach(function (fieldName) {
+      if (fieldName === 'hs_google_click_id') return;
       changed = addUrlAlias(url, param, fieldName) || changed;
     });
     return changed;
@@ -199,10 +200,10 @@
   }
 
   function handleLegacyHubSpotMessage(event) {
-    if (!event?.origin || !isTrustedHubSpotMessageOrigin(event.origin)) return;
+    if (!event || !event.origin || !isTrustedHubSpotMessageOrigin(event.origin)) return;
 
     var data = event.data;
-    if (data?.type !== 'hsFormCallback' || !isLegacyFormEvent(data.eventName)) return;
+    if (!data || data.type !== 'hsFormCallback' || !isLegacyFormEvent(data.eventName)) return;
     applyToKnownLegacyForms();
   }
 

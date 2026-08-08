@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-const originSshAlias = 'nvx-staging2';
+const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
 const routes = [
   '/',
   '/soluciones-medicas/',
@@ -35,7 +35,13 @@ if (!/^[a-z0-9.-]+$/.test(expectedHost)) {
   console.error('EXPECTED_HOST contains unsupported characters.');
   process.exit(1);
 }
-const parsedBaseUrl = new URL(baseUrl);
+let parsedBaseUrl;
+try {
+  parsedBaseUrl = new URL(baseUrl);
+} catch {
+  console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
+  process.exit(1);
+}
 if (parsedBaseUrl.protocol !== 'https:' || parsedBaseUrl.hostname !== expectedHost) {
   console.error(`BASE_URL must be HTTPS on ${expectedHost}.`);
   process.exit(1);
@@ -87,18 +93,12 @@ function isTransientSiteGroundChallenge(response) {
 }
 
 async function sshAliasConfigured(alias) {
-  const home = process.env.HOME || '';
-  if (!home) return false;
+  const sshBin = process.env.SSH_BINARY || 'ssh';
   try {
-    const config = await fs.readFile(path.join(home, '.ssh', 'config'), 'utf8');
-    return config.split(/\r?\n/).some((line) => {
-      const parts = line.trim().split(/\s+/);
-      return (
-        parts.length > 1 &&
-        parts[0].toLowerCase() === 'host' &&
-        parts.slice(1).includes(alias)
-      );
+    const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
+      encoding: 'utf8',
     });
+    return result.status === 0;
   } catch {
     return false;
   }
@@ -122,8 +122,8 @@ function verifyViaSiteGroundOrigin(route) {
     'esac',
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
-    'grep -Fq "$EXPECTED_SHA" "$body"',
-    'robots_meta="$(grep -Eio \'<meta[^>]+name=[^ >]*robots[^ >]*[^>]*>\' "$body" | head -n 1 || true)"',
+    'grep -Eiq "<meta[^>]+name=[\"\']nvx-deploy-sha[\"\'][^>]*content=[\"\']$EXPECTED_SHA[\"\']" "$body"',
+    'robots_meta="$(grep -Eio "<meta[^>]+name=[\"\']robots[\"\'][^>]*>" "$body" | head -n 1 || true)"',
     'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
     'combined="${robots_meta} ${xrobots}"',
     'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',
@@ -137,7 +137,8 @@ function verifyViaSiteGroundOrigin(route) {
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  const result = spawnSync('/usr/bin/ssh', [originSshAlias, remoteCommand], {
+  const sshBin = process.env.SSH_BINARY || 'ssh';
+  const result = spawnSync(sshBin, [originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
     timeout: 60000,
@@ -260,6 +261,9 @@ for (const route of routes) {
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {
         result.pass = true;
+        result.status = 200;
+        result.robots = 'noindex,nofollow';
+        result.deploySha = expectedSha;
         report.routes.push(result);
         continue;
       }
@@ -267,7 +271,7 @@ for (const route of routes) {
         `SiteGround origin fallback failed: ${
           result.originFallback.stderr ||
           result.originFallback.error ||
-          `exit ${result.originFallback.status}`
+          (result.originFallback.signal ? `signal ${result.originFallback.signal}` : `exit ${result.originFallback.status}`)
         }`
       );
     }

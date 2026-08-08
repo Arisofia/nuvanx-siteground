@@ -6,7 +6,7 @@ on:
       - cleanup/dependency-normalization-20260808
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   refresh:
@@ -23,26 +23,43 @@ jobs:
           php-version: '8.2'
           tools: composer
 
-      - name: Regenerate lock with minimal dependency changes
-        id: resolve
+      - name: Regenerate and validate lock
         working-directory: wp-content/themes/nuvanx-medical
         shell: bash
         run: |
           set -euo pipefail
-          echo 'COMPOSER_RESOLUTION_BEGIN'
           composer update --no-install --no-interaction --no-progress --minimal-changes --no-scripts
-          echo 'COMPOSER_RESOLUTION=PASS'
-          echo '--- direct locked dependencies ---'
-          composer show --locked --direct
-          echo '--- lock diff ---'
-          git diff -- composer.lock
           composer validate --no-check-publish || echo 'COMPOSER_VALIDATE=WARNING'
+          test "$(php -r '$d=json_decode(file_get_contents("composer.lock"),true); echo count($d["packages"]);')" = '0'
+          test "$(php -r '$d=json_decode(file_get_contents("composer.lock"),true); foreach($d["packages-dev"] as $p){if($p["name"]==="phpstan/phpstan"){echo $p["version"];}}')" = '2.2.8'
+          ! grep -Fq '"name": "phpunit/phpunit"' composer.lock
 
-      - name: Upload regenerated lock
-        if: steps.resolve.conclusion == 'success'
+      - name: Create unattached Git blob for generated lock
+        working-directory: wp-content/themes/nuvanx-medical
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          local_sha="$(git hash-object composer.lock)"
+          base64 -w0 composer.lock > /tmp/composer-lock.b64
+          jq -n --rawfile content /tmp/composer-lock.b64 '{content:$content,encoding:"base64"}' > /tmp/blob.json
+          remote_sha="$(curl -fsSL -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/blobs" \
+            --data-binary @/tmp/blob.json | jq -r '.sha')"
+          test "$remote_sha" = "$local_sha"
+          printf '%s\n' "$remote_sha" > /tmp/composer-lock-blob-sha.txt
+          echo "LOCK_BLOB_SHA=$remote_sha"
+
+      - name: Upload lock evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: normalized-composer-lock-${{ github.sha }}
-          path: wp-content/themes/nuvanx-medical/composer.lock
+          path: |
+            wp-content/themes/nuvanx-medical/composer.lock
+            /tmp/composer-lock-blob-sha.txt
           if-no-files-found: error
           retention-days: 1

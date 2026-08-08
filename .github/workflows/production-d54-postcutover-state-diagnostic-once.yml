@@ -1,0 +1,141 @@
+name: Production d54 Postcutover State Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-d54-postcutover-state-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-state
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-state "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v sha256sum >/dev/null"
+          test "$(ssh -n nvx-prod-state "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_SHA"
+          test "$(ssh -n nvx-prod-state "cd '$PROD_ROOT' && wp config get DB_NAME")" = 'db0ecrycwv2tgb'
+          echo 'STATE_GUARD=PASS'
+
+      - name: Upload diagnostic PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/nvx-prod-state.php" <<'PHP'
+          <?php
+          $root = $argv[1] ?? '';
+          if (!$root) { exit(2); }
+          require rtrim($root,'/') . '/wp-load.php';
+          global $wpdb;
+          $like = '%' . $wpdb->esc_like('/valoracion-medica/') . '%';
+          $rows = $wpdb->get_results($wpdb->prepare(
+              "SELECT ID,post_type,post_status,post_name,post_title,post_content FROM {$wpdb->posts} WHERE post_status='publish' AND post_content LIKE %s ORDER BY ID",
+              $like
+          ));
+          echo "LEGACY_ROWS=" . count($rows) . "\n";
+          foreach ($rows as $r) {
+              $content = (string)$r->post_content;
+              $pos = strpos($content, '/valoracion-medica/');
+              $start = max(0, ($pos === false ? 0 : $pos) - 120);
+              $snippet = substr($content, $start, 300);
+              $snippet = preg_replace('/\s+/', ' ', $snippet);
+              echo "LEGACY_ROW|ID={$r->ID}|type={$r->post_type}|status={$r->post_status}|slug={$r->post_name}|title={$r->post_title}|count=" . substr_count($content,'/valoracion-medica/') . "|sha256=" . hash('sha256',$content) . "|snippet={$snippet}\n";
+          }
+          $slugs=['remodelacion-corporal-laser-madrid','tratamiento-postparto-abdomen-contorno-corporal-madrid'];
+          foreach($slugs as $slug){$p=get_page_by_path($slug,OBJECT,'page');echo "TARGET_PAGE|slug={$slug}|ID=".($p?$p->ID:0)."|exists=".($p?'YES':'NO')."|legacy=".($p?substr_count((string)$p->post_content,'/valoracion-medica/'):0)."\n";}
+          PHP
+          php -l "$RUNNER_TEMP/nvx-prod-state.php"
+          scp "$RUNNER_TEMP/nvx-prod-state.php" nvx-prod-state:/tmp/nvx-prod-state.php
+
+      - name: Inspect published legacy references
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -n nvx-prod-state "php /tmp/nvx-prod-state.php '$PROD_ROOT'"
+
+      - name: Inspect nine responsive derivative files and HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/nvx-prod-responsive.txt"
+          cat > "$manifest" <<'EOF'
+          2026/05/higiene-facial-con-microdermoabrasion-480x320.webp
+          2026/05/diatermia-facial-480x320.webp
+          2026/05/depilacion-laser-480x320.webp
+          2026/05/hidrolipoclasia-480x320.webp
+          2026/05/masajes-posoperatorios-480x320.webp
+          2026/05/radiofrecuencia-corporal-480x320.webp
+          2026/05/presoterapia-480x320.webp
+          2026/05/tratamiento-anticelulitico-480x320.webp
+          2026/02/casmara-480x194.webp
+          EOF
+          sed -i 's/^[[:space:]]*//' "$manifest"
+          ua='NUVANX-Production-State-Diagnostic/1.0'
+          while IFS= read -r rel; do
+            test -n "$rel" || continue
+            disk="$(ssh -n nvx-prod-state "f='$PROD_ROOT/wp-content/uploads/$rel'; if test -s \"\$f\"; then printf 'YES|'; wc -c < \"\$f\" | tr -d ' '; printf '|'; sha256sum \"\$f\" | cut -d' ' -f1; else echo 'NO|0|MISSING'; fi")"
+            http="$(ssh -n nvx-prod-state "curl -sS --max-time 20 -A '$ua' -o /dev/null -w '%{http_code}' '$BASE_URL/wp-content/uploads/$rel'" || true)"
+            echo "RESPONSIVE|rel=$rel|disk=$disk|http=$http"
+          done < "$manifest"
+
+      - name: Inspect runtime image failures on Estetica Avanzada
+        shell: bash
+        run: |
+          set -euo pipefail
+          ua='NUVANX-Production-State-Diagnostic/1.0'
+          ssh -n nvx-prod-state "curl -sS -L --max-redirs 3 --max-time 30 -A '$ua' -o /tmp/nvx-prod-estetica-state.html '$BASE_URL/estetica-avanzada/'"
+          refs="$RUNNER_TEMP/nvx-prod-estetica-refs.txt"
+          ssh -n nvx-prod-state "grep -Eo 'https://nuvanx\\.com/wp-content/uploads/[^\" <>]+\\.(webp|jpe?g|png)' /tmp/nvx-prod-estetica-state.html | sort -u" > "$refs" || true
+          total=0; fail=0
+          while IFS= read -r url; do
+            test -n "$url" || continue
+            total=$((total+1)); code="$(ssh -n nvx-prod-state "curl -sS --max-time 20 -A '$ua' -o /dev/null -w '%{http_code}' '$url'" || true)"
+            if test "$code" != '200'; then fail=$((fail+1)); echo "RUNTIME_IMAGE_FAIL|code=$code|url=$url"; fi
+          done < "$refs"
+          echo "RUNTIME_IMAGE_TOTAL=$total"
+          echo "RUNTIME_IMAGE_FAIL_COUNT=$fail"
+          ssh -n nvx-prod-state "rm -f /tmp/nvx-prod-estetica-state.html"
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          ssh -n nvx-prod-state "rm -f /tmp/nvx-prod-state.php" || true
+          rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

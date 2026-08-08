@@ -166,7 +166,7 @@
 	var ENDPOINT = String(attributionConfig.googleAttributionEndpoint || 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution');
 	var sent = false;
 	var inFlight = false;
-	var clickValues = { gclid: '', gbraid: '', wbraid: '', gclsrc: '' };
+	var clickValues = { gclid: '', gbraid: '', wbraid: '', gclsrc: '', landing_url: '' };
 
 	function cleanClickValue(value, maxLength) {
 		var normalized = String(value || '').trim();
@@ -200,12 +200,19 @@
 	}
 
 	function collectClickValues() {
+		try {
+			if (!hasMarketingConsent()) {
+				window.sessionStorage.removeItem('nvx_google_click_ids');
+			}
+		} catch (_error) {}
+
 		var params = new URLSearchParams(window.location.search || '');
 		var current = {
 			gclid: cleanClickValue(params.get('gclid'), 512),
 			gbraid: cleanClickValue(params.get('gbraid'), 512),
 			wbraid: cleanClickValue(params.get('wbraid'), 512),
 			gclsrc: cleanClickValue(params.get('gclsrc'), 128),
+			landing_url: canonicalLandingUrl(),
 		};
 
 		if (hasGoogleClickIdentifier(current)) {
@@ -215,6 +222,7 @@
 		}
 
 		try {
+			if (!hasMarketingConsent()) return;
 			var stored = window.sessionStorage.getItem('nvx_google_click_ids');
 			var parsed = stored ? JSON.parse(stored) : null;
 			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
@@ -222,7 +230,8 @@
 					gclid: cleanClickValue(parsed.gclid, 512),
 					gbraid: cleanClickValue(parsed.gbraid, 512),
 					wbraid: cleanClickValue(parsed.wbraid, 512),
-					gclsrc: cleanClickValue(parsed.gclsrc, 128),
+					gclsrc: cleanClickValue(current.gclsrc || parsed.gclsrc, 128),
+					landing_url: parsed.landing_url ? String(parsed.landing_url) : canonicalLandingUrl(),
 				};
 			}
 		} catch (_error) {}
@@ -231,9 +240,9 @@
 	collectClickValues();
 
 	window.NUVANXGoogleAttributionQA = Object.freeze({
-		hasClickId: hasGoogleClickIdentifier(clickValues),
-		clickTypes: ['gclid', 'gbraid', 'wbraid'].filter(function (key) { return Boolean(clickValues[key]); }),
-		marketingConsent: hasMarketingConsent,
+		get hasClickId() { return hasGoogleClickIdentifier(clickValues); },
+		get clickTypes() { return ['gclid', 'gbraid', 'wbraid'].filter(function (key) { return Boolean(clickValues[key]); }); },
+		get marketingConsent() { return hasMarketingConsent(); }
 	});
 
 	if (!hasGoogleClickIdentifier(clickValues)) return;
@@ -278,21 +287,30 @@
 	}
 
 	async function buildPayload(event) {
-		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
-
-		var form;
-		try {
-			form = window.HubSpotFormsV4.getFormFromEvent(event);
-		} catch (_error) {
-			return null;
+		var fields = null;
+		var detail = event && event.detail ? event.detail : {};
+		
+		if (Array.isArray(detail.data)) {
+			fields = detail.data;
+		} else if (Array.isArray(detail.submissionValues)) {
+			fields = detail.submissionValues;
 		}
-		if (!form || typeof form.getFormFieldValues !== 'function') return null;
 
-		var fields;
-		try {
-			fields = await form.getFormFieldValues();
-		} catch (_error) {
-			return null;
+		if (!fields) {
+			if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
+			var form;
+			try {
+				form = window.HubSpotFormsV4.getFormFromEvent(event);
+			} catch (_error) {
+				return null;
+			}
+			if (!form || typeof form.getFormFieldValues !== 'function') return null;
+
+			try {
+				fields = await form.getFormFieldValues();
+			} catch (_error) {
+				return null;
+			}
 		}
 		if (!Array.isArray(fields)) return null;
 
@@ -309,7 +327,7 @@
 			wbraid: clickValues.wbraid || null,
 			gclsrc: clickValues.gclsrc || null,
 			form_id: FORM_ID,
-			landing_url: canonicalLandingUrl(),
+			landing_url: clickValues.landing_url || canonicalLandingUrl(),
 		};
 	}
 
@@ -344,7 +362,7 @@
 		// Privacy fail-closed: do not even read/hash the email without marketing consent.
 		var payload = await buildPayload(event);
 		if (!payload || !hasMarketingConsent()) return;
-		await transmit(payload);
+		transmit(payload); // Sent without awaiting to reduce window before navigation
 	}
 
 	window.addEventListener('hs-form-event:on-submission:success', handleSuccessfulSubmission);

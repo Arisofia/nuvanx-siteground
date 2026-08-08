@@ -32,11 +32,14 @@ replacements = [
 ),
 (
 "\twindow.addEventListener('message', function (event) {\n\t\tif (!isTrustedHubSpotOrigin(event.origin)) return;\n\t\tvar data = event.data || {};\n\t\tif (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;\n",
-"\twindow.addEventListener('message', function (event) {\n\t\tif (!isTrustedHubSpotOrigin(event.origin)) return;\n\t\tvar data = event.data || {};\n\t\tif (typeof data === 'string') {\n\t\t\ttry { data = JSON.parse(data); } catch (_error) { return; }\n\t\t}\n\t\tif (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;\n"
+"\twindow.addEventListener('message', function (event) {\n\t\tif (!isTrustedHubSpotOrigin(event.origin)) return;\n\t\tvar data = event.data || {};\n\t\tif (typeof data === 'string') {\n\t\t\ttry { data = JSON.parse(data); } catch (_error) { return; }\n\t\t}\n\t\tif (!data || typeof data !== 'object') return;\n\t\tif (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;\n"
 ),
 ]
 
 for old, new in replacements:
+    if new in text:
+        # Already patched (idempotent re-run): skip this replacement.
+        continue
     count = text.count(old)
     if count != 1:
         raise SystemExit(f'Expected exactly one match, found {count}: {old[:80]!r}')

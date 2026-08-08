@@ -7,8 +7,7 @@
         "wp-coding-standards/wpcs": "^3.0",
         "phpcompatibility/phpcompatibility-wp": "^2.0",
         "phpstan/phpstan": "^2.2",
-        "szepeviktor/phpstan-wordpress": "^2.0",
-        "phpunit/phpunit": "^9.5"
+        "szepeviktor/phpstan-wordpress": "^2.0"
     },
     "scripts": {
         "phpcs": "phpcs",
@@ -23,8 +22,5 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
-    },
-    "require": {
-        "phpstan/phpstan": "^2.2"
     }
 }

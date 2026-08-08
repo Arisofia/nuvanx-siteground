@@ -1,0 +1,95 @@
+name: Diagnose Signature Hubs Read-only Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/diagnose-signature-hubs-readonly-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      EXPECTED_SHA: e68a4616b9378164c671c4a2eab4709c2a65cce5
+    steps:
+      - name: Configure strict staging SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-sig-audit
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-sig-audit "test -d '$WP_ROOT' && command -v wp >/dev/null"
+
+      - name: Inspect active runtime and complete content filter chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-sig-audit "WP_ROOT='$WP_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$WP_ROOT"
+          actual="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          echo "DEPLOYED_SHA=$actual"
+          test "$actual" = "$EXPECTED_SHA"
+          wp eval '
+          foreach ([3370,3371] as $id) {
+              $post = get_post($id);
+              if (!$post) { echo "ID={$id} MISSING\n"; continue; }
+              global $wp_query;
+              $old = $wp_query;
+              $wp_query = new WP_Query(["page_id" => $id]);
+              $wp_query->the_post();
+              $raw = (string) $post->post_content;
+              $slug = (string) $post->post_name;
+              $hub_key_slug = function_exists("nvx_signature_hub_key_by_slug") ? nvx_signature_hub_key_by_slug($slug) : "NOFUNC";
+              $hub_key_current = function_exists("nvx_signature_hub_current_key") ? nvx_signature_hub_current_key($raw) : "NOFUNC";
+              $catalog = function_exists("nvx_signature_hub_catalog") ? nvx_signature_hub_catalog() : [];
+              $canonical = (is_string($hub_key_slug) && isset($catalog[$hub_key_slug]) && function_exists("nvx_signature_hub_markup")) ? nvx_signature_hub_markup($catalog[$hub_key_slug]) : "";
+              $filtered = apply_filters("the_content", $raw);
+              echo "ID={$id}\n";
+              echo "SLUG={$slug}\n";
+              echo "HUB_KEY_SLUG=" . var_export($hub_key_slug, true) . "\n";
+              echo "HUB_KEY_CURRENT=" . var_export($hub_key_current, true) . "\n";
+              echo "RAW_LEN=" . strlen($raw) . " RAW_SECTIONS=" . substr_count($raw, "<section") . "\n";
+              echo "CANONICAL_LEN=" . strlen($canonical) . " CANONICAL_SECTIONS=" . substr_count($canonical, "<section") . "\n";
+              echo "FILTERED_LEN=" . strlen($filtered) . " FILTERED_SECTIONS=" . substr_count($filtered, "<section") . "\n";
+              echo "FILTERED_HAS_ZONAS=" . (strpos($filtered, "Zonas de valoración") !== false ? "YES" : "NO") . "\n";
+              echo "FILTERED_HAS_POSTPARTO=" . (strpos($filtered, "Qué se valora en postparto") !== false ? "YES" : "NO") . "\n";
+              echo "FILTERED_SHA256=" . hash("sha256", $filtered) . "\n";
+              echo "---\n";
+              wp_reset_postdata();
+              $wp_query = $old;
+          }
+          '
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

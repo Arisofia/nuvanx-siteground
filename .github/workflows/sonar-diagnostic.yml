@@ -44,7 +44,8 @@ jobs:
             --get --data-urlencode "projectKey=${PROJECT_KEY}" \
             --data-urlencode "branch=${TARGET_BRANCH}" \
             "https://sonarcloud.io/api/qualitygates/project_status" \
-            | python -m json.tool
+            -o /tmp/project_status.json
+          python -m json.tool /tmp/project_status.json
 
       - name: Query duplication contributors
         shell: bash
@@ -192,4 +193,5 @@ jobs:
             --data-urlencode "branch=${TARGET_BRANCH}" \
             --data-urlencode "metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines" \
             "https://sonarcloud.io/api/measures/component" \
-            | python -m json.tool
+            -o /tmp/component_measures.json
+          python -m json.tool /tmp/component_measures.json

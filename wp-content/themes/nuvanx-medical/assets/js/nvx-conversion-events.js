@@ -201,7 +201,7 @@
 
 	function collectClickValues() {
 		try {
-			if (!hasMarketingConsent()) {
+			if (typeof window.wp_has_consent === 'function' && window.wp_has_consent('marketing') !== true) {
 				window.sessionStorage.removeItem('nvx_google_click_ids');
 			}
 		} catch (_error) {}
@@ -222,10 +222,7 @@
 		}
 
 		try {
-			if (!hasMarketingConsent()) {
-				window.sessionStorage.removeItem('nvx_google_click_ids');
-				return;
-			}
+			if (typeof window.wp_has_consent === 'function' && window.wp_has_consent('marketing') !== true) return;
 			var stored = window.sessionStorage.getItem('nvx_google_click_ids');
 			var parsed = stored ? JSON.parse(stored) : null;
 			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {

@@ -223,6 +223,11 @@
 
 		try {
 			if (!hasMarketingConsent()) return;
+		try {
+			if (!hasMarketingConsent()) {
+				window.sessionStorage.removeItem('nvx_google_click_ids');
+				return;
+			}
 			var stored = window.sessionStorage.getItem('nvx_google_click_ids');
 			var parsed = stored ? JSON.parse(stored) : null;
 			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
@@ -230,8 +235,7 @@
 					gclid: cleanClickValue(parsed.gclid, 512),
 					gbraid: cleanClickValue(parsed.gbraid, 512),
 					wbraid: cleanClickValue(parsed.wbraid, 512),
-					gclsrc: cleanClickValue(current.gclsrc || parsed.gclsrc, 128),
-					landing_url: parsed.landing_url ? String(parsed.landing_url) : canonicalLandingUrl(),
+					gclsrc: cleanClickValue(parsed.gclsrc, 128),
 				};
 			}
 		} catch (_error) {}

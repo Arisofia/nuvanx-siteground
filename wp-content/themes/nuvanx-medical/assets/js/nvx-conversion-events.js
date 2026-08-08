@@ -222,8 +222,6 @@
 		}
 
 		try {
-			if (!hasMarketingConsent()) return;
-		try {
 			if (!hasMarketingConsent()) {
 				window.sessionStorage.removeItem('nvx_google_click_ids');
 				return;
@@ -236,6 +234,7 @@
 					gbraid: cleanClickValue(parsed.gbraid, 512),
 					wbraid: cleanClickValue(parsed.wbraid, 512),
 					gclsrc: cleanClickValue(parsed.gclsrc, 128),
+					landing_url: typeof parsed.landing_url === 'string' ? parsed.landing_url : '',
 				};
 			}
 		} catch (_error) {}

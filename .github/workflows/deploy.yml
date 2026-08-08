@@ -70,12 +70,16 @@ jobs:
           git cat-file -e "${CANDIDATE_SHA}^{commit}"
           git merge-base --is-ancestor "$CANDIDATE_SHA" origin/master || { echo 'Candidate is not contained in origin/master.' >&2; exit 1; }
           git cat-file -e "${CANDIDATE_SHA}:wp-content/themes/nuvanx-medical/functions.php"
+          CANDIDATE_THEME_TREE="$(git rev-parse "${CANDIDATE_SHA}:wp-content/themes/nuvanx-medical")"
+          [[ "$CANDIDATE_THEME_TREE" =~ ^[0-9a-f]{40}$ ]]
+          echo "CANDIDATE_THEME_TREE=$CANDIDATE_THEME_TREE" >> "$GITHUB_ENV"
           bash -n tools/deploy/deploy-to-prod.sh
           node --check scripts/production/verify-production-boundary.mjs
           grep -Fq 'ROLLBACK_SNAPSHOT=PASS' tools/deploy/deploy-to-prod.sh
           grep -Fq 'ROLLBACK_PRODUCTION=PASS' tools/deploy/deploy-to-prod.sh
           grep -Fq '.nvx-deploy-sha' tools/deploy/deploy-to-prod.sh
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/deploy.yml
+          echo "ACCEPTED_THEME_TREE=$CANDIDATE_THEME_TREE"
           echo 'PRODUCTION_TOOLING_STATIC=PASS'
 
       - name: Verify successful Block C evidence for exact candidate
@@ -135,17 +139,29 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           ssh nvx-block-b "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
 
-      - name: Verify exact staging SHA and production identity read-only
+      - name: Verify staging theme payload and production identity read-only
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-block-b "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
+          staging_sha="$(ssh nvx-block-b "tr -d '\\r\\n' < '$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Staging2 deploy marker: $staging_sha" >&2; exit 1; }
+          git cat-file -e "${staging_sha}^{commit}"
+          git merge-base --is-ancestor "$staging_sha" origin/master || { echo "Staging2 SHA is not contained in origin/master: $staging_sha" >&2; exit 1; }
+          staging_theme_tree="$(git rev-parse "${staging_sha}:wp-content/themes/nuvanx-medical")"
+          test "$staging_theme_tree" = "$CANDIDATE_THEME_TREE" || {
+            echo "Staging2 theme tree differs from accepted candidate: staging=$staging_theme_tree candidate=$CANDIDATE_THEME_TREE" >&2
+            exit 1
+          }
+          echo "STAGING_DEPLOYED_SHA=$staging_sha"
+          echo "STAGING_THEME_TREE=$staging_theme_tree"
+          echo 'STAGING_THEME_EQUIVALENCE=PASS'
+
+          ssh nvx-block-b "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_DEPLOYED_SHA='$staging_sha' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           test "$STAGING_ROOT" != "$PROD_ROOT"
 
           cd "$STAGING_ROOT"
-          staging_sha="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
-          test "$staging_sha" = "$CANDIDATE_SHA"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$STAGING_DEPLOYED_SHA"
           test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
           test "$(wp option get home)" = 'https://staging2.nuvanx.com'
           test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
@@ -154,7 +170,7 @@ jobs:
           test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
           wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          echo "STAGING_ACCEPTED_SHA=$staging_sha"
+          echo "STAGING_DEPLOYED_SHA=$STAGING_DEPLOYED_SHA"
 
           cd "$PROD_ROOT"
           test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
@@ -193,8 +209,9 @@ jobs:
             echo '## Block B production readiness PASS'
             echo
             echo "- Accepted candidate: \`$CANDIDATE_SHA\`"
+            echo "- Accepted theme tree: \`$CANDIDATE_THEME_TREE\`"
             echo '- Block C evidence: successful non-expired exact-SHA artifact verified through GitHub API'
-            echo '- Staging disk marker: exact candidate SHA'
+            echo '- Staging payload: deployed repo SHA may be newer, but the theme tree must be byte-identical to the accepted candidate'
             echo '- Production identity: read-only checks passed; no production mutation performed'
             echo '- Production tooling: strict-host and rollback invariants validated statically'
             echo '- Production deploy runs only when authorize_production=true is supplied by a trusted reusable caller'

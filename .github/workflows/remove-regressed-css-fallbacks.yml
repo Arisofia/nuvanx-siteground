@@ -23,16 +23,13 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          replacements = {
-            'wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css': '  background-color: #1c1c1e;\n',
-            'wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css': '\tbackground-color: #111111;\n',
-          }
-          for path, old in replacements.items():
-              p = Path(path)
-              text = p.read_text(encoding='utf-8')
+          path = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css')
+          text = path.read_text(encoding='utf-8')
+          for old in ('\tbackground-color: #1c1c1e;\n', '\tbackground-color: #111111;\n'):
               if text.count(old) != 1:
-                  raise SystemExit(f'{path}: expected exactly one regressed declaration')
-              p.write_text(text.replace(old, '', 1), encoding='utf-8')
+                  raise SystemExit(f'Expected exactly one regressed declaration: {old.strip()}')
+              text = text.replace(old, '', 1)
+          path.write_text(text, encoding='utf-8')
       - name: Validate and push
         shell: bash
         run: |
@@ -40,6 +37,7 @@ jobs:
           git diff --check
           git config user.name 'Nuvanx Engineering'
           git config user.email 'admin@nuvanx.com'
-          git add wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css
+          git diff --cached --check
           git commit -m 'fix(css): remove regressed overridden backgrounds'
           git push origin HEAD:audit/repo-clean-20260808-1840

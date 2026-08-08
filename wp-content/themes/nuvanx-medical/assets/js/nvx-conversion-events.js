@@ -218,7 +218,7 @@
 
 	window.NUVANXGoogleAttributionQA = Object.freeze({
 		hasClickId: hasGoogleClickIdentifier(clickValues),
-		clickTypes: ['gclid', 'gbraid', 'wbraid', 'gclsrc'].filter(function (key) { return Boolean(clickValues[key]); }),
+		clickTypes: ['gclid', 'gbraid', 'wbraid'].filter(function (key) { return Boolean(clickValues[key]); }),
 		marketingConsent: hasMarketingConsent,
 	});
 

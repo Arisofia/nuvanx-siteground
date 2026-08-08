@@ -162,11 +162,21 @@ async function fillForm(frame, email) {
   const radioDone = new Set();
   for (let i = 0; i < count; i += 1) {
     const el = controls.nth(i);
-    const tag = await el.evaluate((node) => node.tagName.toLowerCase());
-    const type = String((await el.getAttribute('type')) || '').toLowerCase();
-    const name = String((await el.getAttribute('name')) || '');
-    const visible = await el.isVisible().catch(() => false);
-    const required = (await el.getAttribute('required')) !== null || (await el.getAttribute('aria-required')) === 'true';
+    let tag = '';
+    let type = '';
+    let name = '';
+    let visible = false;
+    let required = false;
+    try {
+      tag = await el.evaluate((node) => node.tagName.toLowerCase());
+      type = String((await el.getAttribute('type')) || '').toLowerCase();
+      name = String((await el.getAttribute('name')) || '');
+      visible = await el.isVisible().catch(() => false);
+      required = (await el.getAttribute('required')) !== null || (await el.getAttribute('aria-required')) === 'true';
+    } catch (error) {
+      console.log(`FILL_SKIP index=${i} error=${error.message}`);
+      continue;
+    }
     if (type === 'hidden' || type === 'submit' || type === 'button' || /google|gclid|gbraid|wbraid|gclsrc|utm|attribution/i.test(name)) continue;
     try {
       if (type === 'checkbox') {

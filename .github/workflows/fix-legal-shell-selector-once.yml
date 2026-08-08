@@ -28,19 +28,16 @@ jobs:
           from pathlib import Path
           p=Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
           s=p.read_text('utf-8')
-          pairs={
-            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable {': '.nvx-page > .nvx-blog-article.nvx-brand-readable {',
-            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {': '.nvx-page > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {',
-            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable + p {': '.nvx-page > .nvx-blog-article.nvx-brand-readable + p {',
-            '  .nvx-page__content > .nvx-blog-article.nvx-brand-readable,\n  .nvx-page__content > .nvx-blog-article.nvx-brand-readable + p {': '  .nvx-page > .nvx-blog-article.nvx-brand-readable,\n  .nvx-page > .nvx-blog-article.nvx-brand-readable + p {',
-            '  .nvx-page__content > .nvx-blog-article.nvx-brand-readable {': '  .nvx-page > .nvx-blog-article.nvx-brand-readable {',
-          }
-          for old,new in pairs.items():
-            c=s.count(old)
-            if c != 1:
-              raise SystemExit(f'expected one occurrence of {old!r}, got {c}')
-            s=s.replace(old,new,1)
+          old='.nvx-page__content > .nvx-blog-article.nvx-brand-readable'
+          new='.nvx-page > .nvx-blog-article.nvx-brand-readable'
+          count=s.count(old)
+          if count < 4:
+              raise SystemExit(f'expected multiple legal selector occurrences, got {count}')
+          s=s.replace(old,new)
+          if old in s:
+              raise SystemExit('old legal parent selector remains')
           p.write_text(s,'utf-8')
+          print(f'LEGAL_SELECTOR_REPLACEMENTS={count}')
           PY
           git diff --check
           test "$(git diff --name-only)" = "$file"

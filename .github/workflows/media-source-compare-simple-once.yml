@@ -1,0 +1,95 @@
+name: Media Source Compare Simple Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/media-source-compare-simple-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SiteGround SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-sg
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-sg "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT'"
+
+      - name: Exact file existence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-sg "if test -f '$STAGING_ROOT/wp-content/uploads/2025/04/cropped-nuvanx-icono-sitio.webp'; then echo STAGING_ICON=YES; else echo STAGING_ICON=NO; fi"
+          ssh nvx-sg "if test -f '$PROD_ROOT/wp-content/uploads/2025/04/cropped-nuvanx-icono-sitio.webp'; then echo PROD_ICON=YES; else echo PROD_ICON=NO; fi"
+          ssh nvx-sg "if test -f '$STAGING_ROOT/wp-content/uploads/2026/06/nvx-co2-evaluacion-620.webp'; then echo STAGING_CO2=YES; else echo STAGING_CO2=NO; fi"
+          ssh nvx-sg "if test -f '$PROD_ROOT/wp-content/uploads/2026/06/nvx-co2-evaluacion-620.webp'; then echo PROD_CO2=YES; else echo PROD_CO2=NO; fi"
+
+      - name: Candidate files in staging and production
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '===== STAGING ICON ====='
+          ssh nvx-sg "find '$STAGING_ROOT/wp-content/uploads' -type f -iname '*icon*' -print | head -n 100" || true
+          echo '===== PROD ICON ====='
+          ssh nvx-sg "find '$PROD_ROOT/wp-content/uploads' -type f -iname '*icon*' -print | head -n 100" || true
+          echo '===== STAGING CO2 ====='
+          ssh nvx-sg "find '$STAGING_ROOT/wp-content/uploads' -type f -iname '*co2*' -print | head -n 150" || true
+          echo '===== PROD CO2 ====='
+          ssh nvx-sg "find '$PROD_ROOT/wp-content/uploads' -type f -iname '*co2*' -print | head -n 150" || true
+          echo '===== STAGING EVALUACION ====='
+          ssh nvx-sg "find '$STAGING_ROOT/wp-content/uploads' -type f -iname '*evaluacion*' -print | head -n 150" || true
+          echo '===== PROD EVALUACION ====='
+          ssh nvx-sg "find '$PROD_ROOT/wp-content/uploads' -type f -iname '*evaluacion*' -print | head -n 150" || true
+
+      - name: Attachment records
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '===== STAGING 187 ====='
+          ssh nvx-sg "cd '$STAGING_ROOT' && wp post get 187 --fields=ID,post_title,post_name,guid --format=json && wp post meta get 187 _wp_attached_file" || true
+          echo '===== PROD 187 ====='
+          ssh nvx-sg "cd '$PROD_ROOT' && wp post get 187 --fields=ID,post_title,post_name,guid --format=json && wp post meta get 187 _wp_attached_file" || true
+          echo '===== STAGING 2085 ====='
+          ssh nvx-sg "cd '$STAGING_ROOT' && wp post get 2085 --fields=ID,post_title,post_name,guid --format=json && wp post meta get 2085 _wp_attached_file" || true
+          echo '===== PROD 2085 ====='
+          ssh nvx-sg "cd '$PROD_ROOT' && wp post get 2085 --fields=ID,post_title,post_name,guid --format=json && wp post meta get 2085 _wp_attached_file" || true
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

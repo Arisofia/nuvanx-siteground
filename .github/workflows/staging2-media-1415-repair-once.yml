@@ -1,0 +1,187 @@
+name: Staging2 Media 1415 Repair Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-media-1415-repair-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-media-1415-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      STAGING_URL: https://staging2.nuvanx.com
+      PROD_URL: https://nuvanx.com
+      EXPECTED_STAGING_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict SiteGround SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-media
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging-media "test -d '$STAGING_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null"
+
+      - name: Back up attachment metadata and regenerate only affected media
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_BACKUP="/tmp/nvx-media-1415-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_BACKUP=$REMOTE_BACKUP" >> "$GITHUB_ENV"
+          ssh nvx-staging-media "STAGING_ROOT='$STAGING_ROOT' EXPECTED_SHA='$EXPECTED_STAGING_SHA' BACKUP='$REMOTE_BACKUP' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          wp help media regenerate >/dev/null 2>&1
+          wp eval 'exit(wp_image_editor_supports(["methods"=>["resize"]]) ? 0 : 1);'
+
+          ids='890 1419 1420 1421 1422 1423 1424 1425 1426 2087'
+          mkdir -p "$BACKUP"
+          umask 077
+          wp eval '
+          $ids=[890,1419,1420,1421,1422,1423,1424,1425,1426,2087];
+          $out=[];
+          foreach($ids as $id){
+            $p=get_post($id);
+            if(!$p || $p->post_type!=="attachment"){fwrite(STDERR,"MISSING_ATTACHMENT id={$id}\n");exit(1);}
+            $file=get_attached_file($id);
+            if(!$file || !is_file($file)){fwrite(STDERR,"MISSING_ORIGINAL id={$id} file={$file}\n");exit(1);}
+            $out[(string)$id]=[
+              "attached_file_meta"=>get_post_meta($id,"_wp_attached_file",true),
+              "attachment_metadata"=>get_post_meta($id,"_wp_attachment_metadata",true),
+              "original_path"=>$file,
+              "original_sha256"=>hash_file("sha256",$file),
+            ];
+          }
+          file_put_contents(getenv("BACKUP")."/metadata.json",wp_json_encode($out,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+          echo "MEDIA_METADATA_BACKUP=PASS count=".count($out)."\n";'
+          test -s "$BACKUP/metadata.json"
+
+          set +e
+          wp media regenerate 890 1419 1420 1421 1422 1423 1424 1425 1426 2087 --skip-delete --yes
+          rc=$?
+          set -e
+          if [[ "$rc" -ne 0 ]]; then
+            echo "MEDIA_REGENERATE=FAIL rc=$rc; restoring metadata" >&2
+            BACKUP="$BACKUP" wp eval '
+            $data=json_decode(file_get_contents(getenv("BACKUP")."/metadata.json"),true);
+            if(!is_array($data)){fwrite(STDERR,"BACKUP_DECODE_FAIL\n");exit(1);}
+            foreach($data as $id=>$row){update_post_meta((int)$id,"_wp_attached_file",$row["attached_file_meta"]);update_post_meta((int)$id,"_wp_attachment_metadata",$row["attachment_metadata"]);}
+            echo "MEDIA_METADATA_ROLLBACK=PASS\n";'
+            exit "$rc"
+          fi
+          echo 'MEDIA_REGENERATE=PASS ids=890,1419-1426,2087'
+
+          BACKUP="$BACKUP" wp eval '
+          $data=json_decode(file_get_contents(getenv("BACKUP")."/metadata.json"),true);
+          foreach($data as $id=>$row){$f=get_attached_file((int)$id);if(!$f||!is_file($f)||hash_file("sha256",$f)!==$row["original_sha256"]){fwrite(STDERR,"ORIGINAL_CHANGED id={$id}\n");exit(1);}}
+          echo "ORIGINAL_FILES_UNCHANGED=PASS\n";'
+          REMOTE
+
+      - name: Verify every required derivative on disk and HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging-media "STAGING_ROOT='$STAGING_ROOT' STAGING_URL='$STAGING_URL' PROD_URL='$PROD_URL' EXPECTED_SHA='$EXPECTED_STAGING_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          ua='NUVANX-Staging-Media-Repair/1.0'
+          required="$(mktemp)"
+          cat > "$required" <<'EOF'
+          2026/05/higiene-facial-con-microdermoabrasion-480x320.webp
+          2026/05/higiene-facial-con-microdermoabrasion-300x200.webp
+          2026/05/diatermia-facial-480x320.webp
+          2026/05/diatermia-facial-300x200.webp
+          2026/05/depilacion-laser-480x320.webp
+          2026/05/depilacion-laser-300x200.webp
+          2026/05/hidrolipoclasia-480x320.webp
+          2026/05/hidrolipoclasia-300x200.webp
+          2026/05/masajes-posoperatorios-480x320.webp
+          2026/05/masajes-posoperatorios-300x200.webp
+          2026/05/radiofrecuencia-corporal-480x320.webp
+          2026/05/radiofrecuencia-corporal-300x200.webp
+          2026/05/presoterapia-480x320.webp
+          2026/05/presoterapia-300x200.webp
+          2026/05/tratamiento-anticelulitico-480x320.webp
+          2026/05/tratamiento-anticelulitico-300x200.webp
+          2026/02/casmara-480x194.webp
+          2026/02/casmara-300x121.webp
+          EOF
+          sed -i 's/^[[:space:]]*//' "$required"
+
+          while IFS= read -r rel; do
+            [[ -n "$rel" ]] || continue
+            path="$STAGING_ROOT/wp-content/uploads/$rel"
+            test -s "$path" || { echo "DERIVATIVE_DISK_FAIL rel=$rel" >&2; exit 1; }
+            code="$(curl -sS -o /dev/null --max-time 20 -A "$ua" -w '%{http_code}' "$STAGING_URL/wp-content/uploads/$rel")"
+            test "$code" = '200' || { echo "DERIVATIVE_HTTP_FAIL rel=$rel code=$code" >&2; exit 1; }
+            prod_code="$(curl -sS -o /dev/null --max-time 20 -A "$ua" -w '%{http_code}' "$PROD_URL/wp-content/uploads/$rel" || true)"
+            echo "DERIVATIVE_PASS rel=$rel staging=200 prod_before_promotion=$prod_code"
+          done < "$required"
+          rm -f "$required"
+
+          page="$(mktemp)"
+          page_code="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -o "$page" -w '%{http_code}' "$STAGING_URL/estetica-avanzada/")"
+          test "$page_code" = '200'
+          grep -Fq "$EXPECTED_SHA" "$page"
+          ! grep -Fq '/.well-known/sgcaptcha/' "$page"
+          rm -f "$page"
+
+          wp cache flush
+          if wp help sg >/dev/null 2>&1; then wp sg purge || true; fi
+          wp eval 'if(function_exists("opcache_reset")){opcache_reset();}' || true
+          echo 'STAGING_MEDIA_1415_REPAIR=PASS'
+          REMOTE
+
+      - name: Remove metadata backup after successful verification
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging-media "case '$REMOTE_BACKUP' in /tmp/nvx-media-1415-*) rm -rf '$REMOTE_BACKUP' ;; *) exit 1 ;; esac"
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

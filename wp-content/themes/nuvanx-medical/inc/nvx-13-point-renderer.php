@@ -83,7 +83,7 @@ function nvx_render_matrix_evolution_section( array $data ): string {
 
 	if ( ! empty( $data['risks'] ) && is_array( $data['risks'] ) ) {
 		$html .= '<h3>' . esc_html__( 'Riesgos que deben explicarse', 'nuvanx-medical' ) . '</h3>';
-		$html .= '<ul class="nvx-brand-list">';
+		$html .= '<ul class="nvx-brand-list" role="list">';
 		foreach ( $data['risks'] as $risk ) {
 			$html .= '<li>' . esc_html( $risk ) . '</li>';
 		}
@@ -92,7 +92,7 @@ function nvx_render_matrix_evolution_section( array $data ): string {
 
 	if ( ! empty( $data['combinations'] ) && is_array( $data['combinations'] ) ) {
 		$html .= '<h3>' . esc_html__( 'Combinaciones posibles', 'nuvanx-medical' ) . '</h3>';
-		$html .= '<ul class="nvx-brand-list">';
+		$html .= '<ul class="nvx-brand-list" role="list">';
 		foreach ( $data['combinations'] as $comb ) {
 			$html .= '<li>' . esc_html( $comb ) . '</li>';
 		}

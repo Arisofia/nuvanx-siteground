@@ -150,7 +150,7 @@ function nvx_navigation_primary_fallback_item_html( array $item ): string {
 	);
 
 	if ( $has_children ) {
-		$html .= '<ul class="sub-menu">';
+		$html .= '<ul class="sub-menu" role="list">';
 		foreach ( $children as $child ) {
 			$html .= sprintf(
 				'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',

@@ -124,7 +124,7 @@ function nvx_treatments_logo_cloud_markup(): string {
 	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios de referencia">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
 	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnología y laboratorios de referencia mundial con los que colaboramos', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<ul class="nvx-logo-cloud__list">';
+	$html .= '<ul class="nvx-logo-cloud__list" role="list">';
 
 	foreach ( nvx_treatments_partner_labels() as $label ) {
 		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';

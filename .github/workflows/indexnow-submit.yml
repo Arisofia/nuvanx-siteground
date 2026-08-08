@@ -76,7 +76,7 @@ jobs:
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 20
-            ConnectionAttempts 1
+            ConnectionAttempts 5
             ServerAliveInterval 30
             ServerAliveCountMax 2
           EOF
@@ -87,13 +87,23 @@ jobs:
           connected=0
           for attempt in 1 2 3 4 5; do
             printf 'INDEXNOW_SSH_ATTEMPT=%s\n' "$attempt" | tee -a "$preflight_log"
-            if ssh -n nvx-prod-indexnow \
+            # Redirect stderr to /dev/null to prevent leaking resolved IPs/Hostnames into the artifact
+            set +e
+            ssh -n nvx-prod-indexnow \
               "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null" \
-              >> "$preflight_log" 2>&1; then
+              >> "$preflight_log" 2>/dev/null
+            exit_code=$?
+            set -e
+            
+            if [[ $exit_code -eq 0 ]]; then
               connected=1
               printf 'INDEXNOW_SSH_PREFLIGHT=PASS attempt=%s\n' "$attempt" | tee -a "$preflight_log"
               break
+            elif [[ $exit_code -ne 255 ]]; then
+              printf 'INDEXNOW_SSH_PREFLIGHT=FAIL (Remote check failed with %s)\n' "$exit_code" | tee -a "$preflight_log"
+              exit $exit_code
             fi
+
             if [[ "$attempt" -lt 5 ]]; then
               sleep 10
             fi
@@ -108,6 +118,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p ./scripts/production/artifacts
           ssh nvx-prod-indexnow \
             "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" \
             < ./scripts/production/indexnow-submit-sitemap.sh \
@@ -126,9 +137,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: indexnow-production-submit-${{ github.run_id }}-attempt-${{ github.run_attempt }}
-          path: ./scripts/production/artifacts/*.log
+          path: ./scripts/production/artifacts/indexnow-submit.log
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
           compression-level: 6
 
       - name: Destroy production SSH identity
@@ -143,5 +154,9 @@ jobs:
           {
             echo '## IndexNow production submission PASS'
             echo
-            grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' ./scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/'
+            if [[ -f ./scripts/production/artifacts/indexnow-submit.log ]]; then
+              grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' ./scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/' || true
+            else
+              echo "- \`MISSING SUBMISSION LOG\`"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

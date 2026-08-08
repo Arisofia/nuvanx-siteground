@@ -181,7 +181,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</div>';
 	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
 	$html .= '<p class="nvx-fact-panel__label">' . esc_html( $data['diagnosis']['panel_title'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-fact-panel__list">';
+	$html .= '<ul class="nvx-fact-panel__list" role="list">';
 	foreach ( $data['diagnosis']['panel_items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> — ' . esc_html( $item['body'] ?? '' ) . '</li>';
 	}
@@ -244,7 +244,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), 'nvx-endolift-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
 
-	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list">';
+	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list" role="list">';
 	foreach ( $data['postop']['items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';
 	}
@@ -256,7 +256,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-investment', 'nvx-endolift-price-title', '', array( 'id' => 'inversion-endolift' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['investment']['kicker'] ?? '' ), 'nvx-endolift-price-title', esc_html( $data['investment']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['investment']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-price-includes">';
+	$html .= '<ul class="nvx-endolift-price-includes" role="list">';
 	foreach ( $data['investment']['items'] ?? array() as $item ) {
 		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}

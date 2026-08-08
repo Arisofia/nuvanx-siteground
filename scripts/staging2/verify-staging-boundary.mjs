@@ -11,7 +11,9 @@ const routes = [
   '/blog/',
   '/endolift-primeras-72-horas-que-esperar/',
 ];
-const transientAttempts = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '5', 10);
+// Default to a single edge attempt. Callers that want transient retry behavior
+// must opt in explicitly; deploy-staging2 already owns the outer retry loop.
+const transientAttempts = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '1', 10);
 const transientBaseDelayMs = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_DELAY_MS || '3000', 10);
 const requestTimeoutMs = Number.parseInt(process.env.STAGING_BOUNDARY_REQUEST_TIMEOUT_MS || '15000', 10);
 

@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/production-seo-geo-audit.yml'
       - 'scripts/production/seo-geo-origin-audit.sh'
+      - 'scripts/production/diagnose-title-emitters.sh'
   workflow_run:
     workflows:
       - Production Release
@@ -43,6 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/production/seo-geo-origin-audit.sh
+          bash -n scripts/production/diagnose-title-emitters.sh
 
       - name: Configure strict production SSH authentication
         shell: bash
@@ -91,12 +93,25 @@ jobs:
             < scripts/production/seo-geo-origin-audit.sh \
             | tee scripts/production/artifacts/seo-geo-origin-audit.log
 
+      - name: Diagnose title emitters after audit failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-prod-seo-geo \
+              "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" \
+              < scripts/production/diagnose-title-emitters.sh \
+              | tee scripts/production/artifacts/title-emitter-diagnostic.log
+          fi
+          exit 0
+
       - name: Upload SEO GEO evidence
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: production-seo-geo-origin-audit-${{ github.run_id }}-attempt-${{ github.run_attempt }}
-          path: scripts/production/artifacts/seo-geo-origin-audit.log
+          path: scripts/production/artifacts/*.log
           retention-days: 30
           if-no-files-found: error
           compression-level: 6

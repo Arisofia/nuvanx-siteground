@@ -242,30 +242,7 @@ add_action( 'wp_head', 'nvx_theme_print_google_attribution_meta', 3 );
  * cookies/localStorage. It creates current-URL aliases matching the internal
  * names of hidden HubSpot properties before the lazy form loads, and also uses
  * HubSpot's supported V4 form API / hidden-input fallback when available.
- */
-function nvx_theme_has_google_click_param(): bool {
-	if ( is_admin() ) {
-		return false;
-	}
-
-	foreach ( array( 'gclid', 'gbraid', 'wbraid', 'gclsrc' ) as $key ) {
-		if ( ! isset( $_GET[ $key ] ) || is_array( $_GET[ $key ] ) ) {
-			continue;
-		}
-		$value = trim( (string) wp_unslash( $_GET[ $key ] ) );
-		if ( '' !== $value ) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 function nvx_theme_enqueue_google_click_bridge(): void {
-	if ( ! nvx_theme_has_google_click_param() ) {
-		return;
-	}
-
 	$relative = 'assets/js/nvx-google-click-bridge.js';
 	$path     = get_template_directory() . '/' . $relative;
 	$version  = is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;

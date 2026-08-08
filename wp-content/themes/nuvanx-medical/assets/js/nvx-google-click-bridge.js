@@ -2,7 +2,7 @@
   'use strict';
 
   var PARAM_FIELDS = {
-    gclid: ['hs_google_click_id', 'nvx_google_click_id'],
+    gclid: ['nvx_google_click_id'],
     gbraid: ['nvx_google_braid'],
     wbraid: ['nvx_google_wbraid'],
     gclsrc: ['nvx_google_gclsrc']
@@ -17,7 +17,7 @@
     if (!raw) return;
 
     var value = String(raw).trim();
-    if (!value || value.length > 512 || !/^[A-Za-z0-9._~-]+$/.test(value)) return;
+    if (!value || value.length > 512 || !/^[A-Za-z0-9._~%-]+$/.test(value)) return;
     values[param] = value;
   }
 
@@ -28,45 +28,7 @@
     return ['0-1/' + propertyName, propertyName];
   }
 
-  /**
-   * HubSpot hidden fields can be populated from query-string parameters whose
-   * keys match the property's internal name. Add aliases for the Google click
-   * parameters without persisting them in cookies or Web Storage. This happens
-   * before the lazy HubSpot form is requested on the valoración route.
-   */
-  function addUrlAlias(url, param, fieldName) {
-    if (url.searchParams.has(fieldName)) return false;
-    url.searchParams.set(fieldName, values[param]);
-    return true;
-  }
 
-  function aliasParamOnUrl(url, param) {
-    var changed = false;
-    PARAM_FIELDS[param].forEach(function (fieldName) {
-      if (fieldName === 'hs_google_click_id') return;
-      changed = addUrlAlias(url, param, fieldName) || changed;
-    });
-    return changed;
-  }
-
-  function aliasCurrentUrlForHubSpot() {
-    if (!window.history || typeof window.history.replaceState !== 'function') return;
-
-    var url;
-    try {
-      url = new URL(window.location.href);
-    } catch (_err) {
-      return;
-    }
-
-    var changed = false;
-    Object.keys(values).forEach(function (param) {
-      changed = aliasParamOnUrl(url, param) || changed;
-    });
-
-    if (!changed) return;
-    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
-  }
 
   function setV4Field(form, availableNames, fieldName, value) {
     if (!availableNames.has(fieldName)) return;
@@ -178,53 +140,14 @@
       .forEach(applyToLegacyForm);
   }
 
-  function isTrustedHubSpotMessageOrigin(origin) {
-    if (typeof origin !== 'string' || !origin) return false;
-    if (origin === window.location.origin) return true;
 
-    var parser = document.createElement('a');
-    parser.href = origin;
-    return (
-      parser.protocol === 'https:' &&
-      parser.origin === origin &&
-      HUBSPOT_FORMS_HOST.test(parser.hostname)
-    );
-  }
-
-  function isLegacyFormEvent(eventName) {
-    return (
-      eventName === 'onFormReady' ||
-      eventName === 'onBeforeFormSubmit' ||
-      eventName === 'onFormSubmit'
-    );
-  }
-
-  function handleLegacyHubSpotMessage(event) {
-    if (!event || !event.origin || !isTrustedHubSpotMessageOrigin(event.origin) || !event.source) return;
-
-    var isValidSource = false;
-    var frames = document.querySelectorAll('iframe');
-    for (var i = 0; i < frames.length; i++) {
-      if (frames[i].contentWindow === event.source) {
-        isValidSource = true;
-        break;
-      }
-    }
-    if (!isValidSource) return;
-
-    var data = event.data;
-    if (!data || data.type !== 'hsFormCallback' || !isLegacyFormEvent(data.eventName)) return;
-    applyToKnownLegacyForms();
-  }
-
-  aliasCurrentUrlForHubSpot();
 
   window.addEventListener('hs-form-event:on-ready', function (event) {
     applyToV4Event(event);
     applyToKnownLegacyForms();
   });
 
-  window.addEventListener('message', handleLegacyHubSpotMessage);
+
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', applyToKnownLegacyForms, { once: true });

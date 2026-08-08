@@ -1,4 +1,7 @@
-import { chromium } from '../staging2/node_modules/playwright/index.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { chromium } = require('../staging2/node_modules/playwright');
 
 const baseUrl = (process.env.BASE_URL || 'https://nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();

@@ -1,0 +1,92 @@
+name: Staging2 Media Secondary Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-media-secondary-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict staging SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging "test -d '$STAGING_ROOT' && command -v wp >/dev/null"
+
+      - name: Inspect residual broken image sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+
+          echo '===== SITE ICON OPTION ====='
+          site_icon="$(wp option get site_icon 2>/dev/null || true)"
+          echo "SITE_ICON_ID=$site_icon"
+          if [[ "$site_icon" =~ ^[0-9]+$ ]] && [[ "$site_icon" -gt 0 ]]; then
+            SITE_ICON="$site_icon" wp eval '
+            $id=(int)getenv("SITE_ICON");$m=wp_get_attachment_metadata($id);$f=get_attached_file($id);echo "ICON_ID={$id}\nICON_FILE={$f}\nICON_EXISTS=".(is_file($f)?"YES":"NO")."\nICON_URL=".wp_get_attachment_url($id)."\nICON_META=".wp_json_encode($m,JSON_UNESCAPED_SLASHES)."\n";'
+          fi
+
+          echo '===== MATCHING ATTACHMENTS ====='
+          wp eval '
+          global $wpdb;
+          foreach(["cropped-nuvanx-icono-sitio","nvx-co2-evaluacion"] as $base){
+            echo "BASE={$base}\n";$like="%".$wpdb->esc_like($base)."%";
+            $rows=$wpdb->get_results($wpdb->prepare("SELECT p.ID,p.post_title,pm.meta_value attached FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} pm ON pm.post_id=p.ID AND pm.meta_key=\"_wp_attached_file\" WHERE p.post_type=\"attachment\" AND pm.meta_value LIKE %s ORDER BY p.ID",$like));
+            if(!$rows){echo "  NONE\n";continue;}
+            foreach($rows as $r){$m=wp_get_attachment_metadata((int)$r->ID);$f=get_attached_file((int)$r->ID);echo "  ID={$r->ID}\tATTACHED={$r->attached}\tEXISTS=".(is_file($f)?"YES":"NO")."\tURL=".wp_get_attachment_url((int)$r->ID)."\tSIZES=".implode(",",array_keys($m["sizes"]??[]))."\n";foreach(($m["sizes"]??[]) as $n=>$s){$dir=dirname($r->attached);if($dir===".")$dir="";$u=wp_get_upload_dir();$p=trailingslashit($u["basedir"]).($dir?trailingslashit($dir):"").($s["file"]??"");echo "    {$n}\t".($s["file"]??"")."\t".($s["width"]??"")."x".($s["height"]??"")."\tEXISTS=".(is_file($p)?"YES":"NO")."\n";}}
+          }'
+
+          echo '===== CO2 URL SOURCE IN DB ====='
+          wp eval '
+          global $wpdb;$needle="nvx-co2-evaluacion-620.webp";$like="%".$wpdb->esc_like($needle)."%";
+          foreach($wpdb->get_results($wpdb->prepare("SELECT ID,post_type,post_status,post_name,post_title FROM {$wpdb->posts} WHERE post_content LIKE %s ORDER BY ID",$like),ARRAY_A) as $r){echo "POST_CONTENT\t".implode("\t",$r)."\n";}
+          foreach($wpdb->get_results($wpdb->prepare("SELECT post_id,meta_key FROM {$wpdb->postmeta} WHERE meta_value LIKE %s ORDER BY post_id,meta_key",$like),ARRAY_A) as $r){echo "POST_META\t".$r["post_id"]."\t".$r["meta_key"]."\n";}
+          foreach($wpdb->get_results($wpdb->prepare("SELECT option_name FROM {$wpdb->options} WHERE option_value LIKE %s ORDER BY option_name",$like),ARRAY_A) as $r){echo "OPTION\t".$r["option_name"]."\n";}'
+
+          echo '===== CO2 URL SOURCE IN THEME ====='
+          grep -R -n -F 'nvx-co2-evaluacion-620.webp' wp-content/themes/nuvanx-medical --exclude-dir=vendor || true
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

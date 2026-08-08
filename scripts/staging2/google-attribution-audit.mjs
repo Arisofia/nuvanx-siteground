@@ -43,8 +43,8 @@ try {
     if (isSuccess) break;
     if (!isRetriable) throw new Error(`route HTTP ${status}`);
     if (attempt < 6) await page.waitForTimeout(3000);
+    if (attempt === 6) throw new Error(`route remained challenged HTTP ${status} at ${page.url()}`);
   }
-  if (!response || response.status() !== 200) throw new Error(`route remained challenged HTTP ${response?.status() || 0}`);
   
   // Verify SHA if provided
   if (expectedSha) {

@@ -4,16 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to query'
+        description: 'Branch to query when pull_request is empty'
         required: true
         default: 'master'
+      pull_request:
+        description: 'Optional pull request number to query instead of branch'
+        required: false
+        default: ''
       project_key:
         description: 'Sonar project key'
         required: true
         default: 'Arisofia_nuvanx-siteground'
 
 concurrency:
-  group: sonar-diagnostic-${{ github.ref }}-${{ inputs.project_key }}-${{ inputs.branch }}
+  group: sonar-diagnostic-${{ github.ref }}-${{ inputs.project_key }}-${{ inputs.branch }}-${{ inputs.pull_request }}
   cancel-in-progress: true
 
 permissions:
@@ -23,182 +27,112 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      TARGET_BRANCH: ${{ inputs.branch }}
+      PULL_REQUEST: ${{ inputs.pull_request }}
+      PROJECT_KEY: ${{ inputs.project_key }}
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: '3.11'
-
-      - name: Query quality gate status
+      - name: Query SonarCloud quality gate and metrics
         shell: bash
-        env:
-          TARGET_BRANCH: ${{ inputs.branch }}
-          PROJECT_KEY: ${{ inputs.project_key }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
-          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
-          
-          curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
-            -H "Authorization: Bearer ${SONAR_TOKEN}" \
-            --get --data-urlencode "projectKey=${PROJECT_KEY}" \
-            --data-urlencode "branch=${TARGET_BRANCH}" \
-            "https://sonarcloud.io/api/qualitygates/project_status" \
-            -o /tmp/project_status.json
-          python -m json.tool /tmp/project_status.json
+          base='https://sonarcloud.io/api'
+          scope=()
+          if [[ -n "$PULL_REQUEST" ]]; then
+            [[ "$PULL_REQUEST" =~ ^[0-9]+$ ]]
+            scope=(--data-urlencode "pullRequest=$PULL_REQUEST")
+          else
+            [[ -n "$TARGET_BRANCH" ]]
+            scope=(--data-urlencode "branch=$TARGET_BRANCH")
+          fi
+
+          curl -fsS --retry 3 --max-time 30 --get \
+            --data-urlencode "projectKey=$PROJECT_KEY" \
+            "${scope[@]}" \
+            "$base/qualitygates/project_status" -o /tmp/gate.json
+          echo '=== QUALITY GATE ==='
+          python -m json.tool /tmp/gate.json
+
+          curl -fsS --retry 3 --max-time 30 --get \
+            --data-urlencode "component=$PROJECT_KEY" \
+            --data-urlencode 'metricKeys=new_duplicated_lines_density,new_duplicated_lines,new_lines,new_security_rating,new_reliability_rating,new_maintainability_rating' \
+            "${scope[@]}" \
+            "$base/measures/component" -o /tmp/measures.json
+          echo '=== NEW CODE METRICS ==='
+          python -m json.tool /tmp/measures.json
+
+      - name: Query unresolved security and reliability issues
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://sonarcloud.io/api'
+          scope=()
+          if [[ -n "$PULL_REQUEST" ]]; then
+            scope=(--data-urlencode "pullRequest=$PULL_REQUEST")
+          else
+            scope=(--data-urlencode "branch=$TARGET_BRANCH")
+          fi
+
+          for quality in SECURITY RELIABILITY; do
+            curl -fsS --retry 3 --max-time 30 --get \
+              --data-urlencode "componentKeys=$PROJECT_KEY" \
+              --data-urlencode 'resolved=false' \
+              --data-urlencode "impactSoftwareQualities=$quality" \
+              --data-urlencode 'ps=500' \
+              "${scope[@]}" \
+              "$base/issues/search" -o "/tmp/${quality}.json"
+            QUALITY="$quality" python - <<'PY'
+          import json, os
+          quality = os.environ['QUALITY']
+          data = json.load(open(f'/tmp/{quality}.json', encoding='utf-8'))
+          issues = data.get('issues', [])
+          print(f'=== {quality} ISSUES: {len(issues)} ===')
+          for issue in issues:
+              print({
+                  'rule': issue.get('rule'),
+                  'component': issue.get('component'),
+                  'line': issue.get('line'),
+                  'message': issue.get('message'),
+                  'creationDate': issue.get('creationDate'),
+              })
+          PY
+          done
 
       - name: Query duplication contributors
         shell: bash
-        env:
-          TARGET_BRANCH: ${{ inputs.branch }}
-          PROJECT_KEY: ${{ inputs.project_key }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
-          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
-          
-          p=1
-          while true; do
-            curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
-              -H "Authorization: Bearer ${SONAR_TOKEN}" \
-              --get --data-urlencode "component=${PROJECT_KEY}" \
-              --data-urlencode "branch=${TARGET_BRANCH}" \
-              --data-urlencode "metricKeys=new_duplicated_lines_density,new_lines,new_duplicated_lines" \
-              --data-urlencode "strategy=leaves" \
-              --data-urlencode "ps=500" \
-              --data-urlencode "p=$p" \
-              "https://sonarcloud.io/api/measures/component_tree" -o "/tmp/tree_${p}.json"
-            
-            MORE=$(FILE="/tmp/tree_${p}.json" PAGE="$p" python - <<'PY'
-          import json, os
-          data = json.load(open(os.environ['FILE'], encoding='utf-8'))
-          paging = data.get('paging', {})
-          t = data.get('total')
-          if t is None: t = paging.get('total', 0)
-          ps = data.get('ps')
-          if ps is None: ps = paging.get('pageSize', 500)
-          p = int(os.environ['PAGE'])
-          if p * int(ps) >= 10000 and int(t) > 10000: print('2')
-          elif int(t) > p * int(ps): print('1')
-          else: print('0')
-          PY
-            )
-            
-            if [ "$MORE" = "0" ]; then
-              break
-            elif [ "$MORE" = "2" ]; then
-              echo "WARNING: Reached 10,000 components limit. Results truncated." >&2
-              break
-            fi
-            p=$((p+1))
-          done
-          
+          base='https://sonarcloud.io/api'
+          scope=()
+          if [[ -n "$PULL_REQUEST" ]]; then
+            scope=(--data-urlencode "pullRequest=$PULL_REQUEST")
+          else
+            scope=(--data-urlencode "branch=$TARGET_BRANCH")
+          fi
+
+          curl -fsS --retry 3 --max-time 30 --get \
+            --data-urlencode "component=$PROJECT_KEY" \
+            --data-urlencode 'metricKeys=new_duplicated_lines_density,new_duplicated_lines,new_lines' \
+            --data-urlencode 'strategy=leaves' \
+            --data-urlencode 'ps=500' \
+            "${scope[@]}" \
+            "$base/measures/component_tree" -o /tmp/tree.json
           python - <<'PY'
-          import json, sys
-          import glob
-          rows=[]
-          for f in glob.glob('/tmp/tree_*.json'):
-              data=json.load(open(f,encoding='utf-8'))
-              for c in data.get('components', []):
-                  vals={}
-                  for measure in c.get('measures',[]):
-                      periods=measure.get('periods') or []
-                      period=measure.get('period') or {}
-                      if periods:
-                          val = periods[0].get('value',0)
-                      elif period:
-                          val = period.get('value',0)
-                      else:
-                          val = measure.get('value',0)
-                      vals[measure['metric']]=float(val or 0)
-                  nl=vals.get('new_lines',0); nd=vals.get('new_duplicated_lines',0); dens=vals.get('new_duplicated_lines_density',0)
-                  if nl or nd or dens:
-                      rows.append((nd,dens,nl,c.get('path') or ''))
-          print('DUPLICATION_CONTRIBUTORS')
-          for nd,dens,nl,path in sorted(rows, reverse=True):
-              print(json.dumps({'path':path,'new_lines':nl,'new_duplicated_lines':nd,'density':dens}, ensure_ascii=False))
+          import json
+          data = json.load(open('/tmp/tree.json', encoding='utf-8'))
+          rows = []
+          for component in data.get('components', []):
+              values = {}
+              for measure in component.get('measures', []):
+                  periods = measure.get('periods') or []
+                  period = periods[0] if periods else measure.get('period') or {}
+                  values[measure['metric']] = float(period.get('value', measure.get('value', 0)) or 0)
+              duplicated = values.get('new_duplicated_lines', 0)
+              density = values.get('new_duplicated_lines_density', 0)
+              lines = values.get('new_lines', 0)
+              if duplicated or density:
+                  rows.append((duplicated, density, lines, component.get('path', '')))
+          print('=== DUPLICATION CONTRIBUTORS ===')
+          for duplicated, density, lines, path in sorted(rows, reverse=True):
+              print({'path': path, 'new_lines': lines, 'new_duplicated_lines': duplicated, 'density': density})
           PY
-
-      - name: Query security and reliability issues
-        shell: bash
-        env:
-          TARGET_BRANCH: ${{ inputs.branch }}
-          PROJECT_KEY: ${{ inputs.project_key }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          set -euo pipefail
-          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
-          
-          for quality in SECURITY RELIABILITY; do
-            p=1
-            while true; do
-              curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
-                -H "Authorization: Bearer ${SONAR_TOKEN}" \
-                --get --data-urlencode "componentKeys=${PROJECT_KEY}" \
-                --data-urlencode "branch=${TARGET_BRANCH}" \
-                --data-urlencode "resolved=false" \
-                --data-urlencode "impactSoftwareQualities=${quality}" \
-                --data-urlencode "ps=500" \
-                --data-urlencode "p=$p" \
-                "https://sonarcloud.io/api/issues/search" -o "/tmp/${quality}_${p}.json"
-              
-              MORE=$(FILE="/tmp/${quality}_${p}.json" PAGE="$p" python - <<'PY'
-          import json, os
-          data = json.load(open(os.environ['FILE'], encoding='utf-8'))
-          paging = data.get('paging', {})
-          t = data.get('total')
-          if t is None: t = paging.get('total', 0)
-          ps = data.get('ps')
-          if ps is None: ps = paging.get('pageSize', 500)
-          p = int(os.environ['PAGE'])
-          if p * int(ps) >= 10000 and int(t) > 10000: print('2')
-          elif int(t) > p * int(ps): print('1')
-          else: print('0')
-          PY
-              )
-              
-              if [ "$MORE" = "0" ]; then
-                break
-              elif [ "$MORE" = "2" ]; then
-                echo "WARNING: Reached 10,000 issues limit for ${quality}. Results truncated." >&2
-                break
-              fi
-              p=$((p+1))
-            done
-            
-            QUALITY="$quality" python - <<'PY'
-          import json, os, sys
-          import glob
-          quality=os.environ['QUALITY']
-          total_issues = 0
-          all_issues = []
-          for f in glob.glob(f'/tmp/{quality}_*.json'):
-              data=json.load(open(f,encoding='utf-8'))
-              if total_issues == 0:
-                  total_issues = data.get('total') or data.get('paging', {}).get('total', 0)
-              all_issues.extend(data.get('issues', []))
-          print(f"{quality} ISSUES RETRIEVED: {len(all_issues)} (Server side matches: {total_issues})")
-          for issue in all_issues:
-              impacts=issue.get('impacts') or []
-              print(json.dumps({'rule':issue.get('rule'),'component':issue.get('component'),'line':issue.get('line'),'message':issue.get('message'),'impacts':impacts,'creationDate':issue.get('creationDate')},ensure_ascii=False))
-          PY
-          done
-
-      - name: Query new-code quality metrics
-        shell: bash
-        env:
-          TARGET_BRANCH: ${{ inputs.branch }}
-          PROJECT_KEY: ${{ inputs.project_key }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          set -euo pipefail
-          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
-          
-          curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
-            -H "Authorization: Bearer ${SONAR_TOKEN}" \
-            --get --data-urlencode "component=${PROJECT_KEY}" \
-            --data-urlencode "branch=${TARGET_BRANCH}" \
-            --data-urlencode "metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines" \
-            "https://sonarcloud.io/api/measures/component" \
-            -o /tmp/component_measures.json
-          python -m json.tool /tmp/component_measures.json

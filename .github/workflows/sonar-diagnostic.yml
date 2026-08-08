@@ -133,7 +133,7 @@ jobs:
                 --get --data-urlencode "componentKeys=${PROJECT_KEY}" \
                 --data-urlencode "branch=${TARGET_BRANCH}" \
                 --data-urlencode "resolved=false" \
-                --data-urlencode "softwareQualities=${quality}" \
+                --data-urlencode "impactSoftwareQualities=${quality}" \
                 --data-urlencode "ps=500" \
                 --data-urlencode "p=$p" \
                 "https://sonarcloud.io/api/issues/search" -o "/tmp/${quality}_${p}.json"

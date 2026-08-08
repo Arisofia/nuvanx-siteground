@@ -56,39 +56,47 @@ try {
     );
   }
 
-  await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
-  await page.waitForTimeout(12000);
+  async function collectDiagnostics() {
+    const iframeMeta = await page.locator('#nvx-hubspot-form iframe').evaluateAll((nodes) => nodes.map((node) => ({
+      src: node.getAttribute('src'),
+      title: node.getAttribute('title'),
+      dataTestId: node.getAttribute('data-test-id'),
+      name: node.getAttribute('name'),
+      id: node.id,
+    })));
+    // Strip query strings from iframe src before logging; HubSpot embeds carry tracking tokens there.
+    console.log(`IFRAMES=${JSON.stringify(iframeMeta.map((meta) => ({ ...meta, src: sanitizeUrl(meta.src) })))}`);
+    // Only log structural attributes: raw innerHTML / innerText can carry HubSpot tracking
+    // tokens (hutk, session ids) or cookie-derived values into public CI logs.
+    console.log(`FRAME_COUNT=${page.frames().length}`);
 
-  const iframeMeta = await page.locator('#nvx-hubspot-form iframe').evaluateAll((nodes) => nodes.map((node) => ({
-    src: node.getAttribute('src'),
-    title: node.getAttribute('title'),
-    dataTestId: node.getAttribute('data-test-id'),
-    name: node.getAttribute('name'),
-    id: node.id,
-  })));
-  // Strip query strings from iframe src before logging; HubSpot embeds carry tracking tokens there.
-  console.log(`IFRAMES=${JSON.stringify(iframeMeta.map((meta) => ({ ...meta, src: sanitizeUrl(meta.src) })))}`);
-  // Only log structural attributes: raw innerHTML / innerText can carry HubSpot tracking
-  // tokens (hutk, session ids) or cookie-derived values into public CI logs.
-  console.log(`FRAME_COUNT=${page.frames().length}`);
-
-  const frames = page.frames();
-  for (let i = 0; i < frames.length; i += 1) {
-    const frame = frames[i];
-    let fields = [];
-    let forms = 0;
-    let inspectError = '';
-    try {
-      forms = await frame.locator('form').count();
-      fields = await frame.locator('input,textarea,select,button').evaluateAll((nodes) => nodes.map((node) => ({
-        tag: node.tagName.toLowerCase(), name: node.getAttribute('name') || '', type: node.getAttribute('type') || '', id: node.id || ''
-      })).slice(0, 100));
-    } catch (error) {
-      inspectError = `FRAME_INSPECT_ERROR:${error.message}`;
+    const frames = page.frames();
+    for (let i = 0; i < frames.length; i += 1) {
+      const frame = frames[i];
+      let fields = [];
+      let forms = 0;
+      let inspectError = '';
+      try {
+        forms = await frame.locator('form').count();
+        fields = await frame.locator('input,textarea,select,button').evaluateAll((nodes) => nodes.map((node) => ({
+          tag: node.tagName.toLowerCase(), name: node.getAttribute('name') || '', type: node.getAttribute('type') || '', id: node.id || ''
+        })).slice(0, 100));
+      } catch (error) {
+        inspectError = `FRAME_INSPECT_ERROR:${error.message}`;
+      }
+      console.log(`FRAME_${i}=${JSON.stringify({ url: sanitizeUrl(frame.url()), forms, fields, inspectError })}`);
     }
-    console.log(`FRAME_${i}=${JSON.stringify({ url: sanitizeUrl(frame.url()), forms, fields, inspectError })}`);
+    console.log(`HUBSPOT_REQUEST_FAILURES=${JSON.stringify(failures)}`);
   }
-  console.log(`HUBSPOT_REQUEST_FAILURES=${JSON.stringify(failures)}`);
+
+  try {
+    await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
+    await page.waitForTimeout(12000);
+    await collectDiagnostics();
+  } catch (error) {
+    await collectDiagnostics();
+    throw error;
+  }
 } finally {
   await browser.close();
 }

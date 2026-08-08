@@ -215,6 +215,10 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
     };
     window.addEventListener('message', (event) => {
       if (!isAllowedHubSpotOrigin(event.origin)) return;
+      // Validate that the message originates from the HubSpot iframe's contentWindow to prevent
+      // spoofed postMessages from unrelated origins or windows that happen to pass the origin check.
+      const hubspotIframe = document.querySelector(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`);
+      if (!hubspotIframe || event.source !== hubspotIframe.contentWindow) return;
       let data = event.data || {};
       if (typeof data === 'string') { try { data = JSON.parse(data); } catch (_) { return; } }
       if (data.type === 'hsFormCallback' && data.eventName === 'onFormSubmitted' && String(data.id || '').toLowerCase() === formId) {
@@ -258,7 +262,7 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
 }
 
 async function runScenario(browser, { scenario, gclid, email, allowed }) {
-  const context = await browser.newContext({ ignoreHTTPSErrors: true });
+  const context = await browser.newContext();
   const auditRequests = [];
   const auditResponses = [];
   try {
@@ -331,7 +335,7 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
   }
 }
 
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const browser = await chromium.launch({ headless: true });
 try {
   await runScenario(browser, { scenario: 'ALLOW', gclid: allowGclid, email: allowEmail, allowed: true });
   await runScenario(browser, { scenario: 'DENY', gclid: denyGclid, email: denyEmail, allowed: false });

@@ -73,10 +73,11 @@ jobs:
           import json, os
           data = json.load(open(os.environ['FILE'], encoding='utf-8'))
           paging = data.get('paging', {})
-          total = paging.get('total', 0)
-          ps = paging.get('pageSize')
-          if ps is None: ps = data.get('ps', 500)
-          print('1' if int(total) > int(os.environ['PAGE']) * int(ps) else '0')
+          t = data.get('total')
+          if t is None: t = paging.get('total', 0)
+          ps = data.get('ps')
+          if ps is None: ps = paging.get('pageSize', 500)
+          print('1' if int(t) > int(os.environ['PAGE']) * int(ps) else '0')
           PY
             )
             

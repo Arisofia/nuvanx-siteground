@@ -255,16 +255,18 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
     const page = await context.newPage();
 
     await page.route('**/*', async (route) => {
+      let shouldBlock = false;
       try {
         const url = new URL(route.request().url());
         // Regional Google ad hosts (google.es, google.co.uk, ...) plus googletagmanager are
         // included so real conversion pings never leave the browser during the ALLOW scenario.
         const googleAdHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google\.[a-z.]+)$/.test(url.hostname);
         const conversionPath = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204/i.test(url.pathname);
-        if (googleAdHost && conversionPath) return await route.abort();
+        shouldBlock = googleAdHost && conversionPath;
       } catch (_) {
         // Fall through to continue so a parsing error never stalls page loading.
       }
+      if (shouldBlock) return route.abort();
       return route.continue();
     });
 

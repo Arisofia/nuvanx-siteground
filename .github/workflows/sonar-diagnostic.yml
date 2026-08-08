@@ -13,7 +13,7 @@ on:
         default: 'Arisofia_nuvanx-siteground'
 
 concurrency:
-  group: sonar-diagnostic-${{ github.ref }}
+  group: sonar-diagnostic-${{ github.ref }}-${{ inputs.project_key }}
   cancel-in-progress: true
 
 permissions:
@@ -32,8 +32,8 @@ jobs:
       - name: Query quality gate status
         shell: bash
         env:
-          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
-          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          TARGET_BRANCH: ${{ inputs.branch }}
+          PROJECT_KEY: ${{ inputs.project_key }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
@@ -49,8 +49,8 @@ jobs:
       - name: Query duplication contributors
         shell: bash
         env:
-          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
-          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          TARGET_BRANCH: ${{ inputs.branch }}
+          PROJECT_KEY: ${{ inputs.project_key }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
@@ -68,11 +68,13 @@ jobs:
               --data-urlencode "p=$p" \
               "https://sonarcloud.io/api/measures/component_tree" -o "/tmp/tree_${p}.json"
             
-            MORE=$(python -c "
-import json
-data=json.load(open('/tmp/tree_${p}.json',encoding='utf-8'))
-print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
-")
+            MORE=$(FILE="/tmp/tree_${p}.json" PAGE="$p" python - <<'PY'
+          import json, os
+          data = json.load(open(os.environ['FILE'], encoding='utf-8'))
+          print('1' if data.get('paging', {}).get('total', 0) > int(os.environ['PAGE']) * 500 else '0')
+          PY
+            )
+            
             if [ "$MORE" = "0" ] || [ $p -ge 20 ]; then
               if [ $p -ge 20 ] && [ "$MORE" != "0" ]; then
                 echo "WARNING: Reached 10,000 components limit. Results truncated." >&2
@@ -111,8 +113,8 @@ print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
       - name: Query security and reliability issues
         shell: bash
         env:
-          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
-          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          TARGET_BRANCH: ${{ inputs.branch }}
+          PROJECT_KEY: ${{ inputs.project_key }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
@@ -131,11 +133,13 @@ print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
                 --data-urlencode "p=$p" \
                 "https://sonarcloud.io/api/issues/search" -o "/tmp/${quality}_${p}.json"
               
-              MORE=$(python -c "
-import json
-data=json.load(open('/tmp/${quality}_${p}.json',encoding='utf-8'))
-print('1' if data.get('total',0) > int('${p}') * 500 else '0')
-")
+              MORE=$(FILE="/tmp/${quality}_${p}.json" PAGE="$p" python - <<'PY'
+          import json, os
+          data = json.load(open(os.environ['FILE'], encoding='utf-8'))
+          print('1' if data.get('total', 0) > int(os.environ['PAGE']) * 500 else '0')
+          PY
+              )
+              
               if [ "$MORE" = "0" ] || [ $p -ge 20 ]; then
                 if [ $p -ge 20 ] && [ "$MORE" != "0" ]; then
                   echo "WARNING: Reached 10,000 issues limit for ${quality}. Results truncated." >&2
@@ -166,8 +170,8 @@ print('1' if data.get('total',0) > int('${p}') * 500 else '0')
       - name: Query new-code quality metrics
         shell: bash
         env:
-          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
-          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          TARGET_BRANCH: ${{ inputs.branch }}
+          PROJECT_KEY: ${{ inputs.project_key }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail

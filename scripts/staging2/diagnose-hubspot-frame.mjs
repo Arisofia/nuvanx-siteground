@@ -101,7 +101,9 @@ try {
     await page.waitForTimeout(12000);
     await collectDiagnostics();
   } catch (error) {
-    await collectDiagnostics();
+    await collectDiagnostics().catch((diagnosticError) => {
+      console.log(`DIAGNOSTICS_COLLECTION_FAILED=${diagnosticError.message}`);
+    });
     throw error;
   }
 } finally {

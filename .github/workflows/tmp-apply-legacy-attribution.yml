@@ -31,6 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i "s/^legacy = r'''/legacy = '''/" patchsrc/scripts/tmp_apply_legacy_attribution.py
           python3 patchsrc/scripts/tmp_apply_legacy_attribution.py target
           node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
           node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js

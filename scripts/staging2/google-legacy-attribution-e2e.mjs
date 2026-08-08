@@ -333,7 +333,9 @@ async function runScenario(browser, scenario) {
         const measurement = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204|\/ccm\/collect|\/g\/collect|\/collect/i.test(url.pathname);
         block = googleHost && measurement;
       } catch {}
-      return block ? route.abort() : route.continue();
+      // Swallow "Target closed" rejections: background HubSpot beacons can still be in flight
+      // when the context closes at teardown, and an unhandled route rejection clutters CI logs.
+      return block ? route.abort().catch(() => {}) : route.continue().catch(() => {});
     });
     page.on('request', (request) => {
       if (request.method() === 'POST' && request.url().includes(edgeNeedle)) auditRequests.push(request.postData() || '');

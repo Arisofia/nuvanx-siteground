@@ -524,7 +524,7 @@
 		if (!isTrustedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
-		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
+		if (String(data.id || '').toLowerCase() !== String(FORM_ID || '').toLowerCase()) return;
 		transmitLegacySuccess();
 	});
 

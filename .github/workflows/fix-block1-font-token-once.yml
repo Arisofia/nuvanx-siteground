@@ -1,0 +1,52 @@
+name: Fix Block 1 Font Token Once
+
+on:
+  push:
+    branches: [fix/visual-block1-font-token]
+    paths:
+      - .github/workflows/fix-block1-font-token-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/visual-block1-font-token
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Replace only the proven lint violation
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
+          s=p.read_text('utf-8')
+          old='.nvx-legal-card :where(p, li) {\n  font-size: 16px;'
+          new='.nvx-legal-card :where(p, li) {\n  font-size: var(--nvx-type-body);'
+          if s.count(old)!=1:
+              raise SystemExit(f'expected one legal font declaration, got {s.count(old)}')
+          p.write_text(s.replace(old,new,1),'utf-8')
+          PY
+          git diff --check
+          test "$(git diff --name-only)" = "$file"
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+          find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          while IFS= read -r -d '' f; do node --check "$f"; done < <(find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.js' -type f -print0)
+      - name: Commit one CSS token correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Audit Controller'
+          git config user.email 'audit-controller@nuvanx.invalid'
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          git diff --cached --check
+          git commit -m 'fix(visual): use typography token in legal body copy'
+          git push origin HEAD:fix/visual-block1-font-token

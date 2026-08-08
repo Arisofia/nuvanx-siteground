@@ -1,9 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const originSshAlias = 'nvx-staging2';
 const routes = [
   '/',
   '/soluciones-medicas/',
@@ -21,6 +23,15 @@ if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
   process.exit(1);
 }
+if (!/^[a-z0-9.-]+$/.test(expectedHost)) {
+  console.error('EXPECTED_HOST contains unsupported characters.');
+  process.exit(1);
+}
+const parsedBaseUrl = new URL(baseUrl);
+if (parsedBaseUrl.protocol !== 'https:' || parsedBaseUrl.hostname !== expectedHost) {
+  console.error(`BASE_URL must be HTTPS on ${expectedHost}.`);
+  process.exit(1);
+}
 if (!Number.isInteger(transientAttempts) || transientAttempts < 1 || transientAttempts > 10) {
   console.error('STAGING_BOUNDARY_TRANSIENT_ATTEMPTS must be an integer from 1 to 10.');
   process.exit(1);
@@ -32,6 +43,12 @@ if (!Number.isInteger(transientBaseDelayMs) || transientBaseDelayMs < 250 || tra
 if (!Number.isInteger(requestTimeoutMs) || requestTimeoutMs < 1000 || requestTimeoutMs > 60000) {
   console.error('STAGING_BOUNDARY_REQUEST_TIMEOUT_MS must be an integer from 1000 to 60000.');
   process.exit(1);
+}
+for (const route of routes) {
+  if (!/^\/[A-Za-z0-9_./-]*$/.test(route)) {
+    console.error(`Unsupported route characters: ${route}`);
+    process.exit(1);
+  }
 }
 
 const outputDir = path.resolve('scripts/staging2/artifacts');
@@ -55,6 +72,73 @@ function sleep(ms) {
 function isTransientSiteGroundChallenge(response) {
   if (response.status === 202 || response.status === 429 || response.status === 503) return true;
   return Boolean(response.headers.get('sg-captcha'));
+}
+
+async function sshAliasConfigured(alias) {
+  const home = process.env.HOME || '';
+  if (!home) return false;
+  try {
+    const config = await fs.readFile(path.join(home, '.ssh', 'config'), 'utf8');
+    return config.split(/\r?\n/).some((line) => {
+      const parts = line.trim().split(/\s+/);
+      return parts.length > 1 && parts[0].toLowerCase() === 'host' && parts.slice(1).includes(alias);
+    });
+  } catch {
+    return false;
+  }
+}
+
+function verifyViaSiteGroundOrigin(route) {
+  const remoteScript = String.raw`set -Eeuo pipefail
+base_url="https://${EXPECTED_HOST}"
+headers="$(mktemp)"
+body="$(mktemp)"
+cleanup() { rm -f "$headers" "$body"; }
+trap cleanup EXIT
+result="$(curl -sS -L --max-redirs 5 --max-time 30 \
+  -A 'NUVANX-Staging-Origin-Boundary/1.1' \
+  -H 'Accept: text/html,application/xhtml+xml' \
+  -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' \
+  "${base_url}${ROUTE}")"
+code="${result%%|*}"
+effective="${result#*|}"
+test "$code" = '200'
+case "$effective" in
+  "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;;
+  *) echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;;
+esac
+! grep -Fq '/.well-known/sgcaptcha/' "$body"
+! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"
+grep -Fq "$EXPECTED_SHA" "$body"
+robots_meta="$(grep -Eio "<meta[^>]+name=['\"]robots['\"][^>]*>" "$body" | head -n 1 || true)"
+xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
+combined="${robots_meta} ${xrobots}"
+printf '%s' "$combined" | grep -Eiq 'noindex'
+printf '%s' "$combined" | grep -Eiq 'nofollow'
+if printf '%s' "$combined" | grep -Eiq '(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow'; then
+  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2
+  exit 1
+fi
+echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA"
+`;
+
+  const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
+  const result = spawnSync('/usr/bin/ssh', [originSshAlias, remoteCommand], {
+    input: remoteScript,
+    encoding: 'utf8',
+    timeout: 60000,
+    maxBuffer: 1024 * 1024,
+  });
+
+  return {
+    attempted: true,
+    pass: result.status === 0,
+    status: result.status,
+    signal: result.signal || '',
+    stdout: (result.stdout || '').trim(),
+    stderr: (result.stderr || '').trim(),
+    error: result.error ? result.error.message : '',
+  };
 }
 
 async function fetchWithTransientRetry(current, retryLog) {
@@ -122,6 +206,7 @@ async function fetchSameHost(url, maxRedirects = 5) {
   throw new Error(`Too many redirects for ${url}`);
 }
 
+const originFallbackAvailable = await sshAliasConfigured(originSshAlias);
 const report = {
   baseUrl,
   expectedHost,
@@ -130,6 +215,8 @@ const report = {
   transientAttempts,
   transientBaseDelayMs,
   requestTimeoutMs,
+  originFallbackAlias: originSshAlias,
+  originFallbackAvailable,
   routes: [],
   failures: [],
 };
@@ -144,6 +231,7 @@ for (const route of routes) {
     const robots = extractMetaContent(html, 'robots');
     const deploySha = extractMetaContent(html, 'nvx-deploy-sha');
     const xRobotsTag = response.headers.get('x-robots-tag') || '';
+    const transientEdge = isTransientSiteGroundChallenge(response);
 
     result.status = response.status;
     result.finalUrl = finalUrl.toString();
@@ -154,6 +242,19 @@ for (const route of routes) {
     result.xRobotsTag = xRobotsTag;
     result.deploySha = deploySha;
     result.issues = [];
+
+    if (transientEdge && originFallbackAvailable) {
+      result.externalInconclusive = true;
+      result.originFallback = verifyViaSiteGroundOrigin(route);
+      if (result.originFallback.pass) {
+        result.pass = true;
+        report.routes.push(result);
+        continue;
+      }
+      result.issues.push(
+        `SiteGround origin fallback failed: ${result.originFallback.stderr || result.originFallback.error || `exit ${result.originFallback.status}`}`
+      );
+    }
 
     if (response.status !== 200) {
       result.issues.push(`Expected HTTP 200, got ${response.status}`);
@@ -204,6 +305,7 @@ const retryCount = report.routes.reduce(
   (sum, route) => sum + (Array.isArray(route.transientRetries) ? route.transientRetries.length : 0),
   0
 );
+const originFallbackCount = report.routes.filter((route) => route.originFallback?.pass).length;
 console.log(
-  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}, are noindex/nofollow, expose SHA ${expectedSha}, transient_retries=${retryCount}, request_timeout_ms=${requestTimeoutMs}.`
+  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}; strict edge/origin verification exposes SHA ${expectedSha}; transient_retries=${retryCount}; origin_fallbacks=${originFallbackCount}; request_timeout_ms=${requestTimeoutMs}.`
 );

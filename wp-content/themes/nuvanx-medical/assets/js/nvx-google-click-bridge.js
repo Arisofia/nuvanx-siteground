@@ -197,6 +197,8 @@
       eventName === 'onBeforeFormSubmit' ||
       eventName === 'onFormSubmit'
     );
+  }
+
   function handleLegacyHubSpotMessage(event) {
     if (!event || !event.origin || !isTrustedHubSpotMessageOrigin(event.origin) || !event.source) return;
 

@@ -13,7 +13,7 @@ on:
         default: 'Arisofia_nuvanx-siteground'
 
 concurrency:
-  group: sonar-diagnostic-${{ github.ref }}-${{ inputs.project_key }}
+  group: sonar-diagnostic-${{ github.ref }}-${{ inputs.project_key }}-${{ inputs.branch }}
   cancel-in-progress: true
 
 permissions:

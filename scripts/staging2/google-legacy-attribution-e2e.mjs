@@ -329,28 +329,39 @@ async function triggerSubmit(page, frame, scenario, network) {
   }
 }
 
+// Poll up to ~13s (matching the settle window) for the audit accumulator to reach `expected`.
+async function awaitAuditCount(accumulator, expected) {
+  for (let attempt = 0; attempt < 40 && accumulator.length < expected; attempt += 1) await sleep(250);
+  await sleep(3000);
+}
+
+// Validate the single ALLOW audit request/response: 2xx status, hashed email, no raw email leak.
+function assertAllowPayload(email, auditRequests, auditResponses) {
+  if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
+    throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
+  }
+  const payload = JSON.parse(auditRequests[0] || '{}');
+  if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
+  const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
+  if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
+}
+
 // Assert the attribution audit POST matches the scenario's consent expectation.
 async function assertAudit(scenario, email, state, auditRequests, auditResponses) {
-  if (scenario === 'ALLOW') {
-    for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
-    await sleep(3000);
-    if (auditRequests.length !== 1) {
-      const missingCustomEvent = auditRequests.length === 0 && !state.successSources.includes('hubspot_form_event');
-      const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
-      throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
-    }
-    for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
-    if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
-    const payload = JSON.parse(auditRequests[0] || '{}');
-    if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
-    const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
-    if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
+  if (scenario !== 'ALLOW') {
+    // DENY: observe as long as the ALLOW branch (~13s) so a late audit POST cannot slip through.
+    await awaitAuditCount(auditRequests, 1);
+    if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
     return;
   }
-  // DENY: observe as long as the ALLOW branch (~13s) so a late audit POST cannot slip through.
-  for (let attempt = 0; attempt < 40 && auditRequests.length === 0; attempt += 1) await sleep(250);
-  if (auditRequests.length === 0) await sleep(3000);
-  if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
+  await awaitAuditCount(auditRequests, 1);
+  if (auditRequests.length !== 1) {
+    const missingCustomEvent = auditRequests.length === 0 && !state.successSources.includes('hubspot_form_event');
+    const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
+    throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
+  }
+  await awaitAuditCount(auditResponses, 1);
+  assertAllowPayload(email, auditRequests, auditResponses);
 }
 
 async function submit(page, frame, scenario, email, auditRequests, auditResponses) {

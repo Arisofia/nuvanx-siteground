@@ -12,7 +12,7 @@ replacements = [
 ),
 (
 "\t\ttry {\n\t\t\tinput.value = value;\n\t\t\tif (value) input.setAttribute('value', value);\n",
-"\t\ttry {\n\t\t\tvar prototype = Object.getPrototypeOf(input);\n\t\t\tvar descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, 'value') : null;\n\t\t\tif (descriptor && typeof descriptor.set === 'function') descriptor.set.call(input, value);\n\t\t\telse input.value = value;\n\t\t\tif (value) input.setAttribute('value', value);\n"
+"\t\ttry {\n\t\t\tvar prototype = Object.getPrototypeOf(input);\n\t\t\tvar descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, 'value') : null;\n\t\t\tif (descriptor && typeof descriptor.set === 'function') descriptor.set.call(input, value);\n\t\t\telse input.value = value;\n\t\t\tif (value) input.setAttribute('value', value);\n\t\t\telse input.removeAttribute('value');\n"
 ),
 (
 "\t\t\tFIELD_MAP[param].forEach(function (propertyName) {\n\t\t\t\tif (!consent && propertyName.indexOf('nvx_') !== 0) return;\n\t\t\t\tmodified = setLegacyField(root, propertyName, value) || modified;\n\t\t\t});\n",

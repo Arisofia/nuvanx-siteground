@@ -14,7 +14,7 @@ function sanitizeUrl(value) {
   try {
     const url = new URL(value);
     return `${url.origin}${url.pathname}`;
-  } catch (_) {
+  } catch {
     return '';
   }
 }
@@ -67,7 +67,7 @@ try {
     const iframeMeta = await page.locator('#nvx-hubspot-form iframe').evaluateAll((nodes) => nodes.map((node) => ({
       src: node.getAttribute('src'),
       title: node.getAttribute('title'),
-      dataTestId: node.getAttribute('data-test-id'),
+      dataTestId: node.dataset.testId,
       name: node.getAttribute('name'),
       id: node.id,
     })));

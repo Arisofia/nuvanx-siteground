@@ -98,7 +98,7 @@ async function verifySha(page) {
 }
 
 function fieldSelector(name) {
-  const escaped = name.replace(/"/g, '\\"');
+  const escaped = name.replaceAll('"', String.raw`\"`);
   return `input[name="${escaped}"], input[name="0-1/${escaped}"]`;
 }
 
@@ -195,7 +195,7 @@ async function checkHubSpotBox(frame, element) {
 
   const labelId = await element.getAttribute('aria-labelledby');
   if (labelId) {
-    const safeLabelId = labelId.replace(/"/g, '\\"');
+    const safeLabelId = labelId.replaceAll('"', String.raw`\"`);
     await frame.locator(`[id="${safeLabelId}"]`).click({ force: true }).catch(() => {});
     if (await element.isChecked().catch(() => false)) return;
   }
@@ -294,7 +294,7 @@ async function formDiagnostics(frame) {
 
 async function submissionState(page) {
   return page.evaluate(() => {
-    const after = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+    const after = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
     return {
       successMessages: Number(window.__nvxQaSuccess || 0),
       successSources: Array.isArray(window.__nvxQaSuccessSources) ? window.__nvxQaSuccessSources.slice() : [],
@@ -307,7 +307,7 @@ async function installSubmissionObservers(page) {
   await page.evaluate((canonicalFormId) => {
     window.__nvxQaSuccess = 0;
     window.__nvxQaSuccessSources = [];
-    window.__nvxQaGenerateBefore = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+    window.__nvxQaGenerateBefore = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
 
     const recordSuccess = (source, id) => {
       if (String(id || '').toLowerCase() !== canonicalFormId) return;
@@ -319,13 +319,13 @@ async function installSubmissionObservers(page) {
       if (!origin || origin === 'null') return false;
       try {
         return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(new URL(origin).hostname.toLowerCase());
-      } catch (_) {
+      } catch {
         return false;
       }
     };
 
     window.addEventListener('hs-form-event:on-submission:success', (event) => {
-      const detail = event && event.detail ? event.detail : {};
+      const detail = event?.detail ?? {};
       recordSuccess('hubspot_form_event', detail.formId || '');
     });
 
@@ -337,7 +337,7 @@ async function installSubmissionObservers(page) {
       if (typeof data === 'string') {
         try {
           data = JSON.parse(data);
-        } catch (_) {
+        } catch {
           return;
         }
       }
@@ -367,7 +367,7 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
 
   try {
     await page.waitForFunction(() => {
-      const after = (window.dataLayer || []).filter((item) => item && item.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
+      const after = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
       const delta = after - Number(window.__nvxQaGenerateBefore || 0);
       return Number(window.__nvxQaSuccess || 0) >= 1 || delta >= 1;
     }, null, { timeout: 30000 });
@@ -425,7 +425,7 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
         const googleAdHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google\.[a-z.]+)$/.test(url.hostname);
         const conversionPath = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204/i.test(url.pathname);
         shouldBlock = googleAdHost && conversionPath;
-      } catch (_) {
+      } catch {
         // Parsing failure is not a reason to stall an unrelated request.
       }
       if (shouldBlock) return route.abort();

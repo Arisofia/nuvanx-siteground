@@ -51,7 +51,7 @@ for (const viewport of viewports) {
   const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
   if (metaSha !== expectedSha) issues.push(`SHA mismatch ${metaSha || 'missing'} != ${expectedSha}`);
 
-  await page.evaluate(async () => { if (document.fonts?.ready) await document.fonts.ready; }).catch(() => {});
+  await page.evaluate(async () => { if (document.fonts) await document.fonts.ready; }).catch(() => {});
   await page.waitForTimeout(350);
 
   const placement = await page.evaluate(() => {

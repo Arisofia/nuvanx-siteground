@@ -574,7 +574,7 @@ function nvxClinicsClassWithoutButtonChrome( string $class ): string {
 				if ( '' === $c ) {
 					return false;
 				}
-				return ! preg_match( '/^(nvx-brand-btn|nvx-brand-btn|nvx-btn)(--[\w-]+)?$/i', $c )
+				return ! preg_match( '/^(nvx-brand-btn|nvx-btn)(--[\w-]+)?$/i', $c )
 					&& 'nvx-clinic-map-cta' !== $c;
 			}
 		)
@@ -681,9 +681,16 @@ function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, b
 	return $treatment;
 }
 
-/** Classify and style single CTA link node. */
+/**
+ * Classifies a CTA link and applies the corresponding brand styling and content.
+ *
+ * @param DOMElement $link The CTA link element to classify and update.
+ * @param string $href The link destination.
+ * @param string $text The visible link text.
+ * @param string $class The link's existing class attribute.
+ */
 function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
-	$isBtn     = (bool) preg_match( '/\b(nvx-brand-btn|nvx-brand-btn|nvx-btn)\b/i', $class );
+	$isBtn     = (bool) preg_match( '/\b(nvx-brand-btn|nvx-btn)\b/i', $class );
 	$treatment = nvxClinicsCtaTreatment( $link, $href, $text, $isBtn );
 
 	switch ( $treatment ) {

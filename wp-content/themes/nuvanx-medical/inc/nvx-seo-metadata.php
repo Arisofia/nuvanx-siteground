@@ -213,12 +213,9 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
 }
 
 /**
- * Whether the current installation is not the public production host.
+ * Determines whether the current installation should be treated as non-production.
  *
- * Explicitly guards staging2 (staging2.nuvanx.com): even if WP_ENVIRONMENT_TYPE
- * is set to 'production' or host detection varies, staging2 is a QA/review host
- * and must always be treated as non-production to enforce noindex directives
- * and prevent search engine indexing of pre-release content.
+ * @return bool `true` for staging, local, configured non-production, or unrecognized environments; `false` only when `NVX_ENV` is set to `production`.
  */
 function nvx_seo_is_nonproduction_environment(): bool {
 	// Staging2 must always be treated as non-production regardless of host or WP_ENVIRONMENT_TYPE.
@@ -229,7 +226,7 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	// SiteGround preview/staging hosts must never be indexable.
 	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
 	// parse_url correctly strips the port from both 'host:port' and '[::1]:port' (IPv6) forms.
-	$parsed_host = parse_url( 'http://' . $raw_host, PHP_URL_HOST );
+	$parsed_host = parse_url( 'https://' . $raw_host, PHP_URL_HOST );
 	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;
 	if ( false !== strpos( $raw_host, '.sg-host.com' ) || false !== strpos( $raw_host, 'staging' ) || false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
 		return true;

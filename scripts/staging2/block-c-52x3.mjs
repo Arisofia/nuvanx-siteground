@@ -101,18 +101,33 @@ await fs.writeFile(
   'utf8'
 );
 
+/**
+ * Converts a URL route into a safe filename component.
+ * @param {string} route - The URL route to sanitize.
+ * @return {string} The sanitized route name, or `home` for the root route.
+ */
 function safeName(route) {
   if (route === '/') return 'home';
-  return route.replace(/^\/+|\/+$/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
+  let normalized = route;
+  while (normalized.startsWith('/')) normalized = normalized.slice(1);
+  while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+  return normalized.replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
 }
 
+/**
+ * Navigates to a URL with retries for transient failures and SiteGround challenge responses.
+ * @param {import('@playwright/test').Page} page - The Playwright page to navigate.
+ * @param {string} url - The URL to open.
+ * @return {Promise<{response: import('@playwright/test').Response|null, attempt: number}>} The navigation response and attempt number.
+ * @throws {Error} If navigation fails after all retry attempts.
+ */
 async function gotoPlain(page, url) {
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       if (!response) return { response: null, attempt };
-      const headers = await response.allHeaders();
+      const headers = response.headers();
       if (response.status() === 202 || headers['sg-captcha']) {
         if (attempt < 4) {
           await page.waitForTimeout(2500 * attempt);
@@ -152,9 +167,12 @@ async function handleCookieConsent(page) {
   }
 }
 
+/**
+ * Waits for fonts to become available and allows the page to settle before visual checks.
+ */
 async function waitForVisualStability(page) {
   await page.evaluate(async () => {
-    if (document.fonts?.ready) await document.fonts.ready;
+    if (document.fonts) await document.fonts.ready;
   }).catch(() => {});
   await page.waitForTimeout(400);
 }
@@ -508,7 +526,7 @@ for (const viewport of viewports) {
     try {
       const navResult = await gotoPlain(page, url);
       response = navResult.response;
-      headers = response ? await response.allHeaders() : {};
+      headers = response ? response.headers() : {};
       finalUrl = page.url();
 
       if (headers['sg-captcha'] || response?.status() === 202) {

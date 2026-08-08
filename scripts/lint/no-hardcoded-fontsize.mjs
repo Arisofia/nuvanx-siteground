@@ -12,6 +12,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { scanDirectory } from './file-scan-utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const THEME_DIR = path.join(__dirname, '../../wp-content/themes/nuvanx-medical');
@@ -19,6 +20,11 @@ const THEME_DIR = path.join(__dirname, '../../wp-content/themes/nuvanx-medical')
 // Pattern for hardcoded font-size in px
 const FONTSIZE_PATTERN = /font-size:\s*\d+px/gi;
 
+/**
+ * Scans a CSS file for hardcoded pixel values in `font-size` declarations.
+ * @param {string} filePath - The path to the CSS file to scan.
+ * @return {Array<{line: number, file: string, match: string, context: string}>} The detected font-size violations.
+ */
 async function scanFile(filePath) {
   const content = await fs.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
@@ -59,44 +65,17 @@ async function scanFile(filePath) {
   return violations;
 }
 
-async function scanDirectory(dir, extensions = ['.css']) {
-  const violations = [];
-  const files = [];
-
-  async function scanDir(currentDir) {
-    const entries = await fs.readdir(currentDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      
-      if (entry.isDirectory()) {
-        // Skip node_modules and vendor directories
-        if (entry.name !== 'node_modules' && entry.name !== 'vendor') {
-          await scanDir(fullPath);
-        }
-      } else if (extensions.includes(path.extname(entry.name))) {
-        files.push(fullPath);
-      }
-    }
-  }
-
-  await scanDir(dir);
-
-  for (const file of files) {
-    const fileViolations = await scanFile(file);
-    violations.push(...fileViolations);
-  }
-
-  return violations;
-}
-
+/**
+ * Scans theme CSS files for hardcoded `font-size` pixel values and reports violations.
+ * Exits with code `0` when no violations are found or code `1` when violations or scan errors occur.
+ */
 async function main() {
   const cssDir = path.join(THEME_DIR, 'assets/css');
 
   console.log('📏 Scanning CSS files for hardcoded font-size values...');
   console.log(`📁 Directory: ${cssDir}`);
 
-  const violations = await scanDirectory(cssDir);
+  const violations = await scanDirectory(cssDir, ['.css'], scanFile);
 
   if (violations.length === 0) {
     console.log('✅ No hardcoded font-size values found');

@@ -53,6 +53,10 @@ function robotsTokens(value) {
   );
 }
 
+/**
+ * Verifies the production site from its SiteGround origin.
+ * @return {string} The trimmed verification output from the remote origin.
+ */
 function verifyFromSiteGroundOrigin() {
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"
@@ -127,7 +131,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA routes=8"
 `;
 
   const output = execFileSync(
-    'ssh',
+    '/usr/bin/ssh',
     [
       'nvx-prod',
       `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} bash -se`,

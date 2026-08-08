@@ -320,8 +320,12 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
     if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
     const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
     if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
-  } else if (auditRequests.length !== 0) {
-    throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
+  } else {
+    // Observe at least as long as the ALLOW branch (~13s) so a late audit POST cannot slip
+    // through this privacy assertion unnoticed; abort early the moment any request appears.
+    for (let attempt = 0; attempt < 40 && auditRequests.length === 0; attempt += 1) await sleep(250);
+    if (auditRequests.length === 0) await sleep(3000);
+    if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
   }
   console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadDelta=1 auditRequests=${auditRequests.length}`);
 }

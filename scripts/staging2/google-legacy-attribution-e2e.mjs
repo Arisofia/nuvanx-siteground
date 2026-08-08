@@ -13,8 +13,18 @@ const allowEmail = `qa-google-allow-${runId}@example.com`;
 const denyEmail = `qa-google-deny-${runId}@example.com`;
 const edgeNeedle = '/functions/v1/google-click-attribution';
 
+/**
+ * Waits for the specified duration.
+ * @param {number} ms - The delay in milliseconds.
+ * @return {Promise<void>} Resolves after the delay.
+ */
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
+/**
+ * Navigates to the canonical Madrid valuation route with a GCLID.
+ * @param {string} gclid - The Google Click Identifier to include in the URL.
+ * @throws {Error} If the canonical route does not return HTTP 200 after eight attempts.
+ */
 async function gotoCanonical(page, gclid) {
   const target = `${baseUrl}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
   let last = '';
@@ -35,18 +45,33 @@ async function gotoCanonical(page, gclid) {
   throw new Error(`Unable to reach canonical valoración route: ${last}`);
 }
 
+/**
+ * Verifies that the page reports the expected deployment SHA when one is configured.
+ * @param {import('@playwright/test').Page} page - The page containing the deployment metadata.
+ * @throws {Error} If the reported SHA differs from the expected SHA.
+ */
 async function verifySha(page) {
   if (!expectedSha) return;
   const actual = await page.evaluate(() => document.querySelector('meta[name="nvx-deploy-sha"]')?.getAttribute('content') || '');
   if (actual !== expectedSha) throw new Error(`Staging SHA mismatch: expected=${expectedSha} actual=${actual}`);
 }
 
+/**
+ * Creates a selector for HubSpot fields using bare and prefixed field names.
+ * @param {string} name - The field name to match.
+ * @return {string} A selector matching inputs with the specified field name.
+ */
 function fieldSelector(name) {
   // HubSpot v4 exposes fields either by their bare name or a "0-1/" prefixed variant.
   const escaped = name.replace(/"/g, '\\"');
   return `input[name="${escaped}"], input[name="0-1/${escaped}"]`;
 }
 
+/**
+ * Locates the configured HubSpot form iframe after its email field becomes available.
+ * @param {import('@playwright/test').Page} page - The page containing the HubSpot form.
+ * @return {Promise<import('@playwright/test').Frame>} The HubSpot form frame.
+ */
 async function findHubSpotFrame(page) {
   const iframe = page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first();
   await iframe.waitFor({ state: 'attached', timeout: 30000 });
@@ -60,6 +85,11 @@ async function findHubSpotFrame(page) {
   throw new Error('HubSpot form iframe exists but email field never became available');
 }
 
+/**
+ * Sets the marketing consent state and verifies that it was applied.
+ * @param {boolean} allowed - Whether marketing consent should be allowed.
+ * @throws {Error} If the consent APIs are unavailable or the resulting state differs from the requested state.
+ */
 async function setMarketing(page, allowed) {
   const state = await page.evaluate(async (allowed) => {
     if (typeof window.wp_has_consent !== 'function') throw new Error('wp_has_consent unavailable');
@@ -73,12 +103,27 @@ async function setMarketing(page, allowed) {
   if (state !== allowed) throw new Error(`Marketing consent mismatch: expected=${allowed} actual=${state}`);
 }
 
+/**
+ * Reads the value of a form field.
+ * @param {Frame} frame - The frame containing the field.
+ * @param {string} name - The field name.
+ * @return {Promise<string|null>} The field value, or `null` if the field does not exist.
+ */
 async function fieldValue(frame, name) {
   const input = frame.locator(fieldSelector(name)).first();
   if ((await input.count()) === 0) return null;
   return input.inputValue();
 }
 
+/**
+ * Waits for a form field value to satisfy a predicate.
+ * @param {object} frame - The frame containing the field.
+ * @param {string} name - The field name.
+ * @param {Function} predicate - Determines whether the current field value meets the expected condition.
+ * @param {string} label - Label included in the timeout error message.
+ * @return {*} The field value that satisfies the predicate.
+ * @throws {Error} If the field value does not satisfy the predicate within the retry period.
+ */
 async function waitField(frame, name, predicate, label) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const value = await fieldValue(frame, name);
@@ -88,7 +133,14 @@ async function waitField(frame, name, predicate, label) {
   throw new Error(`${label}: field ${name} final=${JSON.stringify(await fieldValue(frame, name))}`);
 }
 
-// Negative assertion: the field must exist and never equal `forbidden` across the whole window.
+/**
+ * Verifies that a form field remains present and never contains a forbidden value during repeated sampling.
+ * @param {Frame} frame - The frame containing the field.
+ * @param {string} name - The field name.
+ * @param {string} forbidden - The value the field must not contain.
+ * @param {string} label - A label used in assertion errors.
+ * @param {number} [samples=20] - The number of times to sample the field.
+ */
 async function assertFieldNever(frame, name, forbidden, label, samples = 20) {
   if ((await fieldValue(frame, name)) === null) throw new Error(`${label}: field ${name} not present, cannot assert absence of leak`);
   for (let attempt = 0; attempt < samples; attempt += 1) {
@@ -98,6 +150,11 @@ async function assertFieldNever(frame, name, forbidden, label, samples = 20) {
   }
 }
 
+/**
+ * Inspects form controls while redacting values unrelated to attribution.
+ * @param {import('@playwright/test').Frame} frame - The frame containing the form controls.
+ * @return {Array<Object>} Details for each input, textarea, and select element, including attribution values and redacted values for other fields.
+ */
 async function inspectFields(frame) {
   return frame.locator('input, textarea, select').evaluateAll((nodes) => nodes.map((node) => {
     const name = node.getAttribute('name') || '';
@@ -115,6 +172,13 @@ async function inspectFields(frame) {
   }));
 }
 
+/**
+ * Selects synthetic test data for a form field based on its name and type.
+ * @param {string} name - The field name used to identify its semantic purpose.
+ * @param {string} type - The field input type.
+ * @param {string} email - The email address to use for email fields.
+ * @return {string} The synthetic value selected for the field.
+ */
 function fillValue(name, type, email) {
   const n = String(name || '').toLowerCase();
   if (type === 'email' || n.includes('email') || n.includes('correo')) return email;
@@ -131,7 +195,11 @@ function fillValue(name, type, email) {
 
 // HubSpot v4 renders consent checkboxes with the real <input> visually hidden behind a
 // styled label, so element.check() reports "did not change its state". Fall back to
-// clicking the associated label (aria-labelledby) so the checkbox actually toggles.
+/**
+ * Ensures a HubSpot consent checkbox is checked using its input, associated label, or dispatched events.
+ * @param {Frame} frame - The HubSpot form frame containing the checkbox label.
+ * @param {Locator} el - The checkbox to check.
+ */
 async function checkHubSpotBox(frame, el) {
   if (await el.isChecked().catch(() => false)) return;
   try {
@@ -155,6 +223,11 @@ async function checkHubSpotBox(frame, el) {
   }).catch(() => {});
 }
 
+/**
+ * Fills applicable HubSpot form controls with synthetic test data and satisfies required choices.
+ * @param {import('@playwright/test').Frame} frame - The frame containing the form.
+ * @param {string} email - The synthetic email address used for email fields.
+ */
 async function fillForm(frame, email) {
   const controls = frame.locator('form input, form textarea, form select');
   const count = await controls.count();
@@ -201,6 +274,14 @@ async function fillForm(frame, email) {
   }
 }
 
+/**
+ * Submits the HubSpot form and verifies conversion and attribution behavior for the scenario.
+ * @param {string} scenario - The consent scenario, such as `ALLOW` or `DENY`.
+ * @param {string} rawEmail - The synthetic email used to populate and validate the form submission.
+ * @param {string[]} auditRequests - Captured attribution audit request bodies.
+ * @param {number[]} auditResponses - Captured attribution audit response statuses.
+ * @throws {Error} If the form cannot be submitted or the expected conversion or attribution checks fail.
+ */
 async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, auditResponses) {
   await page.evaluate((formId) => {
     window.__nvxQaSuccess = 0;
@@ -261,6 +342,13 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
   console.log(`SCENARIO_${scenario}=PASS successMessages=${result.successMessages} generateLeadDelta=${result.generateLeadDelta} auditRequests=${auditRequests.length}`);
 }
 
+/**
+ * Runs an isolated consent and form-submission scenario, validating GCLID handling and attribution auditing.
+ * @param {string} scenario - The scenario name used for diagnostics and assertions.
+ * @param {string} gclid - The synthetic Google Click ID to test.
+ * @param {string} email - The synthetic email address submitted with the form.
+ * @param {boolean} allowed - Whether marketing consent should be granted during the scenario.
+ */
 async function runScenario(browser, { scenario, gclid, email, allowed }) {
   const context = await browser.newContext();
   const auditRequests = [];

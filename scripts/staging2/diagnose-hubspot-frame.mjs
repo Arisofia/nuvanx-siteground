@@ -5,7 +5,11 @@ const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const target = `${base}/madrid/valoracion/?gclid=NVXDIAG-${Date.now()}`;
 
 // HubSpot v4 embed/frame URLs commonly carry tracking parameters (hutk, portal/page ids)
-// in the query string; keep only origin+pathname so nothing sensitive lands in public CI logs.
+/**
+ * Removes query parameters from a URL while preserving its origin and pathname.
+ * @param {string} value - The URL to sanitize.
+ * @return {string} The URL origin and pathname, or an empty string when the value is invalid.
+ */
 function sanitizeUrl(value) {
   try {
     const url = new URL(value);
@@ -56,6 +60,9 @@ try {
     );
   }
 
+  /**
+   * Collects and logs structural diagnostics for the HubSpot form, its frames, and related request failures.
+   */
   async function collectDiagnostics() {
     const iframeMeta = await page.locator('#nvx-hubspot-form iframe').evaluateAll((nodes) => nodes.map((node) => ({
       src: node.getAttribute('src'),

@@ -29,7 +29,7 @@ function redact(text) {
   return String(text || '')
     .replaceAll(diagnosticEmail, '[email]')
     .replaceAll(diagnosticPhone, '[phone]')
-    .replace(/NVXDIAG-[0-9]+/g, 'NVXDIAG-[run]')
+    .replace(/NVXDIAG-\d+/g, 'NVXDIAG-[run]')
     .slice(0, 300);
 }
 

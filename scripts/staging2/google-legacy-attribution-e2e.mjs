@@ -261,6 +261,44 @@ async function submissionState(page) {
   }));
 }
 
+// Capture HubSpot POST traffic during submit; returns the accumulator and a detach cleanup.
+function captureHubSpotNetwork(page) {
+  const network = { requests: [], responses: [], failures: [] };
+  const onRequest = (request) => {
+    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.requests.push(sanitizeUrl(request.url()));
+  };
+  const onResponse = (response) => {
+    const request = response.request();
+    if (request.method() === 'POST' && isHubSpotHost(response.url())) network.responses.push({ status: response.status(), url: sanitizeUrl(response.url()) });
+  };
+  const onFailed = (request) => {
+    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.failures.push({ url: sanitizeUrl(request.url()), error: String(request.failure()?.errorText || 'unknown').slice(0, 120) });
+  };
+  page.on('request', onRequest);
+  page.on('response', onResponse);
+  page.on('requestfailed', onFailed);
+  const detach = () => {
+    page.off('request', onRequest);
+    page.off('response', onResponse);
+    page.off('requestfailed', onFailed);
+  };
+  return { network, detach };
+}
+
+// Wait for HubSpot to accept the submission via success signal or generate_lead delta.
+async function waitForAcceptance(page, frame, scenario, network) {
+  try {
+    await page.waitForFunction(() => {
+      const generated = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
+      return Number(window.__nvxQaSuccess || 0) >= 1 || generated >= 1;
+    }, null, { timeout: 30000 });
+  } catch (error) {
+    const state = await submissionState(page).catch(() => ({ successMessages: 0, successSources: [], generateLeadDelta: 0 }));
+    const currentForm = await formState(frame).catch(() => ({ valid: null, invalid: [], submitDisabled: null }));
+    throw new Error(`${scenario}: HubSpot did not accept submission; state=${JSON.stringify(state)} form=${JSON.stringify(currentForm)} network=${JSON.stringify(network)} cause=${error.name}`);
+  }
+}
+
 // Click the HubSpot submit control, then fall back to form.requestSubmit if nothing fired.
 async function triggerSubmit(page, frame, scenario, network) {
   const button = frame.locator('form button[type="submit"],form input[type="submit"]').first();
@@ -324,36 +362,12 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
   console.log(`FORM_VALIDITY_${scenario}=${JSON.stringify(pre)}`);
   if (!pre.valid || pre.submitDisabled) throw new Error(`${scenario}: form not submit-ready: ${JSON.stringify(pre)}`);
 
-  const network = { requests: [], responses: [], failures: [] };
-  const onRequest = (request) => {
-    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.requests.push(sanitizeUrl(request.url()));
-  };
-  const onResponse = (response) => {
-    const request = response.request();
-    if (request.method() === 'POST' && isHubSpotHost(response.url())) network.responses.push({ status: response.status(), url: sanitizeUrl(response.url()) });
-  };
-  const onFailed = (request) => {
-    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.failures.push({ url: sanitizeUrl(request.url()), error: String(request.failure()?.errorText || 'unknown').slice(0, 120) });
-  };
-  page.on('request', onRequest);
-  page.on('response', onResponse);
-  page.on('requestfailed', onFailed);
-
-  await triggerSubmit(page, frame, scenario, network);
-
+  const { network, detach } = captureHubSpotNetwork(page);
   try {
-    await page.waitForFunction(() => {
-      const generated = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
-      return Number(window.__nvxQaSuccess || 0) >= 1 || generated >= 1;
-    }, null, { timeout: 30000 });
-  } catch (error) {
-    const state = await submissionState(page).catch(() => ({ successMessages: 0, successSources: [], generateLeadDelta: 0 }));
-    const currentForm = await formState(frame).catch(() => ({ valid: null, invalid: [], submitDisabled: null }));
-    throw new Error(`${scenario}: HubSpot did not accept submission; state=${JSON.stringify(state)} form=${JSON.stringify(currentForm)} network=${JSON.stringify(network)} cause=${error.name}`);
+    await triggerSubmit(page, frame, scenario, network);
+    await waitForAcceptance(page, frame, scenario, network);
   } finally {
-    page.off('request', onRequest);
-    page.off('response', onResponse);
-    page.off('requestfailed', onFailed);
+    detach();
   }
 
   console.log(`HUBSPOT_NETWORK_${scenario}=${JSON.stringify(network)}`);

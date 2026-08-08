@@ -155,7 +155,7 @@ function verifyViaSiteGroundOrigin(route) {
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
     'extract_meta_content() {',
-    `  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\\\\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\\\\bname\\\\s*=\\\\s*([\\\"\\\\x27])([^\\\"\\\\x27]+)\\\\1/is", $tag, $name)) continue; if (strtolower(trim(html_entity_decode($name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))) !== $wanted) continue; if (preg_match("/\\\\bcontent\\\\s*=\\\\s*([\\\"\\\\x27])(.*?)\\\\1/is", $tag, $content)) echo trim(html_entity_decode($content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
+    `  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\\bname\\s*=\\s*(?:\\x22([^\\x22]+)\\x22|\\x27([^\\x27]+)\\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\\bcontent\\s*=\\s*(?:\\x22([^\\x22]*)\\x22|\\x27([^\\x27]*)\\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
     '}',
     'deploy_sha="$(extract_meta_content nvx-deploy-sha)"',
     'test "$deploy_sha" = "$EXPECTED_SHA"',

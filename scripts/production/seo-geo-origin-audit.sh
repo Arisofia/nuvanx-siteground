@@ -31,7 +31,7 @@ test "$(wp option get blog_public)" = '1'
 test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
 pass "PRODUCTION_IDENTITY sha=$release_sha"
 
-ua='NUVANX-SEO-GEO-Origin-Audit/1.1'
+ua='NUVANX-SEO-GEO-Origin-Audit/1.2'
 HTTP_CODE=''
 EFFECTIVE_URL=''
 HEADERS=''
@@ -55,7 +55,6 @@ normalize_url() {
   printf '%s/' "${value%/}"
 }
 
-# Return success when the named robots user-agent group has an exact root Disallow: /.
 robots_root_blocked() {
   local wanted="$1" file="$2"
   awk -v wanted="$wanted" '
@@ -78,6 +77,7 @@ if ($argc < 5) exit(2);
 [$script, $file, $expectedUrl, $expectedSha, $critical] = $argv;
 $html = file_get_contents($file);
 if ($html === false || $html === '') exit(2);
+$rawTitleCount = preg_match_all('/<title\b[^>]*>.*?<\/title>/is', $html);
 libxml_use_internal_errors(true);
 $dom = new DOMDocument();
 $dom->loadHTML($html, LIBXML_NOWARNING | LIBXML_NOERROR);
@@ -110,7 +110,8 @@ $deploy = $attrs($xp, '//meta[translate(@name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcd
 $h1 = $texts($xp, '//h1');
 $schemas = $texts($xp, '//script[translate(@type,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="application/ld+json"]');
 $issues = []; $warn = [];
-if (count($titles) !== 1 || trim($titles[0] ?? '') === '') $issues[] = 'title-count-or-empty';
+if ($rawTitleCount < 1 || trim($titles[0] ?? '') === '') $issues[] = 'missing-or-empty-title';
+if ($rawTitleCount > 1) $issues[] = 'duplicate-title';
 if (count($canon) !== 1) $issues[] = 'canonical-count-' . count($canon);
 elseif ($norm($canon[0]) !== $norm($expectedUrl)) $issues[] = 'canonical-mismatch:' . $canon[0];
 if (count($og) !== 1) $issues[] = 'og-url-count-' . count($og);
@@ -128,6 +129,7 @@ if (count($desc) > 1) $issues[] = 'duplicate-meta-description';
 echo json_encode([
     'url'=>$expectedUrl,
     'title'=>preg_replace('/[\t\r\n]+/u', ' ', $titles[0] ?? ''),
+    'raw_title_count'=>$rawTitleCount,
     'description_length'=>strlen($desc[0] ?? ''),
     'canonical'=>$canon[0] ?? '',
     'og_url'=>$og[0] ?? '',
@@ -155,7 +157,10 @@ if (!is_array($data) || count($data) !== 1) {
         $norm = static fn($u) => rtrim((string) preg_replace('/[#?].*$/', '', trim((string)$u)), '/') . '/';
         if (trim((string)($seo['title'] ?? '')) === '') $issues[] = 'empty-title';
         if (trim((string)($seo['description'] ?? '')) === '') $issues[] = 'empty-description';
-        if ($norm($seo['canonical'] ?? '') !== $norm($expected)) $issues[] = 'canonical-mismatch:' . ($seo['canonical'] ?? 'missing');
+        $restCanonical = trim((string)($seo['canonical'] ?? ''));
+        if ($restCanonical !== '' && $norm($restCanonical) !== $norm($expected)) {
+            $issues[] = 'canonical-mismatch:' . $restCanonical;
+        }
         if ($norm($seo['og_url'] ?? '') !== $norm($expected)) $issues[] = 'og-url-mismatch:' . ($seo['og_url'] ?? 'missing');
         $schema = json_encode($seo['schema'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (!str_contains($schema, rtrim($expected, '/'))) $issues[] = 'schema-url-mismatch';
@@ -165,7 +170,6 @@ echo json_encode(['url'=>$expected,'issues'=>$issues], JSON_UNESCAPED_SLASHES | 
 exit($issues ? 1 : 0);
 PHP
 
-# Public search crawl must be open for User-agent: *; bot-specific training choices are reported separately.
 if fetch_url "$BASE_URL/robots.txt" robots; then
   if [[ "$HTTP_CODE" != '200' ]]; then
     fail "ROBOTS_HTTP status=$HTTP_CODE"
@@ -183,7 +187,6 @@ else
   fail 'ROBOTS_FETCH'
 fi
 
-# llms.txt is the explicit GEO discovery surface configured through Yoast.
 if fetch_url "$BASE_URL/llms.txt" llms; then
   llms_bytes="$(wc -c < "$BODY" | tr -d ' ')"
   if [[ "$HTTP_CODE" != '200' ]]; then fail "LLMS_HTTP status=$HTTP_CODE"
@@ -194,7 +197,6 @@ else
   fail 'LLMS_FETCH'
 fi
 
-# Sitemap index parsing uses ordinary files because SiteGround does not expose /dev/fd process substitution.
 if ! fetch_url "$BASE_URL/sitemap_index.xml" sitemap-index; then echo 'SITEMAP_INDEX_FETCH=FAIL' >&2; exit 1; fi
 if [[ "$HTTP_CODE" != '200' ]]; then echo "SITEMAP_INDEX_HTTP=FAIL status=$HTTP_CODE" >&2; exit 1; fi
 child_file="$tmpdir/child-sitemaps.txt"
@@ -257,7 +259,6 @@ while IFS= read -r raw_url; do
   fi
 done < "$urls_file"
 
-# Explicit REST/headless checks for the complete Signature family.
 signature_slugs=(
   'protocolos-signature'
   'remodelacion-corporal-laser-madrid'

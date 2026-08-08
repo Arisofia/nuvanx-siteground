@@ -170,7 +170,10 @@
 	var attributionConfig = window.nvxConversionEvents || {};
 	var forms = attributionConfig.forms || {};
 	var FORM_ID = String(forms.valoracion || '5042522a-0bc5-4381-ac3e-5aee8649b69c').toLowerCase();
-	var ENDPOINT = 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
+	var configEndpoint = String(attributionConfig.googleAttributionEndpoint || '');
+	var ENDPOINT = /^https:\/\/[a-z0-9]+\.supabase\.co\/functions\/v1\//.test(configEndpoint)
+		? configEndpoint
+		: 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
 	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
 	var eligiblePath = normalizedPath === '/madrid/valoracion';
 	var sent = false;
@@ -186,7 +189,7 @@
 	function cleanClickValue(value, maxLength) {
 		var normalized = String(value || '').trim();
 		if (!normalized || normalized.length > maxLength) return '';
-		return /^[A-Za-z0-9._~:+-]+$/.test(normalized) ? normalized : '';
+		return /^[A-Za-z0-9._~:+\\-*%/=]+$/.test(normalized) ? normalized : '';
 	}
 
 	function collectClickValues() {
@@ -255,6 +258,9 @@
 			var value = consent ? clickValues[param] : '';
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
+				// Privacy fail-closed: clear mapped nvx_ variables, but do not overwrite native HubSpot fields when consent is denied
+				if (!consent && propertyName.indexOf('nvx_') !== 0) return;
+				
 				fieldCandidates(propertyName).forEach(function (fieldName) {
 					if (!availableNames.has(fieldName)) return;
 					try {

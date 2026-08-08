@@ -437,7 +437,10 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 }
 
 /**
- * Renders an authority items section (subspecialties, research, clinical topics).
+ * Renders an authority profile section with optional introductory text and item cards.
+ *
+ * @param array $section Section configuration containing identifiers, text, classes, and items.
+ * @return string The rendered HTML section.
  */
 function nvx_equipo_render_items_section( array $section ): string {
 	$section_id    = $section['id'] ?? '';
@@ -479,9 +482,10 @@ function nvx_equipo_render_items_section( array $section ): string {
 }
 
 /**
- * Brand card grid from title/body item rows.
+ * Builds a grid of cards from title and body content rows.
  *
- * @param array<int,array<string,mixed>> $items Card rows.
+ * @param array<int,array<string,mixed>> $items Card rows containing optional title and body values.
+ * @return string The rendered card grid, or an empty string when no items are provided.
  */
 function nvx_equipo_brand_card_grid_markup( array $items ): string {
 	if ( empty( $items ) ) {

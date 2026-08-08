@@ -6,14 +6,42 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def read(path):
+    """
+    Read a repository-relative file as UTF-8 text.
+    
+    Parameters:
+    	path (str or pathlib.Path): Path relative to the repository root.
+    
+    Returns:
+    	str: The file contents.
+    """
     return (ROOT / path).read_text(encoding='utf-8')
 
 
 def write(path, text):
+    """
+    Write text to a repository-relative file using UTF-8 encoding.
+    
+    Parameters:
+    	path (str): Relative path of the file to write.
+    	text (str): Content to write to the file.
+    """
     (ROOT / path).write_text(text, encoding='utf-8')
 
 
 def replace_exact(path, old, new, expected=1):
+    """
+    Replace an exact text fragment in a repository file.
+    
+    Parameters:
+    	path (str): Repository-relative path of the file to update.
+    	old (str): Text fragment that must occur the expected number of times.
+    	new (str): Replacement text.
+    	expected (int): Required number of occurrences of the original text.
+    
+    Raises:
+    	RuntimeError: If the original text occurs a different number of times than expected.
+    """
     text = read(path)
     count = text.count(old)
     if count != expected:
@@ -22,6 +50,18 @@ def replace_exact(path, old, new, expected=1):
 
 
 def replace_all_exact(path, old, new, minimum=1):
+    """
+    Replace every occurrence of an exact string in a repository file.
+    
+    Parameters:
+    	path: Repository-relative path of the file to modify.
+    	old: Exact string to replace.
+    	new: Replacement string.
+    	minimum: Minimum number of occurrences required before writing the file.
+    
+    Raises:
+    	RuntimeError: If the file contains fewer than the required number of occurrences.
+    """
     text = read(path)
     count = text.count(old)
     if count < minimum:
@@ -30,6 +70,19 @@ def replace_all_exact(path, old, new, minimum=1):
 
 
 def regex_sub(path, pattern, repl, expected=1, flags=0):
+    """
+    Apply a regular-expression replacement to a repository file.
+    
+    Parameters:
+    	path (str): Repository-relative file path to update.
+    	pattern (str): Regular expression identifying the text to replace.
+    	repl (str): Replacement text or callable.
+    	expected (int): Number of replacements required for the operation to succeed.
+    	flags (int): Regular-expression flags passed to the substitution.
+    
+    Raises:
+    	RuntimeError: If the number of replacements differs from `expected`.
+    """
     text = read(path)
     updated, count = re.subn(pattern, repl, text, flags=flags)
     if count != expected:
@@ -38,6 +91,15 @@ def regex_sub(path, pattern, repl, expected=1, flags=0):
 
 
 def convert_bash_test_lines(path):
+    """
+    Convert Bash ``test`` command lines to ``[[ ... ]]`` expressions.
+    
+    Parameters:
+        path: Path to the file whose Bash test lines should be converted.
+    
+    Raises:
+        RuntimeError: If the file contains no Bash test lines to convert.
+    """
     text = read(path)
     out = []
     changed = 0

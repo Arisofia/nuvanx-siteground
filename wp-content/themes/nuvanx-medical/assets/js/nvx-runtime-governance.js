@@ -118,6 +118,9 @@
     });
   }
 
+  /**
+   * Governs the valuation modal and intercepts qualifying valuation links to open it.
+   */
   function initValoracionModalGovernance() {
     const cfg = window.nvxValoracionModal || {};
     if (cfg.enabled === false) return;

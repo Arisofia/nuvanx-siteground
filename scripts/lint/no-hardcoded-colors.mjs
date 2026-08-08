@@ -28,6 +28,11 @@ const COLOR_PATTERNS = [
   /\b(white|black|red|blue|green|yellow|orange|purple|pink|gray|grey)\b/gi,
 ];
 
+/**
+ * Scans a CSS file for hardcoded color violations.
+ * @param {string} filePath - The path to the CSS file to scan.
+ * @return {Promise<Array<{line: number, file: string, match: string, context: string}>>} The detected color violations with their line number, relative file path, matched text, and line context.
+ */
 async function scanFile(filePath) {
   const content = await fs.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
@@ -78,6 +83,12 @@ async function scanFile(filePath) {
   return violations;
 }
 
+/**
+ * Scans theme CSS files for hardcoded color values and reports any violations.
+ *
+ * In strict mode, exits with status code 1 when violations are found; otherwise,
+ * violations are reported with a successful exit status.
+ */
 async function main() {
   const args = process.argv.slice(2);
   const strict = args.includes('--strict');

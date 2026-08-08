@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Whether the current request belongs to the staging2 review environment.
+ * Determines whether the current request belongs to the staging2 environment.
  *
- * Host-only match for staging2.nuvanx.com.
+ * @return bool `true` if the normalized host is `staging2.nuvanx.com`, `false` otherwise.
  */
 function nvx_environment_is_staging2(): bool {
 	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';

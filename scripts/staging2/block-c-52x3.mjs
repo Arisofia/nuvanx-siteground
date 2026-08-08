@@ -101,11 +101,23 @@ await fs.writeFile(
   'utf8'
 );
 
+/**
+ * Converts a URL route into a safe filename component.
+ * @param {string} route - The URL route to sanitize.
+ * @return {string} The sanitized route name, or `home` for the root route.
+ */
 function safeName(route) {
   if (route === '/') return 'home';
   return route.replace(/^\/+/, '').replace(/\/+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
 }
 
+/**
+ * Navigates to a URL with retries for transient failures and SiteGround challenge responses.
+ * @param {import('@playwright/test').Page} page - The Playwright page to navigate.
+ * @param {string} url - The URL to open.
+ * @return {{response: import('@playwright/test').APIResponse|null, attempt: number}} The navigation response and attempt number.
+ * @throws {Error} If navigation fails after all retry attempts.
+ */
 async function gotoPlain(page, url) {
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
@@ -152,6 +164,9 @@ async function handleCookieConsent(page) {
   }
 }
 
+/**
+ * Waits for fonts to become available and allows the page to settle before visual checks.
+ */
 async function waitForVisualStability(page) {
   await page.evaluate(async () => {
     if (document.fonts) await document.fonts.ready;

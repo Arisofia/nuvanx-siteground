@@ -419,7 +419,7 @@ jobs:
 
       - name: Upload Block A boundary evidence
         if: always()
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: staging2-boundary-${{ inputs.sha }}-attempt-${{ github.run_attempt }}
           path: scripts/staging2/artifacts/staging2-boundary.json

@@ -6,4 +6,4 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-require get_template_directory() . '/template-parts/content/nvx-blog-archive-route.php';
+require_once get_template_directory() . '/template-parts/content/nvx-blog-archive-route.php';

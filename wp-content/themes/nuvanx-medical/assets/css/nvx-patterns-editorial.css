@@ -1303,7 +1303,6 @@ body.home .nvx-home-hero__title {
 /* CTA Banner (migrated from nvx-footer.css) */
 .nvx-cta-banner {
   padding-block: var(--nvx-pad-section-tight);
-  background-color: #1c1c1e;
   background: var(--nvx-charcoal);
   color: var(--nvx-light);
   text-align: center;

@@ -114,7 +114,7 @@ async function validateTemplates() {
 
   try {
     const pages = await fetchPublishedPages();
-    console.log(`📄 Found ${pages.length} published pages\n`);
+    console.log('📄 Published page inventory loaded\n');
 
     const errors = [];
     const warnings = [];

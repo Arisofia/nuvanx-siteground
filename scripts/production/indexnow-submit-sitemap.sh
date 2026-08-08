@@ -17,10 +17,10 @@ pass() { printf 'PASS %s\n' "$*"; }
 cd "$PROD_ROOT"
 release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || fail 'PRODUCTION_DEPLOY_MARKER_INVALID'
-test "$(wp option get home)" = "$BASE_URL"
-test "$(wp option get siteurl)" = "$BASE_URL"
-test "$(wp option get blog_public)" = '1'
-test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+[[ "$(wp option get home)" == "$BASE_URL" ]]
+[[ "$(wp option get siteurl)" == "$BASE_URL" ]]
+[[ "$(wp option get blog_public)" == '1' ]]
+[[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
 pass "PRODUCTION_IDENTITY sha=$release_sha"
 
 key_file="$PROD_ROOT/$INDEXNOW_KEY.txt"

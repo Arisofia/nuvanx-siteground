@@ -130,7 +130,9 @@
     const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
 
     function normalizePath(pathname) {
-      return (pathname || '').replace(/\/+$/, '') + '/';
+      let normalized = pathname || '';
+      while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+      return normalized + '/';
     }
 
     let pagePath;

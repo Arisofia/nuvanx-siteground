@@ -103,7 +103,7 @@ await fs.writeFile(
 
 function safeName(route) {
   if (route === '/') return 'home';
-  return route.replace(/^\/+|\/+$/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
+  return route.replace(/^\/+/, '').replace(/\/+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
 }
 
 async function gotoPlain(page, url) {
@@ -154,7 +154,7 @@ async function handleCookieConsent(page) {
 
 async function waitForVisualStability(page) {
   await page.evaluate(async () => {
-    if (document.fonts?.ready) await document.fonts.ready;
+    if (document.fonts) await document.fonts.ready;
   }).catch(() => {});
   await page.waitForTimeout(400);
 }

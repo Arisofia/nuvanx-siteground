@@ -24,11 +24,11 @@ trap 'rm -rf "$tmpdir"' EXIT
 cd "$PROD_ROOT"
 release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid production deploy marker.' >&2; exit 1; }
-test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-test "$(wp option get home)" = "$BASE_URL"
-test "$(wp option get siteurl)" = "$BASE_URL"
-test "$(wp option get blog_public)" = '1'
-test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+[[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]]
+[[ "$(wp option get home)" == "$BASE_URL" ]]
+[[ "$(wp option get siteurl)" == "$BASE_URL" ]]
+[[ "$(wp option get blog_public)" == '1' ]]
+[[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
 pass "PRODUCTION_IDENTITY sha=$release_sha"
 
 ua='NUVANX-SEO-GEO-Origin-Audit/1.3'

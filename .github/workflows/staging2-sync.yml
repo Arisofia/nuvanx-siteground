@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: staging2-master-sync
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Sync exact master SHA to Staging2

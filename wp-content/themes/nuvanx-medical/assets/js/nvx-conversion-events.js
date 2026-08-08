@@ -210,7 +210,15 @@
 
 		try {
 			var stored = window.sessionStorage.getItem('nvx_google_click_ids');
-			if (stored) clickValues = JSON.parse(stored);
+			var parsed = stored ? JSON.parse(stored) : null;
+			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+				clickValues = {
+					gclid: cleanClickValue(parsed.gclid, 512),
+					gbraid: cleanClickValue(parsed.gbraid, 512),
+					wbraid: cleanClickValue(parsed.wbraid, 512),
+					gclsrc: cleanClickValue(parsed.gclsrc, 128),
+				};
+			}
 		} catch (_error) {}
 	}
 

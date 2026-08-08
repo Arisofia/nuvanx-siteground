@@ -230,6 +230,7 @@
 			var parsed = stored ? JSON.parse(stored) : null;
 			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
 				clickValues = {
+				clickValues = {
 					gclid: cleanClickValue(parsed.gclid, 512),
 					gbraid: cleanClickValue(parsed.gbraid, 512),
 					wbraid: cleanClickValue(parsed.wbraid, 512),

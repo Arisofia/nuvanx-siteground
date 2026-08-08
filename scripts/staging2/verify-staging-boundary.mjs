@@ -16,8 +16,8 @@ const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
 const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
 
-if (!/^[A-Za-z0-9_.-]+$/.test(originSshAlias)) {
-  console.error('ORIGIN_SSH_ALIAS contains unsupported characters.');
+if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(originSshAlias)) {
+  console.error('ORIGIN_SSH_ALIAS must not start with "-" and only allows [A-Za-z0-9_.-].');
   process.exit(1);
 }
 if (

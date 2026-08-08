@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           git config user.name 'Nuvanx Engineering'
           git config user.email 'admin@nuvanx.com'
-          git add . ':!.github/workflows/apply-sonar-blocker-fixes.yml' ':!tools/audit/apply-sonar-blocker-fixes.py' ':!.github/workflows/audit-sonar-master.yml'
+          git add -A
           git diff --cached --check
           git diff --cached --quiet && { echo 'No remediation changes produced'; exit 1; }
           git commit -m 'fix(quality): resolve Sonar security reliability and duplication blockers'

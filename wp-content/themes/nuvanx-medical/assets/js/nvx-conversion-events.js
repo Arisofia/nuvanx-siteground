@@ -420,6 +420,7 @@
 	var legacyFormRoots = [];
 	var legacyEmailForAudit = '';
 	var legacyEmailClearTimer = null;
+	var legacyNativeGclidWritten = false;
 
 	function clearLegacyEmail() {
 		legacyEmailForAudit = '';
@@ -473,17 +474,17 @@
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
 				if (!consent && propertyName.indexOf('nvx_') !== 0) {
-					if (propertyName === 'hs_google_click_id' && clickValues.gclid) {
-						var nativeInput = root.querySelector('[name="hs_google_click_id"]');
-						if (nativeInput && String(nativeInput.value || '') === clickValues.gclid) {
-							modified = setLegacyField(root, propertyName, '') || modified;
-						}
+					// Fail-closed: clear the native field only if this adapter wrote the GCLID into it.
+					if (propertyName === 'hs_google_click_id' && legacyNativeGclidWritten) {
+						modified = setLegacyField(root, propertyName, '') || modified;
 					}
 					return;
 				}
 				modified = setLegacyField(root, propertyName, value) || modified;
+				if (consent && propertyName === 'hs_google_click_id' && value) legacyNativeGclidWritten = true;
 			});
 		});
+		if (!consent) legacyNativeGclidWritten = false;
 		return modified;
 	}
 
@@ -531,7 +532,9 @@
 	function isTrustedHubSpotOrigin(origin) {
 		if (!origin || origin === 'null') return false;
 		try {
-			var host = new URL(origin).hostname.toLowerCase();
+			var url = new URL(origin);
+			if (url.protocol !== 'https:' || url.port) return false;
+			var host = url.hostname.toLowerCase();
 			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);
 		} catch (_error) {
 			return false;

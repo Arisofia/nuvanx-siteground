@@ -1,0 +1,22 @@
+name: TEMP Fix Legacy Attribution Review
+
+# This temporary automation has already applied the legacy attribution review
+# fixes to fix/google-attribution-legacy-form-v2-20260808. It is retained only
+# for reference and is manual-dispatch-only, so it cannot run automatically,
+# mutate the repository, or fail CI. Delete this file once the target branch is
+# merged. Repository hygiene forbids `git push` inside workflows, so the patch
+# must be applied and pushed manually if it ever needs to be re-run.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: No-op
+        shell: bash
+        run: echo 'This temporary workflow has been retired. Apply patches manually.'

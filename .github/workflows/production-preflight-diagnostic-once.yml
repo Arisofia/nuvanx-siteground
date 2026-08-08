@@ -1,0 +1,96 @@
+name: Production Preflight Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-preflight-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEPLOY_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict read-only SiteGround SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-readonly
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-readonly "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
+
+      - name: Print staging and production gate values
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-readonly "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' DEPLOY_SHA='$DEPLOY_SHA' bash -se" <<'REMOTE'
+          set -u
+          val() { printf '%s=%s\n' "$1" "$2"; }
+
+          cd "$STAGING_ROOT"
+          val STAGING_MARKER "$(test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha && tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha || printf MISSING)"
+          val STAGING_DB "$(wp config get DB_NAME 2>/dev/null || printf ERROR)"
+          val STAGING_HOME "$(wp option get home 2>/dev/null || printf ERROR)"
+          val STAGING_SITEURL "$(wp option get siteurl 2>/dev/null || printf ERROR)"
+          val STAGING_BLOG_PUBLIC "$(wp option get blog_public 2>/dev/null || printf ERROR)"
+          val STAGING_NVX_ENV "$(wp config get NVX_ENV 2>/dev/null || printf MISSING)"
+          val STAGING_WP_ENVIRONMENT_TYPE "$(wp config get WP_ENVIRONMENT_TYPE 2>/dev/null || printf MISSING)"
+          val STAGING_THEME "$(wp theme list --status=active --field=name 2>/dev/null || printf ERROR)"
+
+          cd "$PROD_ROOT"
+          val PROD_MARKER "$(test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha && tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha || printf MISSING)"
+          val PROD_DB "$(wp config get DB_NAME 2>/dev/null || printf ERROR)"
+          val PROD_HOME "$(wp option get home 2>/dev/null || printf ERROR)"
+          val PROD_SITEURL "$(wp option get siteurl 2>/dev/null || printf ERROR)"
+          val PROD_BLOG_PUBLIC "$(wp option get blog_public 2>/dev/null || printf ERROR)"
+          val PROD_THEME "$(wp theme list --status=active --field=name 2>/dev/null || printf ERROR)"
+          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do
+            if [[ -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu" ]]; then
+              val "LEGACY_MU_${legacy_mu}" PRESENT
+            else
+              val "LEGACY_MU_${legacy_mu}" ABSENT
+            fi
+          done
+          if [[ -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution" ]]; then
+            val LEGACY_ATTRIBUTION_DIR PRESENT
+          else
+            val LEGACY_ATTRIBUTION_DIR ABSENT
+          fi
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

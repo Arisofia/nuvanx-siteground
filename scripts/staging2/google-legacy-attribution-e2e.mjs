@@ -42,6 +42,19 @@ function selector(name) {
   return `input[name="${escaped}"],input[name="0-1/${escaped}"]`;
 }
 
+// Poll during a SiteGround 202 anti-bot challenge until the canonical route settles at 200.
+async function settleChallenge(page, canonicalPath, getDocumentStatus, attempt) {
+  console.log(`NAV attempt=${attempt} siteground_antibot=challenge settle_ms=30000`);
+  for (let second = 0; second < 30; second += 1) {
+    await sleep(1000);
+    if (getDocumentStatus() === 200 && safePath(page.url()) === canonicalPath) {
+      console.log(`NAV attempt=${attempt} challenge_resolved status=200 path=${canonicalPath}`);
+      return true;
+    }
+  }
+  return false;
+}
+
 async function gotoCanonical(page, gclid) {
   const canonicalPath = '/madrid/valoracion/';
   const target = `${baseUrl}${canonicalPath}?gclid=${encodeURIComponent(gclid)}`;
@@ -63,16 +76,7 @@ async function gotoCanonical(page, gclid) {
         last = `${status} ${path}`;
         console.log(`NAV attempt=${attempt} status=${status} path=${path}`);
         if (status === 200 && path === canonicalPath) return;
-        if (status === 202) {
-          console.log(`NAV attempt=${attempt} siteground_antibot=challenge settle_ms=30000`);
-          for (let second = 0; second < 30; second += 1) {
-            await sleep(1000);
-            if (documentStatus === 200 && safePath(page.url()) === canonicalPath) {
-              console.log(`NAV attempt=${attempt} challenge_resolved status=200 path=${canonicalPath}`);
-              return;
-            }
-          }
-        }
+        if (status === 202 && await settleChallenge(page, canonicalPath, () => documentStatus, attempt)) return;
       } catch (error) {
         last = error.message;
         console.log(`NAV attempt=${attempt} error=${error.message}`);
@@ -110,7 +114,7 @@ async function hubSpotFrame(page) {
 async function setMarketing(page, allowed) {
   const state = await page.evaluate(async (next) => {
     if (typeof window.wp_has_consent !== 'function' || typeof window.wp_set_consent !== 'function') {
-      throw new Error('WordPress consent API unavailable');
+      throw new TypeError('WordPress consent API unavailable');
     }
     window.wp_set_consent('marketing', next ? 'allow' : 'deny');
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
@@ -254,30 +258,8 @@ async function submissionState(page) {
   }));
 }
 
-async function submit(page, frame, scenario, email, auditRequests, auditResponses) {
-  await installObservers(page);
-  await fillVisibleForm(frame, email);
-  await syncV4State(page, email);
-
-  const pre = await formState(frame);
-  console.log(`FORM_VALIDITY_${scenario}=${JSON.stringify(pre)}`);
-  if (!pre.valid || pre.submitDisabled) throw new Error(`${scenario}: form not submit-ready: ${JSON.stringify(pre)}`);
-
-  const network = { requests: [], responses: [], failures: [] };
-  const onRequest = (request) => {
-    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.requests.push(sanitizeUrl(request.url()));
-  };
-  const onResponse = (response) => {
-    const request = response.request();
-    if (request.method() === 'POST' && isHubSpotHost(response.url())) network.responses.push({ status: response.status(), url: sanitizeUrl(response.url()) });
-  };
-  const onFailed = (request) => {
-    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.failures.push({ url: sanitizeUrl(request.url()), error: String(request.failure()?.errorText || 'unknown').slice(0, 120) });
-  };
-  page.on('request', onRequest);
-  page.on('response', onResponse);
-  page.on('requestfailed', onFailed);
-
+// Click the HubSpot submit control, then fall back to form.requestSubmit if nothing fired.
+async function triggerSubmit(page, frame, scenario, network) {
   const button = frame.locator('form button[type="submit"],form input[type="submit"]').first();
   if (!await button.count()) throw new Error('HubSpot submit control missing');
   await button.scrollIntoViewIfNeeded();
@@ -304,6 +286,57 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
     });
     console.log(`SUBMIT_FALLBACK_${scenario}=requestSubmit`);
   }
+}
+
+// Assert the attribution audit POST matches the scenario's consent expectation.
+async function assertAudit(scenario, email, state, auditRequests, auditResponses) {
+  if (scenario === 'ALLOW') {
+    for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
+    await sleep(3000);
+    if (auditRequests.length !== 1) {
+      const missingCustomEvent = auditRequests.length === 0 && !state.successSources.includes('hubspot_form_event');
+      const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
+      throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
+    }
+    for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
+    if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
+    const payload = JSON.parse(auditRequests[0] || '{}');
+    if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
+    const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
+    if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
+    return;
+  }
+  // DENY: observe as long as the ALLOW branch (~13s) so a late audit POST cannot slip through.
+  for (let attempt = 0; attempt < 40 && auditRequests.length === 0; attempt += 1) await sleep(250);
+  if (auditRequests.length === 0) await sleep(3000);
+  if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
+}
+
+async function submit(page, frame, scenario, email, auditRequests, auditResponses) {
+  await installObservers(page);
+  await fillVisibleForm(frame, email);
+  await syncV4State(page, email);
+
+  const pre = await formState(frame);
+  console.log(`FORM_VALIDITY_${scenario}=${JSON.stringify(pre)}`);
+  if (!pre.valid || pre.submitDisabled) throw new Error(`${scenario}: form not submit-ready: ${JSON.stringify(pre)}`);
+
+  const network = { requests: [], responses: [], failures: [] };
+  const onRequest = (request) => {
+    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.requests.push(sanitizeUrl(request.url()));
+  };
+  const onResponse = (response) => {
+    const request = response.request();
+    if (request.method() === 'POST' && isHubSpotHost(response.url())) network.responses.push({ status: response.status(), url: sanitizeUrl(response.url()) });
+  };
+  const onFailed = (request) => {
+    if (request.method() === 'POST' && isHubSpotHost(request.url())) network.failures.push({ url: sanitizeUrl(request.url()), error: String(request.failure()?.errorText || 'unknown').slice(0, 120) });
+  };
+  page.on('request', onRequest);
+  page.on('response', onResponse);
+  page.on('requestfailed', onFailed);
+
+  await triggerSubmit(page, frame, scenario, network);
 
   try {
     await page.waitForFunction(() => {
@@ -325,25 +358,7 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
   const state = await submissionState(page);
   if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${state.generateLeadDelta}, expected=1`);
 
-  if (scenario === 'ALLOW') {
-    for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
-    await sleep(3000);
-    if (auditRequests.length !== 1) {
-      const missingCustomEvent = auditRequests.length === 0 && !state.successSources.includes('hubspot_form_event');
-      const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
-      throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
-    }
-    for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
-    if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
-    const payload = JSON.parse(auditRequests[0] || '{}');
-    if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
-    const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
-    if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
-  } else {
-    for (let attempt = 0; attempt < 40 && auditRequests.length === 0; attempt += 1) await sleep(250);
-    if (auditRequests.length === 0) await sleep(3000);
-    if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
-  }
+  await assertAudit(scenario, email, state, auditRequests, auditResponses);
   console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadDelta=1 auditRequests=${auditRequests.length}`);
 }
 

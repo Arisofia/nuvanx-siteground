@@ -155,6 +155,7 @@ jobs:
       - name: Probe staging boundary externally and classify only transport/AntiBot failures as inconclusive
         shell: bash
         env:
+          ORIGIN_SSH_ALIAS: nvx-staging-origin
           STAGING_BOUNDARY_TRANSIENT_ATTEMPTS: '2'
           STAGING_BOUNDARY_TRANSIENT_DELAY_MS: '1000'
         run: |

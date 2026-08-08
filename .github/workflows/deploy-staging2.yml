@@ -419,7 +419,7 @@ jobs:
           REMOTE
 
       - name: Alert on failed rollback
-        if: ${{ failure() && steps.rollback.conclusion == 'failure' }}
+        if: ${{ !success() && env.STAGING_MUTATION_ARMED == '1' && steps.rollback.conclusion != 'success' }}
         shell: bash
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

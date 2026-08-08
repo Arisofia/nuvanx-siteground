@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate submitter syntax
         shell: bash
-        run: bash -n scripts/production/indexnow-submit-sitemap.sh
+        run: bash -n ./scripts/production/indexnow-submit-sitemap.sh
 
       - name: Configure strict production SSH authentication
         shell: bash
@@ -59,10 +59,12 @@ jobs:
           : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
           SSH_PORT="${PORT:-18765}"
           [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+
+          mkdir -p "$HOME/.ssh" ./scripts/production/artifacts
+          chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/prod_indexnow_key"; chmod 600 "$HOME/.ssh/prod_indexnow_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts"
+          [[ -s "$HOME/.ssh/known_hosts" ]]
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-prod-indexnow
             HostName $HOST
@@ -74,29 +76,49 @@ jobs:
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 20
-            ConnectionAttempts 5
+            ConnectionAttempts 1
             ServerAliveInterval 30
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-prod-indexnow "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"
+
+          preflight_log='./scripts/production/artifacts/indexnow-ssh-preflight.log'
+          : > "$preflight_log"
+          connected=0
+          for attempt in 1 2 3 4 5; do
+            printf 'INDEXNOW_SSH_ATTEMPT=%s\n' "$attempt" | tee -a "$preflight_log"
+            if ssh -n nvx-prod-indexnow \
+              "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null" \
+              >> "$preflight_log" 2>&1; then
+              connected=1
+              printf 'INDEXNOW_SSH_PREFLIGHT=PASS attempt=%s\n' "$attempt" | tee -a "$preflight_log"
+              break
+            fi
+            if [[ "$attempt" -lt 5 ]]; then
+              sleep 10
+            fi
+          done
+          if [[ "$connected" -ne 1 ]]; then
+            echo 'INDEXNOW_SSH_PREFLIGHT=FAIL' | tee -a "$preflight_log"
+            cat -- "$preflight_log"
+            exit 255
+          fi
 
       - name: Submit all production sitemap URLs
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p scripts/production/artifacts
           ssh nvx-prod-indexnow \
             "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" \
-            < scripts/production/indexnow-submit-sitemap.sh \
-            | tee scripts/production/artifacts/indexnow-submit.log
+            < ./scripts/production/indexnow-submit-sitemap.sh \
+            | tee ./scripts/production/artifacts/indexnow-submit.log
 
       - name: Verify public IndexNow key file
         shell: bash
         run: |
           set -euo pipefail
           actual="$(curl -fsS --max-time 20 "$BASE_URL/$INDEXNOW_KEY.txt")"
-          test "$actual" = "$INDEXNOW_KEY"
+          [[ "$actual" == "$INDEXNOW_KEY" ]]
           echo "INDEXNOW_KEY_PUBLIC=PASS"
 
       - name: Upload IndexNow evidence
@@ -104,9 +126,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: indexnow-production-submit-${{ github.run_id }}-attempt-${{ github.run_attempt }}
-          path: scripts/production/artifacts/*.log
+          path: ./scripts/production/artifacts/*.log
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: warn
           compression-level: 6
 
       - name: Destroy production SSH identity
@@ -121,5 +143,5 @@ jobs:
           {
             echo '## IndexNow production submission PASS'
             echo
-            grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/'
+            grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' ./scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/'
           } >> "$GITHUB_STEP_SUMMARY"

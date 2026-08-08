@@ -1,0 +1,443 @@
+name: Production Authorized Final Once · 4775310
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-authorized-4775310-final-once.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production-authorized-final-4775310be2b7dcdda18f8fd6de8e40041c2eb555
+  cancel-in-progress: false
+
+env:
+  DEPLOY_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  PROD_PARENT: /home/customer/www/nuvanx.com
+  BASE_URL: https://nuvanx.com
+  EXPECTED_HOST: nuvanx.com
+
+jobs:
+  authorized-production:
+    name: Exact accepted SHA · guarded production promotion
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out hardened operational tooling
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: master
+          path: ops
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out exact accepted candidate payload
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable candidate and hardened tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$DEPLOY_SHA" = '4775310be2b7dcdda18f8fd6de8e40041c2eb555'
+          test "$(git -C candidate rev-parse HEAD)" = "$DEPLOY_SHA"
+          git -C ops fetch --no-tags origin master
+          git -C ops cat-file -e "${DEPLOY_SHA}^{commit}"
+          git -C ops merge-base --is-ancestor "$DEPLOY_SHA" origin/master
+          test -f candidate/wp-content/themes/nuvanx-medical/functions.php
+          test -f candidate/scripts/validate-page-templates.mjs
+          bash -n ops/tools/deploy/deploy-to-prod.sh
+          node --check ops/scripts/production/verify-production-boundary.mjs
+          node --check candidate/scripts/validate-page-templates.mjs
+          grep -Fq 'ROLLBACK_SNAPSHOT=PASS' ops/tools/deploy/deploy-to-prod.sh
+          grep -Fq 'ROLLBACK_PRODUCTION=PASS' ops/tools/deploy/deploy-to-prod.sh
+          grep -Fq '.nvx-deploy-sha' ops/tools/deploy/deploy-to-prod.sh
+          if grep -R -Fq 'StrictHostKeyChecking=no' ops/.github ops/tools 2>/dev/null; then
+            echo 'Unsafe SSH host-key bypass found in operational tooling.' >&2
+            exit 1
+          fi
+          find candidate/wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          echo 'IMMUTABLE_CANDIDATE_STATIC=PASS'
+
+      - name: Verify immutable successful Block C evidence for exact candidate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact_name="staging2-block-c-${DEPLOY_SHA}"
+          response="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
+          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | last')"
+          [[ "$artifact" != 'null' ]] || { echo "No non-expired Block C artifact for $DEPLOY_SHA" >&2; exit 1; }
+          artifact_id="$(printf '%s' "$artifact" | jq -r '.id')"
+          acceptance_run_id="$(printf '%s' "$artifact" | jq -r '.workflow_run.id')"
+          [[ "$artifact_id" =~ ^[0-9]+$ && "$acceptance_run_id" =~ ^[0-9]+$ ]]
+          run_json="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${acceptance_run_id}")"
+          test "$(printf '%s' "$run_json" | jq -r '.conclusion')" = 'success'
+          echo "BLOCK_C_ACCEPTANCE=PASS artifact_id=$artifact_id run_id=$acceptance_run_id candidate=$DEPLOY_SHA"
+
+      - name: Configure strict read-only SiteGround SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-readonly
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging-readonly "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
+
+      - name: Verify environment isolation and record current staging release
+        shell: bash
+        run: |
+          set -euo pipefail
+          staging_sha="$(ssh nvx-staging-readonly "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" != "$PROD_ROOT"
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+          current="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          [[ "$current" =~ ^[0-9a-f]{40}$ ]]
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          printf '%s' "$current"
+          REMOTE
+          )"
+          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "STAGING_LIVE_SHA=$staging_sha"
+          if [[ "$staging_sha" == "$DEPLOY_SHA" ]]; then
+            echo 'STAGING_RELEASE_RELATION=accepted-candidate-current'
+          else
+            echo "STAGING_RELEASE_RELATION=advanced accepted=$DEPLOY_SHA current=$staging_sha"
+          fi
+          echo 'ENVIRONMENT_ISOLATION=PASS'
+
+      - name: Destroy staging read-only SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+      - name: Configure strict production SSH authentication
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null && command -v tar >/dev/null"
+
+      - name: Production on-disk preflight and current release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(ssh nvx-prod "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do
+            test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"
+          done
+          test ! -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
+          test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+          marker="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          [[ "$marker" =~ ^[0-9a-f]{40}$ ]]
+          printf '%s' "$marker"
+          REMOTE
+          )"
+          [[ "$current" =~ ^[0-9a-f]{40}$ ]]
+          echo "CURRENT_PROD_SHA=$current" >> "$GITHUB_ENV"
+          echo "PRODUCTION_CURRENT_SHA=$current"
+          if [[ "$current" == "$DEPLOY_SHA" ]]; then
+            echo 'ALREADY_DEPLOYED=true' >> "$GITHUB_ENV"
+          else
+            echo 'ALREADY_DEPLOYED=false' >> "$GITHUB_ENV"
+          fi
+          echo 'PRODUCTION_ON_DISK_PREFLIGHT=PASS'
+
+      - name: Verify current production public boundary before mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CURRENT_PROD_SHA" \
+            node ops/scripts/production/verify-production-boundary.mjs
+          echo "PRODUCTION_PUBLIC_PREFLIGHT=PASS sha=$CURRENT_PROD_SHA"
+
+      - name: Upload exact accepted theme and hardened deploy script
+        if: ${{ env.ALREADY_DEPLOYED != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$PROD_PARENT/.nvx-releases/${DEPLOY_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-prod "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete \
+            --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
+            --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
+            candidate/wp-content/themes/nuvanx-medical/ "nvx-prod:$REMOTE_RELEASE/theme/"
+          rsync -az ops/tools/deploy/deploy-to-prod.sh "nvx-prod:$REMOTE_RELEASE/deploy-to-prod.sh"
+          ssh nvx-prod "test -f '$REMOTE_RELEASE/theme/functions.php' && test -f '$REMOTE_RELEASE/deploy-to-prod.sh'"
+          echo 'EXACT_ACCEPTED_PAYLOAD_UPLOADED=PASS'
+
+      - name: Execute guarded production directory cutover
+        if: ${{ env.ALREADY_DEPLOYED != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'CUTOVER_ATTEMPTED=true' >> "$GITHUB_ENV"
+          ssh nvx-prod "NVX_RUN_TOKEN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-prod.sh' --prod-root '$PROD_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm"
+          echo 'GUARDED_PRODUCTION_CUTOVER=PASS'
+
+      - name: Verify production public boundary after cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+          pass=0
+          for attempt in {1..3}; do
+            echo "Production boundary attempt ${attempt}/3"
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$DEPLOY_SHA" \
+              node ops/scripts/production/verify-production-boundary.mjs; then
+              pass=1
+              break
+            fi
+            sleep 10
+          done
+          test "$pass" = 1
+          echo "PRODUCTION_PUBLIC_BOUNDARY=PASS sha=$DEPLOY_SHA"
+
+      - name: Verify exact production SHA and WordPress identity on disk
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' DEPLOY_SHA='$DEPLOY_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$DEPLOY_SHA"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          echo "PRODUCTION_DEPLOYED_SHA=$DEPLOY_SHA"
+          echo 'PRODUCTION_WORDPRESS_IDENTITY=PASS'
+          REMOTE
+
+      - name: Validate production page-template references against exact candidate
+        shell: bash
+        env:
+          WORDPRESS_URL: https://nuvanx.com
+        run: |
+          set -euo pipefail
+          node candidate/scripts/validate-page-templates.mjs
+          echo 'PRODUCTION_TEMPLATE_REFERENCES=PASS'
+
+      - name: Validate critical production routes and canonical assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ua='NUVANX-Production-Boundary/1.0'
+          for route in '/' '/madrid/valoracion/' '/contacto/' '/soluciones-medicas/' '/equipo-medico/' '/blog/'; do
+            body="$(mktemp)"; headers="$(mktemp)"
+            code="$(curl -sS --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}' "${BASE_URL}${route}")"
+            test "$code" = '200'
+            ! grep -Fq '/.well-known/sgcaptcha/' "$body"
+            ! grep -Fq 'staging2.nuvanx.com' "$body"
+            grep -Fq "$DEPLOY_SHA" "$body"
+            rm -f "$body" "$headers"
+            echo "ROUTE_PASS=$route"
+          done
+
+          for asset in \
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css' \
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css' \
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css' \
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-footer.css'; do
+            tmp="$(mktemp)"
+            code="$(curl -sS --max-time 30 -A "$ua" -o "$tmp" -w '%{http_code}' "${BASE_URL}${asset}")"
+            test "$code" = '200'
+            test "$(wc -c < "$tmp")" -gt 100
+            rm -f "$tmp"
+            echo "ASSET_PASS=$asset"
+          done
+          echo 'PRODUCTION_CRITICAL_ROUTES_ASSETS=PASS'
+
+      - name: Roll back exact candidate if any post-cutover external gate failed
+        if: ${{ failure() && env.ALREADY_DEPLOYED != 'true' && env.CUTOVER_ATTEMPTED == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          short_sha="${DEPLOY_SHA:0:12}"
+          backup_dir="$PROD_ROOT/wp-content/backups-nuvanx/pre-prod-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${short_sha}"
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' DEPLOY_SHA='$DEPLOY_SHA' BACKUP_DIR='$backup_dir' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          live="$PROD_ROOT/wp-content/themes/nuvanx-medical"
+          test -d "$live"
+          marker='MISSING'
+          if [[ -f "$live/.nvx-deploy-sha" ]]; then
+            marker="$(tr -d '\r\n' < "$live/.nvx-deploy-sha")"
+          fi
+          if [[ "$marker" != "$DEPLOY_SHA" ]]; then
+            echo "EXTERNAL_ROLLBACK=NOT_REQUIRED current=$marker"
+            exit 0
+          fi
+          test -s "$BACKUP_DIR/theme.tgz"
+          restore_root="$PROD_ROOT/wp-content/themes/.nvx-external-rollback-${DEPLOY_SHA}-$$"
+          failed="$PROD_ROOT/wp-content/themes/.nvx-external-failed-${DEPLOY_SHA}-$$"
+          rm -rf "$restore_root" "$failed"
+          mkdir -p "$restore_root"
+          tar -xzf "$BACKUP_DIR/theme.tgz" -C "$restore_root"
+          test -d "$restore_root/wp-content/themes/nuvanx-medical"
+          mv "$live" "$failed"
+          mv "$restore_root/wp-content/themes/nuvanx-medical" "$live"
+          rm -rf "$restore_root" "$failed"
+          cd "$PROD_ROOT"
+          wp cache flush
+          if wp help sg >/dev/null 2>&1; then wp sg purge || true; fi
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+          previous="$(cat "$BACKUP_DIR/previous-sha.txt" 2>/dev/null || true)"
+          if [[ -n "$previous" ]]; then
+            [[ "$previous" =~ ^[0-9a-f]{40}$ ]]
+            test "$(tr -d '\r\n' < "$live/.nvx-deploy-sha")" = "$previous"
+          fi
+          echo "EXTERNAL_ROLLBACK=PASS restored=${previous:-legacy-unmarked}"
+          REMOTE
+
+          restored="$(ssh nvx-prod "tr -d '\r\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          if [[ "$restored" =~ ^[0-9a-f]{40}$ ]]; then
+            rollback_public=0
+            for attempt in {1..3}; do
+              if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$restored" \
+                node ops/scripts/production/verify-production-boundary.mjs; then
+                rollback_public=1
+                break
+              fi
+              sleep 10
+            done
+            test "$rollback_public" = 1
+            echo "EXTERNAL_ROLLBACK_PUBLIC=PASS sha=$restored"
+          fi
+
+      - name: Upload production boundary evidence
+        if: always()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: production-boundary-final-4775310be2b7dcdda18f8fd6de8e40041c2eb555-attempt-${{ github.run_attempt }}
+          path: ops/scripts/production/artifacts/production-boundary.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Remove temporary production payload
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${REMOTE_RELEASE:-}" ]] && [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-prod "case '$REMOTE_RELEASE' in '$PROD_PARENT/.nvx-releases/'*) rm -rf '$REMOTE_RELEASE' ;; *) exit 1 ;; esac" || true
+          fi
+
+      - name: Destroy production SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+      - name: Write final production deployment summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Production promotion PASS'
+            echo
+            echo '- Exact accepted SHA: `4775310be2b7dcdda18f8fd6de8e40041c2eb555`'
+            echo '- Immutable successful Block C evidence: PASS'
+            echo '- Staging/production environment isolation: PASS'
+            echo '- Production public preflight before mutation: PASS'
+            echo '- Mandatory snapshot + guarded directory cutover: PASS'
+            echo '- Production public boundary after cutover: PASS'
+            echo '- Exact production on-disk SHA: PASS'
+            echo '- Page template references: PASS'
+            echo '- Critical production routes/assets: PASS'
+          } >> "$GITHUB_STEP_SUMMARY"

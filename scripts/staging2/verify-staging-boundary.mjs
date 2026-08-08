@@ -94,9 +94,14 @@ function isTransientSiteGroundChallenge(response) {
 
 async function sshAliasConfigured(alias) {
   try {
-    const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
-      encoding: 'utf8',
-    });
+    const result = spawnSync(
+      sshBin,
+      ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '--', alias, 'exit'],
+      {
+        encoding: 'utf8',
+        timeout: 15000,
+      }
+    );
     return result.status === 0;
   } catch {
     return false;
@@ -123,7 +128,7 @@ function verifyViaSiteGroundOrigin(route) {
     `! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"`,
     'deploy_tag="$(grep -Eio "<meta[^>]*nvx-deploy-sha[^>]*>" "$body" | head -n 1 || true)"',
     'printf "%s" "$deploy_tag" | grep -Fq "$EXPECTED_SHA"',
-    `robots_meta="$(grep -Eio '<meta[^>]*robots[^>]*>' "$body" | head -n 1 || true)"`,
+    'robots_meta="$(grep -Eio "<meta[^>]+name=[\'\\"]robots[\'\\"][^>]*>" "$body" | head -n 1 || true)"',
     `xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"`,
     'combined="${robots_meta} ${xrobots}"',
     `printf '%s' "$combined" | grep -Eiq 'noindex'`,

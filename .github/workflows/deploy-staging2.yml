@@ -320,11 +320,38 @@ jobs:
 
       - name: Validate page template references
         shell: bash
-        env:
-          WORDPRESS_URL: https://staging2.nuvanx.com
         run: |
           set -euo pipefail
-          node scripts/validate-page-templates.mjs
+          PAGES_FILE="$RUNNER_TEMP/staging2-published-pages.json"
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE' > "$PAGES_FILE"
+          set -Eeuo pipefail
+          cd "$WP_ROOT"
+          wp eval '
+          $pages = get_posts(
+            array(
+              "post_type"      => "page",
+              "post_status"    => "publish",
+              "posts_per_page" => -1,
+              "orderby"        => "ID",
+              "order"          => "ASC",
+            )
+          );
+          $payload = array_map(
+            static function ( $page ) {
+              return array(
+                "id"       => (int) $page->ID,
+                "slug"     => (string) $page->post_name,
+                "template" => (string) get_page_template_slug( $page->ID ),
+              );
+            },
+            $pages
+          );
+          echo wp_json_encode( $payload );
+          '
+          REMOTE
+          test -s "$PAGES_FILE"
+          WORDPRESS_PAGES_FILE="$PAGES_FILE" node scripts/validate-page-templates.mjs
+          echo 'STAGING_TEMPLATE_INTEGRITY_SOURCE=origin-wp-cli'
 
       - name: Verify production unchanged read-only
         shell: bash
@@ -433,6 +460,7 @@ jobs:
             echo '- Boundary: five required routes stayed on staging2, HTTP 200, noindex/nofollow, exact HTML SHA'
             echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'
             echo '- Runtime safety: WP_DEBUG_DISPLAY is explicitly false on staging'
+            echo '- Page template integrity: validated against the authenticated Staging2 WordPress origin via WP-CLI'
             echo '- Failed post-deploy validations trigger rollback of theme, MU plugins and staging DB snapshot'
             echo '- SiteGround Dynamic Cache: public 202 warm-up is retried, but only final HTTP 200 is accepted'
             echo '- Production: read-only invariant verified unchanged'

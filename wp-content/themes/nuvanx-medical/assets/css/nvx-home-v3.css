@@ -250,7 +250,7 @@
 .nvx-home-evidence__image-col {
 	min-height: 50vh;
 	background-color: #1c1c1e;
-	background: var(--nvx-charcoal);
+	background-color: var(--nvx-charcoal);
 }
 
 .nvx-home-evidence__image {
@@ -449,7 +449,7 @@
 .nvx-home-closure {
 	padding-block: clamp(120px, 12vw, 200px);
 	background-color: #111111;
-	background: var(--nvx-ink);
+	background-color: var(--nvx-ink);
 	color: var(--nvx-light);
 	text-align: center;
 }

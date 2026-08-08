@@ -118,7 +118,7 @@ function safeName(route) {
  * Navigates to a URL with retries for transient failures and SiteGround challenge responses.
  * @param {import('@playwright/test').Page} page - The Playwright page to navigate.
  * @param {string} url - The URL to open.
- * @return {{response: import('@playwright/test').APIResponse|null, attempt: number}} The navigation response and attempt number.
+ * @return {Promise<{response: import('@playwright/test').Response|null, attempt: number}>} The navigation response and attempt number.
  * @throws {Error} If navigation fails after all retry attempts.
  */
 async function gotoPlain(page, url) {

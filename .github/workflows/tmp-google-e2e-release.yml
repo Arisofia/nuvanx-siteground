@@ -28,7 +28,7 @@ jobs:
           cd scripts/staging2
           npm ci --ignore-scripts
           ./node_modules/.bin/playwright install --with-deps chromium
-      - name: Configure strict Staging2 SSH and SOCKS proxy
+      - name: Resolve and verify trusted SiteGround origin
         shell: bash
         env:
           HOST: ${{ secrets.STAGING2_SSH_HOST }}
@@ -61,25 +61,27 @@ jobs:
             ConnectionAttempts 5
             ServerAliveInterval 30
             ServerAliveCountMax 2
-            ExitOnForwardFailure yes
           EOF
           chmod 600 "$HOME/.ssh/config"
           ssh -n nvx-staging-origin "test -d '/home/customer/www/staging2.nuvanx.com/public_html' && command -v curl >/dev/null"
-          ssh -f -N -D 127.0.0.1:1080 nvx-staging-origin
+          ORIGIN_IP="$(getent ahostsv4 "$HOST" | awk 'NR==1 {print $1}')"
+          [[ "$ORIGIN_IP" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || { echo 'Unable to resolve origin IPv4' >&2; exit 1; }
+          echo "ORIGIN_IP=$ORIGIN_IP" >> "$GITHUB_ENV"
           for attempt in 1 2 3; do
-            code="$(curl --socks5-hostname 127.0.0.1:1080 -sS -L --max-time 30 -o /tmp/nvx-staging-e2e.html -w '%{http_code}' 'https://staging2.nuvanx.com/madrid/valoracion/' || true)"
-            echo "SOCKS_ORIGIN_PROBE attempt=$attempt status=$code"
+            code="$(curl --resolve "staging2.nuvanx.com:443:${ORIGIN_IP}" -sS -L --max-time 30 -o /tmp/nvx-staging-e2e.html -w '%{http_code}' 'https://staging2.nuvanx.com/madrid/valoracion/' || true)"
+            echo "DIRECT_ORIGIN_PROBE attempt=$attempt status=$code"
             if [[ "$code" = '200' ]]; then break; fi
             sleep 2
           done
           test "$code" = '200'
+          grep -Fq 'c5b0877cac199b5b86ab1c515e477733fd5a6074' /tmp/nvx-staging-e2e.html
       - name: Execute full Google attribution release E2E
         shell: bash
         env:
           BASE_URL: https://staging2.nuvanx.com
           FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
           EXPECTED_SHA: c5b0877cac199b5b86ab1c515e477733fd5a6074
-          SOCKS_PROXY: socks5://127.0.0.1:1080
+          ORIGIN_IP: ${{ env.ORIGIN_IP }}
           QA_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
@@ -88,6 +90,4 @@ jobs:
       - name: Destroy SSH identity
         if: always()
         shell: bash
-        run: |
-          pkill -f 'ssh.*127.0.0.1:1080' || true
-          rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+        run: rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

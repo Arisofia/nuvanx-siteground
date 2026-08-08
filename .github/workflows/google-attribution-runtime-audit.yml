@@ -41,14 +41,24 @@ jobs:
           const base = 'https://staging2.nuvanx.com';
           const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
           const gclid = `NVXQA_RUNTIME_${Date.now()}`;
+          const target = `${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
           const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
           try {
-            const context = await browser.newContext({ ignoreHTTPSErrors: true });
-            const page = await context.newPage();
-            const response = await page.goto(`${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`, {
-              waitUntil: 'domcontentloaded', timeout: 45000,
+            const context = await browser.newContext({
+              ignoreHTTPSErrors: true,
+              userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
             });
-            if (!response || response.status() !== 200) throw new Error(`route HTTP ${response?.status() || 0}`);
+            const page = await context.newPage();
+            let response = null;
+            for (let attempt = 1; attempt <= 6; attempt += 1) {
+              response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
+              const status = response?.status() || 0;
+              console.log(`PAGE_ATTEMPT=${attempt} STATUS=${status}`);
+              if (status === 200) break;
+              if (![202, 429, 503].includes(status)) throw new Error(`route HTTP ${status}`);
+              await page.waitForTimeout(3000);
+            }
+            if (!response || response.status() !== 200) throw new Error(`route remained challenged HTTP ${response?.status() || 0}`);
             await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 20000 });
             await page.waitForTimeout(2000);
             const state = await page.evaluate(async ({ formId, gclid }) => {
@@ -85,9 +95,7 @@ jobs:
                   await new Promise((resolve) => setTimeout(resolve, 1000));
                   out.marketingAfterAllow = window.wp_has_consent('marketing');
                   out.fieldsAfterAllow = project(await form.getFormFieldValues());
-                } catch (error) {
-                  out.allowError = error.message;
-                }
+                } catch (error) { out.allowError = error.message; }
               }
               return out;
             }, { formId, gclid });

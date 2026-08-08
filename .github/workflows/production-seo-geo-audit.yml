@@ -116,6 +116,7 @@ jobs:
               "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" \
               < scripts/production/diagnose-title-emitters.sh \
               | tee scripts/production/artifacts/title-emitter-diagnostic.log
+            echo "DIAGNOSTIC_SSH_EXIT=${PIPESTATUS[0]}" >> scripts/production/artifacts/title-emitter-diagnostic.log
           fi
           exit 0
 

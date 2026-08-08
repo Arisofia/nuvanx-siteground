@@ -13,6 +13,8 @@ on:
       - '.github/workflows/deploy-staging2.yml'
       - '.github/workflows/staging2-acceptance.yml'
       - '.github/workflows/staging2-sync.yml'
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/production-release.yml'
 
 permissions:
   contents: read

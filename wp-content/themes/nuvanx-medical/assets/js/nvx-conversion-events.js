@@ -412,6 +412,15 @@
 
 	var legacyFormRoots = [];
 	var legacyEmailForAudit = '';
+	var legacyEmailClearTimer = null;
+
+	function clearLegacyEmail() {
+		legacyEmailForAudit = '';
+		if (legacyEmailClearTimer) {
+			window.clearTimeout(legacyEmailClearTimer);
+			legacyEmailClearTimer = null;
+		}
+	}
 
 	function legacyFormRoot(formLike) {
 		var root = formLike;
@@ -431,7 +440,10 @@
 		var input = root.querySelector('[name="' + propertyName + '"]');
 		if (!input) return false;
 		try {
-			input.value = value;
+			var prototype = Object.getPrototypeOf(input);
+			var descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, 'value') : null;
+			if (descriptor && typeof descriptor.set === 'function') descriptor.set.call(input, value);
+			else input.value = value;
 			if (value) input.setAttribute('value', value);
 			else input.removeAttribute('value');
 			input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -453,7 +465,15 @@
 			var value = consent ? clickValues[param] : '';
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
-				if (!consent && propertyName.indexOf('nvx_') !== 0) return;
+				if (!consent && propertyName.indexOf('nvx_') !== 0) {
+					if (propertyName === 'hs_google_click_id' && clickValues.gclid) {
+						var nativeInput = root.querySelector('[name="hs_google_click_id"]');
+						if (nativeInput && String(nativeInput.value || '') === clickValues.gclid) {
+							modified = setLegacyField(root, propertyName, '') || modified;
+						}
+					}
+					return;
+				}
 				modified = setLegacyField(root, propertyName, value) || modified;
 			});
 		});
@@ -461,6 +481,7 @@
 	}
 
 	function refreshLegacyForms() {
+		if (!hasMarketingConsent()) clearLegacyEmail();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
 			return root && root.isConnected;
 		});
@@ -470,7 +491,7 @@
 	}
 
 	function captureLegacyEmail(formLike) {
-		legacyEmailForAudit = '';
+		clearLegacyEmail();
 		populateLegacyClickFields(formLike);
 		if (!hasMarketingConsent()) return;
 		var root = legacyFormRoot(formLike);
@@ -480,11 +501,12 @@
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
 		legacyEmailForAudit = email;
+		legacyEmailClearTimer = window.setTimeout(clearLegacyEmail, 30000);
 	}
 
 	async function transmitLegacySuccess() {
 		var email = legacyEmailForAudit;
-		legacyEmailForAudit = '';
+		clearLegacyEmail();
 		if (!email || !hasMarketingConsent() || sent || inFlight) return;
 		var emailHash = await sha256(email);
 		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return;
@@ -524,6 +546,9 @@
 	window.addEventListener('message', function (event) {
 		if (!isTrustedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
+		if (typeof data === 'string') {
+			try { data = JSON.parse(data); } catch (_error) { return; }
+		}
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		if (String(data.id || '').toLowerCase() !== String(FORM_ID || '').toLowerCase()) return;
 		transmitLegacySuccess();

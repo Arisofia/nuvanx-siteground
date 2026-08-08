@@ -171,7 +171,7 @@
 	function cleanClickValue(value, maxLength) {
 		var normalized = String(value || '').trim();
 		if (!normalized || normalized.length > maxLength) return '';
-		return /^[A-Za-z0-9._~:+-]+$/.test(normalized) ? normalized : '';
+		return /^[A-Za-z0-9._~:+\-*%/=]+$/.test(normalized) ? normalized : '';
 	}
 	
 	function hasGoogleClickIdentifier(values) {

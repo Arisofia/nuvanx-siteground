@@ -1,0 +1,101 @@
+name: Production Estetica Media Preflight Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-estetica-media-preflight-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      PROD_URL: https://nuvanx.com
+      EXPECTED_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-media
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-media "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null"
+          test "$(ssh -n nvx-prod-media "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_SHA"
+          test "$(ssh -n nvx-prod-media "cd '$PROD_ROOT' && wp config get DB_NAME")" = 'db0ecrycwv2tgb'
+          test "$(ssh -n nvx-prod-media "cd '$PROD_ROOT' && wp option get home")" = 'https://nuvanx.com'
+          echo 'PRODUCTION_MEDIA_PREFLIGHT_GUARD=PASS'
+
+      - name: Verify production rendered media graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          ua='NUVANX-Production-Media-Preflight/1.0'
+          code="$(ssh -n nvx-prod-media "curl -sS -L --max-redirs 3 --max-time 30 -A '$ua' -H 'Accept: text/html,application/xhtml+xml' -o /tmp/nvx-prod-estetica.html -w '%{http_code}' '$PROD_URL/estetica-avanzada/'")"
+          test "$code" = '200'
+          ssh -n nvx-prod-media "grep -Fq '$EXPECTED_SHA' /tmp/nvx-prod-estetica.html"
+          ssh -n nvx-prod-media "! grep -Fq '/.well-known/sgcaptcha/' /tmp/nvx-prod-estetica.html"
+
+          refs="$RUNNER_TEMP/nvx-prod-image-refs.txt"
+          ssh -n nvx-prod-media "grep -Eo 'https://nuvanx\\.com/wp-content/uploads/[^\" <>]+\\.(webp|jpe?g|png)' /tmp/nvx-prod-estetica.html | sort -u" > "$refs" || true
+          test -s "$refs"
+          total=0
+          failures=0
+          while IFS= read -r url; do
+            test -n "$url" || continue
+            total=$((total + 1))
+            code="$(ssh -n nvx-prod-media "curl -sS --max-time 20 -A '$ua' -o /dev/null -w '%{http_code}' '$url'" || true)"
+            if test "$code" != '200'; then
+              failures=$((failures + 1))
+              echo "PROD_RUNTIME_IMAGE_FAIL code=$code url=$url"
+            fi
+          done < "$refs"
+          echo "PROD_RUNTIME_IMAGE_TOTAL=$total"
+          echo "PROD_RUNTIME_IMAGE_FAIL=$failures"
+          test "$failures" = '0'
+          ssh -n nvx-prod-media "rm -f /tmp/nvx-prod-estetica.html"
+          echo 'PRODUCTION_ESTETICA_MEDIA_GRAPH=PASS'
+
+      - name: Inspect obsolete valuation content count
+        shell: bash
+        run: |
+          set -euo pipefail
+          count="$(ssh -n nvx-prod-media "cd '$PROD_ROOT' && wp db query \"SELECT COUNT(*) FROM \\$(wp db prefix)posts WHERE post_status='publish' AND post_content LIKE '%/valoracion-medica/%';\" --skip-column-names")"
+          echo "PRODUCTION_LEGACY_VALORACION_CONTENT_COUNT=$count"
+          test "$count" = '2'
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

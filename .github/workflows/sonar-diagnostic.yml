@@ -1,4 +1,4 @@
-name: Temporary Sonar diagnostics
+name: Sonar Diagnostics
 
 on:
   push:
@@ -57,7 +57,7 @@ jobs:
                   vals[measure['metric']]=float(periods[0].get('value',0)) if periods else float(measure.get('value',0) or 0)
               nl=vals.get('new_lines',0); nd=vals.get('new_duplicated_lines',0); dens=vals.get('new_duplicated_lines_density',0)
               if nl or nd or dens:
-                  rows.append((nd,dens,nl,c.get('path')))
+                  rows.append((nd,dens,nl,c.get('path') or ''))
           print('DUPLICATION_CONTRIBUTORS')
           for nd,dens,nl,path in sorted(rows, reverse=True):
               print(json.dumps({'path':path,'new_lines':nl,'new_duplicated_lines':nd,'density':dens}, ensure_ascii=False))

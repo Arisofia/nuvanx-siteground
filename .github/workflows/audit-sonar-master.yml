@@ -23,9 +23,11 @@ jobs:
           TARGET_BRANCH: master
         run: |
           set -euo pipefail
-          test -n "${SONAR_TOKEN:-}" || { echo "SONAR_TOKEN missing"; exit 1; }
-          auth=(-H "Authorization: Bearer ${SONAR_TOKEN}")
           base='https://sonarcloud.io/api'
+          auth=()
+          if [ -n "${SONAR_TOKEN:-}" ]; then
+            auth=(-H "Authorization: Bearer ${SONAR_TOKEN}")
+          fi
 
           curl -fsS --retry 3 --max-time 30 "${auth[@]}" --get \
             --data-urlencode "projectKey=${PROJECT_KEY}" \

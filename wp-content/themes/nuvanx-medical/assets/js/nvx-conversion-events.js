@@ -170,7 +170,7 @@
 	var attributionConfig = window.nvxConversionEvents || {};
 	var forms = attributionConfig.forms || {};
 	var FORM_ID = String(forms.valoracion || '5042522a-0bc5-4381-ac3e-5aee8649b69c').toLowerCase();
-	var ENDPOINT = String(attributionConfig.googleAttributionEndpoint || 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution');
+	var ENDPOINT = 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
 	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
 	var eligiblePath = normalizedPath === '/madrid/valoracion';
 	var sent = false;
@@ -234,68 +234,59 @@
 	}
 
 	async function populateHubSpotClickFields(form) {
-		if (!hasMarketingConsent() || !isCanonicalForm(form)) return false;
+		if (!isCanonicalForm(form)) return false;
 		if (typeof form.getFormFieldValues !== 'function' || typeof form.setFieldValue !== 'function') return false;
 
+		var consent = hasMarketingConsent();
 		var fields;
 		try {
 			fields = await form.getFormFieldValues();
 		} catch (_error) {
 			return false;
 		}
-		if (!Array.isArray(fields) || !hasMarketingConsent()) return false;
+		if (!Array.isArray(fields)) return false;
 
 		var availableNames = new Set(fields.map(function (field) {
 			return field && typeof field.name === 'string' ? field.name : '';
 		}).filter(Boolean));
-		var populated = false;
+		var modified = false;
 
 		Object.keys(FIELD_MAP).forEach(function (param) {
-			var value = clickValues[param];
-			if (!value) return;
+			var value = consent ? clickValues[param] : '';
+			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
 				fieldCandidates(propertyName).forEach(function (fieldName) {
 					if (!availableNames.has(fieldName)) return;
 					try {
-						form.setFieldValue(fieldName, [value]);
-						populated = true;
-					} catch (_error) {
-						// Never interfere with the patient form if an optional field cannot be set.
-					}
+						form.setFieldValue(fieldName, value); // HubSpot v4 expects scalar for text inputs
+						modified = true;
+					} catch (_error) {}
 				});
 			});
 		});
 
-		return populated;
+		return modified;
 	}
 
 	function populateExistingForms() {
-		if (!hasMarketingConsent()) return;
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
 		try {
 			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) {
 				populateHubSpotClickFields(form);
 			});
-		} catch (_error) {
-			// Form may not be ready yet; on-ready and consent listeners provide retries.
-		}
+		} catch (_error) {}
 	}
 
 	window.addEventListener('hs-form-event:on-ready', function (event) {
 		var detail = event && event.detail ? event.detail : {};
-		if (String(detail.formId || '').toLowerCase() !== FORM_ID || !hasMarketingConsent()) return;
+		if (String(detail.formId || '').toLowerCase() !== FORM_ID) return;
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return;
 		try {
 			populateHubSpotClickFields(window.HubSpotFormsV4.getFormFromEvent(event));
-		} catch (_error) {
-			// Fail closed and leave the public form untouched.
-		}
+		} catch (_error) {}
 	});
 
-	document.addEventListener('wp_listen_for_consent_change', function (event) {
-		var changed = event && event.detail ? event.detail : {};
-		if (changed.marketing === 'allow') populateExistingForms();
-	});
+	document.addEventListener('wp_listen_for_consent_change', populateExistingForms);
 	document.addEventListener('wp_consent_type_defined', populateExistingForms);
 
 	if (document.readyState === 'loading') {
@@ -303,8 +294,6 @@
 	} else {
 		populateExistingForms();
 	}
-	window.setTimeout(populateExistingForms, 500);
-	window.setTimeout(populateExistingForms, 1500);
 
 	function canonicalLandingUrl() {
 		try {
@@ -327,8 +316,12 @@
 
 	async function sha256(value) {
 		if (!window.crypto || !window.crypto.subtle || typeof TextEncoder === 'undefined') return '';
-		var digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-		return bytesToHex(digest);
+		try {
+			var digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+			return bytesToHex(digest);
+		} catch (_error) {
+			return '';
+		}
 	}
 
 	function getFieldValue(fields, propertyName) {
@@ -343,21 +336,29 @@
 	}
 
 	async function buildAuditPayload(event) {
-		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
-
-		var form;
-		try {
-			form = window.HubSpotFormsV4.getFormFromEvent(event);
-		} catch (_error) {
-			return null;
+		var fields = null;
+		var detail = event && event.detail ? event.detail : {};
+		
+		if (Array.isArray(detail.data)) {
+			fields = detail.data;
+		} else if (Array.isArray(detail.submissionValues)) {
+			fields = detail.submissionValues;
 		}
-		if (!isCanonicalForm(form) || typeof form.getFormFieldValues !== 'function') return null;
 
-		var fields;
-		try {
-			fields = await form.getFormFieldValues();
-		} catch (_error) {
-			return null;
+		if (!fields) {
+			if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
+			var form;
+			try {
+				form = window.HubSpotFormsV4.getFormFromEvent(event);
+			} catch (_error) {
+				return null;
+			}
+			if (!isCanonicalForm(form) || typeof form.getFormFieldValues !== 'function') return null;
+			try {
+				fields = await form.getFormFieldValues();
+			} catch (_error) {
+				return null;
+			}
 		}
 		if (!Array.isArray(fields) || !hasMarketingConsent()) return null;
 
@@ -392,7 +393,10 @@
 				body: JSON.stringify(payload),
 				keepalive: true,
 			});
-			if (response.ok) sent = true;
+			// Treat client errors (4xx) as terminal to prevent silent retry loops
+			if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+				sent = true;
+			}
 		} catch (_error) {
 			// Attribution audit failure must never interfere with the patient form flow.
 		} finally {
@@ -408,6 +412,6 @@
 		// Privacy fail-closed: no email access or hashing occurs without marketing consent.
 		var payload = await buildAuditPayload(event);
 		if (!payload || !hasMarketingConsent()) return;
-		await transmitAudit(payload);
+		transmitAudit(payload); // Dispatched without awaiting to reduce window before navigation
 	});
 }());

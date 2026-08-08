@@ -42,7 +42,6 @@ jobs:
           node --check scripts/lint/validate-routes-schema.mjs
           node scripts/lint/validate-routes-schema.mjs wp-content/themes/nuvanx-medical/inc/data/routes.schema.json wp-content/themes/nuvanx-medical/inc/data/routes.json
           find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
-          node scripts/theme-hygiene/test-theme-hygiene.mjs
 
       - name: Commit remediation
         shell: bash

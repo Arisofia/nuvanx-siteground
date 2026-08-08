@@ -13,6 +13,9 @@ const target = `${base}/madrid/valoracion/?gclid=NVXDIAG-${Date.now()}`;
 function sanitizeUrl(value) {
   try {
     const url = new URL(value);
+    // Opaque frame URLs (about:blank, data:, etc.) have origin "null" and would log as
+    // confusing values like "nullblank"; only origin+pathname for http(s) is meaningful.
+    if (!/^https?:$/.test(url.protocol)) return url.protocol === 'about:' ? value : '';
     return `${url.origin}${url.pathname}`;
   } catch {
     return '';

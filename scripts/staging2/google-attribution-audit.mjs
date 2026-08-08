@@ -63,7 +63,7 @@ try {
     `#nvx-hubspot-form form.hs-form`
   ];
   await page.locator(selectors.join(', ')).first().waitFor({ state: 'attached', timeout: 20000 });
-  await page.waitForFunction(() => window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getForms === 'function' && window.HubSpotFormsV4.getForms().length > 0, { timeout: 20000 });
+  await page.waitForFunction(() => window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getForms === 'function' && window.HubSpotFormsV4.getForms().length > 0, null, { timeout: 20000 });
   
   const state = await page.evaluate(async ({ formId, gclid }) => {
     const out = {
@@ -117,7 +117,7 @@ try {
   }
   
   const valuesBefore = state.fieldsBefore
-    .filter((field) => /(^|\/)nvx_/.test(String(field.name || '')))
+    .filter((field) => /(^|\/)nvx_|hs_google_click_id/.test(String(field.name || '')))
     .flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
   if (valuesBefore.includes(gclid)) {
     throw new Error('GCLID leaked to HubSpot field BEFORE marketing consent was allowed');

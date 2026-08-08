@@ -1,0 +1,176 @@
+name: TEMP Apply Legacy HubSpot Attribution
+
+on:
+  push:
+    branches:
+      - automation/apply-legacy-attribution-20260808
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: fix/google-attribution-legacy-form-20260808
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Apply exact legacy attribution hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          conv = Path('wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js')
+          text = conv.read_text()
+          anchor = "\twindow.addEventListener('hs-form-event:on-submission:success', async function (event) {\n"
+          if text.count(anchor) != 1:
+              raise SystemExit(f'Expected one modern success-listener anchor, found {text.count(anchor)}')
+          legacy = r'''	var legacyFormRoots = [];
+	var legacyEmailForAudit = '';
+
+	function legacyFormRoot(formLike) {
+		var root = formLike;
+		try {
+			if (root && typeof root.get === 'function') root = root.get(0);
+			else if (root && root.jquery && root[0]) root = root[0];
+			else if (root && root[0] && root[0].nodeType === 1) root = root[0];
+		} catch (_error) {
+			return null;
+		}
+		return root && typeof root.querySelector === 'function' ? root : null;
+	}
+
+	function setLegacyField(root, propertyName, value) {
+		if (!root) return false;
+		var input = root.querySelector('[name="' + propertyName + '"]');
+		if (!input) return false;
+		try {
+			input.value = value;
+			if (value) input.setAttribute('value', value);
+			else input.removeAttribute('value');
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			input.dispatchEvent(new Event('change', { bubbles: true }));
+			return true;
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	function populateLegacyClickFields(formLike) {
+		var root = legacyFormRoot(formLike);
+		if (!root) return false;
+		if (legacyFormRoots.indexOf(root) === -1) legacyFormRoots.push(root);
+
+		var consent = hasMarketingConsent();
+		var modified = false;
+		Object.keys(FIELD_MAP).forEach(function (param) {
+			var value = consent ? clickValues[param] : '';
+			if (!value && consent) return;
+			FIELD_MAP[param].forEach(function (propertyName) {
+				// Never overwrite HubSpot's native Google click field on consent denial.
+				if (!consent && propertyName.indexOf('nvx_') !== 0) return;
+				modified = setLegacyField(root, propertyName, value) || modified;
+			});
+		});
+		return modified;
+	}
+
+	function refreshLegacyForms() {
+		legacyFormRoots = legacyFormRoots.filter(function (root) {
+			return root && root.isConnected;
+		});
+		legacyFormRoots.forEach(function (root) {
+			populateLegacyClickFields(root);
+		});
+	}
+
+	function captureLegacyEmail(formLike) {
+		legacyEmailForAudit = '';
+		populateLegacyClickFields(formLike);
+		if (!hasMarketingConsent()) return;
+		var root = legacyFormRoot(formLike);
+		if (!root) return;
+		var emailInput = root.querySelector('[name="email"]');
+		if (!emailInput) return;
+		var email = normalizeEmail(emailInput.value);
+		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
+		legacyEmailForAudit = email;
+	}
+
+	async function transmitLegacySuccess() {
+		var email = legacyEmailForAudit;
+		legacyEmailForAudit = '';
+		if (!email || !hasMarketingConsent() || sent || inFlight) return;
+		var emailHash = await sha256(email);
+		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return;
+		transmitAudit({
+			email_hash: emailHash,
+			gclid: clickValues.gclid || null,
+			gbraid: clickValues.gbraid || null,
+			wbraid: clickValues.wbraid || null,
+			gclsrc: clickValues.gclsrc || null,
+			form_id: FORM_ID,
+			landing_url: canonicalLandingUrl(),
+		});
+	}
+
+	function isTrustedHubSpotOrigin(origin) {
+		if (!origin || origin === 'null') return false;
+		try {
+			var host = new URL(origin).hostname.toLowerCase();
+			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	window.NUVANXGoogleAttributionLegacy = Object.freeze({
+		onFormReady: function (formLike) {
+			populateLegacyClickFields(formLike);
+		},
+		onBeforeFormSubmit: function (formLike) {
+			captureLegacyEmail(formLike);
+		},
+	});
+
+	document.addEventListener('wp_listen_for_consent_change', refreshLegacyForms);
+	document.addEventListener('wp_consent_type_defined', refreshLegacyForms);
+
+	window.addEventListener('message', function (event) {
+		if (!isTrustedHubSpotOrigin(event.origin)) return;
+		var data = event.data || {};
+		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
+		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
+		transmitLegacySuccess();
+	});
+
+'''
+          text = text.replace(anchor, legacy + anchor)
+          conv.write_text(text)
+
+          runtime = Path('wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js')
+          rt = runtime.read_text()
+          old = """              formId: frame.dataset.formId || config.hubspotFormId,\n              target: '#' + frame.id\n"""
+          new = """              formId: frame.dataset.formId || config.hubspotFormId,\n              target: '#' + frame.id,\n              onFormReady: function ($form) {\n                try {\n                  const hooks = window.NUVANXGoogleAttributionLegacy;\n                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form);\n                } catch (_error) {}\n              },\n              onBeforeFormSubmit: function ($form) {\n                try {\n                  const hooks = window.NUVANXGoogleAttributionLegacy;\n                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form);\n                } catch (_error) {}\n              }\n"""
+          if rt.count(old) != 1:
+              raise SystemExit(f'Expected one hbspt forms.create target anchor, found {rt.count(old)}')
+          runtime.write_text(rt.replace(old, new))
+          PY
+
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          grep -Fq 'NUVANXGoogleAttributionLegacy' wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          grep -Fq 'onBeforeFormSubmit' wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          grep -Fq "forms/v2.js" wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          ! grep -Fq "forms/embed/" wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          git diff --check
+
+          git config user.name 'NUVANX Release Automation'
+          git config user.email 'admin@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          git commit -m 'fix(attribution): support legacy HubSpot form callbacks'
+          git push origin HEAD:fix/google-attribution-legacy-form-20260808

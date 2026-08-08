@@ -187,7 +187,13 @@
 	}
 
 	function persistClickValues() {
-		if (!hasGoogleClickIdentifier(clickValues) || !hasMarketingConsent()) return;
+		if (!hasMarketingConsent()) {
+			try {
+				window.sessionStorage.removeItem('nvx_google_click_ids');
+			} catch (_error) {}
+			return;
+		}
+		if (!hasGoogleClickIdentifier(clickValues)) return;
 		try {
 			window.sessionStorage.setItem('nvx_google_click_ids', JSON.stringify(clickValues));
 		} catch (_error) {}

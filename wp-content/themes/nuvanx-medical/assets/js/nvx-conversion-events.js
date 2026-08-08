@@ -269,9 +269,12 @@
 		};
 	}
 
-	async function transmit(payload) {
-		if (sent || !payload || !hasMarketingConsent()) return;
+	var inFlight = false;
 
+	async function transmit(payload) {
+		if (sent || inFlight || !payload || !hasMarketingConsent()) return;
+
+		inFlight = true;
 		try {
 			var response = await window.fetch(ENDPOINT, {
 				method: 'POST',
@@ -289,6 +292,8 @@
 			}
 		} catch (_error) {
 			// Attribution failure must never interfere with the patient form flow.
+		} finally {
+			inFlight = false;
 		}
 	}
 

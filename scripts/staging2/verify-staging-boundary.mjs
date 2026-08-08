@@ -292,6 +292,7 @@ for (const route of routes) {
         const decodedRobots = b64Match
           ? Buffer.from(b64Match[1], 'base64').toString('utf8').trim()
           : '';
+        result.edgeRobots = result.robots;
         result.robots =
           /noindex/i.test(decodedRobots) && /nofollow/i.test(decodedRobots)
             ? decodedRobots

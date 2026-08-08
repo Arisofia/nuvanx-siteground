@@ -228,7 +228,13 @@ async function fetchSameHost(url, maxRedirects = 5) {
   throw new Error(`Too many redirects for ${url}`);
 }
 
-const originFallbackAvailable = await sshAliasConfigured(originSshAlias);
+let originFallbackAvailable = null;
+async function getOriginFallbackAvailable() {
+  if (originFallbackAvailable !== null) return originFallbackAvailable;
+  originFallbackAvailable = await sshAliasConfigured(originSshAlias);
+  report.originFallbackAvailable = originFallbackAvailable;
+  return originFallbackAvailable;
+}
 const report = {
   baseUrl,
   expectedHost,
@@ -238,7 +244,7 @@ const report = {
   transientBaseDelayMs,
   requestTimeoutMs,
   originFallbackAlias: originSshAlias,
-  originFallbackAvailable,
+  originFallbackAvailable: false,
   routes: [],
   failures: [],
 };
@@ -265,7 +271,7 @@ for (const route of routes) {
     result.deploySha = deploySha;
     result.issues = [];
 
-    if (transientEdge && originFallbackAvailable) {
+    if (transientEdge && (await getOriginFallbackAvailable())) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {

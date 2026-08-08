@@ -438,6 +438,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Roll back failed PR preview
+        id: rollback
         if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
         shell: bash
         run: |
@@ -475,6 +476,21 @@ jobs:
           fi
           echo 'PR_ROLLBACK_STAGING=PASS'
           REMOTE
+
+      - name: Alert on failed rollback
+        if: ${{ failure() && steps.rollback.conclusion == 'failure' }}
+        shell: bash
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${SLACK_WEBHOOK_URL:-}" ]]; then
+            curl -fsS -X POST -H "Content-type: application/json" \
+              --data "{\"text\": \"🚨 *URGENT: Staging2 Rollback Failed* 🚨\n\n*Repository:* $GITHUB_REPOSITORY\n*Run ID:* $GITHUB_RUN_ID\n*Job:* PR Preview #$PR_NUMBER\n*SHA:* $PR_SHA\n\nManual intervention is required to restore Staging2 to a consistent state.\"}" \
+              "$SLACK_WEBHOOK_URL"
+          else
+            echo "WARNING: SLACK_WEBHOOK_URL is not set, unable to send alert." >&2
+          fi
 
       - name: Remove temporary remote payload and successful snapshot
         if: always()

@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 
 const baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
-const formId = process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+const formId = (process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c').trim().toLowerCase();
 const expectedSha = process.env.EXPECTED_SHA || ''; // Optional pinning
 
 const gclid = `NVXQA_RUNTIME_${Date.now()}`;

@@ -31,7 +31,7 @@ test "$(wp option get blog_public)" = '1'
 test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
 pass "PRODUCTION_IDENTITY sha=$release_sha"
 
-ua='NUVANX-SEO-GEO-Origin-Audit/1.2'
+ua='NUVANX-SEO-GEO-Origin-Audit/1.3'
 HTTP_CODE=''
 EFFECTIVE_URL=''
 HEADERS=''
@@ -77,7 +77,6 @@ if ($argc < 5) exit(2);
 [$script, $file, $expectedUrl, $expectedSha, $critical] = $argv;
 $html = file_get_contents($file);
 if ($html === false || $html === '') exit(2);
-$rawTitleCount = preg_match_all('/<title\b[^>]*>.*?<\/title>/is', $html);
 libxml_use_internal_errors(true);
 $dom = new DOMDocument();
 $dom->loadHTML($html, LIBXML_NOWARNING | LIBXML_NOERROR);
@@ -101,7 +100,7 @@ $texts = static function (DOMXPath $xp, string $query): array {
     return $out;
 };
 $norm = static fn(string $u): string => rtrim((string) preg_replace('/[#?].*$/', '', trim($u)), '/') . '/';
-$titles = $texts($xp, '//title');
+$titles = $texts($xp, '/html/head/title');
 $desc = $attrs($xp, '//meta[translate(@name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="description"]', 'content');
 $robots = $attrs($xp, '//meta[translate(@name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="robots"]', 'content');
 $canon = $attrs($xp, '//link[contains(concat(" ", normalize-space(translate(@rel,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")), " "), " canonical ")]', 'href');
@@ -110,8 +109,8 @@ $deploy = $attrs($xp, '//meta[translate(@name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcd
 $h1 = $texts($xp, '//h1');
 $schemas = $texts($xp, '//script[translate(@type,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")="application/ld+json"]');
 $issues = []; $warn = [];
-if ($rawTitleCount < 1 || trim($titles[0] ?? '') === '') $issues[] = 'missing-or-empty-title';
-if ($rawTitleCount > 1) $issues[] = 'duplicate-title';
+if (count($titles) < 1 || trim($titles[0] ?? '') === '') $issues[] = 'missing-or-empty-title';
+if (count($titles) > 1) $issues[] = 'duplicate-title';
 if (count($canon) !== 1) $issues[] = 'canonical-count-' . count($canon);
 elseif ($norm($canon[0]) !== $norm($expectedUrl)) $issues[] = 'canonical-mismatch:' . $canon[0];
 if (count($og) !== 1) $issues[] = 'og-url-count-' . count($og);
@@ -129,7 +128,7 @@ if (count($desc) > 1) $issues[] = 'duplicate-meta-description';
 echo json_encode([
     'url'=>$expectedUrl,
     'title'=>preg_replace('/[\t\r\n]+/u', ' ', $titles[0] ?? ''),
-    'raw_title_count'=>$rawTitleCount,
+    'head_title_count'=>count($titles),
     'description_length'=>strlen($desc[0] ?? ''),
     'canonical'=>$canon[0] ?? '',
     'og_url'=>$og[0] ?? '',

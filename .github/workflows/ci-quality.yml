@@ -80,7 +80,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd wp-content/themes/nuvanx-medical
-          composer install --no-interaction --no-progress --prefer-dist || composer update --no-interaction --no-progress --prefer-dist
+          composer install --no-interaction --no-progress --prefer-dist
       - name: Run PHP_CodeSniffer (produce report artifact)
         run: |
           set -o pipefail
@@ -112,7 +112,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd wp-content/themes/nuvanx-medical
-          composer install --no-interaction --no-progress --prefer-dist || composer update --no-interaction --no-progress --prefer-dist
+          composer install --no-interaction --no-progress --prefer-dist
       - name: PHPStan info
         run: |
           cd wp-content/themes/nuvanx-medical

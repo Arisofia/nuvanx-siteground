@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-const originSshAlias = 'nvx-staging2';
+const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
 const routes = [
   '/',
   '/soluciones-medicas/',
@@ -87,18 +87,12 @@ function isTransientSiteGroundChallenge(response) {
 }
 
 async function sshAliasConfigured(alias) {
-  const home = process.env.HOME || '';
-  if (!home) return false;
+  const sshBin = process.env.SSH_BINARY || 'ssh';
   try {
-    const config = await fs.readFile(path.join(home, '.ssh', 'config'), 'utf8');
-    return config.split(/\r?\n/).some((line) => {
-      const parts = line.trim().split(/\s+/);
-      return (
-        parts.length > 1 &&
-        parts[0].toLowerCase() === 'host' &&
-        parts.slice(1).includes(alias)
-      );
+    const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
+      encoding: 'utf8',
     });
+    return result.status === 0;
   } catch {
     return false;
   }
@@ -112,23 +106,23 @@ function verifyViaSiteGroundOrigin(route) {
     'body="$(mktemp)"',
     'cleanup() { rm -f "$headers" "$body"; }',
     'trap cleanup EXIT',
-    'result="$(curl -sS -L --max-redirs 5 --max-time 30 -A \'NUVANX-Staging-Origin-Boundary/1.1\' -H \'Accept: text/html,application/xhtml+xml\' -D "$headers" -o "$body" -w \'%{http_code}|%{url_effective}\' "${base_url}${ROUTE}")"',
+    `result="$(curl -sS -L --max-redirs 5 --max-time 30 -A 'NUVANX-Staging-Origin-Boundary/1.1' -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "\${base_url}\${ROUTE}")"`, 
     'code="${result%%|*}"',
     'effective="${result#*|}"',
-    'test "$code" = \'200\'',
+    `test "$code" = '200'`, 
     'case "$effective" in',
     '  "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;;',
     '  *) echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;;',
     'esac',
-    '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
-    '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
+    `! grep -Fq '/.well-known/sgcaptcha/' "$body"`,
+    `! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"`,
     'grep -Fq "$EXPECTED_SHA" "$body"',
-    'robots_meta="$(grep -Eio \'<meta[^>]+name=[^ >]*robots[^ >]*[^>]*>\' "$body" | head -n 1 || true)"',
-    'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
+    `robots_meta="$(grep -Eio '<meta[^>]+name=[^ >]*robots[^ >]*[^>]*>' "$body" | head -n 1 || true)"`,
+    `xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"`,
     'combined="${robots_meta} ${xrobots}"',
-    'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',
-    'printf \'%s\' "$combined" | grep -Eiq \'nofollow\'',
-    'if printf \'%s\' "$combined" | grep -Eiq \'(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow\'; then',
+    `printf '%s' "$combined" | grep -Eiq 'noindex'`,
+    `printf '%s' "$combined" | grep -Eiq 'nofollow'`,
+    `if printf '%s' "$combined" | grep -Eiq '(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow'; then`, 
     '  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2',
     '  exit 1',
     'fi',
@@ -137,7 +131,8 @@ function verifyViaSiteGroundOrigin(route) {
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  const result = spawnSync('/usr/bin/ssh', [originSshAlias, remoteCommand], {
+  const sshBin = process.env.SSH_BINARY || 'ssh';
+  const result = spawnSync(sshBin, [originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
     timeout: 60000,

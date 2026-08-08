@@ -1,0 +1,44 @@
+name: TEMP Fix Legacy Attribution Review
+
+on:
+  push:
+    branches:
+      - automation/fix-legacy-attribution-review-20260808
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout patch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: automation/fix-legacy-attribution-review-20260808
+          path: patchsrc
+          persist-credentials: false
+
+      - name: Checkout target
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: fix/google-attribution-legacy-form-v2-20260808
+          path: target
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply review fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 patchsrc/scripts/tmp_fix_legacy_attribution_review.py target
+          node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          cd target
+          git diff --check
+          git diff --exit-code -- . ':!wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js'
+          git config user.name 'NUVANX Release Automation'
+          git config user.email 'admin@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          git commit -m 'fix(attribution): harden consent revocation and legacy callbacks'
+          git push origin HEAD:fix/google-attribution-legacy-form-v2-20260808

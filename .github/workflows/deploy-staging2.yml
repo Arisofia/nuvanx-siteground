@@ -418,21 +418,6 @@ jobs:
           echo 'ROLLBACK_STAGING=PASS'
           REMOTE
 
-      - name: Alert on failed rollback
-        if: ${{ !success() && env.STAGING_MUTATION_ARMED == '1' && steps.rollback.conclusion != 'success' }}
-        shell: bash
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          set -euo pipefail
-          if [[ -n "${SLACK_WEBHOOK_URL:-}" ]]; then
-            curl -fsS -X POST -H "Content-type: application/json" \
-              --data "{\"text\": \"🚨 *URGENT: Staging2 Rollback Failed* 🚨\n\n*Repository:* $GITHUB_REPOSITORY\n*Run ID:* $GITHUB_RUN_ID\n*Job:* Deploy Staging2\n*SHA:* $DEPLOY_SHA\n\nManual intervention is required to restore Staging2 to a consistent state.\"}" \
-              "$SLACK_WEBHOOK_URL"
-          else
-            echo "WARNING: SLACK_WEBHOOK_URL is not set, unable to send alert." >&2
-          fi
-
       - name: Upload Block A boundary evidence
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0

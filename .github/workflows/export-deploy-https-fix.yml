@@ -1,0 +1,45 @@
+name: Export Deploy HTTPS Fix
+
+on:
+  push:
+    branches:
+      - audit/repo-clean-20260808-1840
+    paths:
+      - .github/workflows/export-deploy-https-fix.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: audit/repo-clean-20260808-1840
+          persist-credentials: false
+      - name: Apply exact HTTPS-only redirect hardening
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('.github/workflows/deploy.yml')
+          text = p.read_text(encoding='utf-8')
+          old = 'curl -fsSL \\\n'
+          new = "curl -fsSL --proto '=https' --proto-redir '=https' \\\n"
+          count = text.count(old)
+          if count != 2:
+              raise SystemExit(f'Expected exactly 2 curl -fsSL continuations, found {count}')
+          p.write_text(text.replace(old, new), encoding='utf-8')
+      - name: Validate generated workflow text
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -c -- "--proto '=https' --proto-redir '=https'" .github/workflows/deploy.yml | grep -qx '2'
+          ! grep -q '^          response="$(curl -fsSL \\' .github/workflows/deploy.yml
+      - name: Upload exact patched deploy workflow
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: deploy-https-fix
+          path: .github/workflows/deploy.yml
+          if-no-files-found: error
+          retention-days: 1

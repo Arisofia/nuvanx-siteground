@@ -463,7 +463,7 @@ function nvx_equipo_render_items_section( array $section ): string {
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid">';
+		$html .= '<ul class="nvx-brand-card-grid" role="list">';
 		foreach ( $items as $item ) {
 			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
@@ -492,7 +492,7 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 		return '';
 	}
 
-	$html = '<ul class="nvx-brand-card-grid">';
+	$html = '<ul class="nvx-brand-card-grid" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li class="nvx-brand-card">';
 		if ( ! empty( $item['title'] ) ) {
@@ -520,7 +520,7 @@ function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
 
 	$html  = '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
 	$html .= '<p class="nvx-fact-panel__label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-fact-panel__list">';
+	$html .= '<ul class="nvx-fact-panel__list" role="list">';
 	foreach ( $facts as $fact ) {
 		$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
 	}

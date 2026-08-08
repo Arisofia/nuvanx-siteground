@@ -89,7 +89,7 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 }
 
 function nvx_aesthetic_treatment_list_markup( array $items ): string {
-	$html = '<ul class="nvx-aes-panel-list">';
+	$html = '<ul class="nvx-aes-panel-list" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}

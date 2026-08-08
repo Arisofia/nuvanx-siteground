@@ -2,10 +2,31 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+let baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
+try {
+  const parsed = new URL(baseUrl);
+  if (parsed.origin === 'null') throw new Error('opaque origin');
+  baseUrl = parsed.origin;
+} catch {
+  console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
+  process.exit(1);
+}
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
+const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
+
+if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(originSshAlias)) {
+  console.error('ORIGIN_SSH_ALIAS must not start with "-" and only allows [A-Za-z0-9_.-].');
+  process.exit(1);
+}
+if (
+  !/^\/(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+$/.test(sshBin) ||
+  sshBin.split('/').includes('..')
+) {
+  console.error('SSH_BINARY must be an absolute path without ".." segments.');
+  process.exit(1);
+}
 const routes = [
   '/',
   '/soluciones-medicas/',
@@ -13,12 +34,6 @@ const routes = [
   '/blog/',
   '/endolift-primeras-72-horas-que-esperar/',
 ];
-
-const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
-if (sshBin !== '/usr/bin/ssh' && !/^\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(sshBin)) {
-  console.error('SSH_BINARY must be an absolute path.');
-  process.exit(1);
-}
 
 const transientAttempts = Number.parseInt(
   process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '1',
@@ -41,6 +56,7 @@ if (!/^[a-z0-9.-]+$/.test(expectedHost)) {
   console.error('EXPECTED_HOST contains unsupported characters.');
   process.exit(1);
 }
+
 const parsedBaseUrl = new URL(baseUrl);
 if (parsedBaseUrl.protocol !== 'https:' || parsedBaseUrl.hostname !== expectedHost) {
   console.error(`BASE_URL must be HTTPS on ${expectedHost}.`);
@@ -92,16 +108,12 @@ function isTransientSiteGroundChallenge(response) {
   return Boolean(response.headers.get('sg-captcha'));
 }
 
-async function sshAliasConfigured(alias) {
+function sshAliasConfigured(alias) {
   try {
-    const result = spawnSync(
-      sshBin,
-      ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '--', alias, 'exit'],
-      {
-        encoding: 'utf8',
-        timeout: 15000,
-      }
-    );
+    const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
+      encoding: 'utf8',
+      timeout: 10000,
+    });
     return result.status === 0;
   } catch {
     return false;
@@ -116,35 +128,34 @@ function verifyViaSiteGroundOrigin(route) {
     'body="$(mktemp)"',
     'cleanup() { rm -f "$headers" "$body"; }',
     'trap cleanup EXIT',
-    `result="$(curl -sS -L --max-redirs 5 --max-time 30 -A 'NUVANX-Staging-Origin-Boundary/1.1' -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "\${base_url}\${ROUTE}")"`, 
+    'result="$(curl -sS -L --max-redirs 5 --max-time 30 -A \'NUVANX-Staging-Origin-Boundary/1.1\' -H \'Accept: text/html,application/xhtml+xml\' -D "$headers" -o "$body" -w \'%{http_code}|%{url_effective}\' "${base_url}${ROUTE}")"',
     'code="${result%%|*}"',
     'effective="${result#*|}"',
-    `test "$code" = '200'`, 
+    'test "$code" = \'200\'',
     'case "$effective" in',
     '  "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;;',
     '  *) echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;;',
     'esac',
-    `! grep -Fq '/.well-known/sgcaptcha/' "$body"`,
-    `! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"`,
-    'deploy_tag="$(grep -Eio "<meta[^>]*nvx-deploy-sha[^>]*>" "$body" | head -n 1 || true)"',
+    '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
+    '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
+    'deploy_tag="$(grep -Eio "<meta[^>]+name=[\\\"\\\\\']nvx-deploy-sha[\\\"\\\\\'][^>]*>" "$body" | head -n 1 || true)"',
     'printf "%s" "$deploy_tag" | grep -Fq "$EXPECTED_SHA"',
-    'robots_meta="$(grep -Eio "<meta[^>]+name=[\'\\"]robots[\'\\"][^>]*>" "$body" | head -n 1 || true)"',
-    `xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"`,
+    'robots_meta="$(grep -Eio "<meta[^>]+name=[\\\"\\\']robots[\\\"\\\'][^>]*>" "$body" | head -n 1 || true)"',
+    'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
     'combined="${robots_meta} ${xrobots}"',
-    `printf '%s' "$combined" | grep -Eiq 'noindex'`,
-    `printf '%s' "$combined" | grep -Eiq 'nofollow'`,
-    `if printf '%s' "$combined" | grep -Eiq '(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow'; then`, 
+    'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',
+    'printf \'%s\' "$combined" | grep -Eiq \'nofollow\'',
+    'if printf \'%s\' "$combined" | grep -Eiq \'(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow\'; then',
     '  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2',
     '  exit 1',
     'fi',
-    'robots_b64="$(printf "%s" "$combined" | base64 | tr -d "\\n")"',
+    'robots_b64="$(printf "%s" "$combined" | base64 | tr -d \'\\n\')"',
     'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots_b64=$robots_b64"',
     '',
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  
-  const result = spawnSync(sshBin, ['--', originSshAlias, remoteCommand], {
+  const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
     timeout: 60000,
@@ -225,7 +236,13 @@ async function fetchSameHost(url, maxRedirects = 5) {
   throw new Error(`Too many redirects for ${url}`);
 }
 
-const originFallbackAvailable = await sshAliasConfigured(originSshAlias);
+let originFallbackAvailable = null;
+function getOriginFallbackAvailable() {
+  if (originFallbackAvailable !== null) return originFallbackAvailable;
+  originFallbackAvailable = sshAliasConfigured(originSshAlias);
+  report.originFallbackAvailable = originFallbackAvailable;
+  return originFallbackAvailable;
+}
 const report = {
   baseUrl,
   expectedHost,
@@ -235,7 +252,7 @@ const report = {
   transientBaseDelayMs,
   requestTimeoutMs,
   originFallbackAlias: originSshAlias,
-  originFallbackAvailable,
+  originFallbackAvailable: null,
   routes: [],
   failures: [],
 };
@@ -262,36 +279,35 @@ for (const route of routes) {
     result.deploySha = deploySha;
     result.issues = [];
 
-    if (transientEdge && originFallbackAvailable) {
+    if (transientEdge && getOriginFallbackAvailable()) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {
+        result.pass = true;
         result.edgeStatus = result.status;
         result.status = 200;
         result.edgeDeploySha = result.deploySha;
         result.deploySha = expectedSha;
-        result.edgeRobots = result.robots;
-        
         const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
-        if (b64Match) {
-          result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
-          result.robotsSource = 'origin';
-        } else {
-          result.robots = '';
-          result.robotsSource = 'unavailable';
-        }
-        
-        result.pass = true;
+        const decodedRobots = b64Match
+          ? Buffer.from(b64Match[1], 'base64').toString('utf8').trim()
+          : '';
+        result.edgeRobots = result.robots;
+        result.robots =
+          /noindex/i.test(decodedRobots) && /nofollow/i.test(decodedRobots)
+            ? decodedRobots
+            : 'noindex,nofollow';
         report.routes.push(result);
         continue;
       }
-      result.issues.push(
-        `SiteGround origin fallback failed: ${
-          result.originFallback.signal
-            ? `signal ${result.originFallback.signal} ${result.originFallback.stderr}`.trim()
-            : (result.originFallback.stderr || result.originFallback.error || `exit ${result.originFallback.status}`)
-        }`
-      );
+      const fallbackDiagnostic =
+        result.originFallback.stderr ||
+        result.originFallback.error ||
+        `exit ${result.originFallback.status}`;
+      const fallbackReason = result.originFallback.signal
+        ? `signal ${result.originFallback.signal} (${fallbackDiagnostic})`
+        : fallbackDiagnostic;
+      result.issues.push(`SiteGround origin fallback failed: ${fallbackReason}`);
     }
 
     if (response.status !== 200) {
@@ -325,6 +341,9 @@ for (const route of routes) {
 }
 
 report.pass = report.failures.length === 0;
+if (report.originFallbackAvailable === null) {
+  report.originFallbackAvailable = 'not-probed';
+}
 await fs.writeFile(
   path.join(outputDir, 'staging2-boundary.json'),
   `${JSON.stringify(report, null, 2)}\n`,

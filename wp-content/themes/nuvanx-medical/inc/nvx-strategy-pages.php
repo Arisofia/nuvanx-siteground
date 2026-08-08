@@ -136,7 +136,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 
 	$html .= '<section class="nvx-brand-section nvx-strategy-checklist" aria-labelledby="why-hacemos">'
 		. '<h2 id="why-hacemos">Lo que hacemos siempre</h2>'
-		. '<ul class="nvx-check-list">'
+		. '<ul class="nvx-check-list" role="list">'
 		. '<li>Exploración médica antes de proponer cualquier tratamiento</li>'
 		. '<li>Presupuesto cerrado y por escrito antes de iniciar el procedimiento</li>'
 		. '<li>El médico que hace la valoración es el mismo que ejecuta el tratamiento</li>'
@@ -148,7 +148,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 
 	$html .= '<section class="nvx-brand-section nvx-strategy-checklist nvx-strategy-checklist--no" aria-labelledby="why-no-hacemos">'
 		. '<h2 id="why-no-hacemos">Lo que no hacemos</h2>'
-		. '<ul class="nvx-check-list nvx-check-list--no">'
+		. '<ul class="nvx-check-list nvx-check-list--no" role="list">'
 		. '<li>Descuentos de temporada ni urgencia de precio</li>'
 		. '<li>Financiación como argumento de venta principal</li>'
 		. '<li>Tratamientos sin indicación clínica previa documentada</li>'

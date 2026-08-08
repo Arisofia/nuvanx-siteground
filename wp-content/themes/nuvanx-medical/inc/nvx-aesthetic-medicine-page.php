@@ -287,7 +287,7 @@ function nvx_aesthetic_regen_section_markup(): string {
 	$html .= '</div>';
 	$html .= '<aside class="nvx-aes-regen__panel" aria-label="' . esc_attr__( 'Criterio regenerativo', 'nuvanx-medical' ) . '">';
 	$html .= '<p class="nvx-aes-meta-label">' . esc_html__( 'Criterio clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-aes-panel-list">';
+	$html .= '<ul class="nvx-aes-panel-list" role="list">';
 	$html .= '<li><strong>' . esc_html__( 'Sin volumen artificial', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Tensado por neocolagénesis, no por relleno masivo.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Resultado bifásico', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Mejora progresiva entre semanas y meses según el protocolo.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Indicación médica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Fototipo, elastosis y calidad dérmica definen el plan.', 'nuvanx-medical' ) . '</li>';

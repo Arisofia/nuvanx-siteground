@@ -1,0 +1,95 @@
+name: Apply Visual Remediation Block 1 Once
+
+on:
+  push:
+    branches:
+      - fix/visual-site-audit-20260808
+    paths:
+      - .github/workflows/apply-visual-block1-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    name: Apply proven root fixes and validate full theme
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/visual-site-audit-20260808
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Refuse unexpected branch movement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = 'fix/visual-site-audit-20260808'
+          test "$(git status --porcelain)" = ''
+          git fetch origin master fix/visual-site-audit-20260808
+          git merge-base --is-ancestor origin/master HEAD
+
+      - name: Apply evidence-backed Block 1 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/staging2/apply-visual-block1.py
+
+      - name: Validate every PHP file
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical \
+            -path '*/vendor' -prune -o \
+            -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/tmp/php-lint.txt
+          test -s /tmp/php-lint.txt
+          tail -n 10 /tmp/php-lint.txt
+
+      - name: Validate every JavaScript file
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+            count=$((count + 1))
+          done < <(find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.js' -type f -print0)
+          test "$count" -gt 0
+          echo "JS_FILES_CHECKED=$count"
+
+      - name: Validate exact scope and source contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only | sort)"
+          expected="$(printf '%s\n' \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css \
+            wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php | sort)"
+          test "$changed" = "$expected"
+          grep -Fq "'contour-architecture' => array(" wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+          grep -Fq "'post-maternity'       => array(" wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+          grep -Fq 'Canonical interior brand hero surface.' wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
+          grep -Fq 'NUVANX VISUAL FORENSIC BLOCK 1' wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          echo 'BLOCK1_STATIC_SCOPE=PASS'
+          git diff --stat
+          git diff -- wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+
+      - name: Commit only validated theme changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Audit Controller'
+          git config user.email 'audit-controller@nuvanx.invalid'
+          git add -- \
+            wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          test -z "$(git diff --name-only)"
+          git diff --cached --check
+          git commit -m 'fix(visual): restore canonical editorial page contracts'
+          git push origin HEAD:fix/visual-site-audit-20260808

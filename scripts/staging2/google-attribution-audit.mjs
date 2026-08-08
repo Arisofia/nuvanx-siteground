@@ -7,7 +7,7 @@ const expectedSha = process.env.EXPECTED_SHA || ''; // Optional pinning
 const gclid = `NVXQA_RUNTIME_${Date.now()}`;
 const target = `${baseUrl}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 try {
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
@@ -15,8 +15,13 @@ try {
   const page = await context.newPage();
   let response = null;
   for (let attempt = 1; attempt <= 6; attempt += 1) {
-    response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    const status = response?.status() || 0;
+    let status = 0;
+    try {
+      response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      status = response?.status() || 0;
+    } catch (err) {
+      console.log(`Navigation failed: ${err.message}`);
+    }
     const isSuccess = status === 200;
     const isRetriable =
       status === 0 || // network / no-response cases
@@ -99,6 +104,10 @@ try {
     throw new Error('HubSpot canonical form does not expose a GCLID target field');
   }
   
+  if (state.marketing === true) {
+    throw new Error('Marketing consent was already granted before the allow step; cannot verify pre-consent state');
+  }
+  
   const valuesBefore = state.fieldsBefore.flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
   if (valuesBefore.includes(gclid)) {
     throw new Error('GCLID leaked to HubSpot field BEFORE marketing consent was allowed');
@@ -107,6 +116,9 @@ try {
   if (state.wpSetConsentType === 'function') {
     if (state.allowError) {
       throw new Error(`wp_set_consent threw error: ${state.allowError}`);
+    }
+    if (state.marketingAfterAllow !== true) {
+      throw new Error(`Marketing consent did not become true after allow step (got: ${state.marketingAfterAllow})`);
     }
     const values = state.fieldsAfterAllow.flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
     if (!values.includes(gclid)) throw new Error('GCLID was not populated after marketing consent allow');

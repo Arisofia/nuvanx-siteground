@@ -23,15 +23,17 @@ id_*
 *.tgz
 *.zip
 *.gz
+composer.phar
 
 # ============================================================
-# WordPress runtime data
+# WordPress runtime and generated dependency data
 # ============================================================
 
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/wflogs/
+wp-content/themes/nuvanx-medical/vendor/
 
 # ============================================================
 # Logs / operating-system files
@@ -47,19 +49,29 @@ Thumbs.db
 # ============================================================
 
 node_modules/
+.vscode/
+.idea/
 mcps/
 Nuvanx-System/
 
 # ============================================================
-# Generated QA / test output
+# Generated QA / audit / test output
 # ============================================================
 
 artifacts/
+audit/
+audit-*.txt
 playwright-report/
 test-results/
 
 # ============================================================
-# Local scratch space
+# Local scratch / patch residue
 # ============================================================
 
 scratch/
+*.orig
+*.rej
+*.bak
+*.tmp
+*.swp
+*~

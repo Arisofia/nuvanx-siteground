@@ -1,39 +1,34 @@
 # INCIDENT 2026-07-15 — Closure & Evidence
 
-This document records closure activities for the incident originally described in docs/security/INCIDENT-2026-07-15.md (deleted in later cleanup commit). Use this file to store verifiable evidence of completed actions.
+> Historical security evidence. This file is retained for incident traceability only; it is **not** a current deployment or remediation runbook. For current operations use `docs/operations/deployment.md` and `SECURITY.md`. Blank checklist fields below indicate evidence that was not recorded in this repository and must not be inferred as completed.
+
+This document records closure activities for the incident originally described in `docs/security/INCIDENT-2026-07-15.md` (removed in a later cleanup commit).
 
 ## Summary
-- **Incident:** accidental commit of WordPress backup with auth salts to public repository.
-- **First reported:** 2026-07-15
-- **Initial remediation:** repository set private, credentials rotated in production, sessions invalidated, history rewritten with git filter-repo (see local-secure copy).
 
-## Closure checklist
+- **Incident:** accidental commit of a WordPress backup containing authentication salts to a public repository.
+- **First reported:** 2026-07-15.
+- **Recorded initial remediation:** repository privacy/credential/session/history remediation was described in the incident-era records. Treat those statements as historical evidence, not current credential state.
+
+## Historical closure checklist
 
 - [ ] **GitHub Support PR refs purge requested**
-  - Ticket: <GH Ticket #>
-  - Request date:
-  - Support response (copy/paste excerpt):
-  - Completed: [yes/no] Date:
+  - Ticket: not recorded in repository
+  - Request date: not recorded
+  - Support response: not recorded
 
 - [ ] **Confirm DB credential rotation**
-  - Rotated by: <name/email>
-  - Rotation timestamp:
-  - Evidence: (command output / audit log / CI secret update)
+  - Evidence: not recorded in this file
 
 - [ ] **Admin list approved**
-  - Approver: <name/email>
-  - Approval timestamp:
-  - Evidence:
+  - Evidence: not recorded in this file
 
-- [ ] **Retained evidence in repo:** this closure doc + secure attach of sanitized logs
-- [ ] **Lessons learned and required process changes added to SECURITY.md**
+- [ ] **Lessons learned and required process changes added to `SECURITY.md`**
 
-## Append evidence below
-(Paste GitHub Support ticket text, rotation logs, commands, screenshots). Do not include secrets in this document.
+## Audit references
 
----
+- Commit that removed the original incident document: `22f151d4`.
+- Recovery record: `docs/security/INCIDENT-2026-07-15-RECOVERY.md`.
+- Historical remediation reference: commit `9d6145ce` removed SiteGround operational secret files from the active tree.
 
-## Audit References
-- Commit that removed original incident doc: `22f151d4` (cleanup for client delivery)
-- Recovery document created: `docs/security/INCIDENT-2026-07-15-RECOVERY.md`
-- Forensic audit confirmation: commit `9d6145ce` removed SiteGround operational secrets
+Do not add credentials, secret values, private keys or raw sensitive logs to this document.

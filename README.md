@@ -1,96 +1,70 @@
-# NUVANX repository
+# NUVANX SiteGround
 
-Canonical source for the NUVANX WordPress site on SiteGround.
+Canonical source repository for the NUVANX WordPress theme and the operational tooling used to validate and deploy it to SiteGround.
 
-## Structure
+## Source of truth
 
-| Path | Role |
-|------|------|
-| `wp-content/themes/nuvanx-medical/` | Canonical production theme |
-| `wp-content/mu-plugins/` | Required NUVANX must-use plugins |
-| `tools/deploy/` | Host-level deploy and cache scripts |
-| `scripts/staging2/` | Staging2 rendered acceptance and visual helpers |
-| `.github/workflows/` | Permanent CI and deploy workflows |
-| `docs/` | Architecture and operations documentation |
+- Canonical branch: `master`
+- Theme: `wp-content/themes/nuvanx-medical/`
+- Required MU plugin source: `wp-content/mu-plugins/`
+- Staging2: `https://staging2.nuvanx.com`
+- Production: `https://nuvanx.com`
+- Deployment identity: exact 40-character Git SHA stored in `.nvx-deploy-sha`
 
-Only one theme is tracked: `nuvanx-medical`.
+Git history is the archive for retired audits, diagnostics and incident-era implementation details. They are intentionally not kept in the active tree.
 
-## Prerequisites & Development
-
-- **PHP**: 8.1+ (production target running on SiteGround).
-- **Node.js**: v22+ (required for running `scripts/staging2/verify-rendered-document.mjs` and visual QA scripts).
-- **WP-CLI & rsync**: required on SiteGround target host for automated deployment execution.
-
-### Local Audit & Validation Commands
-
-```bash
-# Lint theme PHP files
-find wp-content/themes/nuvanx-medical/ -name "*.php" -exec php -l {} \;
-
-# Validate staging2 script syntax
-node --check scripts/staging2/verify-rendered-document.mjs
-bash -n tools/deploy/deploy-to-staging2.sh
-
-# Test CMS cleanup in dry-run mode offline
-php tools/deploy/nvx-cms-content-cleanup.php --self-test
-
-# Run CSS/PHP linting
-node scripts/lint/no-hardcoded-colors.mjs
-node scripts/lint/no-hardcoded-fontsize.mjs
-node scripts/lint/no-inline-layout-styles.mjs
-```
-
-## Branching & Release Policy
-
-- `master`: Main source of truth for production code. A push to `master` triggers the Staging2 deployment workflow; it does **not** promote code to production.
-- Pull requests: the Staging2 workflow validates the deployment contract, while the actual deployment job runs only for `master`.
-- Production promotion remains manual and host-authorized only after Staging2 rendered acceptance passes for the exact SHA.
-
-## Workflows & Secrets
+## Permanent GitHub Actions
 
 | Workflow | Purpose |
-|----------|---------|
-| **Code Quality (Lint)** | PHP syntax, PHPCS, PHPStan, and custom CSS/PHP linting |
-| **Deploy Staging2** | Validates deployment contracts on pull requests and deploys an immutable SHA to `staging2.nuvanx.com` on `master` |
-| **Deploy** | Production deployment with E2E Playwright testing and atomic SiteGround sync |
+|---|---|
+| `ci-quality.yml` | Manual PHP syntax, custom lint, secret-history, PHPCS and PHPStan checks |
+| `security-gate.yml` | Manual Gitleaks security gate |
+| `deploy-staging2.yml` | Reusable exact-SHA Staging2 deployment (`workflow_call`) |
+| `staging2-acceptance.yml` | Reusable canonical Block C acceptance (`workflow_call`) |
+| `deploy.yml` | Reusable production readiness gate; production mutation remains explicitly disabled until authorized |
+| `workflow-hygiene.yml` | Repository hygiene and anti-self-mutation gate on PRs and `master` |
 
-### GitHub Actions Secrets Configured
+A push to `master` does **not** automatically deploy Staging2 or production. Release orchestration must explicitly call the reusable deployment workflows with an exact accepted SHA.
 
-- `STAGING2_SSH_HOST`
-- `STAGING2_SSH_PORT`
-- `STAGING2_SSH_USER`
-- `STAGING2_SSH_PRIVATE_KEY`
-- `STAGING2_SSH_KNOWN_HOSTS`
+## Canonical validation
 
-## Deployment Checklist
+Staging browser acceptance is owned by:
 
-1. Merge the validated change into `master` and record the resulting full 40-character Git commit SHA.
-2. Allow **Deploy Staging2** to validate the deployment contract and deploy that immutable SHA to `staging2.nuvanx.com`.
-3. Confirm that **Staging2 Rendered Acceptance** completes successfully for the exact deployed SHA.
-4. Verify the deployment by checking the HTTP status and Content-Type for `/robots.txt` and `/sitemap.xml` (including the redirect behavior from `/sitemap.xml` to `/sitemap_index.xml`).
-5. Perform manual QA on `staging2.nuvanx.com`.
-6. Only after Staging2 acceptance and manual QA pass, consider the separate manual production promotion process.
+- `scripts/staging2/block-c-52x3.mjs`
+- `scripts/staging2/valoracion-placement.mjs`
+- `scripts/staging2/verify-staging-boundary.mjs`
+- `scripts/validate-page-templates.mjs`
 
-## Public Integrations Note
+Install browser dependencies only in the scoped package:
 
-HubSpot Portal ID (`147416356`) and Form ID (`5042522a-0bc5-4381-ac3e-5aee8649b69c`) are public-facing frontend markers embedded in the theme markup by design. They are intentionally preserved in the repository and will continue to be managed in the theme layer unless a separate security decision changes that policy.
+```bash
+cd scripts/staging2
+npm ci --ignore-scripts
+npx playwright install chromium
+```
 
-## SEO / Runtime Notes
+Then run the canonical harness from the repository root with `EXPECTED_SHA` set to the deployed SHA.
 
-- `/robots.txt` is expected to respond with HTTP 200 and `Content-Type: text/plain` on the runtime site; this should be verified during staging2 acceptance.
-- `/sitemap.xml` is expected to redirect to `/sitemap_index.xml`; Yoast SEO generates the XML sitemap index at runtime.
-- Runtime validation should include HTTP status and Content-Type checks for these endpoints, and the XML sitemap index should be verified on the deployed staging2 environment.
-- The site is currently scoped to Spanish content and does not maintain a multi-language hreflang matrix in this repository.
+## Operational tooling
+
+- `tools/deploy/deploy-to-staging2.sh`
+- `tools/deploy/deploy-to-prod.sh`
+- `tools/deploy/deploy-required-mu-plugins.sh`
+- `tools/deploy/flush-prod-cache.sh`
+- `tools/wp-cli/`
+
+Mutating scripts require their explicit confirmation guard. Production deployment is never inferred from branch name alone.
+
+## Dependency policy
+
+- Node browser dependencies are scoped to `scripts/staging2/`; there is no root Node package.
+- PHP development dependencies are declared by `wp-content/themes/nuvanx-medical/composer.json` and restored with Composer in CI.
+- `vendor/`, `composer.phar`, local editor settings, generated audits and QA artifacts are not source code and must not be committed.
 
 ## Documentation
 
-- [Architecture](docs/architecture.md)
-- [Deployment operations](docs/operations/deployment.md)
-- [Document governance](docs/operations/global-document-governance.md)
-- [Governance checklist](docs/operations/global-document-governance-checklist.md)
-- [Deploy helpers](tools/deploy/README.md)
-- [Design Guide](DESIGN_GUIDE.md) - Sistema de diseño unificado y principios de consistencia visual
-
-## Safety
-
-Confirm the active WordPress installation and SiteGround environment before any host-level promotion. Production promotion is manual and host-authorized only after Staging2 rendered acceptance passes for the exact SHA.
+- Architecture: `docs/architecture.md`
+- Deployment/runbook: `docs/operations/deployment.md`
+- Global document governance: `docs/global-document-governance.md`
+- Security policy: `SECURITY.md`
+- Historical security evidence: `docs/security/`

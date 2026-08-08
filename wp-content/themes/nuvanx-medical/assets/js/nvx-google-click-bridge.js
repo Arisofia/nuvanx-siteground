@@ -197,10 +197,18 @@
       eventName === 'onBeforeFormSubmit' ||
       eventName === 'onFormSubmit'
     );
-  }
-
   function handleLegacyHubSpotMessage(event) {
-    if (!event || !event.origin || !isTrustedHubSpotMessageOrigin(event.origin)) return;
+    if (!event || !event.origin || !isTrustedHubSpotMessageOrigin(event.origin) || !event.source) return;
+
+    var isValidSource = false;
+    var frames = document.querySelectorAll('iframe');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow === event.source) {
+        isValidSource = true;
+        break;
+      }
+    }
+    if (!isValidSource) return;
 
     var data = event.data;
     if (!data || data.type !== 'hsFormCallback' || !isLegacyFormEvent(data.eventName)) return;

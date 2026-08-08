@@ -95,7 +95,7 @@ jobs:
               break
             fi
             if [[ "$attempt" -lt 5 ]]; then
-              sleep "$((attempt * 10))"
+              sleep 10
             fi
           done
           if [[ "$connected" -ne 1 ]]; then

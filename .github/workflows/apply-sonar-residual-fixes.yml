@@ -1,0 +1,90 @@
+name: Apply Sonar Residual Fixes
+
+on:
+  push:
+    branches:
+      - audit/repo-clean-20260808-1840
+    paths:
+      - .github/workflows/apply-sonar-residual-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: audit/repo-clean-20260808-1840
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply exact residual fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace(path, old, new, expected=1):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f'{path}: expected {expected} occurrences, found {count}')
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          replace(
+              'scripts/lint/file-scan-utils.mjs',
+              ' * @param {Function} scanFile - Function that scans each matching file.\n * @return {Array} The combined violations from all matching files.',
+              ' * @param {(filePath: string) => Promise<Array>} scanFile - Async function that scans each matching file.\n * @return {Promise<Array>} The combined violations from all matching files.'
+          )
+
+          Path('scripts/lint/validate-routes-schema.mjs').write_text('''#!/usr/bin/env node\nimport fs from 'node:fs';\n\nconst EXPECTED_SCHEMA = 'wp-content/themes/nuvanx-medical/inc/data/routes.schema.json';\nconst EXPECTED_DATA = 'wp-content/themes/nuvanx-medical/inc/data/routes.json';\nconst [, , schemaArg = EXPECTED_SCHEMA, dataArg = EXPECTED_DATA] = process.argv;\nif (schemaArg !== EXPECTED_SCHEMA || dataArg !== EXPECTED_DATA) {\n  throw new Error(`Only canonical route files are allowed: ${EXPECTED_SCHEMA} ${EXPECTED_DATA}`);\n}\n\nconst schemaUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.schema.json', import.meta.url);\nconst dataUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.json', import.meta.url);\nconst schema = JSON.parse(fs.readFileSync(schemaUrl, 'utf8'));\nconst data = JSON.parse(fs.readFileSync(dataUrl, 'utf8'));\nconst routeSchema = schema.patternProperties?.['^/.*'];\nif (!routeSchema || schema.type !== 'object') throw new Error('Unsupported routes schema contract');\nif (!data || Array.isArray(data) || typeof data !== 'object') throw new Error('routes.json must be an object');\nconst allowed = new Set(Object.keys(routeSchema.properties || {}));\nfor (const [route, entry] of Object.entries(data)) {\n  if (!route.startsWith('/')) throw new Error(`Invalid route key: ${route}`);\n  if (!entry || Array.isArray(entry) || typeof entry !== 'object') throw new Error(`Route ${route} must map to an object`);\n  for (const [key, value] of Object.entries(entry)) {\n    if (!allowed.has(key)) throw new Error(`Route ${route} has unsupported property ${key}`);\n    const rule = routeSchema.properties[key] || {};\n    if (rule.type === 'string' && typeof value !== 'string') throw new Error(`Route ${route}.${key} must be a string`);\n    if (rule.type === 'integer' && !Number.isInteger(value)) throw new Error(`Route ${route}.${key} must be an integer`);\n    if (rule.enum && !rule.enum.includes(value)) throw new Error(`Route ${route}.${key} has invalid value ${value}`);\n  }\n}\nconsole.log(`ROUTES_SCHEMA=PASS routes=${Object.keys(data).length}`);\n''', encoding='utf-8')
+
+          replace(
+              'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js',
+              "\t\tvar token = String(value || '')\n\t\t\t.toLowerCase()\n\t\t\t.replace(/[^a-z0-9_-]+/g, '_')\n\t\t\t.replace(/^_+/, '')\n\t\t\t.replace(/_+$/, '')\n\t\t\t.slice(0, 80);",
+              "\t\tvar token = String(value || '')\n\t\t\t.toLowerCase()\n\t\t\t.replace(/[^a-z0-9_-]+/g, '_');\n\t\twhile (token.startsWith('_')) token = token.slice(1);\n\t\twhile (token.endsWith('_')) token = token.slice(0, -1);\n\t\ttoken = token.slice(0, 80);"
+          )
+
+          replace(
+              'wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js',
+              "    function normalizePath(pathname) {\n      let normalized = pathname || '';",
+              "    function normalizePath(pathname = '') {\n      let normalized = pathname;"
+          )
+
+          replace(
+              'scripts/staging2/block-c-52x3.mjs',
+              "function safeName(route) {\n  if (route === '/') return 'home';\n  return route.replace(/^\\/+/, '').replace(/\\/+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';\n}",
+              "function safeName(route) {\n  if (route === '/') return 'home';\n  let normalized = route;\n  while (normalized.startsWith('/')) normalized = normalized.slice(1);\n  while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);\n  return normalized.replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';\n}"
+          )
+          replace('scripts/staging2/block-c-52x3.mjs', 'const headers = await response.allHeaders();', 'const headers = response.headers();')
+          replace('scripts/staging2/block-c-52x3.mjs', 'headers = response ? await response.allHeaders() : {};', 'headers = response ? response.headers() : {};')
+
+      - name: Validate residual fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/lint/file-scan-utils.mjs
+          node --check scripts/lint/validate-routes-schema.mjs
+          node --check scripts/lint/no-hardcoded-colors.mjs
+          node --check scripts/lint/no-hardcoded-fontsize.mjs
+          node --check scripts/lint/no-inline-layout-styles.mjs
+          node --check scripts/staging2/block-c-52x3.mjs
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          node scripts/lint/validate-routes-schema.mjs wp-content/themes/nuvanx-medical/inc/data/routes.schema.json wp-content/themes/nuvanx-medical/inc/data/routes.json
+          git diff --check
+
+      - name: Commit and push non-workflow fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Nuvanx Engineering'
+          git config user.email 'admin@nuvanx.com'
+          git add scripts wp-content
+          git diff --cached --check
+          git diff --cached --quiet && { echo 'No residual fixes produced'; exit 1; }
+          git commit -m 'fix(quality): resolve residual Sonar annotations'
+          git push origin HEAD:audit/repo-clean-20260808-1840

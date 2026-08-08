@@ -1,0 +1,53 @@
+name: Workflow Hygiene
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: Prevent transient and self-mutating workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Reject transient workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t transient < <(find .github/workflows -maxdepth 1 -type f \( -name '*-once.yml' -o -name '*-once.yaml' \) -print | sort)
+          if (( ${#transient[@]} > 0 )); then
+            echo 'Transient one-shot workflows are not allowed on persistent branches:' >&2
+            printf '  %s\n' "${transient[@]}" >&2
+            echo 'Run one-shot diagnostics from a temporary branch or external automation, then remove them before merge.' >&2
+            exit 1
+          fi
+          echo 'WORKFLOW_TRANSIENT_GATE=PASS'
+
+      - name: Reject workflow self-mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          offenders=()
+          while IFS= read -r file; do
+            if grep -Eq '(^|[[:space:]])git[[:space:]]+push([[:space:]]|$)' "$file"; then
+              offenders+=("$file")
+            fi
+          done < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -print | sort)
+          if (( ${#offenders[@]} > 0 )); then
+            echo 'GitHub Actions workflows must not push repository mutations themselves:' >&2
+            printf '  %s\n' "${offenders[@]}" >&2
+            echo 'Use a reviewed commit/PR or an explicitly authorized external GitHub App/PAT workflow-management path.' >&2
+            exit 1
+          fi
+          echo 'WORKFLOW_SELF_MUTATION_GATE=PASS'

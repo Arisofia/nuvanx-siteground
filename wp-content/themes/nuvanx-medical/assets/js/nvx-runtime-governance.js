@@ -306,7 +306,19 @@
               region: frame.dataset.region || config.hubspotRegion || 'eu1',
               portalId: frame.dataset.portalId || config.hubspotPortalId,
               formId: frame.dataset.formId || config.hubspotFormId,
-              target: '#' + frame.id
+              target: '#' + frame.id,
+              onFormReady: function ($form) {
+                try {
+                  const hooks = window.NUVANXGoogleAttributionLegacy;
+                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form);
+                } catch (_error) {}
+              },
+              onBeforeFormSubmit: function ($form) {
+                try {
+                  const hooks = window.NUVANXGoogleAttributionLegacy;
+                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form);
+                } catch (_error) {}
+              }
             });
           } catch (_err) {
             delete frame.dataset.hsInitialized;

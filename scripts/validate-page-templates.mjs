@@ -45,7 +45,7 @@ function parsePagesJson(raw, source) {
   }
 
   if (!Array.isArray(pages)) {
-    throw new Error(`Invalid page payload from ${source}: expected an array`);
+    throw new TypeError(`Invalid page payload from ${source}: expected an array`);
   }
 
   return pages;

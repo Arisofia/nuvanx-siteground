@@ -1,0 +1,155 @@
+name: Production Host Boundary Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-host-boundary-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify-host-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"
+          chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null"
+
+      - name: Verify production identity and public routes from hosting network
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          test -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+          expected_sha="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "ORIGIN_EXPECTED_SHA=$expected_sha"
+
+          ua='NUVANX-Production-Origin-Boundary/1.0'
+          routes=(
+            '/'
+            '/soluciones-medicas/'
+            '/equipo-medico/'
+            '/blog/'
+            '/endolift-primeras-72-horas-que-esperar/'
+          )
+
+          for route in "${routes[@]}"; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            trap 'rm -f "$headers" "$body"' RETURN
+            result="$(curl -sS -L --max-redirs 5 --max-time 30 \
+              -A "$ua" \
+              -H 'Accept: text/html,application/xhtml+xml' \
+              -D "$headers" \
+              -o "$body" \
+              -w '%{http_code}|%{url_effective}' \
+              "${BASE_URL}${route}")"
+            code="${result%%|*}"
+            effective="${result#*|}"
+
+            test "$code" = '200'
+            case "$effective" in
+              https://nuvanx.com/*|https://nuvanx.com) ;;
+              *) echo "ORIGIN_BOUNDARY_FAIL route=$route reason=unexpected-final-url value=$effective" >&2; exit 1 ;;
+            esac
+            if grep -Fq '/.well-known/sgcaptcha/' "$body" || grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=siteground-captcha" >&2
+              exit 1
+            fi
+            if grep -Fq 'staging2.nuvanx.com' "$body"; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=staging-leak" >&2
+              exit 1
+            fi
+            if ! grep -Fq "$expected_sha" "$body"; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=missing-deploy-sha expected=$expected_sha" >&2
+              exit 1
+            fi
+            if grep -Eiq '^x-robots-tag:.*(noindex|nofollow)' "$headers"; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=x-robots-noindex" >&2
+              exit 1
+            fi
+            robots_meta="$(grep -Eio "<meta[^>]+name=['\"]robots['\"][^>]*>" "$body" | head -n 1 || true)"
+            if [[ -n "$robots_meta" ]] && printf '%s' "$robots_meta" | grep -Eiq '(noindex|nofollow)'; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=meta-robots-noindex meta=$robots_meta" >&2
+              exit 1
+            fi
+
+            echo "ORIGIN_ROUTE_PASS route=$route code=$code final=$effective sha=$expected_sha"
+            rm -f "$headers" "$body"
+            trap - RETURN
+          done
+
+          assets=(
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css'
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css'
+            '/wp-content/themes/nuvanx-medical/assets/css/nvx-footer.css'
+          )
+          for asset in "${assets[@]}"; do
+            tmp="$(mktemp)"
+            code="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -o "$tmp" -w '%{http_code}' "${BASE_URL}${asset}")"
+            test "$code" = '200'
+            test "$(wc -c < "$tmp")" -gt 100
+            ! grep -Fq '/.well-known/sgcaptcha/' "$tmp"
+            rm -f "$tmp"
+            echo "ORIGIN_ASSET_PASS asset=$asset code=$code"
+          done
+
+          echo "PRODUCTION_HOST_PUBLIC_BOUNDARY=PASS sha=$expected_sha"
+          REMOTE
+
+      - name: Destroy production SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

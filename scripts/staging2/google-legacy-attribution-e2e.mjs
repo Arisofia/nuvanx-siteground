@@ -48,11 +48,13 @@ function fieldSelector(name) {
 }
 
 async function findHubSpotFrame(page) {
-  await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
+  const iframe = page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first();
+  await iframe.waitFor({ state: 'attached', timeout: 30000 });
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    for (const frame of page.frames()) {
-      if ((await frame.locator(fieldSelector('email')).count().catch(() => 0)) > 0) return frame;
-    }
+    // Tie the frame to the canonical HubSpot iframe element so we never bind to an
+    // unrelated form elsewhere on the page that happens to expose an email input.
+    const frame = await iframe.elementHandle().then((handle) => handle?.contentFrame()).catch(() => null);
+    if (frame && (await frame.locator(fieldSelector('email')).count().catch(() => 0)) > 0) return frame;
     await sleep(500);
   }
   throw new Error('HubSpot form iframe exists but email field never became available');
@@ -200,7 +202,11 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
   if (result.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${result.generateLeadDelta}, expected=1`);
 
   if (scenario === 'ALLOW') {
+    // The audit POST is fired asynchronously (keepalive fetch) after the submit postMessage,
+    // so poll for it instead of relying on a fixed sleep before asserting exactly one request.
+    for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
     if (auditRequests.length !== 1) throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1`);
+    for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
     if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
     if (!auditRequests[0]) throw new Error('ALLOW: audit payload body unavailable');
     const payload = JSON.parse(auditRequests[0]);
@@ -222,10 +228,16 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
     const page = await context.newPage();
 
     await page.route('**/*', async (route) => {
-      const url = new URL(route.request().url());
-      const googleAdHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|google\.com)$/.test(url.hostname);
-      const conversionPath = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204/i.test(url.pathname);
-      if (googleAdHost && conversionPath) return route.abort();
+      try {
+        const url = new URL(route.request().url());
+        // Regional Google ad hosts (google.es, google.co.uk, ...) plus googletagmanager are
+        // included so real conversion pings never leave the browser during the ALLOW scenario.
+        const googleAdHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google\.[a-z.]+)$/.test(url.hostname);
+        const conversionPath = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204/i.test(url.pathname);
+        if (googleAdHost && conversionPath) return await route.abort();
+      } catch (_) {
+        // Fall through to continue so a parsing error never stalls page loading.
+      }
       return route.continue();
     });
 
@@ -262,6 +274,8 @@ async function runScenario(browser, { scenario, gclid, email, allowed }) {
       await setMarketing(page, false);
       // Fail-closed policy: the adapter clears the custom nvx_ field on revoke but
       // deliberately leaves native HubSpot fields untouched, so we only assert the custom field here.
+      // Presence guard first so a removed/renamed field is a failure, not a vacuous pass.
+      if ((await fieldValue(frame, 'nvx_google_click_id')) === null) throw new Error('ALLOW revoke: nvx_google_click_id field disappeared');
       await waitField(frame, 'nvx_google_click_id', (value) => !value, 'ALLOW revoke custom GCLID clear');
 
       await setMarketing(page, true);

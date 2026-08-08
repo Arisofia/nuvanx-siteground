@@ -55,7 +55,8 @@ try {
     id: node.id,
   })));
   console.log(`IFRAMES=${JSON.stringify(iframeMeta)}`);
-  console.log(`HUBSPOT_ROOT_HTML=${JSON.stringify((await page.locator('#nvx-hubspot-form').innerHTML()).slice(0, 4000))}`);
+  // Only log structural attributes: raw innerHTML / innerText can carry HubSpot tracking
+  // tokens (hutk, session ids) or cookie-derived values into public CI logs.
   console.log(`FRAME_COUNT=${page.frames().length}`);
 
   const frames = page.frames();
@@ -63,17 +64,16 @@ try {
     const frame = frames[i];
     let fields = [];
     let forms = 0;
-    let body = '';
+    let inspectError = '';
     try {
       forms = await frame.locator('form').count();
       fields = await frame.locator('input,textarea,select,button').evaluateAll((nodes) => nodes.map((node) => ({
-        tag: node.tagName.toLowerCase(), name: node.getAttribute('name') || '', type: node.getAttribute('type') || '', id: node.id || '', text: (node.textContent || '').trim().slice(0, 80)
+        tag: node.tagName.toLowerCase(), name: node.getAttribute('name') || '', type: node.getAttribute('type') || '', id: node.id || ''
       })).slice(0, 100));
-      body = (await frame.locator('body').innerText().catch(() => '')).slice(0, 1000);
     } catch (error) {
-      body = `FRAME_INSPECT_ERROR:${error.message}`;
+      inspectError = `FRAME_INSPECT_ERROR:${error.message}`;
     }
-    console.log(`FRAME_${i}=${JSON.stringify({ url: frame.url(), forms, fields, body })}`);
+    console.log(`FRAME_${i}=${JSON.stringify({ url: frame.url(), forms, fields, inspectError })}`);
   }
   console.log(`HUBSPOT_REQUEST_FAILURES=${JSON.stringify(failures)}`);
 } finally {

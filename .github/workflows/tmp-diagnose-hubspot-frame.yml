@@ -4,9 +4,14 @@ on:
   push:
     branches:
       - audit/google-legacy-e2e-final-20260808
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   diagnose:

@@ -4,9 +4,19 @@ on:
   push:
     branches:
       - audit/google-legacy-e2e-final-20260808
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Optional deployed build SHA to assert against staging2 (leave empty to skip)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
@@ -33,7 +43,9 @@ jobs:
         env:
           BASE_URL: https://staging2.nuvanx.com
           FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
-          EXPECTED_SHA: 4068dc277e7c24c0ebe78fe3a15c1c59499e883e
+          # Leave empty on push so a staging2 redeploy never freezes this check to one build.
+          # Provide a full SHA via workflow_dispatch to assert against a specific deploy.
+          EXPECTED_SHA: ${{ github.event.inputs.expected_sha }}
           QA_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail

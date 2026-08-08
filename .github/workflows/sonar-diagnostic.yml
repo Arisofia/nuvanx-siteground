@@ -13,6 +13,10 @@ on:
         required: true
         default: 'Arisofia_nuvanx-siteground'
 
+concurrency:
+  group: sonar-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -30,9 +34,11 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
           PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
-          curl -fsS --retry 3 --retry-all-errors \
+          curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+            -H "Authorization: Bearer ${SONAR_TOKEN}" \
             "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${TARGET_BRANCH}" \
             | python -m json.tool
 
@@ -41,14 +47,19 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
           PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
-          curl -fsS --retry 3 --retry-all-errors \
+          curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+            -H "Authorization: Bearer ${SONAR_TOKEN}" \
             "https://sonarcloud.io/api/measures/component_tree?component=${PROJECT_KEY}&branch=${TARGET_BRANCH}&metricKeys=new_duplicated_lines_density,new_lines,new_duplicated_lines&strategy=leaves&ps=500" \
             -o /tmp/tree.json
           python - <<'PY'
-          import json
+          import json, sys
           data=json.load(open('/tmp/tree.json',encoding='utf-8'))
+          if data.get('paging', {}).get('total', 0) > 500:
+              print('ERROR: Total components exceed 500. Pagination not implemented.', file=sys.stderr)
+              sys.exit(1)
           rows=[]
           for c in data.get('components', []):
               vals={}
@@ -68,17 +79,23 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
           PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
           for quality in SECURITY RELIABILITY; do
-            curl -fsS --retry 3 --retry-all-errors \
+            curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+              -H "Authorization: Bearer ${SONAR_TOKEN}" \
               "https://sonarcloud.io/api/issues/search?componentKeys=${PROJECT_KEY}&branch=${TARGET_BRANCH}&resolved=false&softwareQualities=${quality}&ps=500" \
               -o "/tmp/${quality}.json"
             QUALITY="$quality" python - <<'PY'
-          import json, os
+          import json, os, sys
           quality=os.environ['QUALITY']
           data=json.load(open(f'/tmp/{quality}.json',encoding='utf-8'))
-          print(quality, 'TOTAL', data.get('total'))
+          total = data.get('total', 0)
+          print(quality, 'TOTAL', total)
+          if total > 500:
+              print(f'ERROR: Total {quality} issues exceed 500. Pagination not implemented.', file=sys.stderr)
+              sys.exit(1)
           for issue in data.get('issues', []):
               impacts=issue.get('impacts') or []
               print(json.dumps({'rule':issue.get('rule'),'component':issue.get('component'),'line':issue.get('line'),'message':issue.get('message'),'impacts':impacts,'creationDate':issue.get('creationDate')},ensure_ascii=False))
@@ -90,8 +107,10 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
           PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
-          curl -fsS --retry 3 --retry-all-errors \
+          curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+            -H "Authorization: Bearer ${SONAR_TOKEN}" \
             "https://sonarcloud.io/api/measures/component?component=${PROJECT_KEY}&branch=${TARGET_BRANCH}&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines" \
             | python -m json.tool

@@ -1,0 +1,51 @@
+name: Temporary Sonar diagnostics
+
+on:
+  push:
+    branches:
+      - fix/release-hardening-20260808
+    paths:
+      - .github/workflows/_temp-sonar-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query open Sonar issues
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-all-errors \
+            'https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&ps=500' \
+            -o /tmp/issues.json
+          python - <<'PY'
+          import json
+          p='/tmp/issues.json'
+          data=json.load(open(p,encoding='utf-8'))
+          print('TOTAL', data.get('total'))
+          for issue in data.get('issues', []):
+              print(json.dumps({
+                  'key': issue.get('key'),
+                  'rule': issue.get('rule'),
+                  'severity': issue.get('severity'),
+                  'type': issue.get('type'),
+                  'component': issue.get('component'),
+                  'line': issue.get('line'),
+                  'message': issue.get('message'),
+                  'cleanCodeAttribute': issue.get('cleanCodeAttribute'),
+                  'impacts': issue.get('impacts'),
+                  'creationDate': issue.get('creationDate'),
+                  'status': issue.get('status'),
+              }, ensure_ascii=False))
+          PY
+
+      - name: Query new-code quality metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-all-errors \
+            'https://sonarcloud.io/api/measures/component?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating' \
+            | python -m json.tool

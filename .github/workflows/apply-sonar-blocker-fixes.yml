@@ -43,14 +43,14 @@ jobs:
           node scripts/lint/validate-routes-schema.mjs wp-content/themes/nuvanx-medical/inc/data/routes.schema.json wp-content/themes/nuvanx-medical/inc/data/routes.json
           find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
 
-      - name: Commit remediation
+      - name: Commit validated non-workflow remediation
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'Nuvanx Engineering'
           git config user.email 'admin@nuvanx.com'
-          git add -A
+          git add -A -- . ':(exclude).github/workflows/**'
           git diff --cached --check
-          git diff --cached --quiet && { echo 'No remediation changes produced'; exit 1; }
-          git commit -m 'fix(quality): resolve Sonar security reliability and duplication blockers'
+          git diff --cached --quiet && { echo 'No non-workflow remediation changes produced'; exit 1; }
+          git commit -m 'fix(quality): resolve Sonar runtime reliability and duplication blockers'
           git push origin HEAD:audit/repo-clean-20260808-1840

@@ -173,9 +173,9 @@ done
 }
 
 echo "== Stage accepted theme away from live production =="
-test ! -e "$RELEASE_ROOT"
-test ! -e "$PREVIOUS_THEME"
-test ! -e "$FAILED_THEME"
+[[ ! -e "$RELEASE_ROOT" ]]
+[[ ! -e "$PREVIOUS_THEME" ]]
+[[ ! -e "$FAILED_THEME" ]]
 mkdir -p "$STAGED_THEME"
 rsync -a --delete \
   --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
@@ -183,7 +183,7 @@ rsync -a --delete \
   --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
   "$SOURCE_THEME/" "$STAGED_THEME/"
 printf '%s\n' "$SHA" > "$STAGED_THEME/.nvx-deploy-sha"
-test "$(tr -d '\r\n' < "$STAGED_THEME/.nvx-deploy-sha")" = "$SHA"
+[[ "$(tr -d '\r\n' < "$STAGED_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
 for required in \
   assets/css/nvx-fonts.css \
@@ -215,8 +215,8 @@ tar -czf "$BACKUP_DIR/theme.tgz" -C "$PROD_ROOT" wp-content/themes/nuvanx-medica
 if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
   tar -czf "$BACKUP_DIR/mu-plugins.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
 fi
-test -s "$BACKUP_DIR/db.sql"
-test -s "$BACKUP_DIR/theme.tgz"
+[[ -s "$BACKUP_DIR/db.sql" ]]
+[[ -s "$BACKUP_DIR/theme.tgz" ]]
 if [[ -f "$LIVE_THEME/.nvx-deploy-sha" ]]; then
   tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha" > "$BACKUP_DIR/previous-sha.txt"
 else
@@ -264,12 +264,12 @@ echo "== Verify exact production release on disk =="
 (
   trap - ERR
   cd "$PROD_ROOT"
-  test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$SHA"
-  test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-  test "$(wp option get home)" = 'https://nuvanx.com'
-  test "$(wp option get siteurl)" = 'https://nuvanx.com'
-  test "$(wp option get blog_public)" = '1'
-  test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+  [[ "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" == "$SHA" ]]
+  [[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]]
+  [[ "$(wp option get home)" == 'https://nuvanx.com' ]]
+  [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
+  [[ "$(wp option get blog_public)" == '1' ]]
+  [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
 )
 
 echo "== Purge production caches =="
@@ -283,7 +283,7 @@ echo "== Purge production caches =="
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }'
 )
 
-test "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" = "$SHA"
+[[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
 trap - ERR
 rm -rf "$PREVIOUS_THEME" "$RELEASE_ROOT"

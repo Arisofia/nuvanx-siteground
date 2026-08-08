@@ -9,6 +9,12 @@
     else element.removeAttribute('inert');
   }
 
+  function normalizePath(pathname = '') {
+    let normalized = pathname;
+    while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+    return normalized + '/';
+  }
+
   function focusableElements(container) {
     if (!container) return [];
     return Array.prototype.slice.call(
@@ -118,6 +124,9 @@
     });
   }
 
+  /**
+   * Governs the valuation modal and intercepts qualifying valuation links to open it.
+   */
   function initValoracionModalGovernance() {
     const cfg = window.nvxValoracionModal || {};
     if (cfg.enabled === false) return;
@@ -128,10 +137,6 @@
     let lastFocus = null;
     const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
     const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
-
-    function normalizePath(pathname) {
-      return (pathname || '').replace(/\/+$/, '') + '/';
-    }
 
     let pagePath;
     try {

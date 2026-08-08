@@ -12,6 +12,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { scanDirectory } from './file-scan-utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const THEME_DIR = path.join(__dirname, '../../wp-content/themes/nuvanx-medical');
@@ -36,6 +37,11 @@ const DANGEROUS_PROPERTIES = [
 // Pattern for inline style attributes with dangerous properties
 const INLINE_STYLE_PATTERN = /style\s*=\s*["']([^"']*(?:margin|padding|font-size|color)\s*:[^"']*)["']/gi;
 
+/**
+ * Scans a PHP file for prohibited inline CSS properties.
+ * @param {string} filePath - The path to the file to scan.
+ * @return {Array<Object>} The detected violations with their line numbers, file paths, matched styles, properties, and line context.
+ */
 async function scanFile(filePath) {
   const content = await fs.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
@@ -76,42 +82,16 @@ async function scanFile(filePath) {
   return violations;
 }
 
-async function scanDirectory(dir, extensions = ['.php']) {
-  const violations = [];
-  const files = [];
-
-  async function scanDir(currentDir) {
-    const entries = await fs.readdir(currentDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      
-      if (entry.isDirectory()) {
-        // Skip node_modules and vendor directories
-        if (entry.name !== 'node_modules' && entry.name !== 'vendor') {
-          await scanDir(fullPath);
-        }
-      } else if (extensions.includes(path.extname(entry.name))) {
-        files.push(fullPath);
-      }
-    }
-  }
-
-  await scanDir(dir);
-
-  for (const file of files) {
-    const fileViolations = await scanFile(file);
-    violations.push(...fileViolations);
-  }
-
-  return violations;
-}
-
+/**
+ * Scans the theme's PHP files for dangerous inline styles and reports any violations.
+ *
+ * Exits with code `0` when no violations are found and code `1` when violations or scanning errors occur.
+ */
 async function main() {
   console.log('🚫 Scanning PHP files for dangerous inline styles...');
   console.log(`📁 Directory: ${THEME_DIR}`);
 
-  const violations = await scanDirectory(THEME_DIR);
+  const violations = await scanDirectory(THEME_DIR, ['.php'], scanFile);
 
   if (violations.length === 0) {
     console.log('✅ No dangerous inline styles found');

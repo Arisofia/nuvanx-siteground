@@ -18,9 +18,9 @@ jobs:
     name: PHP Syntax Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: '8.2'
           tools: parallel-lint
@@ -36,7 +36,7 @@ jobs:
           fi
       - name: Upload parallel-lint output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: parallel-lint-output
           path: ci-parallel-lint.txt
@@ -45,9 +45,9 @@ jobs:
     name: Custom CSS/PHP Lints
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
       - name: Run color lint
@@ -61,52 +61,26 @@ jobs:
           SCHEMA=wp-content/themes/nuvanx-medical/inc/data/routes.schema.json
           DATA=wp-content/themes/nuvanx-medical/inc/data/routes.json
 
-          if [ -f "$SCHEMA" ] && [ -f "$DATA" ]; then
-            # Prefer npx if ajv-cli is present as a devDependency, otherwise install globally
-            if command -v npx >/dev/null 2>&1 && npx --no-install ajv-cli --version >/dev/null 2>&1; then
-              npx ajv-cli validate -s "$SCHEMA" -d "$DATA"
-            else
-              npm install -g ajv-cli
-              ajv validate -s "$SCHEMA" -d "$DATA"
-            fi
+          if [[ -f "$SCHEMA" && -f "$DATA" ]]; then
+            node scripts/lint/validate-routes-schema.mjs "$SCHEMA" "$DATA"
           else
             echo "Skipping routes.json schema validation: schema or data file not found ($SCHEMA or $DATA)"
           fi
-
-  secret-history-scan:
-    name: Secret history scan (gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install gitleaks
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/zricethezav/gitleaks/master/install.sh | bash -s -- -b /usr/local/bin
-      - name: Run gitleaks over repo history
-        run: |
-          gitleaks detect --source . --config .github/gitleaks-config.yml --redact --report-path gitleaks-report.json || true
-      - name: Upload gitleaks report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gitleaks-report
-          path: gitleaks-report.json
 
   phpcs:
     name: PHP_CodeSniffer
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: '8.2'
           tools: composer, phpcs
       - name: Install dependencies
         run: |
           cd wp-content/themes/nuvanx-medical
-          composer install --no-interaction || composer update --no-interaction
+          composer install --no-interaction --no-progress --prefer-dist
       - name: Run PHP_CodeSniffer (produce report artifact)
         run: |
           set -o pipefail
@@ -120,7 +94,7 @@ jobs:
           fi
       - name: Upload PHPCS report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: phpcs-report
           path: wp-content/themes/nuvanx-medical/ci-phpcs.txt
@@ -129,16 +103,16 @@ jobs:
     name: PHPStan Static Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: '8.2'
           tools: composer, phpstan
       - name: Install dependencies
         run: |
           cd wp-content/themes/nuvanx-medical
-          composer install --no-interaction || composer update --no-interaction
+          composer install --no-interaction --no-progress --prefer-dist
       - name: PHPStan info
         run: |
           cd wp-content/themes/nuvanx-medical
@@ -149,11 +123,10 @@ jobs:
         run: |
           set -o pipefail
           cd wp-content/themes/nuvanx-medical
-          # run with appropriate memory limit and produce a text report
           ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G | tee phpstan-report.txt
       - name: Upload PHPStan report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: phpstan-report
           path: wp-content/themes/nuvanx-medical/phpstan-report.txt

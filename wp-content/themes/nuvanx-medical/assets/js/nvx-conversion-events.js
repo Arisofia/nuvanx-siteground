@@ -6,12 +6,19 @@
 	var submissionWindowMs = 8000;
 	var recentSubmissions = new Map();
 
+	/**
+	 * Normalizes a value for use as a tracking token.
+	 * @param {*} value - The value to normalize.
+	 * @param {string} fallback - The value to use when normalization produces an empty token.
+	 * @return {string} The lowercase normalized token, fallback, or `unknown`.
+	 */
 	function cleanToken(value, fallback) {
 		var token = String(value || '')
 			.toLowerCase()
-			.replace(/[^a-z0-9_-]+/g, '_')
-			.replace(/^_+|_+$/g, '')
-			.slice(0, 80);
+			.replace(/[^a-z0-9_-]+/g, '_');
+		while (token.startsWith('_')) token = token.slice(1);
+		while (token.endsWith('_')) token = token.slice(0, -1);
+		token = token.slice(0, 80);
 		return token || fallback || 'unknown';
 	}
 

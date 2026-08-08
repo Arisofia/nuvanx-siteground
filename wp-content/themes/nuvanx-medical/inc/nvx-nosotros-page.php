@@ -172,7 +172,9 @@ function nvx_nosotros_platforms_markup(): string {
 }
 
 /**
- * Clinics NAP (reuse contact data when available).
+ * Builds the clinic contact section for the Nosotros page.
+ *
+ * @return string The rendered clinic contact markup.
  */
 function nvx_nosotros_clinics_markup(): string {
 	$data = nvx_nosotros_registry();
@@ -191,7 +193,7 @@ function nvx_nosotros_clinics_markup(): string {
 
 	foreach ( $clinics as $clinic ) {
 		$clinic_id = 'nvx-clinic-' . sanitize_title( $clinic['name'] ?? '' );
-		$html     .= '<li role="listitem">';
+		$html     .= '<li>';
 		$html     .= '<article class="nvx-contact-clinic" aria-labelledby="' . esc_attr( $clinic_id ) . '">';
 		$html     .= '<h3 id="' . esc_attr( $clinic_id ) . '" class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
 		$html     .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
@@ -248,7 +250,7 @@ function nvx_nosotros_team_markup(): string {
 		$member_id = 'nvx-team-card-' . $index;
 		$bio_label = esc_attr( ( $t['bio_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
 		$doc_label = esc_attr( ( $t['doctoralia_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
-		$html     .= '<li role="listitem">';
+		$html     .= '<li>';
 		$html     .= '<article class="nvx-nosotros-team-card" aria-labelledby="' . esc_attr( $member_id ) . '">';
 		$html     .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $m['role'] ?? '' ) . '</p>';
 		$html     .= '<h3 id="' . esc_attr( $member_id ) . '" class="nvx-feature-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';

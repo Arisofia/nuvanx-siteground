@@ -205,6 +205,7 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
     // The audit POST is fired asynchronously (keepalive fetch) after the submit postMessage,
     // so poll for it instead of relying on a fixed sleep before asserting exactly one request.
     for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
+    await sleep(3000); // Grace window so a duplicate audit POST is detected instead of missed.
     if (auditRequests.length !== 1) throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1`);
     for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
     if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);

@@ -1,0 +1,40 @@
+name: TEMP Google Attribution Release E2E
+
+on:
+  push:
+    branches:
+      - audit/release-google-e2e-20260808-2201
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Validate live Staging2 Google attribution runtime
+        shell: bash
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
+          EXPECTED_SHA: c5b0877cac199b5b86ab1c515e477733fd5a6074
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node google-attribution-audit.mjs

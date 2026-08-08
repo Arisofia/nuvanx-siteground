@@ -154,6 +154,13 @@
 	window.addEventListener('message', function (event) {
 		if (!isAllowedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
+		if (typeof data === 'string') {
+			try {
+				data = JSON.parse(data);
+			} catch (_error) {
+				data = {};
+			}
+		}
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message');
 	});
@@ -547,7 +554,11 @@
 		if (!isTrustedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
 		if (typeof data === 'string') {
-			try { data = JSON.parse(data); } catch (_error) { return; }
+			try {
+				data = JSON.parse(data);
+			} catch (_error) {
+				data = {};
+			}
 		}
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		if (String(data.id || '').toLowerCase() !== String(FORM_ID || '').toLowerCase()) return;

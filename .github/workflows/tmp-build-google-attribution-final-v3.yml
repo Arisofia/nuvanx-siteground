@@ -6,11 +6,16 @@ on:
       - automation/build-google-attribution-final-v3-20260808
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: tmp-build-google-attribution-final-v3
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout base legacy patch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -36,7 +41,7 @@ jobs:
           ref: fix/google-attribution-final-v3-20260808
           path: target
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - name: Build deterministic final candidate
         shell: bash
         run: |
@@ -66,8 +71,10 @@ jobs:
             'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js' \
             'wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js' | sort)"
           test "$changed" = "$expected"
-          git config user.name 'NUVANX Release Automation'
-          git config user.email 'admin@nuvanx.com'
-          git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
-          git commit -m 'fix(attribution): finalize consent-gated HubSpot click IDs'
-          git push origin HEAD:fix/google-attribution-final-v3-20260808
+      - name: Upload deterministic final candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: google-attribution-final-v3
+          path: |
+            target/wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+            target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js

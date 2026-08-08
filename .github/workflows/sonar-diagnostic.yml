@@ -169,7 +169,7 @@ jobs:
           for f in glob.glob(f'/tmp/{quality}_*.json'):
               data=json.load(open(f,encoding='utf-8'))
               if total_issues == 0:
-                  total_issues = data.get('total', 0)
+                  total_issues = data.get('total') or data.get('paging', {}).get('total', 0)
               all_issues.extend(data.get('issues', []))
           print(f"{quality} ISSUES RETRIEVED: {len(all_issues)} (Server side matches: {total_issues})")
           for issue in all_issues:

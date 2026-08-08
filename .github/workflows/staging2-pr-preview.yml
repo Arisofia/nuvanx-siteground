@@ -269,6 +269,8 @@ jobs:
 
       - name: Verify public boundary
         shell: bash
+        env:
+          ORIGIN_SSH_ALIAS: nvx-staging2-pr
         run: |
           set -euo pipefail
           pass=0

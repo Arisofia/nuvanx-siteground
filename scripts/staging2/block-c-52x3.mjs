@@ -562,6 +562,38 @@ for (const viewport of viewports) {
         if (geometry.runtimeDiagnostics?.length > 0) issues.push(`Visible PHP/runtime diagnostics: ${geometry.runtimeDiagnostics.join(' | ')}`);
         if (geometry.mainTextLength < 80 && !shortContentRoutes.has(route)) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
         if (geometry.visibleSectionCount < 2 && geometry.mainTextLength < 400 && !shortContentRoutes.has(route)) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
+        // QA-10: governed Signature hubs must render their complete canonical clinical body.
+        // Generic geometry previously allowed a hero-only CMS fallback to pass 156/156.
+        if (route === '/remodelacion-corporal-laser-madrid/' ||
+            route === '/tratamiento-postparto-abdomen-contorno-corporal-madrid/') {
+          const signatureText = (await page.locator('main#nvx-main, main, [role="main"]').first().innerText().catch(() => ''))
+            .replace(/\s+/g, ' ')
+            .trim();
+          const signatureRequirements = route === '/remodelacion-corporal-laser-madrid/'
+            ? ['Cómo se decide el plan corporal', 'Zonas de valoración', 'Tu primera valoración clínica']
+            : ['Qué se valora en postparto', 'Límites y cuándo esperamos o derivamos', 'Rutas relacionadas', 'Tu primera valoración clínica'];
+          const minimumSections = route === '/remodelacion-corporal-laser-madrid/' ? 4 : 5;
+
+          for (const phrase of signatureRequirements) {
+            if (!signatureText.includes(phrase)) {
+              issues.push(`QA-10 Signature hub missing canonical section: ${phrase}`);
+            }
+          }
+          if (geometry.visibleSectionCount < minimumSections) {
+            issues.push(`QA-10 Signature hub too sparse (${geometry.visibleSectionCount} visible sections; expected at least ${minimumSections})`);
+          }
+          if (geometry.mainTextLength < 1800) {
+            issues.push(`QA-10 Signature hub copy unexpectedly thin (${geometry.mainTextLength} characters)`);
+          }
+          const canonicalValuationLinks = await page.locator('a[href*="/madrid/valoracion/"]').count();
+          const staleValuationLinks = await page.locator('a[href*="/valoracion-medica/"]').count();
+          if (canonicalValuationLinks < 1) {
+            issues.push('QA-10 Signature hub missing canonical /madrid/valoracion/ CTA');
+          }
+          if (staleValuationLinks > 0) {
+            issues.push(`QA-10 Signature hub still exposes ${staleValuationLinks} stale /valoracion-medica/ CTA(s)`);
+          }
+        }
         if (viewport.width >= 1024 && !geometry.navVisible && !geometry.navToggleVisible) issues.push('Desktop/tablet header navigation or menu toggle is not visible');
         await testResponsiveMenu(page, viewport, geometry, issues);
         if (route === '/') {

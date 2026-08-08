@@ -108,7 +108,10 @@ await fs.writeFile(
  */
 function safeName(route) {
   if (route === '/') return 'home';
-  return route.replace(/^\/+/, '').replace(/\/+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
+  let normalized = route;
+  while (normalized.startsWith('/')) normalized = normalized.slice(1);
+  while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
+  return normalized.replace(/[^a-zA-Z0-9_-]+/g, '_') || 'route';
 }
 
 /**
@@ -124,7 +127,7 @@ async function gotoPlain(page, url) {
     try {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       if (!response) return { response: null, attempt };
-      const headers = await response.allHeaders();
+      const headers = response.headers();
       if (response.status() === 202 || headers['sg-captcha']) {
         if (attempt < 4) {
           await page.waitForTimeout(2500 * attempt);
@@ -523,7 +526,7 @@ for (const viewport of viewports) {
     try {
       const navResult = await gotoPlain(page, url);
       response = navResult.response;
-      headers = response ? await response.allHeaders() : {};
+      headers = response ? response.headers() : {};
       finalUrl = page.url();
 
       if (headers['sg-captcha'] || response?.status() === 202) {

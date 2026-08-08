@@ -13,6 +13,7 @@ try {
   });
   let response = null;
   for (let attempt = 1; attempt <= 8; attempt += 1) {
+    response = null;
     try {
       response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
       console.log(`NAV attempt=${attempt} status=${response?.status() || 0} url=${page.url()}`);

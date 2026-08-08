@@ -1,0 +1,128 @@
+name: Temporary Signature Hub Refactor
+
+on:
+  push:
+    branches:
+      - fix/signature-hub-canonical-shell-20260808
+    paths:
+      - .github/workflows/signature-hub-refactor-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: fix/signature-hub-canonical-shell-20260808
+
+      - name: Apply canonical Signature hub contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          php_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php')
+          php = php_path.read_text()
+
+          replacements = [
+              (
+                  "\t$html       = '<div class=\"entry-content nvx-page__content nvx-prose\">';",
+                  "\t$html       = '<article class=\"nvx-brand-page nvx-brand-page--signature\"><div class=\"entry-content nvx-page__content nvx-prose\">';",
+              ),
+              (
+                  "\t$html .= '</div></section></div>';",
+                  "\t$html .= '</div></section></div></article>';",
+              ),
+          ]
+          for old, new in replacements:
+              count = php.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one PHP match, found {count}: {old}')
+              php = php.replace(old, new, 1)
+          php_path.write_text(php)
+
+          qa_path = Path('scripts/staging2/block-c-52x3.mjs')
+          qa = qa_path.read_text()
+          old = """        if (route === '/remodelacion-corporal-laser-madrid/' ||
+            route === '/tratamiento-postparto-abdomen-contorno-corporal-madrid/') {
+          const signatureText = (await page.locator('main#nvx-main, main, [role=\"main\"]').first().innerText().catch(() => ''))
+"""
+          new = """        if (route === '/remodelacion-corporal-laser-madrid/' ||
+            route === '/tratamiento-postparto-abdomen-contorno-corporal-madrid/') {
+          const signatureShellSelector = '.nvx-brand-page.nvx-brand-page--signature > .entry-content.nvx-page__content > .nvx-brand-hero';
+          const signatureShellCount = await page.locator(signatureShellSelector).count();
+          if (signatureShellCount !== 1) {
+            issues.push(`QA-10 Signature hub missing canonical brand-page shell (found ${signatureShellCount})`);
+          } else {
+            const heroContrast = await page.locator(signatureShellSelector).first().evaluate((hero) => {
+              const title = hero.querySelector('.nvx-brand-hero__title');
+              if (!title) return { ratio: 0, foreground: '', background: '' };
+
+              const parseRgb = (value) => {
+                const match = value.match(/rgba?\\(\\s*([\\d.]+)[,\\s]+([\\d.]+)[,\\s]+([\\d.]+)(?:\\s*[,/]\\s*([\\d.]+))?\\s*\\)/i);
+                if (!match) return null;
+                if (match[4] !== undefined && Number(match[4]) <= 0.01) return null;
+                return [Number(match[1]), Number(match[2]), Number(match[3])];
+              };
+              const luminance = (rgb) => {
+                const channels = rgb.map((value) => {
+                  const normalized = value / 255;
+                  return normalized <= 0.03928
+                    ? normalized / 12.92
+                    : ((normalized + 0.055) / 1.055) ** 2.4;
+                });
+                return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+              };
+
+              const foreground = getComputedStyle(title).color;
+              const background = getComputedStyle(hero).backgroundColor;
+              const fg = parseRgb(foreground);
+              const bg = parseRgb(background);
+              if (!fg || !bg) return { ratio: 0, foreground, background };
+              const l1 = luminance(fg);
+              const l2 = luminance(bg);
+              return {
+                ratio: (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05),
+                foreground,
+                background,
+              };
+            });
+            if (!Number.isFinite(heroContrast.ratio) || heroContrast.ratio < 4.5) {
+              issues.push(`QA-10 Signature hero contrast too low (${heroContrast.ratio.toFixed(2)}:1; ${heroContrast.foreground} on ${heroContrast.background})`);
+            }
+          }
+          const signatureText = (await page.locator('main#nvx-main, main, [role=\"main\"]').first().innerText().catch(() => ''))
+"""
+          count = qa.count(old)
+          if count != 1:
+              raise SystemExit(f'Expected exactly one QA insertion point, found {count}')
+          qa_path.write_text(qa.replace(old, new, 1))
+          PY
+
+      - name: Validate changed sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+          node --check scripts/staging2/block-c-52x3.mjs
+          git diff --check
+          git diff -- wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php scripts/staging2/block-c-52x3.mjs
+
+      - name: Commit candidate sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php scripts/staging2/block-c-52x3.mjs; then
+            echo 'No source changes to commit.'
+            exit 0
+          fi
+          git config user.name 'Arisofia'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php scripts/staging2/block-c-52x3.mjs
+          git commit -m 'fix(signature): enforce canonical hub shell and contrast gate'
+          git push origin HEAD:fix/signature-hub-canonical-shell-20260808

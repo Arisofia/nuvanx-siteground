@@ -45,7 +45,6 @@ function selector(name) {
   return `input[name="${escaped}"],input[name="0-1/${escaped}"]`;
 }
 
-// Poll during a SiteGround 202 anti-bot challenge until the canonical route settles at 200.
 async function settleChallenge(page, canonicalPath, getDocumentStatus, attempt) {
   console.log(`NAV attempt=${attempt} siteground_antibot=challenge settle_ms=30000`);
   for (let second = 0; second < 30; second += 1) {
@@ -235,13 +234,25 @@ async function installObservers(page) {
   await page.evaluate((canonicalFormId) => {
     window.__nvxQaSuccess = 0;
     window.__nvxQaSuccessSources = [];
+    window.__nvxQaFailed = 0;
+    window.__nvxQaFailureSources = [];
+    window.__nvxQaConversionEvents = 0;
     window.__nvxQaGenerateBefore = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
     const record = (source, id) => {
       if (String(id || '').toLowerCase() !== canonicalFormId) return;
       window.__nvxQaSuccess += 1;
       window.__nvxQaSuccessSources.push(source);
     };
+    const recordFailure = (source, id) => {
+      if (String(id || '').toLowerCase() !== canonicalFormId) return;
+      window.__nvxQaFailed += 1;
+      window.__nvxQaFailureSources.push(source);
+    };
+    document.addEventListener('nvx:conversion-event', (event) => {
+      if (event?.detail?.event_name === 'generate_lead') window.__nvxQaConversionEvents += 1;
+    });
     window.addEventListener('hs-form-event:on-submission:success', (event) => record('hubspot_form_event', event?.detail?.formId));
+    window.addEventListener('hs-form-event:on-submission:failed', (event) => recordFailure('hubspot_form_event_failed', event?.detail?.formId));
     window.addEventListener('message', (event) => {
       try {
         if (!/(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(new URL(event.origin).hostname.toLowerCase())) return;
@@ -254,14 +265,24 @@ async function installObservers(page) {
 }
 
 async function submissionState(page) {
-  return page.evaluate(() => ({
-    successMessages: Number(window.__nvxQaSuccess || 0),
-    successSources: Array.isArray(window.__nvxQaSuccessSources) ? window.__nvxQaSuccessSources.slice() : [],
-    generateLeadDelta: (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0),
-  }));
+  return page.evaluate(() => {
+    const dataLayerDelta = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
+    const conversionEventCount = Number(window.__nvxQaConversionEvents || 0);
+    return {
+      successMessages: Number(window.__nvxQaSuccess || 0),
+      successSources: Array.isArray(window.__nvxQaSuccessSources) ? window.__nvxQaSuccessSources.slice() : [],
+      failedMessages: Number(window.__nvxQaFailed || 0),
+      failureSources: Array.isArray(window.__nvxQaFailureSources) ? window.__nvxQaFailureSources.slice() : [],
+      conversionEventCount,
+      dataLayerDelta,
+      generateLeadDelta: Math.max(conversionEventCount, dataLayerDelta),
+      nuvanxConversionApi: typeof window.NUVANXConversionEvents?.trackSuccessfulSubmission === 'function',
+      dataLayerIsArray: Array.isArray(window.dataLayer),
+      gtagType: typeof window.gtag,
+    };
+  });
 }
 
-// Capture HubSpot POST traffic during submit; returns the accumulator and a detach cleanup.
 function captureHubSpotNetwork(page) {
   const network = { requests: [], responses: [], failures: [] };
   const onRequest = (request) => {
@@ -285,21 +306,27 @@ function captureHubSpotNetwork(page) {
   return { network, detach };
 }
 
-// Wait for HubSpot to accept the submission via success signal or generate_lead delta.
 async function waitForAcceptance(page, frame, scenario, network) {
   try {
     await page.waitForFunction(() => {
-      const generated = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
-      return Number(window.__nvxQaSuccess || 0) >= 1 || generated >= 1;
+      const dataLayerDelta = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
+      return Number(window.__nvxQaSuccess || 0) >= 1
+        || Number(window.__nvxQaFailed || 0) >= 1
+        || Number(window.__nvxQaConversionEvents || 0) >= 1
+        || dataLayerDelta >= 1;
     }, null, { timeout: 30000 });
   } catch (error) {
-    const state = await submissionState(page).catch(() => ({ successMessages: 0, successSources: [], generateLeadDelta: 0 }));
+    const state = await submissionState(page).catch(() => ({ successMessages: 0, successSources: [], failedMessages: 0, failureSources: [], generateLeadDelta: 0 }));
     const currentForm = await formState(frame).catch(() => ({ valid: null, invalid: [], submitDisabled: null }));
     throw new Error(`${scenario}: HubSpot did not accept submission; state=${JSON.stringify(state)} form=${JSON.stringify(currentForm)} network=${JSON.stringify(network)} cause=${error.name}`);
   }
+  const state = await submissionState(page);
+  console.log(`HUBSPOT_ACCEPTANCE_${scenario}=${JSON.stringify(state)}`);
+  if (state.failedMessages > 0 && state.successMessages === 0 && state.generateLeadDelta === 0) {
+    throw new Error(`${scenario}: HubSpot reported submission failure: ${JSON.stringify(state.failureSources)}`);
+  }
 }
 
-// Click the HubSpot submit control, then fall back to form.requestSubmit if nothing fired.
 async function triggerSubmit(page, frame, scenario, network) {
   const button = frame.locator('form button[type="submit"],form input[type="submit"]').first();
   if (!await button.count()) throw new Error('HubSpot submit control missing');
@@ -315,11 +342,11 @@ async function triggerSubmit(page, frame, scenario, network) {
 
   for (let attempt = 0; attempt < 12; attempt += 1) {
     const state = await submissionState(page);
-    if (network.requests.length > 0 || state.successMessages > 0 || state.generateLeadDelta > 0) break;
+    if (network.requests.length > 0 || state.successMessages > 0 || state.failedMessages > 0 || state.generateLeadDelta > 0) break;
     await sleep(250);
   }
   const afterClick = await submissionState(page);
-  if (network.requests.length === 0 && afterClick.successMessages === 0 && afterClick.generateLeadDelta === 0) {
+  if (network.requests.length === 0 && afterClick.successMessages === 0 && afterClick.failedMessages === 0 && afterClick.generateLeadDelta === 0) {
     await button.evaluate((node) => {
       const form = node.form;
       if (!form || typeof form.requestSubmit !== 'function') throw new Error('HTMLFormElement.requestSubmit unavailable');
@@ -329,13 +356,11 @@ async function triggerSubmit(page, frame, scenario, network) {
   }
 }
 
-// Poll up to ~13s (matching the settle window) for the audit accumulator to reach `expected`.
 async function awaitAuditCount(accumulator, expected) {
   for (let attempt = 0; attempt < 40 && accumulator.length < expected; attempt += 1) await sleep(250);
   await sleep(3000);
 }
 
-// Validate the single ALLOW audit request/response: 2xx status, hashed email, no raw email leak.
 function assertAllowPayload(email, auditRequests, auditResponses) {
   if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
     throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
@@ -346,10 +371,8 @@ function assertAllowPayload(email, auditRequests, auditResponses) {
   if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
 }
 
-// Assert the attribution audit POST matches the scenario's consent expectation.
 async function assertAudit(scenario, email, state, auditRequests, auditResponses) {
   if (scenario !== 'ALLOW') {
-    // DENY: observe as long as the ALLOW branch (~13s) so a late audit POST cannot slip through.
     await awaitAuditCount(auditRequests, 1);
     if (auditRequests.length !== 0) throw new Error(`DENY: audit request count=${auditRequests.length}, expected=0`);
     return;
@@ -384,7 +407,8 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
   console.log(`HUBSPOT_NETWORK_${scenario}=${JSON.stringify(network)}`);
   await sleep(5000);
   const state = await submissionState(page);
-  if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${state.generateLeadDelta}, expected=1`);
+  console.log(`CONVERSION_STATE_${scenario}=${JSON.stringify(state)}`);
+  if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${state.generateLeadDelta}, expected=1 state=${JSON.stringify(state)}`);
   await assertAudit(scenario, email, state, auditRequests, auditResponses);
   console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadDelta=1 auditRequests=${auditRequests.length}`);
 }

@@ -16,6 +16,7 @@ try {
   const page = await context.newPage();
   let response = null;
   for (let attempt = 1; attempt <= 6; attempt += 1) {
+    response = null;
     let status = 0;
     try {
       response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -34,13 +35,14 @@ try {
       status === 202 ||
       status === 429 ||
       (status >= 300 && status < 400) || // redirects
-      (status >= 500 && status < 600);   // server errors
+      (status >= 500 && status < 600) || // server errors
+      (status === 200 && currentPath !== targetPath); // anti-bot interstitial
 
     console.log(`PAGE_ATTEMPT=${attempt} STATUS=${status} SUCCESS=${isSuccess} RETRIABLE=${isRetriable}`);
 
     if (isSuccess) break;
     if (!isRetriable) throw new Error(`route HTTP ${status}`);
-    await page.waitForTimeout(3000);
+    if (attempt < 6) await page.waitForTimeout(3000);
   }
   if (!response || response.status() !== 200) throw new Error(`route remained challenged HTTP ${response?.status() || 0}`);
   
@@ -114,7 +116,9 @@ try {
     throw new Error('Marketing consent was already granted before the allow step; cannot verify pre-consent state');
   }
   
-  const valuesBefore = state.fieldsBefore.flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
+  const valuesBefore = state.fieldsBefore
+    .filter((field) => field.name.startsWith('nvx_'))
+    .flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
   if (valuesBefore.includes(gclid)) {
     throw new Error('GCLID leaked to HubSpot field BEFORE marketing consent was allowed');
   }

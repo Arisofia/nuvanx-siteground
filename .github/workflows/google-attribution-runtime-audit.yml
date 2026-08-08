@@ -48,7 +48,7 @@ jobs:
         env:
           BASE_URL: ${{ github.event.inputs.base_url || 'https://staging2.nuvanx.com' }}
           FORM_ID: ${{ github.event.inputs.form_id || '5042522a-0bc5-4381-ac3e-5aee8649b69c' }}
-          EXPECTED_SHA: ${{ github.event.inputs.expected_sha || '' }}
+          EXPECTED_SHA: ${{ github.event.inputs.expected_sha || github.sha }}
         run: |
           set -euo pipefail
           cd scripts/staging2

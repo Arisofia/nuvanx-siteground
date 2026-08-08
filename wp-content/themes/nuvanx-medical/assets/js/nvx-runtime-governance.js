@@ -277,6 +277,9 @@
 
     let promise = null;
 
+    /**
+     * Initializes eligible HubSpot form frames and connects supported attribution callbacks.
+     */
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
       

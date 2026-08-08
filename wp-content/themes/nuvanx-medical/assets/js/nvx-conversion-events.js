@@ -393,6 +393,10 @@
 		};
 	}
 
+	/**
+	 * Submits an attribution audit after marketing consent is confirmed.
+	 * @param {Object} payload - The attribution audit data to transmit.
+	 */
 	async function transmitAudit(payload) {
 		if (sent || inFlight || !payload || !hasMarketingConsent()) return;
 		inFlight = true;
@@ -423,6 +427,9 @@
 	var legacyEmailClearTimer = null;
 	var legacyNativeGclidWritten = false;
 
+	/**
+	 * Clears the temporarily captured email address used for legacy attribution audits.
+	 */
 	function clearLegacyEmail() {
 		legacyEmailForAudit = '';
 		if (legacyEmailClearTimer) {
@@ -431,6 +438,11 @@
 		}
 	}
 
+	/**
+	 * Resolves a form-like value to its underlying DOM element.
+	 * @param {*} formLike - A DOM element, jQuery object, or array-like value containing a DOM element.
+	 * @return {Element|null} The resolved DOM element, or `null` when the value cannot be resolved.
+	 */
 	function legacyFormRoot(formLike) {
 		var root = formLike;
 		try {
@@ -444,6 +456,13 @@
 		return root && typeof root.querySelector === 'function' ? root : null;
 	}
 
+	/**
+	 * Sets a legacy form field and dispatches input and change events.
+	 * @param {Element} root - The form container to search.
+	 * @param {string} propertyName - The field's name attribute.
+	 * @param {string} value - The value to assign.
+	 * @return {boolean} `true` if the field was updated, `false` otherwise.
+	 */
 	function setLegacyField(root, propertyName, value) {
 		if (!root) return false;
 		var input = root.querySelector('[name="' + propertyName + '"]');
@@ -463,6 +482,11 @@
 		}
 	}
 
+	/**
+	 * Populates a legacy HubSpot form with Google click attribution fields when marketing consent is available.
+	 * @param {*} formLike - A legacy form reference or form-like value used to locate the form root.
+	 * @return {boolean} `true` if any field was modified, `false` otherwise.
+	 */
 	function populateLegacyClickFields(formLike) {
 		var root = legacyFormRoot(formLike);
 		if (!root) return false;
@@ -489,6 +513,9 @@
 		return modified;
 	}
 
+	/**
+	 * Refreshes registered legacy forms with current attribution data and consent state.
+	 */
 	function refreshLegacyForms() {
 		if (!hasMarketingConsent()) clearLegacyEmail();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
@@ -499,6 +526,10 @@
 		});
 	}
 
+	/**
+	 * Captures a valid email address from a legacy form for consent-gated attribution auditing.
+	 * @param {Object} formLike - A legacy form element or form-like value used to locate the email field.
+	 */
 	function captureLegacyEmail(formLike) {
 		clearLegacyEmail();
 		populateLegacyClickFields(formLike);
@@ -513,6 +544,9 @@
 		legacyEmailClearTimer = window.setTimeout(clearLegacyEmail, 30000);
 	}
 
+	/**
+	 * Transmits attribution data after a legacy form submission when valid consent and email data are available.
+	 */
 	async function transmitLegacySuccess() {
 		var email = legacyEmailForAudit;
 		clearLegacyEmail();
@@ -530,6 +564,11 @@
 		});
 	}
 
+	/**
+	 * Validates whether an origin belongs to an approved HubSpot domain.
+	 * @param {string} origin - The origin URL to validate.
+	 * @return {boolean} `true` if the origin uses HTTPS without an explicit port and matches an approved HubSpot domain, `false` otherwise.
+	 */
 	function isTrustedHubSpotOrigin(origin) {
 		if (!origin || origin === 'null') return false;
 		try {

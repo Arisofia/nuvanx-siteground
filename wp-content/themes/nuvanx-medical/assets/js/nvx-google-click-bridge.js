@@ -193,8 +193,6 @@
 
   function isLegacyFormEvent(eventName) {
     return (
-  function isLegacyFormEvent(eventName) {
-    return (
       eventName === 'onFormReady' ||
       eventName === 'onBeforeFormSubmit' ||
       eventName === 'onFormSubmit'

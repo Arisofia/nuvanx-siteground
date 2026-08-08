@@ -123,7 +123,7 @@ function verifyViaSiteGroundOrigin(route) {
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
     'grep -Fq "$EXPECTED_SHA" "$body"',
-    'robots_meta="$(grep -Eio \'<meta[^>]+name=["\\\'\"]robots["\\\'\"][^>]*>\' "$body" | head -n 1 || true)"',
+    'robots_meta="$(grep -Eio \'<meta[^>]+name=[^ >]*robots[^ >]*[^>]*>\' "$body" | head -n 1 || true)"',
     'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
     'combined="${robots_meta} ${xrobots}"',
     'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',

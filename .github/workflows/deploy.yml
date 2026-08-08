@@ -7,6 +7,11 @@ on:
         description: Exact staging-accepted commit SHA
         required: true
         type: string
+      authorize_production:
+        description: Explicitly authorize the production mutation job after Block B passes
+        required: false
+        default: false
+        type: boolean
     secrets:
       STAGING2_SSH_HOST:
         required: true
@@ -192,13 +197,13 @@ jobs:
             echo '- Staging disk marker: exact candidate SHA'
             echo '- Production identity: read-only checks passed; no production mutation performed'
             echo '- Production tooling: strict-host and rollback invariants validated statically'
-            echo '- Production deploy job remains disabled until explicit authorization'
+            echo '- Production deploy runs only when authorize_production=true is supplied by a trusted reusable caller'
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-siteground:
-    name: 🚫 Production deploy prepared but disabled
+    name: Production deploy · explicit authorization
     needs: production-gate
-    if: ${{ false }}
+    if: ${{ inputs.authorize_production }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

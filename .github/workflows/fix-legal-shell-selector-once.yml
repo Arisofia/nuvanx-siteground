@@ -1,0 +1,64 @@
+name: Fix Legal Shell Selector Once
+
+on:
+  push:
+    branches: [fix/legal-shell-selector]
+    paths:
+      - .github/workflows/fix-legal-shell-selector-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/legal-shell-selector
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Correct only the five-page legal selector contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
+          s=p.read_text('utf-8')
+          pairs={
+            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable {': '.nvx-page > .nvx-blog-article.nvx-brand-readable {',
+            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {': '.nvx-page > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {',
+            '.nvx-page__content > .nvx-blog-article.nvx-brand-readable + p {': '.nvx-page > .nvx-blog-article.nvx-brand-readable + p {',
+            '  .nvx-page__content > .nvx-blog-article.nvx-brand-readable,\n  .nvx-page__content > .nvx-blog-article.nvx-brand-readable + p {': '  .nvx-page > .nvx-blog-article.nvx-brand-readable,\n  .nvx-page > .nvx-blog-article.nvx-brand-readable + p {',
+            '  .nvx-page__content > .nvx-blog-article.nvx-brand-readable {': '  .nvx-page > .nvx-blog-article.nvx-brand-readable {',
+          }
+          for old,new in pairs.items():
+            c=s.count(old)
+            if c != 1:
+              raise SystemExit(f'expected one occurrence of {old!r}, got {c}')
+            s=s.replace(old,new,1)
+          p.write_text(s,'utf-8')
+          PY
+          git diff --check
+          test "$(git diff --name-only)" = "$file"
+          ! grep -Fq '.nvx-page__content > .nvx-blog-article.nvx-brand-readable' "$file"
+          grep -Fq '.nvx-page > .nvx-blog-article.nvx-brand-readable {' "$file"
+          node scripts/lint/no-hardcoded-colors.mjs
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+          find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          while IFS= read -r -d '' f; do node --check "$f"; done < <(find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.js' -type f -print0)
+      - name: Commit one CSS selector correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Audit Controller'
+          git config user.email 'audit-controller@nuvanx.invalid'
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          git diff --cached --check
+          test "$(git diff --cached --name-only)" = 'wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
+          git commit -m 'fix(visual): center legal documents in the real page shell'
+          git push origin HEAD:fix/legal-shell-selector

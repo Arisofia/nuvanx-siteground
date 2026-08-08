@@ -12,12 +12,40 @@ jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout patch source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: automation/apply-legacy-attribution-20260808
+          path: patchsrc
+          persist-credentials: false
+
+      - name: Checkout target branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: fix/google-attribution-legacy-form-20260808
+          path: target
           fetch-depth: 0
           persist-credentials: true
-      - name: Apply exact legacy attribution hooks
+
+      - name: Apply and validate patch
         shell: bash
-        env:
-          PATCH_B64: ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpjb252ID0gUGF0aCgnd3AtY29udGVudC90aGVtZXMvbnV2YW54LW1lZGljYWwvYXNzZXRzL2pzL252eC1jb252ZXJzaW9uLWV2ZW50cy5qcycpCnRleHQgPSBjb252LnJlYWRfdGV4dCgpCmFuY2hvciA9ICJcdHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCdocy1mb3JtLWV2ZW50Om9uLXN1Ym1pc3Npb246c3VjY2VzcycsIGFzeW5jIGZ1bmN0aW9uIChldmVudCkge1xuIgppZiB0ZXh0LmNvdW50KGFuY2hvcikgIT0gMToKICAgIHJhaXNlIFN5c3RlbUV4aXQoZidFeHBlY3RlZCBvbmUgbW9kZXJuIHN1Y2Nlc3MtbGlzdGVuZXIgYW5jaG9yLCBmb3VuZCB7dGV4dC5jb3VudChhbmNob3IpfScpCmxlZ2FjeSA9ICIiIlx0dmFyIGxlZ2FjeUZvcm1Sb290cyA9IFtdO1xuXHR2YXIgbGVnYWN5RW1haWxGb3JBdWRpdCA9ICcnO1xuClx0ZnVuY3Rpb24gbGVnYWN5Rm9ybVJvb3QoZm9ybUxpa2UpIHtcblx0XHR2YXIgcm9vdCA9IGZvcm1MaWtlO1xuXHRcdHRyeSB7XG5cdFx0CWlmIChyb290ICYmIHR5cGVvZiByb290LmdldCA9PT0gJ2Z1bmN0aW9uJykgcm9vdCA9IHJvb3QuZ2V0KDApO1xuXHRcdFx0ZWxzZSBpZiAocm9vdCAmJiByb290LmpxdWVyeSAmJiByb290WzBdKSByb290ID0gcm9vdFswXTtcblx0XHRcdGVsc2UgaWYgKHJvb3QgJiYgcm9vdFswXSAmJiByb290WzBdLm5vZGVUeXBlID09PSAxKSByb290ID0gcm9vdFswXTtcblx0XHR9IGNhdGNoIChfZXJyb3IpIHtcblx0XHRcdHJldHVybiBudWxsO1xuXHRcdH1cblx0XHRyZXR1cm4gcm9vdCAmJiB0eXBlb2Ygcm9vdC5xdWVyeVNlbGVjdG9yID09PSAnZnVuY3Rpb24nID8gcm9vdCA6IG51bGw7XG5cdH1cblxuXHRmdW5jdGlvbiBzZXRMZWdhY3lGaWVsZChyb290LCBwcm9wZXJ0eU5hbWUsIHZhbHVlKSB7XG5cdFx0aWYgKCFyb290KSByZXR1cm4gZmFsc2U7XG5cdFx0dmFyIGlucHV0ID0gcm9vdC5xdWVyeVNlbGVjdG9yKCdbbmFtZT0iJyArIHByb3BlcnR5TmFtZSArICciXScpO1xuXHRcdGlmICghaW5wdXQpIHJldHVybiBmYWxzZTtcblx0XHR0cnkge1xuXHRcdFx0aW5wdXQudmFsdWUgPSB2YWx1ZTtcblx0XHRcdGlmICh2YWx1ZSkgaW5wdXQuc2V0QXR0cmlidXRlKCd2YWx1ZScsIHZhbHVlKTtcblx0XHRcdGVsc2UgaW5wdXQucmVtb3ZlQXR0cmlidXRlKCd2YWx1ZScpO1xuXHRcdFx0aW5wdXQuZGlzcGF0Y2hFdmVudChuZXcgRXZlbnQoJ2lucHV0JywgeyBidWJibGVzOiB0cnVlIH0pKTtcblx0XHRcdGlucHV0LmRpc3BhdGNoRXZlbnQobmV3IEV2ZW50KCdjaGFuZ2UnLCB7IGJ1YmJsZXM6IHRydWUgfSkpO1xuXHRcdFx0cmV0dXJuIHRydWU7XG5cdFx0fSBjYXRjaCAoX2Vycm9yKSB7XG5cdFx0XHRyZXR1cm4gZmFsc2U7XG5cdFx0fVxuXHR9XG5cblx0ZnVuY3Rpb24gcG9wdWxhdGVMZWdhY3lDbGlja0ZpZWxkcyhmb3JtTGlrZSkge1xuXHRcdHZhciByb290ID0gbGVnYWN5Rm9ybVJvb3QoZm9ybUxpa2UpO1xuXHRcdGlmICghcm9vdCkgcmV0dXJuIGZhbHNlO1xuXHRcdGlmIChsZWdhY3lGb3JtUm9vdHMuaW5kZXhPZihyb290KSA9PT0gLTEpIGxlZ2FjeUZvcm1Sb290cy5wdXNoKHJvb3QpO1xuXG5cdFx0dmFyIGNvbnNlbnQgPSBoYXNNYXJrZXRpbmdDb25zZW50KCk7XG5cdFx0dmFyIG1vZGlmaWVkID0gZmFsc2U7XG5cdFx0T2JqZWN0LmtleXMoRklFTERfTUFQKS5mb3JFYWNoKGZ1bmN0aW9uIChwYXJhbSkge1xuXHRcdFx0dmFyIHZhbHVlID0gY29uc2VudCA/IGNsaWNrVmFsdWVzW3BhcmFtXSA6ICcnO1xuXHRcdFx0aWYgKCF2YWx1ZSAmJiBjb25zZW50KSByZXR1cm47XG5cdFx0XHRGSUVMRF9NQVBbcGFyYW1dLmZvckVhY2goZnVuY3Rpb24gKHByb3BlcnR5TmFtZSkge1xuXHRcdFx0XHRpZiAoIWNvbnNlbnQgJiYgcHJvcGVydHlOYW1lLmluZGV4T2YoJ252eF8nKSAhPT0gMCkgcmV0dXJuO1xuXHRcdFx0XHRtb2RpZmllZCA9IHNldExlZ2FjeUZpZWxkKHJvb3QsIHByb3BlcnR5TmFtZSwgdmFsdWUpIHx8IG1vZGlmaWVkO1xuXHRcdFx0fSk7XG5cdFx0fSk7XG5cdFx0cmV0dXJuIG1vZGlmaWVkO1xuXHR9XG5cblx0ZnVuY3Rpb24gcmVmcmVzaExlZ2FjeUZvcm1zKCkge1xuXHRcdGxlZ2FjeUZvcm1Sb290cyA9IGxlZ2FjeUZvcm1Sb290cy5maWx0ZXIoZnVuY3Rpb24gKHJvb3QpIHtcblx0XHRcdHJldHVybiByb290ICYmIHJvb3QuaXNDb25uZWN0ZWQ7XG5cdFx0fSk7XG5cdFx0bGVnYWN5Rm9ybVJvb3RzLmZvckVhY2goZnVuY3Rpb24gKHJvb3QpIHtcblx0XHRcdHBvcHVsYXRlTGVnYWN5Q2xpY2tGaWVsZHMocm9vdCk7XG5cdFx0fSk7XG5cdH1cblxuXHRmdW5jdGlvbiBjYXB0dXJlTGVnYWN5RW1haWwoZm9ybUxpa2UpIHtcblx0XHRsZWdhY3lFbWFpbEZvckF1ZGl0ID0gJyc7XG5cdFx0cG9wdWxhdGVMZWdhY3lDbGlja0ZpZWxkcyhmb3JtTGlrZSk7XG5cdFx0aWYgKCFoYXNNYXJrZXRpbmdDb25zZW50KCkpIHJldHVybjtcblx0XHR2YXIgcm9vdCA9IGxlZ2FjeUZvcm1Sb290KGZvcm1MaWtlKTtcblx0XHRpZiAoIXJvb3QpIHJldHVybjtcblx0XHR2YXIgZW1haWxJbnB1dCA9IHJvb3QucXVlcnlTZWxlY3RvcignW25hbWU9ImVtYWlsIl0nKTtcblx0XHRpZiAoIWVtYWlsSW5wdXQpIHJldHVybjtcblx0XHR2YXIgZW1haWwgPSBub3JtYWxpemVFbWFpbChlbWFpbElucHV0LnZhbHVlKTtcblx0XHRpZiAoIWVtYWlsIHx8IGVtYWlsLmxlbmd0aCA+IDMyMCB8fCBlbWFpbC5pbmRleE9mKCdAJykgPD0gMCkgcmV0dXJuO1xuXHRcdGxlZ2FjeUVtYWlsRm9yQXVkaXQgPSBlbWFpbDtcblx0fVxuXG5cdGFzeW5jIGZ1bmN0aW9uIHRyYW5zbWl0TGVnYWN5U3VjY2VzcygpIHtcblx0XHR2YXIgZW1haWwgPSBsZWdhY3lFbWFpbEZvckF1ZGl0O1xuXHRcdGxlZ2FjeUVtYWlsRm9yQXVkaXQgPSAnJztcblx0XHRpZiAoIWVtYWlsIHx8ICFoYXNNYXJrZXRpbmdDb25zZW50KCkgfHwgc2VudCB8fCBpbkZsaWdodCkgcmV0dXJuO1xuXHRcdHZhciBlbWFpbEhhc2ggPSBhd2FpdCBzaGEyNTYoZW1haWwpO1xuXHRcdGlmICghL15bMC05YS1mXXs2NH0kLy50ZXN0KGVtYWlsSGFzaCkgfHwgIWhhc01hcmtldGluZ0NvbnNlbnQoKSkgcmV0dXJuO1xuXHRcdHRyYW5zbWl0QXVkaXQoe1xuXHRcdFx0ZW1haWxfaGFzaDogZW1haWxIYXNoLFxuXHRcdFx0Z2NsaWQ6IGNsaWNrVmFsdWVzLmdjbGlkIHx8IG51bGwsXG5cdFx0XHRnYnJhaWQ6IGNsaWNrVmFsdWVzLmdicmFpZCB8fCBudWxsLFxuXHRcdFx0d2JyYWlkOiBjbGlja1ZhbHVlcy53YnJhaWQgfHwgbnVsbCxcblx0XHRcdGdjbHNyYzogY2xpY2tWYWx1ZXMuZ2Nsc3JjIHx8IG51bGwsXG5cdFx0XHRmb3JtX2lkOiBGT1JNX0lELFxuXHRcdFx0bGFuZGluZ191cmw6IGNhbm9uaWNhbExhbmRpbmdVcmwoKSxcblx0XHR9KTtcblx0fVxuXG5cdGZ1bmN0aW9uIGlzVHJ1c3RlZEh1YlNwb3RPcmlnaW4ob3JpZ2luKSB7XG5cdFx0aWYgKCFvcmlnaW4gfHwgb3JpZ2luID09PSAnbnVsbCcpIHJldHVybiBmYWxzZTtcblx0XHR0cnkge1xuXHRcdFx0dmFyIGhvc3QgPSBuZXcgVVJMKFJSSUdJTiku
+        run: |
+          set -euo pipefail
+          python3 patchsrc/scripts/tmp_apply_legacy_attribution.py target
+          node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          grep -Fq 'NUVANXGoogleAttributionLegacy' target/wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          grep -Fq 'onBeforeFormSubmit' target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          grep -Fq 'forms/v2.js' target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          if grep -Fq 'forms/embed/' target/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js; then
+            echo 'Unexpected modern embed URL in target runtime.' >&2
+            exit 1
+          fi
+          cd target
+          git diff --check
+          git diff --exit-code -- . ':!wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js' ':!wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js'
+          git config user.name 'NUVANX Release Automation'
+          git config user.email 'admin@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
+          git commit -m 'fix(attribution): support legacy HubSpot form callbacks'
+          git push origin HEAD:fix/google-attribution-legacy-form-20260808

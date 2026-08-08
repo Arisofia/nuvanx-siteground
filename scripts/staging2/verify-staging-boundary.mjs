@@ -143,7 +143,7 @@ function verifyViaSiteGroundOrigin(route) {
     '  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2',
     '  exit 1',
     'fi',
-    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots=\"$combined\""',
+    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots=\\\"$combined\\\""',
     '',
   ].join('\n');
 

@@ -416,7 +416,8 @@
 	function legacyFormRoot(formLike) {
 		var root = formLike;
 		try {
-			if (root && typeof root.get === 'function') root = root.get(0);
+			if (root && root.nodeType === 1) { /* already a DOM element */ }
+			else if (root && typeof root.get === 'function') root = root.get(0);
 			else if (root && root.jquery && root[0]) root = root[0];
 			else if (root && root[0] && root[0].nodeType === 1) root = root[0];
 		} catch (_error) {

@@ -1,0 +1,127 @@
+name: Staging2 Media 1415 Postregen Audit Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-media-1415-postregen-audit-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      STAGING_URL: https://staging2.nuvanx.com
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict staging SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging "test -d '$STAGING_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null"
+
+      - name: Inspect post-regeneration metadata and runtime HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' STAGING_URL='$STAGING_URL' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+
+          echo '===== REGISTERED IMAGE SIZES ====='
+          wp eval '$s=wp_get_registered_image_subsizes(); foreach($s as $n=>$v){echo $n."\t".($v["width"]??0)."x".($v["height"]??0)."\tcrop=".(empty($v["crop"])?"0":"1")."\n";}'
+
+          echo '===== POST-REGEN METADATA ====='
+          wp eval '
+          foreach([890,1419,1420,1421,1422,1423,1424,1425,1426,2087] as $id){
+            $m=wp_get_attachment_metadata($id);
+            echo "ID={$id}\tFILE=".($m["file"]??"")."\tSIZES=".implode(",",array_keys($m["sizes"]??[]))."\n";
+            $upload=wp_get_upload_dir(); $attached=get_post_meta($id,"_wp_attached_file",true); $dir=dirname($attached); if($dir===".")$dir="";
+            foreach(($m["sizes"]??[]) as $name=>$s){$f=trailingslashit($upload["basedir"]).($dir?trailingslashit($dir):"").($s["file"]??"");echo "  {$name}\t".($s["file"]??"")."\tEXISTS=".(is_file($f)?"YES":"NO")."\n";}
+          }'
+
+          wp cache flush >/dev/null
+          if wp help sg >/dev/null 2>&1; then wp sg purge >/dev/null 2>&1 || true; fi
+
+          html="$(mktemp)"
+          headers="$(mktemp)"
+          ua='NUVANX-Staging-Postregen-Audit/1.0'
+          result="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$html" -w '%{http_code}|%{url_effective}' "$STAGING_URL/estetica-avanzada/")"
+          code="${result%%|*}"; effective="${result#*|}"
+          test "$code" = '200'
+          test "$effective" = "$STAGING_URL/estetica-avanzada/"
+          grep -Fq "$EXPECTED_SHA" "$html"
+          ! grep -Fq '/.well-known/sgcaptcha/' "$html"
+
+          echo '===== RENDERED TREATMENT IMAGE REFERENCES ====='
+          grep -Eo 'https://staging2\.nuvanx\.com/wp-content/uploads/[^"'"'"' <>]+\.(webp|jpe?g|png)' "$html" | grep -E '(higiene-facial-con-microdermoabrasion|diatermia-facial|depilacion-laser|hidrolipoclasia|masajes-posoperatorios|radiofrecuencia-corporal|presoterapia|tratamiento-anticelulitico|casmara)' | sort -u || true
+
+          refs="$(mktemp)"
+          grep -Eo 'https://staging2\.nuvanx\.com/wp-content/uploads/[^"'"'"' <>]+\.(webp|jpe?g|png)' "$html" | sort -u > "$refs" || true
+          test -s "$refs"
+          failures=0
+          total=0
+          while IFS= read -r url; do
+            [[ -n "$url" ]] || continue
+            total=$((total+1))
+            img_code="$(curl -sS -o /dev/null --max-time 20 -A "$ua" -w '%{http_code}' "$url" || true)"
+            if [[ "$img_code" != '200' ]]; then
+              echo "RUNTIME_IMAGE_FAIL code=$img_code url=$url"
+              failures=$((failures+1))
+            fi
+          done < "$refs"
+          echo "RUNTIME_IMAGE_TOTAL=$total"
+          echo "RUNTIME_IMAGE_FAIL=$failures"
+          test "$failures" = '0'
+
+          for legacy in \
+            'higiene-facial-con-microdermoabrasion-480x320.webp' \
+            'higiene-facial-con-microdermoabrasion-300x200.webp' \
+            'casmara-480x194.webp' \
+            'casmara-300x121.webp'; do
+            if grep -Fq "$legacy" "$html"; then
+              echo "LEGACY_DERIVATIVE_STILL_RENDERED=$legacy" >&2
+              exit 1
+            fi
+          done
+          echo 'LEGACY_DERIVATIVES_NOT_RENDERED=PASS'
+          echo 'STAGING_MEDIA_POSTREGEN_RUNTIME=PASS'
+          rm -f "$html" "$headers" "$refs"
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

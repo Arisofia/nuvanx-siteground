@@ -277,8 +277,8 @@ for (const route of routes) {
           result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
           result.robotsSource = 'origin';
         } else {
-          result.robots = 'noindex,nofollow';
-          result.robotsSource = 'assumed';
+          result.robots = '';
+          result.robotsSource = 'unavailable';
         }
         
         result.pass = true;

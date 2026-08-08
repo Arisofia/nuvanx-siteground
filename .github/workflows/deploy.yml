@@ -89,7 +89,7 @@ jobs:
         run: |
           set -euo pipefail
           artifact_name="staging2-block-c-${CANDIDATE_SHA}"
-          response="$(curl -fsSL \
+          response="$(curl -fsSL --proto '=https' --proto-redir '=https' \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
@@ -98,7 +98,7 @@ jobs:
           artifact_id="$(printf '%s' "$artifact" | jq -r '.id')"
           acceptance_run_id="$(printf '%s' "$artifact" | jq -r '.workflow_run.id')"
           [[ "$artifact_id" =~ ^[0-9]+$ && "$acceptance_run_id" =~ ^[0-9]+$ ]]
-          conclusion="$(curl -fsSL \
+          conclusion="$(curl -fsSL --proto '=https' --proto-redir '=https' \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${acceptance_run_id}" | jq -r '.conclusion')"

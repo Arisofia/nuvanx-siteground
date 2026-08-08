@@ -277,6 +277,9 @@
 
     let promise = null;
 
+    /**
+     * Initializes eligible HubSpot form frames and connects supported attribution callbacks.
+     */
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
       
@@ -306,7 +309,19 @@
               region: frame.dataset.region || config.hubspotRegion || 'eu1',
               portalId: frame.dataset.portalId || config.hubspotPortalId,
               formId: frame.dataset.formId || config.hubspotFormId,
-              target: '#' + frame.id
+              target: '#' + frame.id,
+              onFormReady: function ($form) {
+                try {
+                  const hooks = window.NUVANXGoogleAttributionLegacy;
+                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form, frame.dataset.formId);
+                } catch (_error) {}
+              },
+              onBeforeFormSubmit: function ($form) {
+                try {
+                  const hooks = window.NUVANXGoogleAttributionLegacy;
+                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form, frame.dataset.formId);
+                } catch (_error) {}
+              }
             });
           } catch (_err) {
             delete frame.dataset.hsInitialized;

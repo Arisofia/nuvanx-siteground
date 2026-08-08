@@ -15,10 +15,10 @@
 	function cleanToken(value, fallback) {
 		var token = String(value || '')
 			.toLowerCase()
-			.replace(/[^a-z0-9_-]+/g, '_')
-			.replace(/^_+/, '')
-			.replace(/_+$/, '')
-			.slice(0, 80);
+			.replace(/[^a-z0-9_-]+/g, '_');
+		while (token.startsWith('_')) token = token.slice(1);
+		while (token.endsWith('_')) token = token.slice(0, -1);
+		token = token.slice(0, 80);
 		return token || fallback || 'unknown';
 	}
 

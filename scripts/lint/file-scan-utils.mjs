@@ -5,8 +5,8 @@ import path from 'node:path';
  * Recursively scans matching files in a directory and aggregates their violations.
  * @param {string} rootDir - The directory to scan.
  * @param {string[]} extensions - File extensions to include.
- * @param {Function} scanFile - Function that scans each matching file.
- * @return {Array} The combined violations from all matching files.
+ * @param {(filePath: string) => Promise<Array>} scanFile - Async function that scans each matching file.
+ * @return {Promise<Array>} The combined violations from all matching files.
  */
 export async function scanDirectory(rootDir, extensions, scanFile) {
   const files = [];

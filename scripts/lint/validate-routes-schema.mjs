@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 
-const [, , schemaPath, dataPath] = process.argv;
-if (!schemaPath || !dataPath) throw new Error('Usage: validate-routes-schema.mjs <schema> <data>');
-const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+const EXPECTED_SCHEMA = 'wp-content/themes/nuvanx-medical/inc/data/routes.schema.json';
+const EXPECTED_DATA = 'wp-content/themes/nuvanx-medical/inc/data/routes.json';
+const [, , schemaArg = EXPECTED_SCHEMA, dataArg = EXPECTED_DATA] = process.argv;
+if (schemaArg !== EXPECTED_SCHEMA || dataArg !== EXPECTED_DATA) {
+  throw new Error(`Only canonical route files are allowed: ${EXPECTED_SCHEMA} ${EXPECTED_DATA}`);
+}
+
+const schemaUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.schema.json', import.meta.url);
+const dataUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.json', import.meta.url);
+const schema = JSON.parse(fs.readFileSync(schemaUrl, 'utf8'));
+const data = JSON.parse(fs.readFileSync(dataUrl, 'utf8'));
 const routeSchema = schema.patternProperties?.['^/.*'];
 if (!routeSchema || schema.type !== 'object') throw new Error('Unsupported routes schema contract');
 if (!data || Array.isArray(data) || typeof data !== 'object') throw new Error('routes.json must be an object');

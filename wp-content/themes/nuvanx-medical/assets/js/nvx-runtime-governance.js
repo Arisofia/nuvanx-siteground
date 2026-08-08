@@ -132,8 +132,8 @@
     const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
     const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
 
-    function normalizePath(pathname) {
-      let normalized = pathname || '';
+    function normalizePath(pathname = '') {
+      let normalized = pathname;
       while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
       return normalized + '/';
     }

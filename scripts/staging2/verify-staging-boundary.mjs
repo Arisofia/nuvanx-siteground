@@ -133,7 +133,8 @@ function verifyViaSiteGroundOrigin(route) {
     'esac',
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
-    'grep -Eiq "<meta[^>]+name=[\\\"\\\']nvx-deploy-sha[\\\"\\\'][^>]*content=[\\\"\\\']$EXPECTED_SHA[\\\"\\\']" "$body"',
+    'deploy_tag="$(grep -Eio "<meta[^>]+name=[\\\"\\\\\']nvx-deploy-sha[\\\"\\\\\'][^>]*>" "$body" | head -n 1 || true)"',
+    'printf "%s" "$deploy_tag" | grep -Fq "$EXPECTED_SHA"',
     'robots_meta="$(grep -Eio "<meta[^>]+name=[\\\"\\\']robots[\\\"\\\'][^>]*>" "$body" | head -n 1 || true)"',
     'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
     'combined="${robots_meta} ${xrobots}"',
@@ -143,7 +144,8 @@ function verifyViaSiteGroundOrigin(route) {
     '  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2',
     '  exit 1',
     'fi',
-    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots=\\\"$combined\\\""',
+    'robots_b64="$(printf "%s" "$combined" | base64 | tr -d \'\\n\')"',
+    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots_b64=$robots_b64"',
     '',
   ].join('\n');
 
@@ -245,7 +247,7 @@ const report = {
   transientBaseDelayMs,
   requestTimeoutMs,
   originFallbackAlias: originSshAlias,
-  originFallbackAvailable: false,
+  originFallbackAvailable: null,
   routes: [],
   failures: [],
 };
@@ -275,15 +277,25 @@ for (const route of routes) {
     if (transientEdge && getOriginFallbackAvailable()) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
-      if (result.originFallback.pass) {
-        result.pass = true;
-        result.status = 200;
-        result.deploySha = expectedSha;
-        const robotsMatch = result.originFallback.stdout.match(/robots="([^"]*)"/);
-        result.robots = robotsMatch ? robotsMatch[1].trim() : 'noindex,nofollow';
-        report.routes.push(result);
-        continue;
-      }
+        if (result.originFallback.pass) {
+          result.pass = true;
+          result.edgeStatus = result.status;
+          result.status = 200;
+          result.edgeDeploySha = result.deploySha;
+          result.deploySha = expectedSha;
+          const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
+          if (b64Match) {
+            try {
+              result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
+            } catch {
+              result.robots = 'noindex,nofollow';
+            }
+          } else {
+            result.robots = 'noindex,nofollow';
+          }
+          report.routes.push(result);
+          continue;
+        }
       result.issues.push(
         `SiteGround origin fallback failed: ${
           result.originFallback.signal ? `signal ${result.originFallback.signal}` :

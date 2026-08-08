@@ -1,8 +1,9 @@
 import { chromium } from 'playwright';
 
-const baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const formId = (process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c').trim().toLowerCase();
-const expectedSha = process.env.EXPECTED_SHA || ''; // Optional pinning
+const expectedSha = (process.env.EXPECTED_SHA || '').trim(); // Optional pinning
+if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) throw new Error('EXPECTED_SHA must be a 40-character lowercase hex string');
 
 const gclid = `NVXQA_RUNTIME_${Date.now()}`;
 const target = `${baseUrl}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
@@ -22,7 +23,12 @@ try {
     } catch (err) {
       console.log(`Navigation failed: ${err.message}`);
     }
-    const isSuccess = status === 200;
+    const currentPath = new URL(page.url()).pathname;
+    const targetPath = new URL(target).pathname;
+    const isSuccess = status === 200 && currentPath === targetPath;
+    if (status === 200 && currentPath !== targetPath) {
+      console.log(`200 OK but redirected to ${currentPath}`);
+    }
     const isRetriable =
       status === 0 || // network / no-response cases
       status === 202 ||
@@ -55,7 +61,7 @@ try {
     `#nvx-hubspot-form form.hs-form`
   ];
   await page.locator(selectors.join(', ')).first().waitFor({ state: 'attached', timeout: 20000 });
-  await page.waitForTimeout(2000);
+  await page.waitForFunction(() => window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getForms === 'function' && window.HubSpotFormsV4.getForms().length > 0, { timeout: 20000 });
   
   const state = await page.evaluate(async ({ formId, gclid }) => {
     const out = {

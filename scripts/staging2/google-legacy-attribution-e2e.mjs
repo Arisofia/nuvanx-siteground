@@ -45,6 +45,70 @@ function selector(name) {
   return `input[name="${escaped}"],input[name="0-1/${escaped}"]`;
 }
 
+function createSignals() {
+  return {
+    success: [],
+    failures: [],
+    conversions: [],
+    navigations: [],
+  };
+}
+
+async function installPersistentObservers(page, signals) {
+  page.on('framenavigated', (frame) => {
+    if (frame !== page.mainFrame()) return;
+    const url = sanitizeUrl(frame.url());
+    if (url) {
+      signals.navigations.push(url);
+      console.log(`MAIN_NAVIGATION=${url}`);
+    }
+  });
+
+  await page.exposeBinding('__nvxQaReport', ({ frame }, payload) => {
+    if (frame !== page.mainFrame() || !payload || typeof payload !== 'object') return;
+    if (payload.type === 'hubspot_success') signals.success.push(String(payload.source || 'unknown'));
+    if (payload.type === 'hubspot_failed') signals.failures.push(String(payload.source || 'unknown'));
+    if (payload.type === 'conversion' && payload.eventName === 'generate_lead') signals.conversions.push('generate_lead');
+  });
+
+  await page.addInitScript(({ canonicalFormId }) => {
+    if (window.top !== window || window.__nvxQaPersistentObserverInstalled) return;
+    window.__nvxQaPersistentObserverInstalled = true;
+    const report = (payload) => {
+      try { window.__nvxQaReport(payload); } catch {}
+    };
+    const matchesForm = (id) => String(id || '').trim().toLowerCase() === canonicalFormId;
+    const allowedHubSpotOrigin = (origin) => {
+      if (!origin || origin === 'null') return false;
+      try {
+        return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(new URL(origin).hostname.toLowerCase());
+      } catch {
+        return false;
+      }
+    };
+
+    document.addEventListener('nvx:conversion-event', (event) => {
+      if (event?.detail?.event_name === 'generate_lead') report({ type: 'conversion', eventName: 'generate_lead' });
+    });
+    window.addEventListener('hs-form-event:on-submission:success', (event) => {
+      if (matchesForm(event?.detail?.formId)) report({ type: 'hubspot_success', source: 'hubspot_form_event' });
+    });
+    window.addEventListener('hs-form-event:on-submission:failed', (event) => {
+      if (matchesForm(event?.detail?.formId)) report({ type: 'hubspot_failed', source: 'hubspot_form_event_failed' });
+    });
+    window.addEventListener('message', (event) => {
+      if (!allowedHubSpotOrigin(event.origin)) return;
+      let data = event.data || {};
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch { return; }
+      }
+      if (data.type === 'hsFormCallback' && data.eventName === 'onFormSubmitted' && matchesForm(data.id)) {
+        report({ type: 'hubspot_success', source: 'hubspot_post_message' });
+      }
+    });
+  }, { canonicalFormId: formId });
+}
+
 async function settleChallenge(page, canonicalPath, getDocumentStatus, attempt) {
   console.log(`NAV attempt=${attempt} siteground_antibot=challenge settle_ms=30000`);
   for (let second = 0; second < 30; second += 1) {
@@ -230,57 +294,33 @@ async function formState(frame) {
   }));
 }
 
-async function installObservers(page) {
-  await page.evaluate((canonicalFormId) => {
-    window.__nvxQaSuccess = 0;
-    window.__nvxQaSuccessSources = [];
-    window.__nvxQaFailed = 0;
-    window.__nvxQaFailureSources = [];
-    window.__nvxQaConversionEvents = 0;
-    window.__nvxQaGenerateBefore = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length;
-    const record = (source, id) => {
-      if (String(id || '').toLowerCase() !== canonicalFormId) return;
-      window.__nvxQaSuccess += 1;
-      window.__nvxQaSuccessSources.push(source);
-    };
-    const recordFailure = (source, id) => {
-      if (String(id || '').toLowerCase() !== canonicalFormId) return;
-      window.__nvxQaFailed += 1;
-      window.__nvxQaFailureSources.push(source);
-    };
-    document.addEventListener('nvx:conversion-event', (event) => {
-      if (event?.detail?.event_name === 'generate_lead') window.__nvxQaConversionEvents += 1;
-    });
-    window.addEventListener('hs-form-event:on-submission:success', (event) => record('hubspot_form_event', event?.detail?.formId));
-    window.addEventListener('hs-form-event:on-submission:failed', (event) => recordFailure('hubspot_form_event_failed', event?.detail?.formId));
-    window.addEventListener('message', (event) => {
-      try {
-        if (!/(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(new URL(event.origin).hostname.toLowerCase())) return;
-      } catch { return; }
-      let data = event.data || {};
-      if (typeof data === 'string') { try { data = JSON.parse(data); } catch { return; } }
-      if (data.type === 'hsFormCallback' && data.eventName === 'onFormSubmitted') record('hubspot_post_message', data.id);
-    });
-  }, formId);
-}
-
-async function submissionState(page) {
-  return page.evaluate(() => {
-    const dataLayerDelta = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
-    const conversionEventCount = Number(window.__nvxQaConversionEvents || 0);
-    return {
-      successMessages: Number(window.__nvxQaSuccess || 0),
-      successSources: Array.isArray(window.__nvxQaSuccessSources) ? window.__nvxQaSuccessSources.slice() : [],
-      failedMessages: Number(window.__nvxQaFailed || 0),
-      failureSources: Array.isArray(window.__nvxQaFailureSources) ? window.__nvxQaFailureSources.slice() : [],
-      conversionEventCount,
-      dataLayerDelta,
-      generateLeadDelta: Math.max(conversionEventCount, dataLayerDelta),
+async function signalState(page, signals) {
+  let runtime = {
+    nuvanxConversionApi: null,
+    dataLayerIsArray: null,
+    dataLayerGenerateLeadCount: null,
+    gtagType: null,
+  };
+  try {
+    runtime = await page.evaluate(() => ({
       nuvanxConversionApi: typeof window.NUVANXConversionEvents?.trackSuccessfulSubmission === 'function',
       dataLayerIsArray: Array.isArray(window.dataLayer),
+      dataLayerGenerateLeadCount: (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length,
       gtagType: typeof window.gtag,
-    };
-  });
+    }));
+  } catch {
+    // Navigation can destroy the current execution context; Node-side signals remain authoritative.
+  }
+  return {
+    successMessages: signals.success.length,
+    successSources: signals.success.slice(),
+    failedMessages: signals.failures.length,
+    failureSources: signals.failures.slice(),
+    conversionEventCount: signals.conversions.length,
+    generateLeadDelta: signals.conversions.length,
+    navigations: signals.navigations.slice(),
+    ...runtime,
+  };
 }
 
 function captureHubSpotNetwork(page) {
@@ -298,36 +338,32 @@ function captureHubSpotNetwork(page) {
   page.on('request', onRequest);
   page.on('response', onResponse);
   page.on('requestfailed', onFailed);
-  const detach = () => {
-    page.off('request', onRequest);
-    page.off('response', onResponse);
-    page.off('requestfailed', onFailed);
+  return {
+    network,
+    detach() {
+      page.off('request', onRequest);
+      page.off('response', onResponse);
+      page.off('requestfailed', onFailed);
+    },
   };
-  return { network, detach };
 }
 
-async function waitForAcceptance(page, frame, scenario, network) {
-  try {
-    await page.waitForFunction(() => {
-      const dataLayerDelta = (window.dataLayer || []).filter((item) => item?.event === 'nvx_conversion_signal' && item.nvx_event_name === 'generate_lead').length - Number(window.__nvxQaGenerateBefore || 0);
-      return Number(window.__nvxQaSuccess || 0) >= 1
-        || Number(window.__nvxQaFailed || 0) >= 1
-        || Number(window.__nvxQaConversionEvents || 0) >= 1
-        || dataLayerDelta >= 1;
-    }, null, { timeout: 30000 });
-  } catch (error) {
-    const state = await submissionState(page).catch(() => ({ successMessages: 0, successSources: [], failedMessages: 0, failureSources: [], generateLeadDelta: 0 }));
-    const currentForm = await formState(frame).catch(() => ({ valid: null, invalid: [], submitDisabled: null }));
-    throw new Error(`${scenario}: HubSpot did not accept submission; state=${JSON.stringify(state)} form=${JSON.stringify(currentForm)} network=${JSON.stringify(network)} cause=${error.name}`);
+async function waitForAcceptance(page, signals, scenario, network) {
+  for (let attempt = 0; attempt < 300; attempt += 1) {
+    if (signals.success.length > 0 || signals.failures.length > 0 || signals.conversions.length > 0) break;
+    await sleep(100);
   }
-  const state = await submissionState(page);
+  const state = await signalState(page, signals);
   console.log(`HUBSPOT_ACCEPTANCE_${scenario}=${JSON.stringify(state)}`);
   if (state.failedMessages > 0 && state.successMessages === 0 && state.generateLeadDelta === 0) {
     throw new Error(`${scenario}: HubSpot reported submission failure: ${JSON.stringify(state.failureSources)}`);
   }
+  if (state.successMessages === 0 && state.generateLeadDelta === 0) {
+    throw new Error(`${scenario}: HubSpot success signal not observed; state=${JSON.stringify(state)} network=${JSON.stringify(network)}`);
+  }
 }
 
-async function triggerSubmit(page, frame, scenario, network) {
+async function triggerSubmit(page, frame, signals, scenario, network) {
   const button = frame.locator('form button[type="submit"],form input[type="submit"]').first();
   if (!await button.count()) throw new Error('HubSpot submit control missing');
   await button.scrollIntoViewIfNeeded();
@@ -341,12 +377,10 @@ async function triggerSubmit(page, frame, scenario, network) {
   await button.click();
 
   for (let attempt = 0; attempt < 12; attempt += 1) {
-    const state = await submissionState(page);
-    if (network.requests.length > 0 || state.successMessages > 0 || state.failedMessages > 0 || state.generateLeadDelta > 0) break;
+    if (network.requests.length > 0 || signals.success.length > 0 || signals.failures.length > 0 || signals.conversions.length > 0) break;
     await sleep(250);
   }
-  const afterClick = await submissionState(page);
-  if (network.requests.length === 0 && afterClick.successMessages === 0 && afterClick.failedMessages === 0 && afterClick.generateLeadDelta === 0) {
+  if (network.requests.length === 0 && signals.success.length === 0 && signals.failures.length === 0 && signals.conversions.length === 0) {
     await button.evaluate((node) => {
       const form = node.form;
       if (!form || typeof form.requestSubmit !== 'function') throw new Error('HTMLFormElement.requestSubmit unavailable');
@@ -387,8 +421,7 @@ async function assertAudit(scenario, email, state, auditRequests, auditResponses
   assertAllowPayload(email, auditRequests, auditResponses);
 }
 
-async function submit(page, frame, scenario, email, auditRequests, auditResponses) {
-  await installObservers(page);
+async function submit(page, frame, signals, scenario, email, auditRequests, auditResponses) {
   await fillVisibleForm(frame, email);
   await syncV4State(page, email);
 
@@ -398,27 +431,29 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
 
   const { network, detach } = captureHubSpotNetwork(page);
   try {
-    await triggerSubmit(page, frame, scenario, network);
-    await waitForAcceptance(page, frame, scenario, network);
+    await triggerSubmit(page, frame, signals, scenario, network);
+    await waitForAcceptance(page, signals, scenario, network);
+    await sleep(5000);
   } finally {
     detach();
   }
 
   console.log(`HUBSPOT_NETWORK_${scenario}=${JSON.stringify(network)}`);
-  await sleep(5000);
-  const state = await submissionState(page);
+  const state = await signalState(page, signals);
   console.log(`CONVERSION_STATE_${scenario}=${JSON.stringify(state)}`);
-  if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${state.generateLeadDelta}, expected=1 state=${JSON.stringify(state)}`);
+  if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead count=${state.generateLeadDelta}, expected=1 state=${JSON.stringify(state)}`);
   await assertAudit(scenario, email, state, auditRequests, auditResponses);
-  console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadDelta=1 auditRequests=${auditRequests.length}`);
+  console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadCount=1 auditRequests=${auditRequests.length}`);
 }
 
 async function runScenario(browser, scenario) {
   const context = await browser.newContext();
   const auditRequests = [];
   const auditResponses = [];
+  const signals = createSignals();
   try {
     const page = await context.newPage();
+    await installPersistentObservers(page, signals);
     await page.route('**/*', async (route) => {
       let block = false;
       try {
@@ -458,7 +493,7 @@ async function runScenario(browser, scenario) {
       await assertNever(frame, 'nvx_google_click_id', scenario.gclid, 'DENY GCLID must remain empty');
     }
 
-    await submit(page, frame, scenario.name, scenario.email, auditRequests, auditResponses);
+    await submit(page, frame, signals, scenario.name, scenario.email, auditRequests, auditResponses);
   } finally {
     await context.close();
   }

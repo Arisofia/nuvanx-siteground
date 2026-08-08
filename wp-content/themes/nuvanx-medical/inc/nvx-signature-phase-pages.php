@@ -240,6 +240,28 @@ function nvx_signature_hub_catalog(): array {
 			'seo_title' => 'Protocolos Signature Madrid | NUVANX',
 			'seo_desc'  => 'Protocolos Signature NUVANX en Madrid: rutas clínicas de diagnóstico para contorno, calidad de piel, textura, tono y perfil facial.',
 		),
+		'contour-architecture' => array(
+			'slug'      => 'remodelacion-corporal-laser-madrid',
+			'marker'    => 'NUVANX_PROTOCOL_PAGE:contour-architecture',
+			'kind'      => 'contour',
+			'kicker'    => $contour,
+			'h1'        => 'Remodelación corporal láser diseñada según tu anatomía.',
+			'lead'      => $short . ' evalúa grasa localizada, laxitud y continuidad entre zonas antes de indicar una tecnología. El plan se diseña por anatomía, no por una lista de aparatos.',
+			'intro'     => 'Abdomen, flancos, brazos, espalda, muslos, rodillas o contorno masculino pueden formar parte del mismo marco de decisión. Cada zona se presupuesta solo si tiene indicación documentada tras la exploración.',
+			'seo_title' => 'Remodelación corporal láser Madrid | ' . $short,
+			'seo_desc'  => 'Remodelación corporal láser en Madrid con ' . $contour . ': valoración por zonas de grasa, laxitud y continuidad anatómica.',
+		),
+		'post-maternity'       => array(
+			'slug'      => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+			'marker'    => 'NUVANX_PROTOCOL_PAGE:post-maternity',
+			'kind'      => 'post-maternity',
+			'kicker'    => 'NUVANX Post-Maternity Contour™',
+			'h1'        => 'Tratamiento postparto: abdomen y contorno corporal en Madrid.',
+			'lead'      => 'Lectura respetuosa de abdomen, flancos y calidad del tejido después del embarazo. Se separa grasa subcutánea, laxitud, diástasis y expectativas realistas antes de proponer cualquier modalidad.',
+			'intro'     => 'El postparto no es un protocolo estándar. La valoración considera lactancia, tiempo desde el parto, pared abdominal, cicatrices y disponibilidad de recuperación. Si no hay indicación proporcionada, se explica la alternativa o la espera.',
+			'seo_title' => 'Tratamiento postparto abdomen y contorno Madrid | NUVANX',
+			'seo_desc'  => 'Valoración postparto de abdomen y contorno corporal en Madrid: grasa, laxitud y pared abdominal con criterio clínico antes de indicar tratamiento.',
+		),
 	);
 }
 

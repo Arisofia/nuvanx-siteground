@@ -26,6 +26,13 @@ section.nvx-hero {
   box-sizing: border-box;
 }
 
+/* Canonical interior brand hero surface.
+   The copy contract below uses --nvx-light / --nvx-text-on-dark-90. */
+.nvx-brand-hero {
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
 /* Home: video hero especial con altura completa */
 body.home .nvx-home-hero {
   --nvx-hero-h: clamp(520px, 72svh, 680px);

@@ -1,0 +1,160 @@
+name: Production d54 Capture Trace Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-d54-capture-trace-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-trace
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-trace "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null"
+          test "$(ssh -n nvx-prod-trace "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_SHA"
+
+      - name: Upload traced capture script
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/nvx-capture-trace.sh" <<'SH'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          trap 'rc=$?; echo "TRACE_FAIL rc=$rc line=$LINENO cmd=$BASH_COMMAND" >&2; exit $rc' ERR
+          root="$1"; base="$2"; sha="$3"; out="$4"
+          rm -rf "$out"; mkdir -p "$out/html" "$out/sitemaps"
+          cd "$root"
+          echo 'TRACE=identity'
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$sha"
+          ua='NUVANX-Production-Final-Trace/1.0'
+
+          echo 'TRACE=sitemap-index'
+          result="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -H 'Accept: application/xml,text/xml,*/*' -o "$out/sitemaps/index.xml" -w '%{http_code}|%{url_effective}' "$base/sitemap_index.xml")"
+          echo "SITEMAP_INDEX_RESULT=$result"
+          test "${result%%|*}" = '200'
+          ! grep -Fq '/.well-known/sgcaptcha/' "$out/sitemaps/index.xml"
+          echo "CATEGORY_PRESENT=$(grep -Fq '/category-sitemap.xml' "$out/sitemaps/index.xml" && echo YES || echo NO)"
+          echo "POST_TAG_PRESENT=$(grep -Eq '/(post_tag|tag)-sitemap.xml' "$out/sitemaps/index.xml" && echo YES || echo NO)"
+          ! grep -Fq '/category-sitemap.xml' "$out/sitemaps/index.xml"
+          ! grep -Fq '/post_tag-sitemap.xml' "$out/sitemaps/index.xml"
+          ! grep -Fq '/tag-sitemap.xml' "$out/sitemaps/index.xml"
+          grep -oE '<loc>[^<]+' "$out/sitemaps/index.xml" | sed 's#<loc>##' > "$out/child-sitemaps.txt"
+          test -s "$out/child-sitemaps.txt"
+          echo "CHILD_SITEMAPS=$(wc -l < "$out/child-sitemaps.txt" | tr -d ' ')"
+          cat "$out/child-sitemaps.txt"
+
+          echo 'TRACE=child-sitemaps'
+          : > "$out/sitemap-urls.txt"; n=0
+          while IFS= read -r sm; do
+            test -n "$sm" || continue
+            n=$((n+1)); f="$out/sitemaps/child-${n}.xml"
+            sm_result="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -H 'Accept: application/xml,text/xml,*/*' -o "$f" -w '%{http_code}|%{url_effective}' "$sm")"
+            echo "CHILD[$n]=$sm_result $sm"
+            test "${sm_result%%|*}" = '200'
+            ! grep -Fq '/.well-known/sgcaptcha/' "$f"
+            grep -oE '<loc>[^<]+' "$f" | sed 's#<loc>##' >> "$out/sitemap-urls.txt" || true
+          done < "$out/child-sitemaps.txt"
+          sort -u "$out/sitemap-urls.txt" -o "$out/sitemap-urls.txt"
+          test -s "$out/sitemap-urls.txt"
+          echo "SITEMAP_URLS=$(wc -l < "$out/sitemap-urls.txt" | tr -d ' ')"
+
+          echo 'TRACE=capture-html'
+          cp "$out/sitemap-urls.txt" "$out/all-urls.txt"
+          printf '%s\n' "$base/" "$base/blog/" "$base/contacto/" "$base/madrid/valoracion/" "$base/aviso-legal/" "$base/politica-privacidad/" "$base/politica-de-cookies-ue/" >> "$out/all-urls.txt"
+          sort -u "$out/all-urls.txt" -o "$out/all-urls.txt"
+          echo "ALL_URLS=$(wc -l < "$out/all-urls.txt" | tr -d ' ')"
+          : > "$out/capture.tsv"; idx=0
+          while IFS= read -r url; do
+            test -n "$url" || continue
+            idx=$((idx+1)); key="$(printf '%04d' "$idx")"; headers="$out/html/${key}.headers"; body="$out/html/${key}.html"
+            r="$(curl -sS -L --max-redirs 8 --max-time 35 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}|%{num_redirects}' "$url" || printf '000|%s|0' "$url")"
+            printf '%s\t%s\t%s\n' "$key" "$url" "$r" >> "$out/capture.tsv"
+          done < "$out/all-urls.txt"
+          echo "CAPTURE_ROWS=$(wc -l < "$out/capture.tsv" | tr -d ' ')"
+
+          echo 'TRACE=legacy-count'
+          prefix="$(wp db prefix)"; echo "DB_PREFIX=$prefix"
+          legacy="$(wp db query "SELECT COUNT(*) FROM ${prefix}posts WHERE post_status='publish' AND post_content LIKE '%/valoracion-medica/%';" --skip-column-names)"
+          echo "LEGACY_COUNT=$legacy"; test "$(printf '%s' "$legacy" | tr -d '[:space:]')" = '0'
+
+          echo 'TRACE=alias'
+          alias_result="$(curl -sS --max-time 30 -A "$ua" -D "$out/alias.headers" -o "$out/alias.html" -w '%{http_code}|%{redirect_url}' "$base/valoracion-medica/")"
+          echo "ALIAS_RESULT=$alias_result"
+          test "${alias_result%%|*}" = '301'
+          test "${alias_result#*|}" = "$base/madrid/valoracion/"
+          ! grep -Fq '/.well-known/sgcaptcha/' "$out/alias.html"
+
+          echo 'TRACE=cases'
+          cases_code="$(curl -sS --max-time 30 -A "$ua" -o "$out/cases.html" -w '%{http_code}' "$base/casos-de-pacientes/")"
+          echo "CASES_CODE=$cases_code"; test "$cases_code" = '404'
+
+          echo 'TRACE=page-sitemap'
+          page_sm="$(grep -oE '<loc>[^<]+' "$out/sitemaps/index.xml" | sed 's#<loc>##' | grep '/page-sitemap.xml' | head -n 1)"
+          echo "PAGE_SITEMAP=$page_sm"; test -n "$page_sm"
+          page_result="$(curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" -o "$out/page-sitemap.xml" -w '%{http_code}|%{url_effective}' "$page_sm")"
+          echo "PAGE_RESULT=$page_result"; test "${page_result%%|*}" = '200'
+          echo "OLD_COOKIE_PRESENT=$(grep -Fq '/politica-de-cookies/' "$out/page-sitemap.xml" && echo YES || echo NO)"
+          echo "MORE_COOKIE_PRESENT=$(grep -Fq '/mas-informacion-sobre-las-cookies/' "$out/page-sitemap.xml" && echo YES || echo NO)"
+          echo "CASES_PRESENT=$(grep -Fq '/casos-de-pacientes/' "$out/page-sitemap.xml" && echo YES || echo NO)"
+          ! grep -Fq '/politica-de-cookies/' "$out/page-sitemap.xml"
+          ! grep -Fq '/mas-informacion-sobre-las-cookies/' "$out/page-sitemap.xml"
+          ! grep -Fq '/casos-de-pacientes/' "$out/page-sitemap.xml"
+          echo 'TRACE_COMPLETE=PASS'
+          SH
+          chmod +x "$RUNNER_TEMP/nvx-capture-trace.sh"
+          scp "$RUNNER_TEMP/nvx-capture-trace.sh" nvx-prod-trace:/tmp/nvx-capture-trace.sh
+
+      - name: Execute traced capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -n nvx-prod-trace "bash /tmp/nvx-capture-trace.sh '$PROD_ROOT' '$BASE_URL' '$EXPECTED_SHA' /tmp/nvx-capture-trace-output"
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          ssh -n nvx-prod-trace "rm -rf /tmp/nvx-capture-trace.sh /tmp/nvx-capture-trace-output" || true
+          rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

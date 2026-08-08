@@ -18,7 +18,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: staging2-master-sync
+  # Shared with staging2-pr-preview.yml so no two workflows mutate Staging2 concurrently.
+  group: staging2-pr-preview
   cancel-in-progress: false
 
 jobs:

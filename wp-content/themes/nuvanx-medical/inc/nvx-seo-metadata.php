@@ -37,6 +37,107 @@ function nvx_seo_blog_post_metadata_catalog(): array {
 }
 
 /**
+ * Resolve governed Signature metadata from an explicit WordPress post ID.
+ *
+ * Unlike request-condition helpers such as is_page(), the Yoast indexable
+ * context remains available when metadata is built for REST/headless surfaces.
+ * This keeps the versioned Signature catalogs as the sole source of truth for
+ * frontend HTML, Yoast REST metadata, Open Graph and canonical URLs.
+ *
+ * @param int $post_id WordPress post ID represented by the Yoast indexable.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_signature_metadata_for_post_id( int $post_id ): ?array {
+	if ( $post_id <= 0 || 'page' !== get_post_type( $post_id ) ) {
+		return null;
+	}
+
+	$slug = (string) get_post_field( 'post_name', $post_id );
+	if ( '' === $slug ) {
+		return null;
+	}
+
+	$source = null;
+	if ( function_exists( 'nvx_signature_phase_catalog' ) ) {
+		foreach ( nvx_signature_phase_catalog() as $page ) {
+			if ( isset( $page['slug'] ) && $slug === (string) $page['slug'] ) {
+				$source = $page;
+				break;
+			}
+		}
+	}
+
+	if ( null === $source && function_exists( 'nvx_signature_hub_catalog' ) ) {
+		foreach ( nvx_signature_hub_catalog() as $hub ) {
+			if ( isset( $hub['slug'] ) && $slug === (string) $hub['slug'] ) {
+				$source = $hub;
+				break;
+			}
+		}
+	}
+
+	if ( ! is_array( $source ) ) {
+		return null;
+	}
+
+	$title       = isset( $source['seo_title'] ) ? trim( (string) $source['seo_title'] ) : '';
+	$description = isset( $source['seo_desc'] ) ? trim( (string) $source['seo_desc'] ) : '';
+	$canonical   = get_permalink( $post_id );
+
+	if ( '' === $title || '' === $description || ! is_string( $canonical ) || '' === $canonical ) {
+		return null;
+	}
+
+	return array(
+		'title'       => $title,
+		'description' => $description,
+		'canonical'   => $canonical,
+	);
+}
+
+/**
+ * Normalize Yoast's complete presentation for governed Signature pages.
+ *
+ * Yoast exposes the represented post through Meta_Tags_Context::indexable,
+ * including REST/headless requests where WordPress conditional tags do not
+ * identify the requested page. Setting the presentation once keeps every
+ * presenter aligned instead of maintaining independent per-tag exceptions.
+ *
+ * @param mixed $presentation Yoast Indexable_Presentation instance.
+ * @param mixed $context      Yoast Meta_Tags_Context instance.
+ * @return mixed The normalized presentation.
+ */
+function nvx_seo_signature_yoast_presentation( $presentation, $context ) {
+	if ( ! is_object( $presentation ) || ! is_object( $context ) ) {
+		return $presentation;
+	}
+
+	$post_id = 0;
+	if ( isset( $context->indexable ) && is_object( $context->indexable ) && isset( $context->indexable->object_id ) ) {
+		$post_id = (int) $context->indexable->object_id;
+	} elseif ( isset( $context->post ) && is_object( $context->post ) && isset( $context->post->ID ) ) {
+		$post_id = (int) $context->post->ID;
+	}
+
+	$metadata = nvx_seo_signature_metadata_for_post_id( $post_id );
+	if ( null === $metadata ) {
+		return $presentation;
+	}
+
+	$presentation->title                  = $metadata['title'];
+	$presentation->meta_description       = $metadata['description'];
+	$presentation->canonical              = $metadata['canonical'];
+	$presentation->open_graph_title       = $metadata['title'];
+	$presentation->open_graph_description = $metadata['description'];
+	$presentation->open_graph_url         = $metadata['canonical'];
+	$presentation->twitter_title          = $metadata['title'];
+	$presentation->twitter_description    = $metadata['description'];
+
+	return $presentation;
+}
+add_filter( 'wpseo_frontend_presentation', 'nvx_seo_signature_yoast_presentation', 80, 2 );
+
+/**
  * Normalize the current site path for metadata routing.
  */
 function nvx_seo_current_path(): string {

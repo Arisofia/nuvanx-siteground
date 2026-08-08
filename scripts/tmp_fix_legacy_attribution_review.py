@@ -3,7 +3,7 @@ import sys
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else '.')
 p = root / 'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js'
-text = p.read_text()
+text = p.read_text(encoding='utf-8')
 
 replacements = [
 (
@@ -45,4 +45,4 @@ for old, new in replacements:
         raise SystemExit(f'Expected exactly one match, found {count}: {old[:80]!r}')
     text = text.replace(old, new)
 
-p.write_text(text)
+p.write_text(text, encoding='utf-8')

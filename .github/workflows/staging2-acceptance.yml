@@ -7,6 +7,17 @@ on:
         description: Full deployed commit SHA to validate
         required: true
         type: string
+    secrets:
+      STAGING2_SSH_HOST:
+        required: true
+      STAGING2_SSH_PORT:
+        required: false
+      STAGING2_SSH_USER:
+        required: true
+      STAGING2_SSH_PRIVATE_KEY:
+        required: true
+      STAGING2_SSH_KNOWN_HOSTS:
+        required: true
 
 permissions:
   contents: read

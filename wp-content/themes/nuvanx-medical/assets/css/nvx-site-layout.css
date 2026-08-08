@@ -382,7 +382,7 @@
 /* Legal documents: the CMS already supplies nvx-blog-article + nvx-legal-* classes.
    Give them an explicit editorial shell instead of leaving the 68ch wrapper pinned
    to the left edge of a 1240px desktop canvas. */
-.nvx-page > .nvx-blog-article.nvx-brand-readable {
+.nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable {
   width: min(980px, calc(100vw - var(--nvx-gutter)));
   max-width: min(980px, calc(100vw - var(--nvx-gutter)));
   margin-inline: auto;
@@ -390,7 +390,7 @@
   box-sizing: border-box;
 }
 
-.nvx-page > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {
+.nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable > .nvx-legal-page {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -452,7 +452,7 @@
   margin-top: 0;
 }
 
-.nvx-page > .nvx-blog-article.nvx-brand-readable + p {
+.nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable + p {
   width: min(980px, calc(100vw - var(--nvx-gutter)));
   max-width: min(980px, calc(100vw - var(--nvx-gutter)));
   margin: calc(-1 * var(--nvx-space-6)) auto var(--nvx-pad-section);
@@ -460,13 +460,13 @@
 }
 
 @media (max-width: 600px) {
-  .nvx-page > .nvx-blog-article.nvx-brand-readable,
-  .nvx-page > .nvx-blog-article.nvx-brand-readable + p {
+  .nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable,
+  .nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable + p {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);
   }
 
-  .nvx-page > .nvx-blog-article.nvx-brand-readable {
+  .nvx-page.nvx-page--legal > .nvx-blog-article.nvx-brand-readable {
     padding-block: var(--nvx-space-6) var(--nvx-pad-section-tight);
   }
 

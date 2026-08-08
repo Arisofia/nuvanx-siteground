@@ -18,7 +18,7 @@ if (!/^[A-Za-z0-9_.-]+$/.test(originSshAlias)) {
   console.error('ORIGIN_SSH_ALIAS contains unsupported characters.');
   process.exit(1);
 }
-if (!/^[A-Za-z0-9_.-]+$/.test(sshBin)) {
+if (!/^\/?[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(sshBin)) {
   console.error('SSH_BINARY contains unsupported characters.');
   process.exit(1);
 }

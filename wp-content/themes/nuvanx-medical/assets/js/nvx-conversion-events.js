@@ -166,28 +166,16 @@
 	var ENDPOINT = String(attributionConfig.googleAttributionEndpoint || 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution');
 	var sent = false;
 	var inFlight = false;
-	var clickValues = collectClickValues();
-	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
-	var eligiblePath = normalizedPath === '/madrid/valoracion';
+	var clickValues = { gclid: '', gbraid: '', wbraid: '', gclsrc: '' };
 
 	function cleanClickValue(value, maxLength) {
 		var normalized = String(value || '').trim();
 		if (!normalized || normalized.length > maxLength) return '';
 		return /^[A-Za-z0-9._~:+-]+$/.test(normalized) ? normalized : '';
 	}
-
-	function collectClickValues() {
-		var params = new URLSearchParams(window.location.search || '');
-		return {
-			gclid: cleanClickValue(params.get('gclid'), 512),
-			gbraid: cleanClickValue(params.get('gbraid'), 512),
-			wbraid: cleanClickValue(params.get('wbraid'), 512),
-			gclsrc: cleanClickValue(params.get('gclsrc'), 128),
-		};
-	}
-
+	
 	function hasGoogleClickIdentifier(values) {
-		return Boolean(values.gclid || values.gbraid || values.wbraid);
+		return Boolean(values && (values.gclid || values.gbraid || values.wbraid));
 	}
 
 	function hasMarketingConsent() {
@@ -198,14 +186,46 @@
 		}
 	}
 
+	function persistClickValues() {
+		if (!hasGoogleClickIdentifier(clickValues) || !hasMarketingConsent()) return;
+		try {
+			window.sessionStorage.setItem('nvx_google_click_ids', JSON.stringify(clickValues));
+		} catch (_error) {}
+	}
+
+	function collectClickValues() {
+		var params = new URLSearchParams(window.location.search || '');
+		var current = {
+			gclid: cleanClickValue(params.get('gclid'), 512),
+			gbraid: cleanClickValue(params.get('gbraid'), 512),
+			wbraid: cleanClickValue(params.get('wbraid'), 512),
+			gclsrc: cleanClickValue(params.get('gclsrc'), 128),
+		};
+
+		if (hasGoogleClickIdentifier(current)) {
+			clickValues = current;
+			persistClickValues();
+			return;
+		}
+
+		try {
+			var stored = window.sessionStorage.getItem('nvx_google_click_ids');
+			if (stored) clickValues = JSON.parse(stored);
+		} catch (_error) {}
+	}
+
+	collectClickValues();
+
 	window.NUVANXGoogleAttributionQA = Object.freeze({
-		eligiblePath: eligiblePath,
 		hasClickId: hasGoogleClickIdentifier(clickValues),
 		clickTypes: ['gclid', 'gbraid', 'wbraid', 'gclsrc'].filter(function (key) { return Boolean(clickValues[key]); }),
 		marketingConsent: hasMarketingConsent,
 	});
 
-	if (!eligiblePath || !hasGoogleClickIdentifier(clickValues)) return;
+	if (!hasGoogleClickIdentifier(clickValues)) return;
+	
+	document.addEventListener('wp_listen_for_consent_change', persistClickValues);
+	document.addEventListener('wp_consent_type_defined', persistClickValues);
 
 	function canonicalLandingUrl() {
 		try {

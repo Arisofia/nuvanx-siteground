@@ -1,0 +1,111 @@
+name: Google Attribution Runtime Audit
+
+on:
+  push:
+    branches:
+      - audit/google-attribution-e2e-20260808
+    paths:
+      - .github/workflows/google-attribution-runtime-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: master
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Inspect live consent and canonical HubSpot form
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const base = 'https://staging2.nuvanx.com';
+          const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+          const gclid = `NVXQA_RUNTIME_${Date.now()}`;
+          const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+          try {
+            const context = await browser.newContext({ ignoreHTTPSErrors: true });
+            const page = await context.newPage();
+            const response = await page.goto(`${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`, {
+              waitUntil: 'domcontentloaded', timeout: 45000,
+            });
+            if (!response || response.status() !== 200) throw new Error(`route HTTP ${response?.status() || 0}`);
+            await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 20000 });
+            await page.waitForTimeout(2000);
+            const state = await page.evaluate(async ({ formId, gclid }) => {
+              const out = {
+                wpHasConsentType: typeof window.wp_has_consent,
+                wpSetConsentType: typeof window.wp_set_consent,
+                marketing: null,
+                qa: window.NUVANXGoogleAttributionQA ? {
+                  eligiblePath: window.NUVANXGoogleAttributionQA.eligiblePath,
+                  hasClickId: window.NUVANXGoogleAttributionQA.hasClickId,
+                  clickTypes: window.NUVANXGoogleAttributionQA.clickTypes,
+                } : null,
+                formCount: 0,
+                fieldsBefore: [],
+                fieldsAfterAllow: [],
+                requestedGclid: gclid,
+              };
+              if (typeof window.wp_has_consent === 'function') {
+                try { out.marketing = window.wp_has_consent('marketing'); } catch (error) { out.marketing = `ERROR:${error.message}`; }
+              }
+              if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return out;
+              const forms = window.HubSpotFormsV4.getForms() || [];
+              out.formCount = forms.length;
+              const form = forms.find((candidate) => String(candidate?.getFormId?.() || '').toLowerCase() === formId);
+              if (!form || typeof form.getFormFieldValues !== 'function') return out;
+              const project = (fields) => (fields || [])
+                .filter((field) => /google|gclid|gbraid|wbraid|gclsrc/i.test(String(field?.name || '')))
+                .map((field) => ({ name: field.name, value: field.value }));
+              out.fieldsBefore = project(await form.getFormFieldValues());
+              if (typeof window.wp_set_consent === 'function') {
+                try {
+                  window.wp_set_consent('marketing', 'allow');
+                  document.dispatchEvent(new Event('wp_listen_for_consent_change'));
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  out.marketingAfterAllow = window.wp_has_consent('marketing');
+                  out.fieldsAfterAllow = project(await form.getFormFieldValues());
+                } catch (error) {
+                  out.allowError = error.message;
+                }
+              }
+              return out;
+            }, { formId, gclid });
+            console.log(JSON.stringify(state, null, 2));
+            if (state.wpHasConsentType !== 'function') throw new Error('wp_has_consent is not available on live Staging2');
+            if (!state.qa?.eligiblePath || !state.qa?.hasClickId) throw new Error('Google attribution QA helper not active for synthetic GCLID');
+            if (state.formCount < 1) throw new Error('Canonical HubSpot V4 form instance not available');
+            if (!state.fieldsBefore.some((field) => /nvx_google_click_id|hs_google_click_id/.test(field.name))) {
+              throw new Error('HubSpot canonical form does not expose a GCLID target field');
+            }
+            if (state.wpSetConsentType === 'function') {
+              const values = state.fieldsAfterAllow.flatMap((field) => Array.isArray(field.value) ? field.value : [field.value]).map(String);
+              if (!values.includes(gclid)) throw new Error('GCLID was not populated after marketing consent allow');
+              console.log('GOOGLE_ATTRIBUTION_CONSENT_POPULATION=PASS');
+            } else {
+              console.log('GOOGLE_ATTRIBUTION_CONSENT_POPULATION=INCONCLUSIVE wp_set_consent unavailable');
+            }
+          } finally {
+            await browser.close();
+          }
+          NODE

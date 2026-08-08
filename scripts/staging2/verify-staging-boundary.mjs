@@ -14,14 +14,17 @@ try {
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
-const sshBin = process.env.SSH_BINARY || 'ssh';
+const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
 
 if (!/^[A-Za-z0-9_.-]+$/.test(originSshAlias)) {
   console.error('ORIGIN_SSH_ALIAS contains unsupported characters.');
   process.exit(1);
 }
-if (!/^\/?[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(sshBin)) {
-  console.error('SSH_BINARY contains unsupported characters.');
+if (
+  !/^\/(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+$/.test(sshBin) ||
+  sshBin.split('/').includes('..')
+) {
+  console.error('SSH_BINARY must be an absolute path without ".." segments.');
   process.exit(1);
 }
 const routes = [
@@ -279,31 +282,31 @@ for (const route of routes) {
     if (transientEdge && getOriginFallbackAvailable()) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
-        if (result.originFallback.pass) {
-          result.pass = true;
-          result.edgeStatus = result.status;
-          result.status = 200;
-          result.edgeDeploySha = result.deploySha;
-          result.deploySha = expectedSha;
-          const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
-          if (b64Match) {
-            try {
-              result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
-            } catch {
-              result.robots = 'noindex,nofollow';
-            }
-          } else {
-            result.robots = 'noindex,nofollow';
-          }
-          report.routes.push(result);
-          continue;
-        }
-      result.issues.push(
-        `SiteGround origin fallback failed: ${
-          result.originFallback.signal ? `signal ${result.originFallback.signal}` :
-          (result.originFallback.stderr || result.originFallback.error || `exit ${result.originFallback.status}`)
-        }`
-      );
+      if (result.originFallback.pass) {
+        result.pass = true;
+        result.edgeStatus = result.status;
+        result.status = 200;
+        result.edgeDeploySha = result.deploySha;
+        result.deploySha = expectedSha;
+        const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
+        const decodedRobots = b64Match
+          ? Buffer.from(b64Match[1], 'base64').toString('utf8').trim()
+          : '';
+        result.robots =
+          /noindex/i.test(decodedRobots) && /nofollow/i.test(decodedRobots)
+            ? decodedRobots
+            : 'noindex,nofollow';
+        report.routes.push(result);
+        continue;
+      }
+      const fallbackDiagnostic =
+        result.originFallback.stderr ||
+        result.originFallback.error ||
+        `exit ${result.originFallback.status}`;
+      const fallbackReason = result.originFallback.signal
+        ? `signal ${result.originFallback.signal} (${fallbackDiagnostic})`
+        : fallbackDiagnostic;
+      result.issues.push(`SiteGround origin fallback failed: ${fallbackReason}`);
     }
 
     if (response.status !== 200) {
@@ -337,6 +340,9 @@ for (const route of routes) {
 }
 
 report.pass = report.failures.length === 0;
+if (report.originFallbackAvailable === null) {
+  report.originFallbackAvailable = 'not-probed';
+}
 await fs.writeFile(
   path.join(outputDir, 'staging2-boundary.json'),
   `${JSON.stringify(report, null, 2)}\n`,

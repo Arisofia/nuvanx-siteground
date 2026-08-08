@@ -2,7 +2,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+let baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
+try {
+  baseUrl = new URL(baseUrl).origin;
+} catch {
+  console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
+  process.exit(1);
+}
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
@@ -45,13 +51,8 @@ if (!/^[a-z0-9.-]+$/.test(expectedHost)) {
   console.error('EXPECTED_HOST contains unsupported characters.');
   process.exit(1);
 }
-let parsedBaseUrl;
-try {
-  parsedBaseUrl = new URL(baseUrl);
-} catch {
-  console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
-  process.exit(1);
-}
+
+const parsedBaseUrl = new URL(baseUrl);
 if (parsedBaseUrl.protocol !== 'https:' || parsedBaseUrl.hostname !== expectedHost) {
   console.error(`BASE_URL must be HTTPS on ${expectedHost}.`);
   process.exit(1);
@@ -102,7 +103,7 @@ function isTransientSiteGroundChallenge(response) {
   return Boolean(response.headers.get('sg-captcha'));
 }
 
-async function sshAliasConfigured(alias) {
+function sshAliasConfigured(alias) {
   try {
     const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
       encoding: 'utf8',
@@ -147,7 +148,7 @@ function verifyViaSiteGroundOrigin(route) {
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  const result = spawnSync(sshBin, [originSshAlias, remoteCommand], {
+  const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
     timeout: 60000,
@@ -229,9 +230,9 @@ async function fetchSameHost(url, maxRedirects = 5) {
 }
 
 let originFallbackAvailable = null;
-async function getOriginFallbackAvailable() {
+function getOriginFallbackAvailable() {
   if (originFallbackAvailable !== null) return originFallbackAvailable;
-  originFallbackAvailable = await sshAliasConfigured(originSshAlias);
+  originFallbackAvailable = sshAliasConfigured(originSshAlias);
   report.originFallbackAvailable = originFallbackAvailable;
   return originFallbackAvailable;
 }
@@ -271,7 +272,7 @@ for (const route of routes) {
     result.deploySha = deploySha;
     result.issues = [];
 
-    if (transientEdge && (await getOriginFallbackAvailable())) {
+    if (transientEdge && getOriginFallbackAvailable()) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {

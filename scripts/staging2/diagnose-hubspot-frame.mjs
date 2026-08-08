@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const base = 'https://staging2.nuvanx.com';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const target = `${base}/madrid/valoracion/?gclid=NVXDIAG-${Date.now()}`;
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
   const failures = [];

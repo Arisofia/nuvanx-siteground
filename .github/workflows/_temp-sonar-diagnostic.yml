@@ -14,18 +14,17 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     steps:
-      - name: Query open Sonar issues
+      - name: Query Sonar new-code issues
         shell: bash
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&ps=500' \
+            'https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&inNewCodePeriod=true&ps=500' \
             -o /tmp/issues.json
           python - <<'PY'
           import json
-          p='/tmp/issues.json'
-          data=json.load(open(p,encoding='utf-8'))
-          print('TOTAL', data.get('total'))
+          data=json.load(open('/tmp/issues.json',encoding='utf-8'))
+          print('NEW_CODE_TOTAL', data.get('total'))
           for issue in data.get('issues', []):
               print(json.dumps({
                   'key': issue.get('key'),
@@ -35,11 +34,40 @@ jobs:
                   'component': issue.get('component'),
                   'line': issue.get('line'),
                   'message': issue.get('message'),
-                  'cleanCodeAttribute': issue.get('cleanCodeAttribute'),
                   'impacts': issue.get('impacts'),
                   'creationDate': issue.get('creationDate'),
-                  'status': issue.get('status'),
               }, ensure_ascii=False))
+          PY
+
+      - name: Query Sonar new-code period
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-all-errors \
+            'https://sonarcloud.io/api/new_code_periods/show?project=Arisofia_nuvanx-siteground&branch=master' \
+            | python -m json.tool
+
+      - name: Query duplication contributors
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-all-errors \
+            'https://sonarcloud.io/api/measures/component_tree?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_lines,new_duplicated_lines&strategy=leaves&ps=500' \
+            -o /tmp/tree.json
+          python - <<'PY'
+          import json
+          data=json.load(open('/tmp/tree.json',encoding='utf-8'))
+          rows=[]
+          for c in data.get('components', []):
+              m={x['metric']:x for x in c.get('measures',[])}
+              def pv(k):
+                  periods=m.get(k,{}).get('periods') or []
+                  return float(periods[0].get('value',0)) if periods else 0.0
+              nl=pv('new_lines'); nd=pv('new_duplicated_lines'); dens=pv('new_duplicated_lines_density')
+              if nl or nd or dens:
+                  rows.append((nd,dens,nl,c.get('path'),c.get('key')))
+          for nd,dens,nl,path,key in sorted(rows, reverse=True):
+              print(json.dumps({'path':path,'new_lines':nl,'new_duplicated_lines':nd,'density':dens}, ensure_ascii=False))
           PY
 
       - name: Query new-code quality metrics

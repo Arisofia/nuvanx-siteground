@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate submitter syntax
         shell: bash
-        run: bash -n scripts/production/indexnow-submit-sitemap.sh
+        run: bash -n ./scripts/production/indexnow-submit-sitemap.sh
 
       - name: Configure strict production SSH authentication
         shell: bash
@@ -60,7 +60,7 @@ jobs:
           SSH_PORT="${PORT:-18765}"
           [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
 
-          mkdir -p "$HOME/.ssh" scripts/production/artifacts
+          mkdir -p "$HOME/.ssh" ./scripts/production/artifacts
           chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/prod_indexnow_key"; chmod 600 "$HOME/.ssh/prod_indexnow_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
@@ -82,7 +82,7 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-          preflight_log='scripts/production/artifacts/indexnow-ssh-preflight.log'
+          preflight_log='./scripts/production/artifacts/indexnow-ssh-preflight.log'
           : > "$preflight_log"
           connected=0
           for attempt in 1 2 3 4 5; do
@@ -100,7 +100,7 @@ jobs:
           done
           if [[ "$connected" -ne 1 ]]; then
             echo 'INDEXNOW_SSH_PREFLIGHT=FAIL' | tee -a "$preflight_log"
-            cat "$preflight_log"
+            cat -- "$preflight_log"
             exit 255
           fi
 
@@ -110,8 +110,8 @@ jobs:
           set -euo pipefail
           ssh nvx-prod-indexnow \
             "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" \
-            < scripts/production/indexnow-submit-sitemap.sh \
-            | tee scripts/production/artifacts/indexnow-submit.log
+            < ./scripts/production/indexnow-submit-sitemap.sh \
+            | tee ./scripts/production/artifacts/indexnow-submit.log
 
       - name: Verify public IndexNow key file
         shell: bash
@@ -126,7 +126,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: indexnow-production-submit-${{ github.run_id }}-attempt-${{ github.run_attempt }}
-          path: scripts/production/artifacts/*.log
+          path: ./scripts/production/artifacts/*.log
           retention-days: 30
           if-no-files-found: warn
           compression-level: 6
@@ -143,5 +143,5 @@ jobs:
           {
             echo '## IndexNow production submission PASS'
             echo
-            grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/'
+            grep -E '^(INDEXNOW_RELEASE_SHA|INDEXNOW_SITEMAP_CHILDREN|INDEXNOW_URLS|INDEXNOW_HTTP|INDEXNOW_SUBMIT)=' ./scripts/production/artifacts/indexnow-submit.log | sed 's/^/- `/' | sed 's/$/`/'
           } >> "$GITHUB_STEP_SUMMARY"

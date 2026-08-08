@@ -321,7 +321,6 @@ jobs:
             gclsrc: 'NVXQA_GCLSRC_20260808',
           };
           const aliases = {
-            hs_google_click_id: values.gclid,
             nvx_google_click_id: values.gclid,
             nvx_google_braid: values.gbraid,
             nvx_google_wbraid: values.wbraid,
@@ -384,7 +383,11 @@ jobs:
             const cleanCount = await cleanPage.evaluate(() => Array.from(document.scripts).filter((script) => (script.src || '').includes('nvx-google-click-bridge.js')).length);
             if (cleanCount !== 0) throw new Error(`click-id bridge loaded without Google click parameters: count=${cleanCount}`);
 
+            await cleanPage.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 15000 });
             const conversionCount = await cleanPage.evaluate((id) => {
+              const sourceFrame = document.querySelector(`#nvx-hubspot-form iframe[data-test-id*="${id}"]`);
+              if (!sourceFrame || !sourceFrame.contentWindow) throw new Error('canonical HubSpot message source iframe not found');
+
               let count = 0;
               document.addEventListener('nvx:conversion-event', (event) => {
                 if (event.detail?.event_name === 'generate_lead') count += 1;
@@ -392,6 +395,7 @@ jobs:
               window.dispatchEvent(new CustomEvent('hs-form-event:on-submission:success', { detail: { formId: id } }));
               window.dispatchEvent(new MessageEvent('message', {
                 origin: 'https://forms-eu1.hsforms.com',
+                source: sourceFrame.contentWindow,
                 data: { type: 'hsFormCallback', eventName: 'onFormSubmitted', id },
               }));
               return count;

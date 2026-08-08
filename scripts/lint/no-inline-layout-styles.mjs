@@ -37,6 +37,11 @@ const DANGEROUS_PROPERTIES = [
 // Pattern for inline style attributes with dangerous properties
 const INLINE_STYLE_PATTERN = /style\s*=\s*["']([^"']*(?:margin|padding|font-size|color)\s*:[^"']*)["']/gi;
 
+/**
+ * Scans a PHP file for prohibited inline CSS properties.
+ * @param {string} filePath - The path to the file to scan.
+ * @return {Array<Object>} The detected violations with their line numbers, file paths, matched styles, properties, and line context.
+ */
 async function scanFile(filePath) {
   const content = await fs.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
@@ -77,6 +82,11 @@ async function scanFile(filePath) {
   return violations;
 }
 
+/**
+ * Scans the theme's PHP files for dangerous inline styles and reports any violations.
+ *
+ * Exits with code `0` when no violations are found and code `1` when violations or scanning errors occur.
+ */
 async function main() {
   console.log('🚫 Scanning PHP files for dangerous inline styles...');
   console.log(`📁 Directory: ${THEME_DIR}`);

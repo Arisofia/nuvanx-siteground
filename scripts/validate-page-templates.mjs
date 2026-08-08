@@ -107,7 +107,8 @@ function templateExists(templatePath) {
 }
 
 /**
- * Main validation function.
+ * Validates published page template references and expected template files.
+ * Exits with status `1` when validation or operational errors occur, or status `0` when validation passes.
  */
 async function validateTemplates() {
   console.log('🔍 Validating WordPress page template references...\n');

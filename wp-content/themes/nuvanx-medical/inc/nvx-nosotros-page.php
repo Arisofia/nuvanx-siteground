@@ -172,7 +172,9 @@ function nvx_nosotros_platforms_markup(): string {
 }
 
 /**
- * Clinics NAP (reuse contact data when available).
+ * Builds the clinic contact section for the Nosotros page.
+ *
+ * @return string The rendered clinic contact markup.
  */
 function nvx_nosotros_clinics_markup(): string {
 	$data = nvx_nosotros_registry();

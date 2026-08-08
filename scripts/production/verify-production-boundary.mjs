@@ -53,6 +53,10 @@ function robotsTokens(value) {
   );
 }
 
+/**
+ * Verifies the production site from its SiteGround origin.
+ * @return {string} The trimmed verification output from the remote origin.
+ */
 function verifyFromSiteGroundOrigin() {
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"

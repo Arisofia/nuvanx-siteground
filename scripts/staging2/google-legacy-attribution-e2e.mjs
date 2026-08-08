@@ -17,24 +17,78 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function gotoCanonical(page, gclid) {
-  const target = `${baseUrl}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
-  let last = '';
-  for (let attempt = 1; attempt <= 8; attempt += 1) {
-    try {
-      const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      const status = response?.status() || 0;
-      const path = new URL(page.url()).pathname;
-      last = `${status} ${page.url()}`;
-      console.log(`NAV attempt=${attempt} status=${status} path=${path}`);
-      if (status === 200 && path === '/madrid/valoracion/') return;
-    } catch (error) {
-      last = error.message;
-      console.log(`NAV attempt=${attempt} error=${error.message}`);
-    }
-    await sleep(2500);
+function pathnameOf(value) {
+  try {
+    return new URL(value).pathname;
+  } catch (_) {
+    return '';
   }
-  throw new Error(`Unable to reach canonical valoración route: ${last}`);
+}
+
+async function gotoCanonical(page, gclid) {
+  const canonicalPath = '/madrid/valoracion/';
+  const target = `${baseUrl}${canonicalPath}?gclid=${encodeURIComponent(gclid)}`;
+  let last = '';
+  let lastMainDocumentStatus = 0;
+
+  const rememberMainDocumentStatus = (response) => {
+    try {
+      const request = response.request();
+      if (request.isNavigationRequest() && request.frame() === page.mainFrame()) {
+        lastMainDocumentStatus = response.status();
+      }
+    } catch (_) {
+      // Ignore non-document responses that cannot expose a frame.
+    }
+  };
+  page.on('response', rememberMainDocumentStatus);
+
+  try {
+    for (let attempt = 1; attempt <= 6; attempt += 1) {
+      try {
+        const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        const status = response?.status() || lastMainDocumentStatus || 0;
+        const path = pathnameOf(page.url());
+        last = `${status} ${page.url()}`;
+        console.log(`NAV attempt=${attempt} status=${status} path=${path}`);
+        if (status === 200 && path === canonicalPath) return;
+
+        if (status === 202) {
+          const captchaHeader = String((await response?.headerValue('sg-captcha').catch(() => '')) || '').toLowerCase();
+          const classification = captchaHeader === 'challenge' ? 'challenge' : 'suspected_challenge';
+          console.log(`NAV attempt=${attempt} siteground_antibot=${classification} settle_ms=30000`);
+
+          // Do not immediately navigate away from a SiteGround 202 response. Its browser
+          // challenge needs time to run and can reload the canonical URL after setting the
+          // short-lived verification state for this runner/IP. We still require a real 200.
+          for (let second = 0; second < 30; second += 1) {
+            await sleep(1000);
+            const settledPath = pathnameOf(page.url());
+            if (lastMainDocumentStatus === 200 && settledPath === canonicalPath) {
+              console.log(`NAV attempt=${attempt} challenge_resolved status=200 path=${settledPath}`);
+              return;
+            }
+          }
+
+          const settledPath = pathnameOf(page.url());
+          last = `${lastMainDocumentStatus || status} ${page.url()}`;
+          console.log(
+            `NAV attempt=${attempt} challenge_unresolved status=${lastMainDocumentStatus || status} path=${settledPath}`
+          );
+          await sleep(5000);
+          continue;
+        }
+      } catch (error) {
+        last = error.message;
+        console.log(`NAV attempt=${attempt} error=${error.message}`);
+      }
+      await sleep(5000);
+    }
+  } finally {
+    page.off('response', rememberMainDocumentStatus);
+  }
+
+  throw new Error(`Unable to reach canonical valoración route with HTTP 200: ${last}`);
 }
 
 async function verifySha(page) {

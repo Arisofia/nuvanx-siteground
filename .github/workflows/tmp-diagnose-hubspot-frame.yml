@@ -1,0 +1,36 @@
+name: TEMP Diagnose HubSpot Frame
+
+on:
+  push:
+    branches:
+      - audit/google-legacy-e2e-final-20260808
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Inspect HubSpot iframe internals
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node diagnose-hubspot-frame.mjs

@@ -1,0 +1,43 @@
+name: TEMP Apply HubSpot Modern Embed
+
+on:
+  push:
+    branches:
+      - automation/apply-hubspot-modern-embed-20260808
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: fix/hubspot-modern-embed-20260808
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Apply exact modern HubSpot embed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js'
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js')
+          text = p.read_text()
+          old = "    return 'https://js-' + region + '.hsforms.net/forms/v2.js';"
+          new = "    const portalId = String(config.hubspotPortalId || (frame ? frame.dataset.portalId : '')).replace(/[^0-9]/g, '');\n    if (!portalId) return '';\n    return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';"
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected exactly one legacy HubSpot embed URL, found {text.count(old)}')
+          p.write_text(text.replace(old, new))
+          PY
+          node --check "$file"
+          grep -Fq "hsforms.net/forms/embed/" "$file"
+          ! grep -Fq "hsforms.net/forms/v2.js" "$file"
+          git diff --check
+          git config user.name 'NUVANX Release Automation'
+          git config user.email 'admin@nuvanx.com'
+          git add "$file"
+          git commit -m 'fix(hubspot): load modern forms embed runtime'
+          git push origin HEAD:fix/hubspot-modern-embed-20260808

@@ -8,11 +8,10 @@ Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 | `deploy-required-mu-plugins.sh` | Validate WordPress root identity and retire absorbed MU plugins |
 | `deploy-to-prod.sh` | Guarded production promotion tooling for an explicitly authorized exact SHA |
 | `flush-prod-cache.sh` | Flush WordPress and SiteGround optimizer caches for the production root |
-| `nvx-cms-content-cleanup.php` | Retained CMS migration: detect/apply residual legacy block and claim rewrites in `post_content` |
 
 ## Workflow ownership
 
-The shell scripts are implementation helpers. Release orchestration is owned by the reusable GitHub workflows:
+The shell scripts in this directory are implementation helpers. Release orchestration is owned by the reusable GitHub workflows:
 
 - `.github/workflows/deploy-staging2.yml`
 - `.github/workflows/staging2-acceptance.yml`
@@ -22,31 +21,11 @@ They are `workflow_call` workflows. A normal push to `master` does not deploy St
 
 See [`docs/operations/deployment.md`](../../docs/operations/deployment.md) for the canonical release model.
 
-## Retained CMS migration — do not treat as routine deploy tooling
+## Migrations are separate from deploys
 
-`nvx-cms-content-cleanup.php` is intentionally retained because the active theme still contains narrow `TODO(legacy-guard)` compatibility code whose removal is conditioned on this migration having been completed. Do not delete the migration script or those guards merely because current rendered pages pass acceptance.
+One-time or bounded data migrations do not belong in this directory. Retained migration tooling lives under [`tools/migrations/`](../migrations/) and must not be executed as part of routine deployment.
 
-Retirement requires explicit evidence of all of the following:
-
-1. rule-engine self-test passes;
-2. Staging2 dry-run is reviewed;
-3. migration is applied to Staging2 when needed and a subsequent dry-run reports `dirty=0`;
-4. production execution is explicitly authorized, backed up and applied when needed;
-5. production follow-up dry-run reports `dirty=0` and the normal production acceptance remains green;
-6. only then remove the corresponding `TODO(legacy-guard)` compatibility code and this migration script in a separate reviewed change.
-
-Commands, run from the WordPress root with this repository/tooling available:
-
-```bash
-# Offline rule-engine check; no database mutation.
-php tools/deploy/nvx-cms-content-cleanup.php --self-test
-
-# Read-only CMS scan.
-wp eval-file tools/deploy/nvx-cms-content-cleanup.php
-
-# Mutating migration; only after review/backup/authorization.
-wp eval-file tools/deploy/nvx-cms-content-cleanup.php --confirm
-```
+The currently retained CMS cleanup migration is documented in [`tools/migrations/README.md`](../migrations/README.md). It remains only because active theme compatibility guards explicitly depend on evidence that the migration has completed.
 
 ## Host-level emergency production operation
 

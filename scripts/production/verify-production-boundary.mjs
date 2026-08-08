@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const baseUrl = (process.env.BASE_URL || 'https://nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'nuvanx.com';
@@ -17,7 +18,8 @@ if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   process.exit(1);
 }
 
-const outputDir = path.resolve('scripts/production/artifacts');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const outputDir = path.join(scriptDir, 'artifacts');
 await fs.mkdir(outputDir, { recursive: true });
 
 function extractMetaContent(html, name) {

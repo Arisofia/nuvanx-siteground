@@ -21,25 +21,29 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Replace invalid token only
+      - name: Replace only the two invalid Block 1 spacing references
         shell: bash
         run: |
           set -euo pipefail
           file='wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css'
-          test "$(grep -Fc 'var(--nvx-space-7)' "$file")" = 1
           python3 - <<'PY'
           from pathlib import Path
           p=Path('wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css')
           s=p.read_text('utf-8')
-          old='margin-top: var(--nvx-space-7);'
-          new='margin-top: var(--nvx-space-8);'
-          if s.count(old) != 1:
-              raise SystemExit(f'expected one invalid token reference, got {s.count(old)}')
-          p.write_text(s.replace(old,new,1),'utf-8')
+          replacements={
+              'margin-top: var(--nvx-space-7);':'margin-top: var(--nvx-space-8);',
+              'padding-block: var(--nvx-space-7) var(--nvx-pad-section-tight);':'padding-block: var(--nvx-space-6) var(--nvx-pad-section-tight);',
+          }
+          for old,new in replacements.items():
+              if s.count(old) != 1:
+                  raise SystemExit(f'expected exactly one occurrence of {old!r}, got {s.count(old)}')
+              s=s.replace(old,new,1)
+          p.write_text(s,'utf-8')
           PY
           git diff --check
           test "$(git diff --name-only)" = "$file"
           grep -Fq 'margin-top: var(--nvx-space-8);' "$file"
+          grep -Fq 'padding-block: var(--nvx-space-6) var(--nvx-pad-section-tight);' "$file"
           ! grep -Fq 'var(--nvx-space-7)' "$file"
 
       - name: Validate theme syntax again
@@ -57,5 +61,5 @@ jobs:
           git config user.email 'audit-controller@nuvanx.invalid'
           git add wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
           git diff --cached --check
-          git commit -m 'fix(visual): use canonical spacing token in legal shell'
+          git commit -m 'fix(visual): use canonical spacing tokens in legal shell'
           git push origin HEAD:fix/visual-site-audit-20260808

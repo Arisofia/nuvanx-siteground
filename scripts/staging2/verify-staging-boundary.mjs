@@ -14,6 +14,12 @@ const routes = [
   '/endolift-primeras-72-horas-que-esperar/',
 ];
 
+const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
+if (sshBin !== '/usr/bin/ssh' && !/^\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(sshBin)) {
+  console.error('SSH_BINARY must be an absolute path.');
+  process.exit(1);
+}
+
 const transientAttempts = Number.parseInt(
   process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '1',
   10
@@ -87,7 +93,6 @@ function isTransientSiteGroundChallenge(response) {
 }
 
 async function sshAliasConfigured(alias) {
-  const sshBin = process.env.SSH_BINARY || 'ssh';
   try {
     const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
       encoding: 'utf8',
@@ -116,8 +121,9 @@ function verifyViaSiteGroundOrigin(route) {
     'esac',
     `! grep -Fq '/.well-known/sgcaptcha/' "$body"`,
     `! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"`,
-    'grep -Fq "$EXPECTED_SHA" "$body"',
-    `robots_meta="$(grep -Eio '<meta[^>]+name=[^ >]*robots[^ >]*[^>]*>' "$body" | head -n 1 || true)"`,
+    'deploy_tag="$(grep -Eio "<meta[^>]*nvx-deploy-sha[^>]*>" "$body" | head -n 1 || true)"',
+    'printf "%s" "$deploy_tag" | grep -Fq "$EXPECTED_SHA"',
+    `robots_meta="$(grep -Eio '<meta[^>]*robots[^>]*>' "$body" | head -n 1 || true)"`,
     `xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"`,
     'combined="${robots_meta} ${xrobots}"',
     `printf '%s' "$combined" | grep -Eiq 'noindex'`,
@@ -126,12 +132,13 @@ function verifyViaSiteGroundOrigin(route) {
     '  echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2',
     '  exit 1',
     'fi',
-    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA"',
+    'robots_b64="$(printf "%s" "$combined" | base64)"',
+    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots_b64=$robots_b64"',
     '',
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  const sshBin = process.env.SSH_BINARY || 'ssh';
+  
   const result = spawnSync(sshBin, [originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
@@ -254,15 +261,30 @@ for (const route of routes) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {
+        result.edgeStatus = result.status;
+        result.status = 200;
+        result.edgeDeploySha = result.deploySha;
+        result.deploySha = expectedSha;
+        result.edgeRobots = result.robots;
+        
+        const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
+        if (b64Match) {
+          result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
+          result.robotsSource = 'origin';
+        } else {
+          result.robots = 'noindex,nofollow';
+          result.robotsSource = 'assumed';
+        }
+        
         result.pass = true;
         report.routes.push(result);
         continue;
       }
       result.issues.push(
         `SiteGround origin fallback failed: ${
-          result.originFallback.stderr ||
-          result.originFallback.error ||
-          `exit ${result.originFallback.status}`
+          result.originFallback.signal
+            ? `signal ${result.originFallback.signal} ${result.originFallback.stderr}`.trim()
+            : (result.originFallback.stderr || result.originFallback.error || `exit ${result.originFallback.status}`)
         }`
       );
     }

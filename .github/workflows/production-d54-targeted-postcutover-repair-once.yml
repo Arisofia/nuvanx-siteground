@@ -1,0 +1,268 @@
+name: Production d54 Targeted Postcutover Repair Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-d54-targeted-postcutover-repair-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-d54-targeted-postcutover-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+      EXPECTED_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+    steps:
+      - name: Configure strict production SSH and guard d54
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-repair
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-repair "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v php >/dev/null && command -v curl >/dev/null"
+          test "$(ssh -n nvx-prod-repair "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_SHA"
+          test "$(ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp config get DB_NAME")" = 'db0ecrycwv2tgb'
+          test "$(ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp option get home")" = 'https://nuvanx.com'
+          test "$(ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp option get siteurl")" = 'https://nuvanx.com'
+          test "$(ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp option get blog_public")" = '1'
+          echo 'TARGETED_REPAIR_GUARD=PASS'
+
+      - name: Build transactional repair script
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/nvx-d54-targeted-repair.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root = $argv[1] ?? '';
+          $expectedSha = $argv[2] ?? '';
+          $stateDir = $argv[3] ?? '';
+          if ($root === '' || $expectedSha === '' || $stateDir === '') { fwrite(STDERR,"ARGS_FAIL\n"); exit(2); }
+          $root = rtrim($root,'/');
+          require $root . '/wp-load.php';
+          global $wpdb;
+
+          $marker = @file_get_contents($root . '/wp-content/themes/nuvanx-medical/.nvx-deploy-sha');
+          if (trim((string)$marker) !== $expectedSha) { fwrite(STDERR,"SHA_GUARD_FAIL\n"); exit(3); }
+          if (DB_NAME !== 'db0ecrycwv2tgb' || home_url('/') !== 'https://nuvanx.com/') { fwrite(STDERR,"ENV_GUARD_FAIL\n"); exit(4); }
+          if (!is_dir($stateDir) && !mkdir($stateDir,0700,true)) { fwrite(STDERR,"STATE_DIR_FAIL\n"); exit(5); }
+          @chmod($stateDir,0700);
+
+          $targetSlugs = ['remodelacion-corporal-laser-madrid','tratamiento-postparto-abdomen-contorno-corporal-madrid'];
+          $backup = [];
+          $legacyTotal = 0;
+          foreach ($targetSlugs as $slug) {
+              $p = get_page_by_path($slug, OBJECT, 'page');
+              if (!$p instanceof WP_Post || $p->post_status !== 'publish') { throw new RuntimeException("TARGET_PAGE_FAIL:$slug"); }
+              $content = (string)$p->post_content;
+              $count = substr_count($content,'/valoracion-medica/');
+              if ($count !== 1) { throw new RuntimeException("TARGET_LEGACY_COUNT_FAIL:$slug:$count"); }
+              $legacyTotal += $count;
+              $backup[] = ['ID'=>(int)$p->ID,'slug'=>$slug,'post_content'=>$content,'sha256'=>hash('sha256',$content)];
+          }
+          $like = '%' . $wpdb->esc_like('/valoracion-medica/') . '%';
+          $publishedLegacy = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status='publish' AND post_content LIKE %s",$like));
+          if ($publishedLegacy !== 2 || $legacyTotal !== 2) { throw new RuntimeException("GLOBAL_LEGACY_GUARD_FAIL:$publishedLegacy:$legacyTotal"); }
+          $backupFile = $stateDir . '/content-backup.json';
+          if (file_put_contents($backupFile, wp_json_encode($backup,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)) === false) { throw new RuntimeException('BACKUP_WRITE_FAIL'); }
+          @chmod($backupFile,0600);
+
+          $upload = wp_get_upload_dir();
+          if (!empty($upload['error'])) { throw new RuntimeException('UPLOAD_DIR_FAIL:' . $upload['error']); }
+          $base = rtrim($upload['basedir'],'/');
+          $items = [
+              ['2026/05/higiene-facial-con-microdermoabrasion.webp','2026/05/higiene-facial-con-microdermoabrasion-480x320.webp',480,320],
+              ['2026/05/diatermia-facial.webp','2026/05/diatermia-facial-480x320.webp',480,320],
+              ['2026/05/depilacion-laser.webp','2026/05/depilacion-laser-480x320.webp',480,320],
+              ['2026/05/hidrolipoclasia.webp','2026/05/hidrolipoclasia-480x320.webp',480,320],
+              ['2026/05/masajes-posoperatorios.webp','2026/05/masajes-posoperatorios-480x320.webp',480,320],
+              ['2026/05/radiofrecuencia-corporal.webp','2026/05/radiofrecuencia-corporal-480x320.webp',480,320],
+              ['2026/05/presoterapia.webp','2026/05/presoterapia-480x320.webp',480,320],
+              ['2026/05/tratamiento-anticelulitico.webp','2026/05/tratamiento-anticelulitico-480x320.webp',480,320],
+              ['2026/02/casmara.webp','2026/02/casmara-480x194.webp',480,194],
+          ];
+          $created = [];
+          $contentsChanged = false;
+
+          $rollback = function() use (&$created,&$backup,&$contentsChanged,$base): void {
+              foreach ($created as $rel) { $f=$base.'/'.$rel; if (is_file($f)) @unlink($f); }
+              if ($contentsChanged) {
+                  foreach ($backup as $row) {
+                      wp_update_post(['ID'=>(int)$row['ID'],'post_content'=>(string)$row['post_content']]);
+                  }
+              }
+              wp_cache_flush();
+              echo "TARGETED_REPAIR_ROLLBACK=PASS\n";
+          };
+
+          try {
+              $replacements = 0;
+              foreach ($backup as $row) {
+                  $p = get_post((int)$row['ID']);
+                  if (!$p instanceof WP_Post || hash('sha256',(string)$p->post_content) !== (string)$row['sha256']) { throw new RuntimeException('CONTENT_CHANGED_CONCURRENTLY:' . $row['ID']); }
+                  $updated = str_replace(
+                      ['https://nuvanx.com/valoracion-medica/','/valoracion-medica/'],
+                      ['https://nuvanx.com/madrid/valoracion/','/madrid/valoracion/'],
+                      (string)$p->post_content,
+                      $count
+                  );
+                  if ($count !== 1) { throw new RuntimeException('REPLACE_COUNT_FAIL:' . $row['ID'] . ':' . $count); }
+                  $r = wp_update_post(['ID'=>(int)$row['ID'],'post_content'=>$updated],true);
+                  if (is_wp_error($r)) { throw new RuntimeException('UPDATE_FAIL:' . $r->get_error_message()); }
+                  $replacements += $count;
+              }
+              $contentsChanged = true;
+              if ($replacements !== 2) { throw new RuntimeException('TOTAL_REPLACE_FAIL:' . $replacements); }
+
+              foreach ($items as [$srcRel,$dstRel,$w,$h]) {
+                  $src=$base.'/'.$srcRel; $dst=$base.'/'.$dstRel;
+                  if (!is_file($src) || filesize($src)<=0) { throw new RuntimeException('SOURCE_MISSING:' . $srcRel); }
+                  if (is_file($dst)) {
+                      $info=@getimagesize($dst);
+                      if (!is_array($info) || (int)$info[0]!==$w || (int)$info[1]!==$h || filesize($dst)<=0) { throw new RuntimeException('EXISTING_DERIVATIVE_INVALID:' . $dstRel); }
+                      echo "DERIVATIVE_ALREADY_VALID rel={$dstRel} {$w}x{$h}\n";
+                      continue;
+                  }
+                  $tmp=$dst.'.nvx-tmp-' . getmypid();
+                  $editor=wp_get_image_editor($src);
+                  if (is_wp_error($editor)) { throw new RuntimeException('EDITOR_FAIL:' . $srcRel . ':' . $editor->get_error_message()); }
+                  $r=$editor->resize($w,$h,false); if (is_wp_error($r)) { throw new RuntimeException('RESIZE_FAIL:' . $srcRel); }
+                  $s=$editor->save($tmp,'image/webp'); if (is_wp_error($s)) { @unlink($tmp); throw new RuntimeException('SAVE_FAIL:' . $dstRel); }
+                  $info=@getimagesize($tmp);
+                  if (!is_array($info) || (int)$info[0]!==$w || (int)$info[1]!==$h || filesize($tmp)<=0) { @unlink($tmp); throw new RuntimeException('TMP_DIM_FAIL:' . $dstRel); }
+                  if (!@rename($tmp,$dst)) { @unlink($tmp); throw new RuntimeException('RENAME_FAIL:' . $dstRel); }
+                  $created[]=$dstRel;
+                  echo "DERIVATIVE_CREATED rel={$dstRel} {$w}x{$h} bytes=".filesize($dst)." sha256=".hash_file('sha256',$dst)."\n";
+              }
+
+              $remaining=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status='publish' AND post_content LIKE %s",$like));
+              if ($remaining!==0) { throw new RuntimeException('LEGACY_REMAINING:' . $remaining); }
+              foreach ($items as [$srcRel,$dstRel,$w,$h]) { $dst=$base.'/'.$dstRel; $info=@getimagesize($dst); if(!is_array($info)||(int)$info[0]!==$w||(int)$info[1]!==$h||filesize($dst)<=0){throw new RuntimeException('FINAL_MEDIA_FAIL:' . $dstRel);} }
+              file_put_contents($stateDir.'/created-media.json',wp_json_encode($created,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+              @chmod($stateDir.'/created-media.json',0600);
+              wp_cache_flush();
+              echo "TARGETED_CONTENT_NORMALIZATION=PASS replacements=2 remaining=0\n";
+              echo "TARGETED_RESPONSIVE_MEDIA=PASS total=9 created=".count($created)." existing=".(9-count($created))."\n";
+              echo "TARGETED_REPAIR=PASS\n";
+          } catch (Throwable $e) {
+              fwrite(STDERR,"TARGETED_REPAIR_FAIL=".$e->getMessage()."\n");
+              $rollback();
+              exit(20);
+          }
+          PHP
+          php -l "$RUNNER_TEMP/nvx-d54-targeted-repair.php"
+
+      - name: Upload and execute transactional repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATE_DIR="/tmp/nvx-d54-targeted-repair-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "STATE_DIR=$STATE_DIR" >> "$GITHUB_ENV"
+          scp "$RUNNER_TEMP/nvx-d54-targeted-repair.php" nvx-prod-repair:/tmp/nvx-d54-targeted-repair.php
+          ssh -n nvx-prod-repair "rm -rf '$STATE_DIR' && mkdir -m 700 '$STATE_DIR' && php /tmp/nvx-d54-targeted-repair.php '$PROD_ROOT' '$EXPECTED_SHA' '$STATE_DIR'"
+
+      - name: Purge production caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp cache flush"
+          ssh -n nvx-prod-repair "cd '$PROD_ROOT' && if wp help sg >/dev/null 2>&1; then wp sg purge || true; fi"
+          ssh -n nvx-prod-repair "cd '$PROD_ROOT' && wp eval 'if(function_exists(\"opcache_reset\")){opcache_reset();}' || true"
+          echo 'TARGETED_REPAIR_CACHE_PURGE=PASS'
+
+      - name: Verify public governance and all nine responsive URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/nvx-d54-targeted-verify.sh" <<'SH'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          root="$1"; base="$2"; sha="$3"; ua='NUVANX-Production-Targeted-Verify/1.0'
+          cd "$root"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$sha"
+          prefix="$(wp db prefix)"
+          remaining="$(wp db query "SELECT COUNT(*) FROM ${prefix}posts WHERE post_status='publish' AND post_content LIKE '%/valoracion-medica/%';" --skip-column-names)"
+          test "$(printf '%s' "$remaining" | tr -d '[:space:]')" = '0'
+          alias="$(curl -sS --max-time 30 -A "$ua" -o /tmp/nvx-target-alias.html -w '%{http_code}|%{redirect_url}' "$base/valoracion-medica/")"
+          test "${alias%%|*}" = '301'; test "${alias#*|}" = "$base/madrid/valoracion/"; ! grep -Fq '/.well-known/sgcaptcha/' /tmp/nvx-target-alias.html; rm -f /tmp/nvx-target-alias.html
+          cases="$(curl -sS --max-time 30 -A "$ua" -o /tmp/nvx-target-cases.html -w '%{http_code}' "$base/casos-de-pacientes/")"; test "$cases" = '404'; rm -f /tmp/nvx-target-cases.html
+          for rel in \
+            '2026/05/higiene-facial-con-microdermoabrasion-480x320.webp' \
+            '2026/05/diatermia-facial-480x320.webp' \
+            '2026/05/depilacion-laser-480x320.webp' \
+            '2026/05/hidrolipoclasia-480x320.webp' \
+            '2026/05/masajes-posoperatorios-480x320.webp' \
+            '2026/05/radiofrecuencia-corporal-480x320.webp' \
+            '2026/05/presoterapia-480x320.webp' \
+            '2026/05/tratamiento-anticelulitico-480x320.webp' \
+            '2026/02/casmara-480x194.webp'; do
+            code="$(curl -sS --max-time 20 -A "$ua" -o /dev/null -w '%{http_code}' "$base/wp-content/uploads/$rel")"; test "$code" = '200'; echo "RESPONSIVE_PUBLIC=PASS rel=$rel"
+          done
+          curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" "$base/sitemap_index.xml" > /tmp/nvx-target-sm.xml
+          ! grep -Fq '/category-sitemap.xml' /tmp/nvx-target-sm.xml; ! grep -Eq '/(post_tag|tag)-sitemap.xml' /tmp/nvx-target-sm.xml
+          page_sm="$(grep -oE '<loc>[^<]+' /tmp/nvx-target-sm.xml | sed 's#<loc>##' | grep '/page-sitemap.xml' | head -n1)"; test -n "$page_sm"
+          curl -sS -L --max-redirs 3 --max-time 30 -A "$ua" "$page_sm" > /tmp/nvx-target-page-sm.xml
+          ! grep -Fq '/politica-de-cookies/' /tmp/nvx-target-page-sm.xml; ! grep -Fq '/mas-informacion-sobre-las-cookies/' /tmp/nvx-target-page-sm.xml; ! grep -Fq '/casos-de-pacientes/' /tmp/nvx-target-page-sm.xml
+          rm -f /tmp/nvx-target-sm.xml /tmp/nvx-target-page-sm.xml
+          echo "TARGETED_PUBLIC_VERIFY=PASS sha=$sha legacy=0 alias=301 cases=404 media=9"
+          SH
+          chmod +x "$RUNNER_TEMP/nvx-d54-targeted-verify.sh"
+          scp "$RUNNER_TEMP/nvx-d54-targeted-verify.sh" nvx-prod-repair:/tmp/nvx-d54-targeted-verify.sh
+          ssh -n nvx-prod-repair "bash /tmp/nvx-d54-targeted-verify.sh '$PROD_ROOT' '$BASE_URL' '$EXPECTED_SHA'"
+
+      - name: Upload targeted repair evidence
+        if: always()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: production-d54-targeted-repair-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/nvx-d54-targeted-repair.php
+            ${{ runner.temp }}/nvx-d54-targeted-verify.sh
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Cleanup repair state and SSH identity
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            ssh -n nvx-prod-repair "rm -f /tmp/nvx-d54-targeted-repair.php /tmp/nvx-d54-targeted-verify.sh; case '${STATE_DIR:-}' in /tmp/nvx-d54-targeted-repair-*) rm -rf '${STATE_DIR:-}' ;; '') ;; *) exit 1 ;; esac" || true
+          fi
+          rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

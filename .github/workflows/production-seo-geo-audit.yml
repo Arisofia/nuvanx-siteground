@@ -8,6 +8,7 @@ on:
       - '.github/workflows/production-seo-geo-audit.yml'
       - 'scripts/production/seo-geo-origin-audit.sh'
       - 'scripts/production/diagnose-title-emitters.sh'
+      - 'scripts/production/document-head-title-audit.sh'
   workflow_run:
     workflows:
       - Production Release
@@ -45,6 +46,7 @@ jobs:
           set -euo pipefail
           bash -n scripts/production/seo-geo-origin-audit.sh
           bash -n scripts/production/diagnose-title-emitters.sh
+          bash -n scripts/production/document-head-title-audit.sh
 
       - name: Configure strict production SSH authentication
         shell: bash
@@ -82,6 +84,16 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           ssh -n nvx-prod-seo-geo "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"
+
+      - name: Verify exactly one document title in head across sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/production/artifacts
+          ssh nvx-prod-seo-geo \
+            "BASE_URL='$BASE_URL' bash -s" \
+            < scripts/production/document-head-title-audit.sh \
+            | tee scripts/production/artifacts/document-head-title-audit.log
 
       - name: Run blocking SEO GEO audit from SiteGround origin network
         shell: bash
@@ -129,4 +141,5 @@ jobs:
             echo '## Production SEO/GEO origin audit PASS'
             echo
             grep -E '^(SEO_GEO_RELEASE_SHA|SITEMAP_CHILDREN|SITEMAP_URLS|URL_PASS|URL_FAIL|SIGNATURE_REST_PASS|SIGNATURE_REST_FAIL|SEO_GEO_WARNINGS|SEO_GEO_FAILURES|SEO_GEO_ORIGIN_AUDIT)=' scripts/production/artifacts/seo-geo-origin-audit.log | sed 's/^/- `/' | sed 's/$/`/'
+            grep -E '^(DOCUMENT_HEAD_TITLE_URLS|DOCUMENT_HEAD_TITLE_PASS|DOCUMENT_HEAD_TITLE_FAIL|DOCUMENT_HEAD_TITLE_AUDIT)=' scripts/production/artifacts/document-head-title-audit.log | sed 's/^/- `/' | sed 's/$/`/'
           } >> "$GITHUB_STEP_SUMMARY"

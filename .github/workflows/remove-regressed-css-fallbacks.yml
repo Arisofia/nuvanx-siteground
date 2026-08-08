@@ -1,0 +1,45 @@
+name: Remove Regressed CSS Fallbacks
+
+on:
+  push:
+    branches:
+      - audit/repo-clean-20260808-1840
+    paths:
+      - .github/workflows/remove-regressed-css-fallbacks.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: audit/repo-clean-20260808-1840
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Remove only the two regressed declarations
+        shell: python
+        run: |
+          from pathlib import Path
+          replacements = {
+            'wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css': '  background-color: #1c1c1e;\n',
+            'wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css': '\tbackground-color: #111111;\n',
+          }
+          for path, old in replacements.items():
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path}: expected exactly one regressed declaration')
+              p.write_text(text.replace(old, '', 1), encoding='utf-8')
+      - name: Validate and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git config user.name 'Nuvanx Engineering'
+          git config user.email 'admin@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css wp-content/themes/nuvanx-medical/assets/css/nvx-home-v3.css
+          git commit -m 'fix(css): remove regressed overridden backgrounds'
+          git push origin HEAD:audit/repo-clean-20260808-1840

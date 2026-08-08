@@ -58,8 +58,9 @@ try {
   console.log(`HUBSPOT_ROOT_HTML=${JSON.stringify((await page.locator('#nvx-hubspot-form').innerHTML()).slice(0, 4000))}`);
   console.log(`FRAME_COUNT=${page.frames().length}`);
 
-  for (let i = 0; i < page.frames().length; i += 1) {
-    const frame = page.frames()[i];
+  const frames = page.frames();
+  for (let i = 0; i < frames.length; i += 1) {
+    const frame = frames[i];
     let fields = [];
     let forms = 0;
     let body = '';

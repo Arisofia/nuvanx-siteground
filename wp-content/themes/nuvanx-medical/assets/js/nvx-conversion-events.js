@@ -156,11 +156,12 @@
 		var data = event.data || {};
 		if (typeof data === 'string') {
 			try {
-				data = JSON.parse(data);
+				data = JSON.parse(data) || {};
 			} catch (_error) {
 				data = {};
 			}
 		}
+		if (typeof data !== 'object') data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message');
 	});

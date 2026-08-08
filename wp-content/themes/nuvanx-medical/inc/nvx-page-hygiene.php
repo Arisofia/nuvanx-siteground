@@ -58,6 +58,7 @@ function nvx_redirect_valoracion_aliases(): void {
 	$aliases = array(
 		'/valoracion/',
 		'/valoración/',
+		'/valoracion-medica/',
 		'/consulta-medica/',
 		'/consulta-médica/',
 		'/consultamedica/',
@@ -193,13 +194,33 @@ function nvx_exclude_quarantined_comparison_posts( WP_Query $query ): void {
 add_action( 'pre_get_posts', 'nvx_exclude_quarantined_comparison_posts', 30 );
 
 /**
+ * Resolve superseded legal-document page IDs by slug.
+ *
+ * These URLs permanently redirect to the canonical Complianz EU cookie policy
+ * and therefore must not remain discoverable in XML sitemaps.
+ *
+ * @return int[]
+ */
+function nvx_superseded_legal_page_ids(): array {
+	$ids = array();
+	foreach ( array( 'politica-de-cookies', 'mas-informacion-sobre-las-cookies' ) as $slug ) {
+		$page_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( $slug ) : 0;
+		if ( $page_id > 0 ) {
+			$ids[] = $page_id;
+		}
+	}
+
+	return array_values( array_unique( $ids ) );
+}
+
+/**
  * Collects page and post IDs that should be excluded from public indexing.
  *
  * @return int[] Unique IDs excluded from sitemaps and other public index listings.
  */
 function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
-	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids() );
+	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids(), nvx_superseded_legal_page_ids() );
 
 	// Working protocol names are review artefacts, never discoverable treatment pages.
 	if ( function_exists( 'nvx_strategy_pending_page_ids' ) ) {
@@ -236,6 +257,22 @@ function nvx_exclude_sensitive_pages_from_sitemap_ids( $excluded_ids ) {
 	return array_values( array_unique( array_merge( $excluded_ids, nvx_noindex_page_ids() ) ) );
 }
 add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', 'nvx_exclude_sensitive_pages_from_sitemap_ids' );
+
+/**
+ * Keep deliberately noindex archive taxonomies out of Yoast XML sitemaps.
+ *
+ * @param bool   $excluded Existing Yoast exclusion state.
+ * @param string $taxonomy Taxonomy name.
+ * @return bool
+ */
+function nvx_exclude_noindex_taxonomies_from_yoast_sitemap( $excluded, $taxonomy ): bool {
+	if ( in_array( (string) $taxonomy, array( 'category', 'post_tag' ), true ) ) {
+		return true;
+	}
+
+	return (bool) $excluded;
+}
+add_filter( 'wpseo_sitemap_exclude_taxonomy', 'nvx_exclude_noindex_taxonomies_from_yoast_sitemap', 10, 2 );
 
 /**
  * Exclude sensitive pages from the WordPress Core XML sitemap.
@@ -313,12 +350,28 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 	if ( ! is_array( $items ) ) {
 		return $items;
 	}
-	$noindex_ids = nvx_noindex_page_ids();
+
+	$noindex_ids  = nvx_noindex_page_ids();
+	$cases_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+	$cases_public = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
+
 	foreach ( $items as $key => $item ) {
-		if ( 'post_type' === $item->type && in_array( (int) $item->object_id, $noindex_ids, true ) ) {
+		$is_blocked_post = isset( $item->type, $item->object_id )
+			&& 'post_type' === $item->type
+			&& in_array( (int) $item->object_id, $noindex_ids, true );
+
+		$is_blocked_cases_url = false;
+		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {
+			$path = (string) wp_parse_url( $item->url, PHP_URL_PATH );
+			$path = '/' . trim( $path, '/' ) . '/';
+			$is_blocked_cases_url = '/casos-de-pacientes/' === $path;
+		}
+
+		if ( $is_blocked_post || $is_blocked_cases_url ) {
 			unset( $items[ $key ] );
 		}
 	}
+
 	return $items;
 }
 add_filter( 'wp_get_nav_menu_items', 'nvx_exclude_sensitive_pages_from_menus', 20 );

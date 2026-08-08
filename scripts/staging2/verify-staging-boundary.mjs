@@ -97,6 +97,7 @@ async function sshAliasConfigured(alias) {
   try {
     const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
       encoding: 'utf8',
+      timeout: 15000,
     });
     return result.status === 0;
   } catch {

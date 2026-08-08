@@ -446,7 +446,7 @@ function nvx_signature_hub_contour_cards(): array {
  */
 function nvx_signature_hub_shell_open( array $hub ): string {
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
-	$html       = '<div class="entry-content nvx-page__content nvx-prose">';
+	$html       = '<article class="nvx-brand-page nvx-brand-page--signature"><div class="entry-content nvx-page__content nvx-prose">';
 	$html      .= '<section class="nvx-brand-hero" aria-labelledby="nvx-signature-hub-h1"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	$html      .= '<p class="nvx-brand-kicker">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
 	$html      .= '<h1 id="nvx-signature-hub-h1" class="nvx-brand-hero__title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
@@ -468,7 +468,7 @@ function nvx_signature_hub_shell_close(): string {
 	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos y expectativas. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( nvx_signature_valoracion_url() ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</div></section></div>';
+	$html .= '</div></section></div></article>';
 	return $html;
 }
 

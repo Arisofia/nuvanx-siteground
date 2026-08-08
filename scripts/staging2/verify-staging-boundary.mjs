@@ -11,22 +11,24 @@ try {
   console.error(`BASE_URL must be a valid URL. Got: ${baseUrl}`);
   process.exit(1);
 }
+
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
-const sshBin = process.env.SSH_BINARY || '/usr/bin/ssh';
+const allowedOriginSshAliases = new Set([
+  'nvx-staging2',
+  'nvx-staging2-pr',
+  'nvx-staging-origin',
+]);
+const sshBin = '/usr/bin/ssh';
 
-if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(originSshAlias)) {
-  console.error('ORIGIN_SSH_ALIAS must not start with "-" and only allows [A-Za-z0-9_.-].');
+if (!allowedOriginSshAliases.has(originSshAlias)) {
+  console.error(
+    `ORIGIN_SSH_ALIAS must be one of: ${[...allowedOriginSshAliases].join(', ')}.`
+  );
   process.exit(1);
 }
-if (
-  !/^\/(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+$/.test(sshBin) ||
-  sshBin.split('/').includes('..')
-) {
-  console.error('SSH_BINARY must be an absolute path without ".." segments.');
-  process.exit(1);
-}
+
 const routes = [
   '/',
   '/soluciones-medicas/',
@@ -110,10 +112,24 @@ function isTransientSiteGroundChallenge(response) {
 
 function sshAliasConfigured(alias) {
   try {
-    const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', alias, 'exit'], {
-      encoding: 'utf8',
-      timeout: 10000,
-    });
+    const result = spawnSync(
+      sshBin,
+      [
+        '-o',
+        'BatchMode=yes',
+        '-o',
+        'ConnectTimeout=5',
+        '-o',
+        'ConnectionAttempts=1',
+        '--',
+        alias,
+        'exit',
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 15000,
+      }
+    );
     return result.status === 0;
   } catch {
     return false;
@@ -138,11 +154,14 @@ function verifyViaSiteGroundOrigin(route) {
     'esac',
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
-    'deploy_tag="$(grep -Eio "<meta[^>]+name=[\\\"\\\\\']nvx-deploy-sha[\\\"\\\\\'][^>]*>" "$body" | head -n 1 || true)"',
-    'printf "%s" "$deploy_tag" | grep -Fq "$EXPECTED_SHA"',
-    'robots_meta="$(grep -Eio "<meta[^>]+name=[\\\"\\\']robots[\\\"\\\'][^>]*>" "$body" | head -n 1 || true)"',
-    'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 || true)"',
-    'combined="${robots_meta} ${xrobots}"',
+    'extract_meta_content() {',
+    String.raw`  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\bname\s*=\s*(?:\x22([^\x22]+)\x22|\x27([^\x27]+)\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\bcontent\s*=\s*(?:\x22([^\x22]*)\x22|\x27([^\x27]*)\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
+    '}',
+    'deploy_sha="$(extract_meta_content nvx-deploy-sha)"',
+    'test "$deploy_sha" = "$EXPECTED_SHA"',
+    'robots_meta="$(extract_meta_content robots)"',
+    'xrobots="$(grep -Ei \'^x-robots-tag:\' "$headers" | tail -n 1 | sed -E \'s/^[Xx]-[Rr]obots-[Tt]ag:[[:space:]]*//\' || true)"',
+    'combined="${robots_meta}${xrobots:+,${xrobots}}"',
     'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',
     'printf \'%s\' "$combined" | grep -Eiq \'nofollow\'',
     'if printf \'%s\' "$combined" | grep -Eiq \'(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow\'; then',
@@ -150,17 +169,31 @@ function verifyViaSiteGroundOrigin(route) {
     '  exit 1',
     'fi',
     'robots_b64="$(printf "%s" "$combined" | base64 | tr -d \'\\n\')"',
-    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$EXPECTED_SHA robots_b64=$robots_b64"',
+    'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$deploy_sha robots_b64=$robots_b64"',
     '',
   ].join('\n');
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-  const result = spawnSync(sshBin, ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', originSshAlias, remoteCommand], {
-    input: remoteScript,
-    encoding: 'utf8',
-    timeout: 60000,
-    maxBuffer: 1024 * 1024,
-  });
+  const result = spawnSync(
+    sshBin,
+    [
+      '-o',
+      'BatchMode=yes',
+      '-o',
+      'ConnectTimeout=5',
+      '-o',
+      'ConnectionAttempts=1',
+      '--',
+      originSshAlias,
+      remoteCommand,
+    ],
+    {
+      input: remoteScript,
+      encoding: 'utf8',
+      timeout: 60000,
+      maxBuffer: 1024 * 1024,
+    }
+  );
 
   return {
     attempted: true,
@@ -237,12 +270,6 @@ async function fetchSameHost(url, maxRedirects = 5) {
 }
 
 let originFallbackAvailable = null;
-function getOriginFallbackAvailable() {
-  if (originFallbackAvailable !== null) return originFallbackAvailable;
-  originFallbackAvailable = sshAliasConfigured(originSshAlias);
-  report.originFallbackAvailable = originFallbackAvailable;
-  return originFallbackAvailable;
-}
 const report = {
   baseUrl,
   expectedHost,
@@ -256,6 +283,13 @@ const report = {
   routes: [],
   failures: [],
 };
+
+function getOriginFallbackAvailable() {
+  if (originFallbackAvailable !== null) return originFallbackAvailable;
+  originFallbackAvailable = sshAliasConfigured(originSshAlias);
+  report.originFallbackAvailable = originFallbackAvailable;
+  return originFallbackAvailable;
+}
 
 for (const route of routes) {
   const requested = new URL(route, `${baseUrl}/`).toString();
@@ -275,6 +309,7 @@ for (const route of routes) {
     result.redirects = hops;
     result.transientRetries = transientRetries;
     result.robots = robots;
+    result.robotsSource = 'edge';
     result.xRobotsTag = xRobotsTag;
     result.deploySha = deploySha;
     result.issues = [];
@@ -283,23 +318,32 @@ for (const route of routes) {
       result.externalInconclusive = true;
       result.originFallback = verifyViaSiteGroundOrigin(route);
       if (result.originFallback.pass) {
-        result.pass = true;
         result.edgeStatus = result.status;
-        result.status = 200;
         result.edgeDeploySha = result.deploySha;
-        result.deploySha = expectedSha;
-        const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
-        const decodedRobots = b64Match
-          ? Buffer.from(b64Match[1], 'base64').toString('utf8').trim()
-          : '';
         result.edgeRobots = result.robots;
-        result.robots =
-          /noindex/i.test(decodedRobots) && /nofollow/i.test(decodedRobots)
-            ? decodedRobots
-            : 'noindex,nofollow';
+        result.originVerified = true;
+
+        const originStatusMatch = result.originFallback.stdout.match(/\bstatus=(\d{3})\b/);
+        const originShaMatch = result.originFallback.stdout.match(/\bsha=([0-9a-f]{40})\b/);
+        result.originStatus = originStatusMatch
+          ? Number.parseInt(originStatusMatch[1], 10)
+          : null;
+        result.originDeploySha = originShaMatch ? originShaMatch[1] : '';
+
+        const b64Match = result.originFallback.stdout.match(/robots_b64=([A-Za-z0-9+/=]+)/);
+        if (b64Match) {
+          result.robots = Buffer.from(b64Match[1], 'base64').toString('utf8').trim();
+          result.robotsSource = 'origin';
+        } else {
+          result.robots = '';
+          result.robotsSource = 'unavailable';
+        }
+
+        result.pass = true;
         report.routes.push(result);
         continue;
       }
+
       const fallbackDiagnostic =
         result.originFallback.stderr ||
         result.originFallback.error ||
@@ -344,6 +388,7 @@ report.pass = report.failures.length === 0;
 if (report.originFallbackAvailable === null) {
   report.originFallbackAvailable = 'not-probed';
 }
+
 await fs.writeFile(
   path.join(outputDir, 'staging2-boundary.json'),
   `${JSON.stringify(report, null, 2)}\n`,

@@ -388,7 +388,17 @@ async function submitAndAssert(page, frame, scenario, rawEmail, auditRequests, a
   if (scenario === 'ALLOW') {
     for (let attempt = 0; attempt < 40 && auditRequests.length < 1; attempt += 1) await sleep(250);
     await sleep(3000);
-    if (auditRequests.length !== 1) throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1`);
+    if (auditRequests.length !== 1) {
+      // The theme fires the audit POST only from the hs-form-event:on-submission:success
+      // CustomEvent (nvx-conversion-events.js). If success was detected solely via the HubSpot
+      // postMessage, that CustomEvent never ran and no audit request can appear — surface that
+      // explicitly instead of a bare count mismatch.
+      const missingCustomEvent = auditRequests.length === 0 && !result.successSources.includes('hubspot_form_event');
+      const hint = missingCustomEvent
+        ? ' (no hs-form-event:on-submission:success CustomEvent observed; success came from postMessage only)'
+        : '';
+      throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(result.successSources)}${hint}`);
+    }
     for (let attempt = 0; attempt < 40 && auditResponses.length < 1; attempt += 1) await sleep(250);
     if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
       throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);

@@ -1,0 +1,174 @@
+name: Postdeploy Integrity Fix Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/postdeploy-integrity-fix-once.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: postdeploy-integrity-fix-once
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out master
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply verified page-hygiene fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          old = "\t\t'/valoración/',\n\t\t'/consulta-medica/',"
+          new = "\t\t'/valoración/',\n\t\t'/valoracion-medica/',\n\t\t'/consulta-medica/',"
+          if old not in text:
+              raise SystemExit('valoracion alias insertion point not found')
+          text = text.replace(old, new, 1)
+
+          marker = "/**\n * Collects page and post IDs that should be excluded from public indexing.\n"
+          helper = r'''/**
+ * Resolve superseded legal-document page IDs by slug.
+ *
+ * These URLs permanently redirect to the canonical Complianz EU cookie policy
+ * and therefore must not remain discoverable in XML sitemaps.
+ *
+ * @return int[]
+ */
+function nvx_superseded_legal_page_ids(): array {
+	$ids = array();
+	foreach ( array( 'politica-de-cookies', 'mas-informacion-sobre-las-cookies' ) as $slug ) {
+		$page_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( $slug ) : 0;
+		if ( $page_id > 0 ) {
+			$ids[] = $page_id;
+		}
+	}
+
+	return array_values( array_unique( $ids ) );
+}
+
+'''
+          if marker not in text:
+              raise SystemExit('noindex helper insertion point not found')
+          text = text.replace(marker, helper + marker, 1)
+
+          old = "function nvx_noindex_page_ids() {\n\t$ids = nvx_nofollow_page_ids();\n\t$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids() );"
+          new = "function nvx_noindex_page_ids() {\n\t$ids = nvx_nofollow_page_ids();\n\t$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids(), nvx_superseded_legal_page_ids() );"
+          if old not in text:
+              raise SystemExit('noindex merge target not found')
+          text = text.replace(old, new, 1)
+
+          anchor = "add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', 'nvx_exclude_sensitive_pages_from_sitemap_ids' );\n"
+          taxonomy = r'''
+
+/**
+ * Keep deliberately noindex archive taxonomies out of Yoast XML sitemaps.
+ *
+ * Robots policy already marks category/tag archives noindex, follow. Listing
+ * those same archives in a sitemap sends a contradictory indexing signal.
+ *
+ * @param bool   $excluded Existing Yoast exclusion state.
+ * @param string $taxonomy Taxonomy name.
+ * @return bool
+ */
+function nvx_exclude_noindex_taxonomies_from_yoast_sitemap( $excluded, $taxonomy ): bool {
+	if ( in_array( (string) $taxonomy, array( 'category', 'post_tag' ), true ) ) {
+		return true;
+	}
+
+	return (bool) $excluded;
+}
+add_filter( 'wpseo_sitemap_exclude_taxonomy', 'nvx_exclude_noindex_taxonomies_from_yoast_sitemap', 10, 2 );
+'''
+          if anchor not in text:
+              raise SystemExit('Yoast sitemap insertion point not found')
+          text = text.replace(anchor, anchor + taxonomy, 1)
+
+          old = r'''function nvx_exclude_sensitive_pages_from_menus( $items ) {
+	if ( ! is_array( $items ) ) {
+		return $items;
+	}
+	$noindex_ids = nvx_noindex_page_ids();
+	foreach ( $items as $key => $item ) {
+		if ( 'post_type' === $item->type && in_array( (int) $item->object_id, $noindex_ids, true ) ) {
+			unset( $items[ $key ] );
+		}
+	}
+	return $items;
+}'''
+          new = r'''function nvx_exclude_sensitive_pages_from_menus( $items ) {
+	if ( ! is_array( $items ) ) {
+		return $items;
+	}
+
+	$noindex_ids = nvx_noindex_page_ids();
+	$cases_id    = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+	$cases_public = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
+
+	foreach ( $items as $key => $item ) {
+		$is_blocked_post = isset( $item->type, $item->object_id )
+			&& 'post_type' === $item->type
+			&& in_array( (int) $item->object_id, $noindex_ids, true );
+
+		$is_blocked_cases_url = false;
+		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {
+			$path = (string) wp_parse_url( $item->url, PHP_URL_PATH );
+			$path = '/' . trim( $path, '/' ) . '/';
+			$is_blocked_cases_url = '/casos-de-pacientes/' === $path;
+		}
+
+		if ( $is_blocked_post || $is_blocked_cases_url ) {
+			unset( $items[ $key ] );
+		}
+	}
+
+	return $items;
+}'''
+          if old not in text:
+              raise SystemExit('menu hygiene replacement target not found')
+          text = text.replace(old, new, 1)
+
+          if text == original:
+              raise SystemExit('no changes were applied')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate focused changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq "'/valoracion-medica/'" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq "wpseo_sitemap_exclude_taxonomy" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq "nvx_superseded_legal_page_ids" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          grep -Fq "is_blocked_cases_url" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          git diff --check
+          git diff -- wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+
+      - name: Commit verified fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$(git status --porcelain -- wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php)"
+          git config user.name 'Jeninefer Deras'
+          git config user.email 'jenineferderas@hotmail.com'
+          git add wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          git commit -m 'fix(seo): reconcile noindex sitemaps and legacy links'
+          git push origin HEAD:master
+          echo "FIX_SHA=$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

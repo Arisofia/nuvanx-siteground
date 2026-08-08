@@ -1,8 +1,6 @@
 name: Sonar Diagnostics
 
 on:
-  push:
-    branches: [fix/release-hardening-20260808]
   workflow_dispatch:
     inputs:
       branch:
@@ -24,6 +22,7 @@ permissions:
 jobs:
   sonar:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -38,6 +37,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
+          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
+          
           curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
             -H "Authorization: Bearer ${SONAR_TOKEN}" \
             --get --data-urlencode "projectKey=${PROJECT_KEY}" \
@@ -53,6 +54,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
+          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
+          
           p=1
           while true; do
             curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
@@ -70,7 +73,10 @@ import json
 data=json.load(open('/tmp/tree_${p}.json',encoding='utf-8'))
 print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
 ")
-            if [ "$MORE" = "0" ]; then
+            if [ "$MORE" = "0" ] || [ $p -ge 20 ]; then
+              if [ $p -ge 20 ] && [ "$MORE" != "0" ]; then
+                echo "WARNING: Reached 10,000 components limit. Results truncated." >&2
+              fi
               break
             fi
             p=$((p+1))
@@ -86,7 +92,14 @@ print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
                   vals={}
                   for measure in c.get('measures',[]):
                       periods=measure.get('periods') or []
-                      vals[measure['metric']]=float(periods[0].get('value',0)) if periods else float(measure.get('value',0) or 0)
+                      period=measure.get('period') or {}
+                      if periods:
+                          val = periods[0].get('value',0)
+                      elif period:
+                          val = period.get('value',0)
+                      else:
+                          val = measure.get('value',0)
+                      vals[measure['metric']]=float(val or 0)
                   nl=vals.get('new_lines',0); nd=vals.get('new_duplicated_lines',0); dens=vals.get('new_duplicated_lines_density',0)
                   if nl or nd or dens:
                       rows.append((nd,dens,nl,c.get('path') or ''))
@@ -103,6 +116,8 @@ print('1' if data.get('paging',{}).get('total',0) > int('${p}') * 500 else '0')
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
+          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
+          
           for quality in SECURITY RELIABILITY; do
             p=1
             while true; do
@@ -121,7 +136,10 @@ import json
 data=json.load(open('/tmp/${quality}_${p}.json',encoding='utf-8'))
 print('1' if data.get('total',0) > int('${p}') * 500 else '0')
 ")
-              if [ "$MORE" = "0" ]; then
+              if [ "$MORE" = "0" ] || [ $p -ge 20 ]; then
+                if [ $p -ge 20 ] && [ "$MORE" != "0" ]; then
+                  echo "WARNING: Reached 10,000 issues limit for ${quality}. Results truncated." >&2
+                fi
                 break
               fi
               p=$((p+1))
@@ -138,7 +156,7 @@ print('1' if data.get('total',0) > int('${p}') * 500 else '0')
               if total_issues == 0:
                   total_issues = data.get('total', 0)
               all_issues.extend(data.get('issues', []))
-          print(quality, 'TOTAL', len(all_issues), '(Actual matches:', total_issues, ')')
+          print(f"{quality} ISSUES RETRIEVED: {len(all_issues)} (Server side matches: {total_issues})")
           for issue in all_issues:
               impacts=issue.get('impacts') or []
               print(json.dumps({'rule':issue.get('rule'),'component':issue.get('component'),'line':issue.get('line'),'message':issue.get('message'),'impacts':impacts,'creationDate':issue.get('creationDate')},ensure_ascii=False))
@@ -153,6 +171,8 @@ print('1' if data.get('total',0) > int('${p}') * 500 else '0')
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           set -euo pipefail
+          [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
+          
           curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
             -H "Authorization: Bearer ${SONAR_TOKEN}" \
             --get --data-urlencode "component=${PROJECT_KEY}" \

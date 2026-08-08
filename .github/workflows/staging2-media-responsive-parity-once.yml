@@ -1,0 +1,137 @@
+name: Staging2 Media Responsive Parity Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-media-responsive-parity-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-media-responsive-parity
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      STAGING_URL: https://staging2.nuvanx.com
+      EXPECTED_STAGING_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+      EXPECTED_PROD_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+
+    steps:
+      - name: Configure strict SiteGround SSH and guard environments
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-sg
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-sg "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v cmp >/dev/null && command -v curl >/dev/null"
+          test "$(ssh -n nvx-sg "tr -d '\\r\\n' < '$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_STAGING_SHA"
+          test "$(ssh -n nvx-sg "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$EXPECTED_PROD_SHA"
+          test "$(ssh -n nvx-sg "cd '$STAGING_ROOT' && wp config get DB_NAME")" = 'dbshcocboodiwr'
+          test "$(ssh -n nvx-sg "cd '$PROD_ROOT' && wp config get DB_NAME")" = 'db0ecrycwv2tgb'
+          echo 'RESPONSIVE_MEDIA_ENVIRONMENT_GUARD=PASS'
+
+      - name: Require all production responsive source derivatives
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/nvx-responsive-media.txt"
+          cat > "$manifest" <<'EOF'
+          2026/05/higiene-facial-con-microdermoabrasion-480x320.webp
+          2026/05/diatermia-facial-480x320.webp
+          2026/05/depilacion-laser-480x320.webp
+          2026/05/hidrolipoclasia-480x320.webp
+          2026/05/masajes-posoperatorios-480x320.webp
+          2026/05/radiofrecuencia-corporal-480x320.webp
+          2026/05/presoterapia-480x320.webp
+          2026/05/tratamiento-anticelulitico-480x320.webp
+          2026/02/casmara-480x194.webp
+          EOF
+          sed -i 's/^[[:space:]]*//' "$manifest"
+
+          count=0
+          while IFS= read -r rel; do
+            test -n "$rel" || continue
+            ssh -n nvx-sg "test -s '$PROD_ROOT/wp-content/uploads/$rel'"
+            count=$((count + 1))
+            echo "PROD_RESPONSIVE_SOURCE=PASS rel=$rel"
+          done < "$manifest"
+          test "$count" = '9'
+          echo 'PROD_RESPONSIVE_SOURCES=PASS files=9'
+
+      - name: Materialize exact responsive derivatives in staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/nvx-responsive-media.txt"
+          count=0
+          while IFS= read -r rel; do
+            test -n "$rel" || continue
+            src="$PROD_ROOT/wp-content/uploads/$rel"
+            dst="$STAGING_ROOT/wp-content/uploads/$rel"
+            output="$(ssh -n nvx-sg "mkdir -p '$(dirname "$dst")' && if test -e '$dst'; then cmp -s '$src' '$dst'; else cp -p '$src' '$dst'; fi && cmp -s '$src' '$dst' && sha256sum '$dst'")"
+            echo "STAGING_RESPONSIVE_COPY=PASS rel=$rel $output"
+            count=$((count + 1))
+          done < "$manifest"
+          test "$count" = '9'
+          echo 'STAGING_RESPONSIVE_PARITY=PASS files=9'
+
+      - name: Purge caches and verify all repaired URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -n nvx-sg "cd '$STAGING_ROOT' && wp cache flush >/dev/null"
+          ssh -n nvx-sg "cd '$STAGING_ROOT' && if wp help sg >/dev/null 2>&1; then wp sg purge >/dev/null 2>&1 || true; fi"
+          ssh -n nvx-sg "cd '$STAGING_ROOT' && wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }' >/dev/null || true"
+
+          ua='NUVANX-Staging-Responsive-Parity/1.0'
+          manifest="$RUNNER_TEMP/nvx-responsive-media.txt"
+          count=0
+          while IFS= read -r rel; do
+            test -n "$rel" || continue
+            code="$(ssh -n nvx-sg "curl -sS --max-time 20 -A '$ua' -o /dev/null -w '%{http_code}' '$STAGING_URL/wp-content/uploads/$rel'")"
+            test "$code" = '200'
+            count=$((count + 1))
+            echo "RESPONSIVE_HTTP=PASS rel=$rel"
+          done < "$manifest"
+          test "$count" = '9'
+          echo 'STAGING_RESPONSIVE_HTTP=PASS files=9'
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

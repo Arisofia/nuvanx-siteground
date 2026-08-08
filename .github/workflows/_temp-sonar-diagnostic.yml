@@ -14,37 +14,12 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     steps:
-      - name: Query Sonar new-code issues
+      - name: Query quality gate status
         shell: bash
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&inNewCodePeriod=true&ps=500' \
-            -o /tmp/issues.json
-          python - <<'PY'
-          import json
-          data=json.load(open('/tmp/issues.json',encoding='utf-8'))
-          print('NEW_CODE_TOTAL', data.get('total'))
-          for issue in data.get('issues', []):
-              print(json.dumps({
-                  'key': issue.get('key'),
-                  'rule': issue.get('rule'),
-                  'severity': issue.get('severity'),
-                  'type': issue.get('type'),
-                  'component': issue.get('component'),
-                  'line': issue.get('line'),
-                  'message': issue.get('message'),
-                  'impacts': issue.get('impacts'),
-                  'creationDate': issue.get('creationDate'),
-              }, ensure_ascii=False))
-          PY
-
-      - name: Query Sonar new-code period
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/new_code_periods/show?project=Arisofia_nuvanx-siteground&branch=master' \
+            'https://sonarcloud.io/api/qualitygates/project_status?projectKey=Arisofia_nuvanx-siteground&branch=master' \
             | python -m json.tool
 
       - name: Query duplication contributors
@@ -59,21 +34,41 @@ jobs:
           data=json.load(open('/tmp/tree.json',encoding='utf-8'))
           rows=[]
           for c in data.get('components', []):
-              m={x['metric']:x for x in c.get('measures',[])}
-              def pv(k):
-                  periods=m.get(k,{}).get('periods') or []
-                  return float(periods[0].get('value',0)) if periods else 0.0
-              nl=pv('new_lines'); nd=pv('new_duplicated_lines'); dens=pv('new_duplicated_lines_density')
+              vals={}
+              for measure in c.get('measures',[]):
+                  periods=measure.get('periods') or []
+                  vals[measure['metric']]=float(periods[0].get('value',0)) if periods else float(measure.get('value',0) or 0)
+              nl=vals.get('new_lines',0); nd=vals.get('new_duplicated_lines',0); dens=vals.get('new_duplicated_lines_density',0)
               if nl or nd or dens:
-                  rows.append((nd,dens,nl,c.get('path'),c.get('key')))
-          for nd,dens,nl,path,key in sorted(rows, reverse=True):
+                  rows.append((nd,dens,nl,c.get('path')))
+          print('DUPLICATION_CONTRIBUTORS')
+          for nd,dens,nl,path in sorted(rows, reverse=True):
               print(json.dumps({'path':path,'new_lines':nl,'new_duplicated_lines':nd,'density':dens}, ensure_ascii=False))
           PY
+
+      - name: Query security and reliability issues
+        shell: bash
+        run: |
+          set -euo pipefail
+          for quality in SECURITY RELIABILITY; do
+            curl -fsS --retry 3 --retry-all-errors \
+              "https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&softwareQualities=${quality}&ps=500" \
+              -o "/tmp/${quality}.json"
+            QUALITY="$quality" python - <<'PY'
+          import json, os
+          quality=os.environ['QUALITY']
+          data=json.load(open(f'/tmp/{quality}.json',encoding='utf-8'))
+          print(quality, 'TOTAL', data.get('total'))
+          for issue in data.get('issues', []):
+              impacts=issue.get('impacts') or []
+              print(json.dumps({'rule':issue.get('rule'),'component':issue.get('component'),'line':issue.get('line'),'message':issue.get('message'),'impacts':impacts,'creationDate':issue.get('creationDate')},ensure_ascii=False))
+          PY
+          done
 
       - name: Query new-code quality metrics
         shell: bash
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/measures/component?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating' \
+            'https://sonarcloud.io/api/measures/component?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines' \
             | python -m json.tool

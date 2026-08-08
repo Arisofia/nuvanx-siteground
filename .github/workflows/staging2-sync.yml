@@ -18,10 +18,18 @@ permissions:
   contents: read
 
 jobs:
-  deploy_and_accept:
-    name: Sync master to Staging2 and run Block C
+  deploy:
+    name: Sync exact master SHA to Staging2
     uses: ./.github/workflows/deploy-staging2.yml
     with:
       sha: ${{ github.sha }}
-      run_block_c_acceptance: true
+      run_block_c_acceptance: false
+    secrets: inherit
+
+  block_c_acceptance:
+    name: Run Block C after successful Staging2 sync
+    needs: deploy
+    uses: ./.github/workflows/staging2-acceptance.yml
+    with:
+      sha: ${{ github.sha }}
     secrets: inherit

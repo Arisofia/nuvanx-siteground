@@ -1,0 +1,107 @@
+name: Staging2 Media Source Recovery Diagnostic Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-media-source-recovery-diagnostic-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      EXPECTED_STAGING_SHA: d54dfa7df226dbd5b823fca1878ce8a60a3548cb
+      EXPECTED_PROD_SHA: 4775310be2b7dcdda18f8fd6de8e40041c2eb555
+    steps:
+      - name: Configure strict SiteGround SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/key"; chmod 600 "$HOME/.ssh/key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-sg
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-sg "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v find >/dev/null && command -v sha256sum >/dev/null"
+
+      - name: Compare exact binaries and nearby candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-sg "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_SHA='$EXPECTED_STAGING_SHA' PROD_SHA='$EXPECTED_PROD_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$(tr -d '\r\n' < "$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$STAGING_SHA"
+          test "$(tr -d '\r\n' < "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$PROD_SHA"
+
+          exact=(
+            '2025/04/cropped-nuvanx-icono-sitio.webp'
+            '2026/06/nvx-co2-evaluacion-620.webp'
+          )
+          for rel in "${exact[@]}"; do
+            echo "===== EXACT $rel ====="
+            for label_root in "STAGING:$STAGING_ROOT" "PROD:$PROD_ROOT"; do
+              label="${label_root%%:*}"; root="${label_root#*:}"; f="$root/wp-content/uploads/$rel"
+              if [[ -f "$f" ]]; then
+                echo "$label EXISTS=YES BYTES=$(wc -c < "$f" | tr -d ' ') SHA256=$(sha256sum "$f" | awk '{print $1}') PATH=$f"
+              else
+                echo "$label EXISTS=NO PATH=$f"
+              fi
+            done
+          done
+
+          echo '===== FILESYSTEM ICON CANDIDATES STAGING ====='
+          find "$STAGING_ROOT/wp-content/uploads" -type f \( -iname '*nuvanx*icon*' -o -iname '*icono*sitio*' -o -iname '*favicon*' \) -printf '%p\t%s bytes\n' | sort | head -n 100 || true
+          echo '===== FILESYSTEM ICON CANDIDATES PROD ====='
+          find "$PROD_ROOT/wp-content/uploads" -type f \( -iname '*nuvanx*icon*' -o -iname '*icono*sitio*' -o -iname '*favicon*' \) -printf '%p\t%s bytes\n' | sort | head -n 100 || true
+
+          echo '===== FILESYSTEM CO2 CANDIDATES STAGING ====='
+          find "$STAGING_ROOT/wp-content/uploads" -type f \( -iname '*co2*' -o -iname '*evaluacion*' \) -printf '%p\t%s bytes\n' | sort | head -n 150 || true
+          echo '===== FILESYSTEM CO2 CANDIDATES PROD ====='
+          find "$PROD_ROOT/wp-content/uploads" -type f \( -iname '*co2*' -o -iname '*evaluacion*' \) -printf '%p\t%s bytes\n' | sort | head -n 150 || true
+
+          echo '===== STAGING ATTACHMENTS AROUND ICON ====='
+          cd "$STAGING_ROOT"
+          wp post list --post_type=attachment --include=180,181,182,183,184,185,186,187,188,189,190,191,192 --fields=ID,post_title,post_name,guid --format=table || true
+          wp eval '
+          global $wpdb;
+          foreach(["nuvanx","icon","co2","evaluacion"] as $term){
+            echo "TERM={$term}\n";$like="%".$wpdb->esc_like($term)."%";
+            $rows=$wpdb->get_results($wpdb->prepare("SELECT p.ID,p.post_title,p.post_name,pm.meta_value attached FROM {$wpdb->posts} p LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id=p.ID AND pm.meta_key=\"_wp_attached_file\" WHERE p.post_type=\"attachment\" AND (p.post_title LIKE %s OR p.post_name LIKE %s OR pm.meta_value LIKE %s) ORDER BY p.ID",$like,$like,$like));
+            foreach($rows as $r){$f=get_attached_file((int)$r->ID);echo "  ID={$r->ID}\tTITLE={$r->post_title}\tSLUG={$r->post_name}\tATTACHED={$r->attached}\tEXISTS=".($f&&is_file($f)?"YES":"NO")."\n";}
+          }'
+
+          echo '===== PROD ATTACHMENT STATE FOR IDS 187 AND 2085 ====='
+          cd "$PROD_ROOT"
+          wp eval '
+          foreach([187,2085] as $id){$p=get_post($id);$f=get_attached_file($id);$m=wp_get_attachment_metadata($id);echo "ID={$id}\tPOST=".($p?"YES":"NO")."\tTITLE=".($p?$p->post_title:"")."\tFILE={$f}\tEXISTS=".($f&&is_file($f)?"YES":"NO")."\tURL=".wp_get_attachment_url($id)."\tSIZES=".(is_array($m)?implode(",",array_keys($m["sizes"]??[])):"NONE")."\n";}'
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

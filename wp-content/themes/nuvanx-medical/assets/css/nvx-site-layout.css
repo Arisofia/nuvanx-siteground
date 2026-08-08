@@ -438,7 +438,7 @@
 
 .nvx-legal-card h2 {
   max-width: 24ch;
-  margin-top: var(--nvx-space-7);
+  margin-top: var(--nvx-space-8);
   margin-bottom: var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: clamp(26px, 3vw, 36px);
@@ -467,7 +467,7 @@
   }
 
   .nvx-page__content > .nvx-blog-article.nvx-brand-readable {
-    padding-block: var(--nvx-space-7) var(--nvx-pad-section-tight);
+    padding-block: var(--nvx-space-6) var(--nvx-pad-section-tight);
   }
 
   .nvx-legal-page > h1,

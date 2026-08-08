@@ -80,10 +80,10 @@ jobs:
             ['2025/04/despacho-nuvanx.webp','2025/04/despacho-nuvanx-480x640.webp',480,640,true],
             ['2025/04/despacho-nuvanx.webp','2025/04/despacho-nuvanx-768x1024.webp',768,1024,true],
             ['2026/02/casmara.webp','2026/02/casmara-300x121.webp',300,121,true],
-            ['2026/05/endolaser-facial.webp','2026/05/endolaser-facial-300x200.webp',300,200,true],
-            ['2026/05/endolaser-facial.webp','2026/05/endolaser-facial-480x320.webp',480,320,true],
-            ['2026/05/endolaser-facial.webp','2026/05/endolaser-facial-768x512.webp',768,512,true],
-            ['2026/05/endolaser-facial.webp','2026/05/endolaser-facial-980x654.webp',980,654,true],
+            ['2026/04/endolaser-facial.webp','2026/04/endolaser-facial-300x200.webp',300,200,true],
+            ['2026/04/endolaser-facial.webp','2026/04/endolaser-facial-480x320.webp',480,320,true],
+            ['2026/04/endolaser-facial.webp','2026/04/endolaser-facial-768x512.webp',768,512,true],
+            ['2026/04/endolaser-facial.webp','2026/04/endolaser-facial-980x654.webp',980,654,true],
           ];
           foreach(['higiene-facial-con-microdermoabrasion','diatermia-facial','depilacion-laser','hidrolipoclasia','masajes-posoperatorios','radiofrecuencia-corporal','presoterapia','tratamiento-anticelulitico'] as $name){
             $src="2026/05/{$name}.webp";
@@ -148,7 +148,7 @@ jobs:
           files=(
             '2025/04/despacho-nuvanx-225x300.webp' '2025/04/despacho-nuvanx-480x640.webp' '2025/04/despacho-nuvanx-768x1024.webp'
             '2026/02/casmara-300x121.webp'
-            '2026/05/endolaser-facial-300x200.webp' '2026/05/endolaser-facial-480x320.webp' '2026/05/endolaser-facial-768x512.webp' '2026/05/endolaser-facial-980x654.webp'
+            '2026/04/endolaser-facial-300x200.webp' '2026/04/endolaser-facial-480x320.webp' '2026/04/endolaser-facial-768x512.webp' '2026/04/endolaser-facial-980x654.webp'
           )
           for name in higiene-facial-con-microdermoabrasion diatermia-facial depilacion-laser hidrolipoclasia masajes-posoperatorios radiofrecuencia-corporal presoterapia tratamiento-anticelulitico; do files+=("2026/05/${name}-300x200.webp" "2026/05/${name}-768x512.webp" "2026/05/${name}-980x654.webp"); done
           test "${#files[@]}" = '32'

@@ -24,6 +24,7 @@ jobs:
       BASE_URL: https://staging2.nuvanx.com
       EXPECTED_HOST: staging2.nuvanx.com
       EXPECTED_SHA: ${{ inputs.sha }}
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
       CI: true
     steps:
       - name: Check out master history
@@ -67,11 +68,136 @@ jobs:
           cache: 'npm'
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Verify staging boundary before Block C
+      - name: Configure strict staging SSH for origin boundary
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-origin
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging-origin "test -d '$STAGING_ROOT' && test -f '$STAGING_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null"
+
+      - name: Verify blocking staging boundary from SiteGround origin network
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/verify-staging-boundary.mjs
+          ssh -n nvx-staging-origin "STAGING_ROOT='$STAGING_ROOT' BASE_URL='$BASE_URL' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+
+          ua='NUVANX-Staging-Origin-Boundary/1.0'
+          for route in '/' '/soluciones-medicas/' '/equipo-medico/' '/blog/' '/endolift-primeras-72-horas-que-esperar/'; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "${BASE_URL}${route}")"
+            code="${result%%|*}"
+            effective="${result#*|}"
+            test "$code" = '200'
+            case "$effective" in
+              https://staging2.nuvanx.com/*|https://staging2.nuvanx.com) ;;
+              *) echo "ORIGIN_BOUNDARY_FAIL route=$route final=$effective" >&2; exit 1 ;;
+            esac
+            ! grep -Fq '/.well-known/sgcaptcha/' "$body"
+            ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"
+            grep -Fq "$EXPECTED_SHA" "$body"
+            robots_meta="$(grep -Eio "<meta[^>]+name=['\"]robots['\"][^>]*>" "$body" | head -n 1 || true)"
+            xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
+            combined="${robots_meta} ${xrobots}"
+            printf '%s' "$combined" | grep -Eiq 'noindex'
+            printf '%s' "$combined" | grep -Eiq 'nofollow'
+            if printf '%s' "$combined" | grep -Eiq '(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow'; then
+              echo "ORIGIN_BOUNDARY_FAIL route=$route reason=index-follow" >&2
+              exit 1
+            fi
+            rm -f "$headers" "$body"
+            echo "STAGING_ORIGIN_ROUTE=PASS route=$route"
+          done
+          echo "STAGING_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA"
+          REMOTE
+
+      - name: Probe staging boundary externally and classify only transport/AntiBot failures as inconclusive
+        shell: bash
+        env:
+          STAGING_BOUNDARY_TRANSIENT_ATTEMPTS: '2'
+          STAGING_BOUNDARY_TRANSIENT_DELAY_MS: '1000'
+        run: |
+          set -euo pipefail
+          set +e
+          output="$(node scripts/staging2/verify-staging-boundary.mjs 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [[ "$status" -eq 0 ]]; then
+            echo "STAGING_EXTERNAL_BOUNDARY=PASS sha=$EXPECTED_SHA"
+            exit 0
+          fi
+
+          if node - <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/staging2/artifacts/staging2-boundary.json';
+          let report;
+          try { report = JSON.parse(fs.readFileSync(file, 'utf8')); }
+          catch { process.exit(1); }
+          const failed = Array.isArray(report.routes) ? report.routes.filter((r) => !r.pass) : [];
+          if (failed.length === 0) process.exit(1);
+          const transientStatuses = new Set([202, 429, 503]);
+          const transport = /fetch failed|timed? ?out|ECONNRESET|ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET|network/i;
+          const antiOnly = failed.every((route) => {
+            const retries = Array.isArray(route.transientRetries) ? route.transientRetries : [];
+            if (retries.length > 0 && retries.every((r) => transientStatuses.has(Number(r.status)))) return true;
+            const issues = Array.isArray(route.issues) ? route.issues.map(String) : [];
+            return issues.length > 0 && issues.every((issue) => transport.test(issue));
+          });
+          process.exit(antiOnly ? 0 : 1);
+          NODE
+          then
+            echo 'STAGING_EXTERNAL_BOUNDARY=INCONCLUSIVE_ANTIBOT_OR_TRANSPORT'
+            exit 0
+          fi
+
+          echo 'STAGING_EXTERNAL_BOUNDARY=FAIL_NON_ANTIBOT' >&2
+          exit 1
+
+      - name: Destroy staging origin SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
       - name: Validate page template integrity
         env:

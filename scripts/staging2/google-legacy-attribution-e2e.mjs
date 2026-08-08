@@ -5,13 +5,16 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const formId = (process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c').trim().toLowerCase();
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const runId = String(process.env.QA_RUN_ID || Date.now()).replace(/[^A-Za-z0-9-]/g, '').slice(0, 40);
+const qaEmailDomain = (process.env.QA_EMAIL_DOMAIN || 'gmail.com').trim().toLowerCase();
 if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
+if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,63}$/.test(qaEmailDomain)) throw new Error('QA_EMAIL_DOMAIN must be a valid domain');
 
+const emailRunId = runId.replace(/[^A-Za-z0-9]/g, '').toLowerCase().slice(-18) || 'run';
 const edgeNeedle = '/functions/v1/google-click-attribution';
 const phoneValue = '+34600000000';
 const scenarios = [
-  { name: 'ALLOW', allowed: true, gclid: `NVXALLOW-${runId}`, email: `qa-google-allow-${runId}@example.com` },
-  { name: 'DENY', allowed: false, gclid: `NVXDENY-${runId}`, email: `qa-google-deny-${runId}@example.com` },
+  { name: 'ALLOW', allowed: true, gclid: `NVXALLOW-${runId}`, email: `nvxqaallow${emailRunId}@${qaEmailDomain}` },
+  { name: 'DENY', allowed: false, gclid: `NVXDENY-${runId}`, email: `nvxqadeny${emailRunId}@${qaEmailDomain}` },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -357,7 +360,6 @@ async function submit(page, frame, scenario, email, auditRequests, auditResponse
   await sleep(5000);
   const state = await submissionState(page);
   if (state.generateLeadDelta !== 1) throw new Error(`${scenario}: generate_lead delta=${state.generateLeadDelta}, expected=1`);
-
   await assertAudit(scenario, email, state, auditRequests, auditResponses);
   console.log(`SCENARIO_${scenario}=PASS successSources=${JSON.stringify(state.successSources)} generateLeadDelta=1 auditRequests=${auditRequests.length}`);
 }

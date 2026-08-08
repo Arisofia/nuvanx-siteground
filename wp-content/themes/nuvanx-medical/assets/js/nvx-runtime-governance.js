@@ -253,7 +253,9 @@
 
     const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
     const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
-    return 'https://js-' + region + '.hsforms.net/forms/v2.js';
+    const portalId = String(config.hubspotPortalId || (frame ? frame.dataset.portalId : '')).replace(/[^0-9]/g, '');
+    if (!portalId) return '';
+    return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 
   /**

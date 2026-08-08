@@ -144,7 +144,7 @@ function verifyViaSiteGroundOrigin(route) {
 
   const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
   
-  const result = spawnSync(sshBin, [originSshAlias, remoteCommand], {
+  const result = spawnSync(sshBin, ['--', originSshAlias, remoteCommand], {
     input: remoteScript,
     encoding: 'utf8',
     timeout: 60000,

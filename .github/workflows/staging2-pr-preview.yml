@@ -438,7 +438,6 @@ jobs:
           if-no-files-found: warn
 
       - name: Roll back failed PR preview
-        id: rollback
         if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
         shell: bash
         run: |

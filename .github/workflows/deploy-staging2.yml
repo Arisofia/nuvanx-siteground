@@ -369,7 +369,6 @@ jobs:
           REMOTE
 
       - name: Roll back staging after failed deployment validation
-        id: rollback
         if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
         shell: bash
         run: |

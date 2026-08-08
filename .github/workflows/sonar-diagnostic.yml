@@ -39,7 +39,7 @@ jobs:
           set -euo pipefail
           [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
           
-          curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+          curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
             -H "Authorization: Bearer ${SONAR_TOKEN}" \
             --get --data-urlencode "projectKey=${PROJECT_KEY}" \
             --data-urlencode "branch=${TARGET_BRANCH}" \
@@ -58,7 +58,7 @@ jobs:
           
           p=1
           while true; do
-            curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+            curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
               -H "Authorization: Bearer ${SONAR_TOKEN}" \
               --get --data-urlencode "component=${PROJECT_KEY}" \
               --data-urlencode "branch=${TARGET_BRANCH}" \
@@ -123,7 +123,7 @@ jobs:
           for quality in SECURITY RELIABILITY; do
             p=1
             while true; do
-              curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+              curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
                 -H "Authorization: Bearer ${SONAR_TOKEN}" \
                 --get --data-urlencode "componentKeys=${PROJECT_KEY}" \
                 --data-urlencode "branch=${TARGET_BRANCH}" \
@@ -136,7 +136,9 @@ jobs:
               MORE=$(FILE="/tmp/${quality}_${p}.json" PAGE="$p" python - <<'PY'
           import json, os
           data = json.load(open(os.environ['FILE'], encoding='utf-8'))
-          print('1' if data.get('total', 0) > int(os.environ['PAGE']) * 500 else '0')
+          t = data.get('total')
+          if t is None: t = data.get('paging', {}).get('total', 0)
+          print('1' if int(t) > int(os.environ['PAGE']) * 500 else '0')
           PY
               )
               
@@ -177,7 +179,7 @@ jobs:
           set -euo pipefail
           [ -n "${SONAR_TOKEN:-}" ] || { echo 'SONAR_TOKEN missing'; exit 1; }
           
-          curl -fsS --retry 3 --retry-all-errors --max-time 30 --retry-max-time 120 \
+          curl -fsS --retry 3 --max-time 30 --retry-max-time 120 \
             -H "Authorization: Bearer ${SONAR_TOKEN}" \
             --get --data-urlencode "component=${PROJECT_KEY}" \
             --data-urlencode "branch=${TARGET_BRANCH}" \

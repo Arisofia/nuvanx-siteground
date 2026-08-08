@@ -160,14 +160,15 @@
 (function () {
 	'use strict';
 
-	var FORM_ID = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-	var ENDPOINT = 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
-	var pendingPayload = null;
+	var attributionConfig = window.nvxConversionEvents || {};
+	var forms = attributionConfig.forms || {};
+	var FORM_ID = String(forms.valoracion || '5042522a-0bc5-4381-ac3e-5aee8649b69c').toLowerCase();
+	var ENDPOINT = String(attributionConfig.googleAttributionEndpoint || 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution');
 	var sent = false;
+	var inFlight = false;
 	var clickValues = collectClickValues();
-
-	if (window.location.pathname.indexOf('/madrid/valoracion/') !== 0) return;
-	if (!hasGoogleClickIdentifier(clickValues)) return;
+	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+	var eligiblePath = normalizedPath === '/madrid/valoracion';
 
 	function cleanClickValue(value, maxLength) {
 		var normalized = String(value || '').trim();
@@ -196,6 +197,15 @@
 			return false;
 		}
 	}
+
+	window.NUVANXGoogleAttributionQA = Object.freeze({
+		eligiblePath: eligiblePath,
+		hasClickId: hasGoogleClickIdentifier(clickValues),
+		clickTypes: ['gclid', 'gbraid', 'wbraid', 'gclsrc'].filter(function (key) { return Boolean(clickValues[key]); }),
+		marketingConsent: hasMarketingConsent,
+	});
+
+	if (!eligiblePath || !hasGoogleClickIdentifier(clickValues)) return;
 
 	function canonicalLandingUrl() {
 		try {
@@ -269,8 +279,6 @@
 		};
 	}
 
-	var inFlight = false;
-
 	async function transmit(payload) {
 		if (sent || inFlight || !payload || !hasMarketingConsent()) return;
 
@@ -286,10 +294,7 @@
 				body: JSON.stringify(payload),
 				keepalive: true,
 			});
-			if (response.ok) {
-				sent = true;
-				pendingPayload = null;
-			}
+			if (response.ok) sent = true;
 		} catch (_error) {
 			// Attribution failure must never interfere with the patient form flow.
 		} finally {
@@ -298,33 +303,15 @@
 	}
 
 	async function handleSuccessfulSubmission(event) {
-		if (sent) return;
+		if (sent || inFlight || !hasMarketingConsent()) return;
 		var detail = event && event.detail ? event.detail : {};
 		if (String(detail.formId || '').toLowerCase() !== FORM_ID) return;
 
+		// Privacy fail-closed: do not even read/hash the email without marketing consent.
 		var payload = await buildPayload(event);
-		if (!payload) return;
-
-		pendingPayload = payload;
-		if (hasMarketingConsent()) await transmit(payload);
-	}
-
-	function handleConsentChange(event) {
-		if (sent || !pendingPayload) return;
-		var changed = event && event.detail ? event.detail : {};
-		if (changed.marketing !== 'allow') return;
-		transmit(pendingPayload);
+		if (!payload || !hasMarketingConsent()) return;
+		await transmit(payload);
 	}
 
 	window.addEventListener('hs-form-event:on-submission:success', handleSuccessfulSubmission);
-	document.addEventListener('wp_listen_for_consent_change', handleConsentChange);
-	document.addEventListener('wp_consent_type_defined', function () {
-		if (pendingPayload && hasMarketingConsent()) transmit(pendingPayload);
-	});
-
-	window.NUVANXGoogleAttributionQA = Object.freeze({
-		hasClickId: hasGoogleClickIdentifier(clickValues),
-		clickTypes: ['gclid', 'gbraid', 'wbraid', 'gclsrc'].filter(function (key) { return Boolean(clickValues[key]); }),
-		marketingConsent: hasMarketingConsent,
-	});
 }());

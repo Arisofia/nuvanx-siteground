@@ -2,10 +2,16 @@ name: Temporary Sonar diagnostics
 
 on:
   push:
-    branches:
-      - fix/release-hardening-20260808
-    paths:
-      - .github/workflows/_temp-sonar-diagnostic.yml
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to query'
+        required: true
+        default: 'master'
+      project_key:
+        description: 'Sonar project key'
+        required: true
+        default: 'Arisofia_nuvanx-siteground'
 
 permissions:
   contents: read
@@ -14,20 +20,31 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Query quality gate status
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
+          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/qualitygates/project_status?projectKey=Arisofia_nuvanx-siteground&branch=master' \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${PROJECT_KEY}&branch=${TARGET_BRANCH}" \
             | python -m json.tool
 
       - name: Query duplication contributors
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
+          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/measures/component_tree?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_lines,new_duplicated_lines&strategy=leaves&ps=500' \
+            "https://sonarcloud.io/api/measures/component_tree?component=${PROJECT_KEY}&branch=${TARGET_BRANCH}&metricKeys=new_duplicated_lines_density,new_lines,new_duplicated_lines&strategy=leaves&ps=500" \
             -o /tmp/tree.json
           python - <<'PY'
           import json
@@ -48,11 +65,14 @@ jobs:
 
       - name: Query security and reliability issues
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
+          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
         run: |
           set -euo pipefail
           for quality in SECURITY RELIABILITY; do
             curl -fsS --retry 3 --retry-all-errors \
-              "https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&branch=master&resolved=false&softwareQualities=${quality}&ps=500" \
+              "https://sonarcloud.io/api/issues/search?componentKeys=${PROJECT_KEY}&branch=${TARGET_BRANCH}&resolved=false&softwareQualities=${quality}&ps=500" \
               -o "/tmp/${quality}.json"
             QUALITY="$quality" python - <<'PY'
           import json, os
@@ -67,8 +87,11 @@ jobs:
 
       - name: Query new-code quality metrics
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ inputs.branch || github.ref_name }}
+          PROJECT_KEY: ${{ inputs.project_key || 'Arisofia_nuvanx-siteground' }}
         run: |
           set -euo pipefail
           curl -fsS --retry 3 --retry-all-errors \
-            'https://sonarcloud.io/api/measures/component?component=Arisofia_nuvanx-siteground&branch=master&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines' \
+            "https://sonarcloud.io/api/measures/component?component=${PROJECT_KEY}&branch=${TARGET_BRANCH}&metricKeys=new_duplicated_lines_density,new_security_rating,new_reliability_rating,new_maintainability_rating,new_lines,new_duplicated_lines" \
             | python -m json.tool

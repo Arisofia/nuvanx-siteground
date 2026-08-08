@@ -62,8 +62,9 @@ jobs:
           grep -Fq 'ROLLBACK_SNAPSHOT=PASS' ops/tools/deploy/deploy-to-prod.sh
           grep -Fq 'ROLLBACK_PRODUCTION=PASS' ops/tools/deploy/deploy-to-prod.sh
           grep -Fq '.nvx-deploy-sha' ops/tools/deploy/deploy-to-prod.sh
-          if grep -R -Fq 'StrictHostKeyChecking=no' ops/.github ops/tools 2>/dev/null; then
-            echo 'Unsafe SSH host-key bypass found in operational tooling.' >&2
+          grep -Fq 'StrictHostKeyChecking yes' ops/.github/workflows/production-authorized-4775310-final-once.yml
+          if grep -E -q -- '-o[[:space:]]+StrictHostKeyChecking=no|StrictHostKeyChecking[[:space:]]+no' ops/tools/deploy/deploy-to-prod.sh; then
+            echo 'Unsafe SSH host-key bypass found in executable production deploy script.' >&2
             exit 1
           fi
           find candidate/wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null

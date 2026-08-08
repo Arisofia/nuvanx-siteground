@@ -463,7 +463,7 @@ function nvx_equipo_render_items_section( array $section ): string {
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid">';
+		$html .= '<ul class="nvx-brand-card-grid" role="list">';
 		foreach ( $items as $item ) {
 			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
@@ -492,7 +492,7 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 		return '';
 	}
 
-	$html = '<ul class="nvx-brand-card-grid">';
+	$html = '<ul class="nvx-brand-card-grid" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li class="nvx-brand-card">';
 		if ( ! empty( $item['title'] ) ) {

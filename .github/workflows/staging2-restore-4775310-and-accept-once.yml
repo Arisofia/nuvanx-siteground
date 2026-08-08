@@ -10,6 +10,8 @@ permissions:
   contents: read
   actions: read
 
+# One controlled retry after a read-only diagnostic confirmed that the
+# NUVANX-Staging-Boundary/1.0 agent can receive a real HTTP 200 from the edge.
 jobs:
   restore-and-accept:
     uses: ./.github/workflows/deploy-staging2.yml

@@ -1,0 +1,65 @@
+name: Fix Page Shell Filter Bypass Once
+
+on:
+  push:
+    branches: [fix/page-shell-filter-bypass]
+    paths:
+      - .github/workflows/fix-page-shell-filter-bypass-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/page-shell-filter-bypass
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply exact page-shell correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php'
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php')
+          s=p.read_text('utf-8')
+          old='''\t// If post_content already has the full standard wrapper, render it directly without additional processing\n\tif ( $has_standard_wrapper && strpos($content, '<div class="entry-content nvx-page__content nvx-prose">') === 0 ) {\n\t\techo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.\n\t} else {'''
+          new='''\t// If post_content already owns the full standard wrapper, do not add another\n\t// wrapper, but still run the canonical the_content filter chain.\n\tif ( $has_standard_wrapper && strpos($content, '<div class="entry-content nvx-page__content nvx-prose">') === 0 ) {\n\t\tthe_content();\n\t} else {'''
+          if s.count(old) != 1:
+              raise SystemExit(f'expected exactly one raw-wrapper bypass, got {s.count(old)}')
+          p.write_text(s.replace(old,new,1),'utf-8')
+          PY
+          git diff --check
+          test "$(git diff --name-only)" = "$file"
+          grep -Fq 'but still run the canonical the_content filter chain.' "$file"
+          test "$(grep -Fc 'echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.' "$file")" = 0
+
+      - name: Validate all theme PHP and JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/tmp/php-lint.txt
+          while IFS= read -r -d '' f; do node --check "$f"; done < <(find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.js' -type f -print0)
+          node scripts/lint/no-hardcoded-colors.mjs
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+          echo 'PAGE_SHELL_STATIC=PASS'
+
+      - name: Commit one-file root fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Audit Controller'
+          git config user.email 'audit-controller@nuvanx.invalid'
+          git add wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
+          git diff --cached --check
+          test "$(git diff --cached --name-only)" = 'wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php'
+          git commit -m 'fix(render): preserve the_content filters for wrapped CMS pages'
+          git push origin HEAD:fix/page-shell-filter-bypass

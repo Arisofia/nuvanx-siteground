@@ -66,8 +66,12 @@ wp_head();
 				'add_li_class'   => 'nvx-nav__item',
 			)
 		);
+		$nvx_modal_enabled = function_exists( 'nvx_valoracion_modal_enabled' ) && nvx_valoracion_modal_enabled();
+		$nvx_cta_class     = 'nvx-header__cta nvx-brand-btn nvx-btn--primary' . ( $nvx_modal_enabled ? ' nvx-open-valoracion-modal' : '' );
+		$nvx_mobile_class  = 'nvx-brand-btn nvx-btn--primary' . ( $nvx_modal_enabled ? ' nvx-open-valoracion-modal' : '' );
+		$nvx_modal_attrs   = $nvx_modal_enabled ? ' data-nvx-valoracion-modal="1" aria-haspopup="dialog"' : '';
 		?>
-		<a href="<?php echo esc_url( home_url( '/madrid/valoracion/#nvx-hubspot-form' ) ); ?>" class="nvx-header__cta nvx-brand-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-header-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+		<a href="<?php echo esc_url( home_url( '/madrid/valoracion/#nvx-hubspot-form' ) ); ?>" class="<?php echo esc_attr( $nvx_cta_class ); ?>" id="nvx-header-cta"<?php echo $nvx_modal_attrs; ?>><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
 	</nav>
 	<button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
 		<span></span><span></span><span></span>
@@ -86,7 +90,7 @@ wp_head();
 		)
 	);
 	?>
-	<a href="<?php echo esc_url( home_url( '/madrid/valoracion/#nvx-hubspot-form' ) ); ?>" class="nvx-brand-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+	<a href="<?php echo esc_url( home_url( '/madrid/valoracion/#nvx-hubspot-form' ) ); ?>" class="<?php echo esc_attr( $nvx_mobile_class ); ?>" id="nvx-mobile-cta"<?php echo $nvx_modal_attrs; ?>><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
 	<a href="<?php echo function_exists( 'nvx_whatsapp_url' ) ? esc_url( nvx_whatsapp_url( 'primary' ) ) : '#'; ?>" class="nvx-brand-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </dialog>
 

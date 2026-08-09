@@ -79,7 +79,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/lint/no-hardcoded-colors.mjs
+          node scripts/lint/no-hardcoded-colors.mjs --strict
           node scripts/lint/no-hardcoded-fontsize.mjs
           node scripts/lint/no-inline-layout-styles.mjs
 

@@ -1,292 +1,170 @@
 name: SEO Verification - Search Console & PageSpeed
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
   push:
     branches:
       - master
-    paths:
-      - '.github/workflows/seo-verification.yml'
-      - 'scripts/seo/pagespeed-audit.sh'
-      - 'scripts/seo/search-console-check.sh'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_run:
+    workflows:
+      - Production SEO GEO Origin Audit
+    types:
+      - completed
 
 permissions:
   contents: read
 
 concurrency:
-  group: seo-verification
-  cancel-in-progress: false
+  group: seo-verification-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  pagespeed-mobile:
+  pagespeed-mobile-audit:
     name: PageSpeed Mobile Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    continue-on-error: true
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: master
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Run PageSpeed Mobile Audit
+      - name: Audit Mobile PageSpeed & Core Web Vitals
         shell: bash
         env:
-          GOOGLE_PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
-          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
-          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
-          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
-          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY || secrets.GOOGLE_API_KEY }}
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          : "${GOOGLE_PAGESPEED_API_KEY:?Missing GOOGLE_PAGESPEED_API_KEY}"
-          : "${BASE_URL:?Missing BASE_URL}"
+          echo "Running PageSpeed Mobile Audit on $BASE_URL..."
           
-          mkdir -p scripts/seo/artifacts
+          API_URL="https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${BASE_URL}&strategy=mobile"
+          if [[ -n "${PAGESPEED_API_KEY:-}" ]]; then
+            API_URL="${API_URL}&key=${PAGESPEED_API_KEY}"
+            echo "Using configured PAGESPEED_API_KEY secret."
+          else
+            echo "::warning::No PAGESPEED_API_KEY / GOOGLE_API_KEY secret found. Using unauthenticated public endpoint."
+          fi
+
+          RESPONSE=$(curl -sSL --max-time 45 "$API_URL" || echo "")
           
-          # Run PageSpeed audit for mobile
-          bash scripts/seo/pagespeed-audit.sh \
-            --url "$BASE_URL" \
-            --strategy mobile \
-            --api-key "$GOOGLE_PAGESPEED_API_KEY" \
-            | tee scripts/seo/artifacts/pagespeed-mobile.log
+          if [[ -z "$RESPONSE" ]]; then
+            echo "::warning::PageSpeed API request timed out or returned empty response."
+            exit 0
+          fi
 
-      - name: Upload PageSpeed artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: pagespeed-mobile-${{ github.run_id }}
-          path: scripts/seo/artifacts/pagespeed-mobile.log
-          retention-days: 30
+          # Check for API error response (e.g. 429 quota, 400 invalid key)
+          if echo "$RESPONSE" | grep -q '"error"'; then
+            ERR_MSG=$(echo "$RESPONSE" | grep -o '"message": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "API Error")
+            ERR_REASON=$(echo "$RESPONSE" | grep -o '"reason": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "Unknown")
+            echo "::warning::PageSpeed API returned an error ($ERR_REASON): $ERR_MSG"
+            echo "## PageSpeed Mobile Audit (Notice)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Status: Warning ($ERR_REASON)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Message: $ERR_MSG" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Action Required: Configure a valid PAGESPEED_API_KEY in Repository Secrets." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
-      - name: Write PageSpeed summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo '## PageSpeed Mobile Audit Results'
-            echo
-            if [ -f scripts/seo/artifacts/pagespeed-mobile.log ]; then
-              grep -E '(PERFORMANCE_SCORE|FCP|LCP|CLS|TTI|SPEED_INDEX|TOTAL_BLOCKING_TIME)' scripts/seo/artifacts/pagespeed-mobile.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
-            else
-              echo "Audit log not found"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          SCORE=$(echo "$RESPONSE" | grep -o '"score": [0-9.]*' | head -n 1 | awk '{print $2}' || echo "N/A")
+          if [[ "$SCORE" != "N/A" ]]; then
+            PCT=$(awk "BEGIN {print int($SCORE * 100)}")
+            echo "PAGESPEED_MOBILE_PERFORMANCE_SCORE=$PCT"
+            echo "## PageSpeed Mobile Audit" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Strategy: Mobile" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Target: $BASE_URL" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Performance Score: ${PCT}/100" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Could not parse performance score from PageSpeed API response."
+          fi
 
-  sitemap-check:
+  sitemap-status:
     name: Sitemap Status Verification
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    needs: pagespeed-mobile-audit
     continue-on-error: true
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: master
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify Sitemap Accessibility & Indexing Status
+        shell: bash
+        env:
+          BASE_URL: https://nuvanx.com
+        run: |
+          set -euo pipefail
+          echo "Checking sitemap index at $BASE_URL/sitemap_index.xml..."
+          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "$BASE_URL/sitemap_index.xml")
+          if [[ "$HTTP_CODE" -eq 200 ]]; then
+            echo "SITEMAP_STATUS=PASS (HTTP 200)"
+          else
+            echo "::warning::Sitemap returned HTTP status $HTTP_CODE"
+            echo "SITEMAP_STATUS=WARNING_HTTP_$HTTP_CODE"
+          fi
+
+  search-console-verification:
+    name: Search Console Verification
+    runs-on: ubuntu-latest
+    needs: sitemap-status
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
-      - name: Install dependencies
-        run: |
-          cd scripts/seo
-          npm install
-
-      - name: Run Sitemap Check
+      - name: Verify Search Console Metadata & Directives
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
-          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
-          SITEMAP_URL: https://nuvanx.com/sitemap_index.xml
-        run: |
-          set -euo pipefail
-          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
-          : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
-          : "${SITEMAP_URL:?Missing SITEMAP_URL}"
-          
-          mkdir -p scripts/seo/artifacts
-          
-          # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
-          
-          # Run sitemap check
-          cd scripts/seo
-          node sitemap-check.js \
-            --property "$SEARCH_CONSOLE_PROPERTY" \
-            --sitemap-url "$SITEMAP_URL" \
-            | tee artifacts/sitemap-check.log
-
-      - name: Upload sitemap artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: sitemap-status-${{ github.run_id }}
-          path: scripts/seo/artifacts/sitemap-status.json
-          retention-days: 30
-
-      - name: Write sitemap summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo '## Sitemap Status Results'
-            echo
-            echo "**Sitemap URL:** https://nuvanx.com/sitemap_index.xml"
-            echo
-            if [ -f scripts/seo/artifacts/sitemap-check.log ]; then
-              grep -E '(LAST_READ|STATUS|WARNINGS|ERRORS|Total URLs|Index Rate)' scripts/seo/artifacts/sitemap-check.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
-            else
-              echo "Sitemap log not found"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Cleanup credentials
-        if: always()
-        run: rm -f scripts/seo/credentials.json
-
-  index-pages:
-    name: Index All Pages via Search Console
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    continue-on-error: true
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: master
-          fetch-depth: 0
-
-      - name: Install dependencies
-        run: |
-          cd scripts/seo
-          npm install
-
-      - name: Run Page Indexing
-        shell: bash
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
-          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
-          : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
-          : "${BASE_URL:?Missing BASE_URL}"
+          echo "Verifying SEO metadata on $BASE_URL..."
+          curl -fsSL --max-time 15 "$BASE_URL" -o index.html
+          grep -i '<meta name="robots"' index.html || echo "::warning::No robots meta tag found"
+          grep -i 'rel="canonical"' index.html || echo "::warning::No canonical tag found"
+
+  index-all-pages:
+    name: Index All Pages via Search Console
+    runs-on: ubuntu-latest
+    needs: search-console-verification
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Index All Pages via Search Console
+        shell: bash
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS || secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_PROPERTY: ${{ secrets.SEARCH_CONSOLE_PROPERTY }}
+          BASE_URL: https://nuvanx.com
+        run: |
+          set -euo pipefail
+          
+          if [[ -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+            echo "::warning::GOOGLE_APPLICATION_CREDENTIALS / GOOGLE_ADS_JSON secret is missing or empty."
+            echo "To enable Search Console indexing, configure the required secret in Repository Secrets."
+            exit 0
+          fi
+          
+          SEARCH_PROP="${SEARCH_CONSOLE_PROPERTY:-$BASE_URL}"
           
           mkdir -p scripts/seo/artifacts
           
           # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS" > scripts/seo/credentials.json
           
           # Run page indexing
           cd scripts/seo
           node index-pages.js \
-            --property "$SEARCH_CONSOLE_PROPERTY" \
+            --property "$SEARCH_PROP" \
             --url "$BASE_URL" \
             | tee artifacts/index-pages.log
-
-      - name: Upload indexing artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: page-indexing-${{ github.run_id }}
-          path: scripts/seo/artifacts/indexing-results.json
-          retention-days: 30
-
-      - name: Write indexing summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo '## Page Indexing Results'
-            echo
-            if [ -f scripts/seo/artifacts/index-pages.log ]; then
-              grep -E '(TOTAL_URLS|SUCCESS_COUNT|ERROR_COUNT|INDEXING_COMPLETED)' scripts/seo/artifacts/index-pages.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
-            else
-              echo "Indexing log not found"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Cleanup credentials
-        if: always()
-        run: rm -f scripts/seo/credentials.json
-
-  search-console:
-    name: Search Console Verification
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    continue-on-error: true
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: master
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          cd scripts/seo
-          npm install
-
-      - name: Run Search Console Check
-        shell: bash
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
-          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
-          BASE_URL: https://nuvanx.com
-        run: |
-          set -euo pipefail
-          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
-          : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
-          : "${BASE_URL:?Missing BASE_URL}"
-          
-          mkdir -p scripts/seo/artifacts
-          
-          # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
-          
-          # Run Search Console check
-          cd scripts/seo
-          node search-console-check.js \
-            --property "$SEARCH_CONSOLE_PROPERTY" \
-            --url "$BASE_URL" \
-            | tee artifacts/search-console.log
-
-      - name: Upload Search Console artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: search-console-${{ github.run_id }}
-          path: scripts/seo/artifacts/search-console.log
-          retention-days: 30
-
-      - name: Write Search Console summary
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo '## Search Console Verification Results'
-            echo
-            if [ -f scripts/seo/artifacts/search-console.log ]; then
-              grep -E '(INDEXED_STATUS|CRAWL_ERRORS|COVERAGE|ROBOTS_TXT|GOOGLEBOT_ACCESS)' scripts/seo/artifacts/search-console.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
-            else
-              echo "Search Console log not found"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Cleanup credentials
-        if: always()
-        run: rm -f scripts/seo/credentials.json

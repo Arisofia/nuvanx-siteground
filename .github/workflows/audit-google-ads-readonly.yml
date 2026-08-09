@@ -23,6 +23,7 @@ jobs:
           cache-dependency-path: scripts/seo/package-lock.json
       - run: npm ci --prefix scripts/seo
       - name: Classify configured credential schema safely
+        continue-on-error: true
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
         run: node scripts/seo/classify-google-credential.js

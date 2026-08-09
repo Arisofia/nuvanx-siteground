@@ -82,13 +82,13 @@ async function main() {
     const tempSecretSource = customerIdRes.source;
     if (clientSecret && !clientSecret.startsWith('GOCSPX-')) {
       rawCustomerId = clientSecret;
-      customerIdRes = { value: rawCustomerId, source: clientSecretRes.source };
-    } else {
-      rawCustomerId = rawLoginCustomerId || '';
-      customerIdRes = { value: rawCustomerId, source: loginCustomerIdRes.source };
-    }
+  if ( rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
+    const tempSecret = rawCustomerId;
+    const previousCustomerSource = customerIdRes.source;
+    rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
+    customerIdRes = { value: rawCustomerId, source: (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecretRes.source : loginCustomerIdRes.source };
     clientSecret = tempSecret;
-    clientSecretRes = { value: clientSecret, source: tempSecretSource };
+    clientSecretRes = { value: clientSecret, source: previousCustomerSource };
   }
 
   const customerId = rawCustomerId.replace(/-/g, '');

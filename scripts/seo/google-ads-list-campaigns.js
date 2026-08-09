@@ -123,7 +123,8 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Error listing campaigns:', err.message);
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.message);
+  console.error('Error listing campaigns:', err);
+  if (err.errors) console.error('Details:', JSON.stringify(err.errors, null, 2));
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.message || 'unknown error');
   process.exit(1);
 });

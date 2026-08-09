@@ -46,6 +46,59 @@ const normalizePath = (value) => {
   return pathname;
 };
 
+async function fetchPublishedPagesViaBrowser(endpoint) {
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+  try {
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 NUVANX-BlockC/1.0',
+      ignoreHTTPSErrors: true,
+    });
+    const page = await context.newPage();
+    await page.goto(endpoint, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const pages = await page.evaluate(async (url) => {
+      const res = await fetch(url, { headers: { accept: 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }, endpoint).catch(async () => {
+      const text = await page.innerText('body');
+      return JSON.parse(text);
+    });
+    await browser.close();
+    return pages;
+  } catch (err) {
+    await browser.close();
+    throw err;
+  }
+}
+
+function validateAndNormalizePages(pages) {
+  if (!Array.isArray(pages)) throw new Error('WordPress REST pages response is not an array');
+  const normalized = pages.map((page) => ({
+    id: Number(page.id),
+    slug: page.slug || '',
+    title: page.title?.rendered || '',
+    url: page.link,
+    path: normalizePath(page.link),
+  }));
+  const unique = new Set(normalized.map((page) => page.path));
+  if (normalized.length !== 52) {
+    throw new Error(`Block C requires 52 published pages; WordPress REST returned ${normalized.length}`);
+  }
+  if (unique.size !== 52) {
+    throw new Error(`Block C requires 52 unique published paths; REST returned ${unique.size}`);
+  }
+  for (const page of normalized) {
+    if (new URL(page.url).hostname !== expectedHost) {
+      throw new Error(`Published page ${page.id} points outside staging2: ${page.url}`);
+    }
+  }
+  return normalized;
+}
+
 async function fetchPublishedPages() {
   const endpoint = `${baseUrl}/wp-json/wp/v2/pages?per_page=100&status=publish&orderby=id&order=asc&_fields=id,link,slug,title`;
   let lastError = null;
@@ -58,32 +111,18 @@ async function fetchPublishedPages() {
         },
       });
       if (response.status === 202 || response.headers.get('sg-captcha')) {
-        lastError = new Error(`SiteGround Antibot challenged WordPress REST on attempt ${attempt}`);
+        console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
+        try {
+          const pages = await fetchPublishedPagesViaBrowser(endpoint);
+          return validateAndNormalizePages(pages);
+        } catch (browserErr) {
+          lastError = new Error(`SiteGround Antibot challenged WordPress REST (browser fallback failed: ${browserErr.message})`);
+        }
       } else if (!response.ok) {
         lastError = new Error(`WordPress REST returned HTTP ${response.status}`);
       } else {
         const pages = await response.json();
-        if (!Array.isArray(pages)) throw new Error('WordPress REST pages response is not an array');
-        const normalized = pages.map((page) => ({
-          id: Number(page.id),
-          slug: page.slug || '',
-          title: page.title?.rendered || '',
-          url: page.link,
-          path: normalizePath(page.link),
-        }));
-        const unique = new Set(normalized.map((page) => page.path));
-        if (normalized.length !== 52) {
-          throw new Error(`Block C requires 52 published pages; WordPress REST returned ${normalized.length}`);
-        }
-        if (unique.size !== 52) {
-          throw new Error(`Block C requires 52 unique published paths; REST returned ${unique.size}`);
-        }
-        for (const page of normalized) {
-          if (new URL(page.url).hostname !== expectedHost) {
-            throw new Error(`Published page ${page.id} points outside staging2: ${page.url}`);
-          }
-        }
-        return normalized;
+        return validateAndNormalizePages(pages);
       }
     } catch (error) {
       lastError = error;

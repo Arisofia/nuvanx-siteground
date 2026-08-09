@@ -29,15 +29,12 @@ const shortContentRoutes = new Set([
   '/aviso-legal/',
   '/politica-de-cookies/',
   '/mas-informacion-sobre-las-cookies/',
-  '/casos-de-pacientes/',
 ]);
 
-// Published CMS records may intentionally resolve through a non-200 frontend
-// contract. Patient cases remain a strict 404 until editorial evidence is
-// explicitly marked publication-ready by _nvx_cases_publication_ready=1.
-const expectedStatusByRoute = new Map([
-  ['/casos-de-pacientes/', 404],
-]);
+// Every published WordPress page must remain addressable with HTTP 200.
+// Editorial readiness is governed by robots/sitemap policy, not by turning
+// published CMS records into frontend 404 responses.
+const expectedStatusByRoute = new Map();
 
 const normalizePath = (value) => {
   const url = new URL(value, `${baseUrl}/`);
@@ -755,7 +752,7 @@ const summary = [
   `PASS: ${passCount}`,
   `FIX: ${fixCount}`,
   `BLOCKED: ${blockedCount}`,
-  'Intentional frontend 404: `/casos-de-pacientes/` until `_nvx_cases_publication_ready=1`.',
+  'Published WordPress pages must remain addressable; editorial readiness is governed by robots/sitemap policy.',
   '',
   '## Matrix',
   '',

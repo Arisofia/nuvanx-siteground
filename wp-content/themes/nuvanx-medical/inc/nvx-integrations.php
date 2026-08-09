@@ -333,6 +333,56 @@ add_filter(
 					$buffer = $cleaned;
 				}
 
+				// Implement Delay Script Execution for GTM and analytics scripts to improve TBT on Home
+				$has_delayed = false;
+				$buffer = preg_replace_callback(
+					'/<script([^>]*)>(.*?)<\/script>/is',
+					function ( $matches ) use ( &$has_delayed ) {
+						$attrs = $matches[1];
+						$content = $matches[2];
+						$is_gtm = ( strpos( $attrs, 'googletagmanager.com' ) !== false || strpos( $content, 'googletagmanager.com' ) !== false );
+						if ( $is_gtm ) {
+							$has_delayed = true;
+							if ( strpos( $attrs, 'type=' ) !== false ) {
+								$attrs = preg_replace( '/type=[\'"][^\'"]*[\'"]/', 'type="text/delayed"', $attrs );
+							} else {
+								$attrs .= ' type="text/delayed"';
+							}
+							$attrs = str_replace( ' src=', ' data-src=', $attrs );
+							return '<script' . $attrs . '>' . $content . '</script>';
+						}
+						return $matches[0];
+					},
+					$buffer
+				);
+
+				if ( $has_delayed ) {
+					$delay_script = '<script>
+(function() {
+    var fired = false;
+    var events = ["scroll", "mousemove", "touchstart", "click", "keydown"];
+    function loadDelayedScripts() {
+        if (fired) return;
+        fired = true;
+        document.querySelectorAll(\'script[type="text/delayed"]\').forEach(function(script) {
+            var newScript = document.createElement("script");
+            Array.from(script.attributes).forEach(function(attr) {
+                if (attr.name === "type") return;
+                if (attr.name === "data-src") newScript.src = attr.value;
+                else newScript.setAttribute(attr.name, attr.value);
+            });
+            if (script.innerHTML) newScript.innerHTML = script.innerHTML;
+            script.parentNode.replaceChild(newScript, script);
+        });
+        events.forEach(function(e) { window.removeEventListener(e, loadDelayedScripts, {passive: true}); });
+    }
+    events.forEach(function(e) { window.addEventListener(e, loadDelayedScripts, {passive: true}); });
+    setTimeout(loadDelayedScripts, 5000);
+})();
+</script>';
+					$buffer = str_replace( '</body>', $delay_script . '</body>', $buffer );
+				}
+
 				return $buffer;
 			}
 		);

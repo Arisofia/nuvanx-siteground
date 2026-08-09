@@ -408,8 +408,14 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		return;
 	}
 
-	$target = (string) $routes[ $path ]['route_alias'];
-	if ( '/' . trim( $target, '/' ) . '/' === $path ) {
+	$target      = (string) $routes[ $path ]['route_alias'];
+	$target_path = '' !== trim( $target, '/' ) ? '/' . trim( $target, '/' ) . '/' : '/';
+	if ( $target_path === $path ) {
+		return;
+	}
+
+	// Never chain redirects: a target that is itself an alias would 301 twice.
+	if ( ! empty( $routes[ $target_path ]['route_alias'] ) ) {
 		return;
 	}
 

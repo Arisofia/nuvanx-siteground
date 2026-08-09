@@ -9,7 +9,7 @@ const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const transientHttpStatuses = new Set([202, 429, 503]);
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
-  throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA');
+  throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
 }
 
 const viewports = [

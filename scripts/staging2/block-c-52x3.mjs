@@ -73,7 +73,7 @@ async function fetchPublishedPagesViaBrowser(endpoint) {
 }
 
 function validateAndNormalizePages(pages) {
-  if (!Array.isArray(pages)) throw new Error('WordPress REST pages response is not an array');
+  if (!Array.isArray(pages)) throw new TypeError('WordPress REST pages response is not an array');
   const normalized = pages.map((page) => ({
     id: Number(page.id),
     slug: page.slug || '',

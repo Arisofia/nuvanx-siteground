@@ -14,6 +14,10 @@ function loadJsonCredentials() {
   }
 
   if (raw) {
+    if (fs.existsSync(raw)) {
+      console.log('OAuth client JSON loaded from file');
+      return JSON.parse(fs.readFileSync(raw, 'utf8'));
+    }
     console.log('OAuth client JSON loaded from environment');
     return JSON.parse(raw);
   }

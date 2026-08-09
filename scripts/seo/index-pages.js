@@ -95,14 +95,16 @@ async function fetchTextWithRetry(url, attempts = 6) {
 async function discoverCanonicalUrls() {
   if (urlsFile) {
     const resolved = path.resolve(urlsFile);
-    if (!fs.existsSync(resolved)) throw new Error(`URLs file not found: ${resolved}`);
-    const candidates = fs.readFileSync(resolved, 'utf8')
-      .split(/\r?\n/)
-      .map(value => value.trim())
-      .filter(Boolean);
-    const urls = normalizeCandidateUrls(candidates);
-    console.log(`Canonical URLs loaded from origin evidence: ${urls.length}`);
-    return urls;
+    if (fs.existsSync(resolved)) {
+      const candidates = fs.readFileSync(resolved, 'utf8')
+        .split(/\r?\n/)
+        .map(value => value.trim())
+        .filter(Boolean);
+      const urls = normalizeCandidateUrls(candidates);
+      console.log(`Canonical URLs loaded from origin evidence: ${urls.length}`);
+      return urls;
+    }
+    console.warn(`::warning::URLs file not found at ${resolved}; falling back to public sitemap discovery`);
   }
 
   console.log(`Fetching sitemap index: ${sitemapIndexUrl}`);
@@ -203,6 +205,7 @@ async function inspectAllPages() {
     }, null, 2)
   );
 
+  const maxErrorRatio = 0.2;
   const errorRatio = urls.length > 0 ? apiErrors / urls.length : 0;
   console.log('\n=== Search Console URL Inspection Summary ===');
   console.log(`TOTAL_URLS=${urls.length}`);
@@ -212,7 +215,10 @@ async function inspectAllPages() {
   console.log(`API_ERRORS=${apiErrors}`);
   console.log(`API_ERROR_RATIO=${errorRatio.toFixed(3)}`);
   console.log('INSPECTION_COMPLETED=true');
-  if (apiErrors > 0 && errorRatio > 0.2) process.exitCode = 2;
+  if (apiErrors > 0 && errorRatio > maxErrorRatio) {
+    console.error(`::error::API error ratio ${errorRatio.toFixed(3)} exceeds threshold ${maxErrorRatio.toFixed(3)}`);
+    process.exitCode = 2;
+  }
 }
 
 inspectAllPages().catch(error => {

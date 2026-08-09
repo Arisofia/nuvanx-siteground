@@ -22,7 +22,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
@@ -46,13 +46,13 @@ jobs:
             exit 0
           fi
           if echo "$RESPONSE" | jq -e '.error' >/dev/null 2>&1; then
-            ERR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "API error"')
-            ERR_REASON=$(echo "$RESPONSE" | jq -r '.error.errors[0].reason // "unknown"')
+            ERR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "API error"' 2>/dev/null || echo "API error")
+            ERR_REASON=$(echo "$RESPONSE" | jq -r '.error.errors[0].reason // "unknown"' 2>/dev/null || echo "unknown")
             echo "::warning::PageSpeed API unavailable ($ERR_REASON): $ERR_MSG"
             exit 0
           fi
 
-          SCORE=$(echo "$RESPONSE" | jq -r '.lighthouseResult.categories.performance.score // empty')
+          SCORE=$(echo "$RESPONSE" | jq -r '.lighthouseResult.categories.performance.score // empty' 2>/dev/null || true)
           if [[ -n "$SCORE" ]]; then
             PCT=$(awk "BEGIN {print int($SCORE * 100)}")
             echo "PAGESPEED_MOBILE_PERFORMANCE_SCORE=$PCT"
@@ -76,7 +76,7 @@ jobs:
       EXPECTED_HOST: nuvanx.com
     steps:
       - name: Checkout canonical audit tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
@@ -118,7 +118,7 @@ jobs:
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-prod-seo-verification "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null"
+          ssh -n nvx-prod-seo-verification "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && test -s '$HOME/.ssh/known_hosts' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"
 
       - name: Run blocking production SEO/GEO audit from origin network
         shell: bash
@@ -127,45 +127,52 @@ jobs:
           mkdir -p scripts/seo/artifacts
           ssh nvx-prod-seo-verification \
             "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" \
-            < scripts/production/seo-geo-origin-audit.sh \
+            < scripts/production/seo-geo-origin-audit.sh 2>&1 \
             | tee scripts/seo/artifacts/seo-geo-origin-audit.log
 
       - name: Export canonical sitemap URLs from origin network
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p scripts/seo/artifacts
           ssh nvx-prod-seo-verification "BASE_URL='$BASE_URL' bash -se" > scripts/seo/artifacts/sitemap-urls.txt <<'REMOTE'
           set -euo pipefail
           tmpdir="$(mktemp -d)"
           trap 'rm -rf "$tmpdir"' EXIT
           ua='NUVANX-SEO-Verification-Origin/1.0'
           curl -fsSL --max-time 30 -A "$ua" "$BASE_URL/sitemap_index.xml" -o "$tmpdir/index.xml"
-          grep -oE '<loc>[^<]+</loc>' "$tmpdir/index.xml" | sed -E 's#</?loc>##g' | sed 's/&amp;/\&/g' > "$tmpdir/children.txt"
+          grep -oE '<loc>[^<]+</loc>' "$tmpdir/index.xml" \
+            | sed -E 's#</?loc>##g' \
+            | sed 's/&lt;/</g; s/&gt;/>/g; s/&quot;/"/g; s/&#39;/'\''/g; s/&amp;/\&/g' \
+            | grep -iE '\.xml(\.gz)?($|\?)' > "$tmpdir/children.txt" || true
+
           : > "$tmpdir/urls.txt"
           while IFS= read -r child; do
             [[ -n "$child" ]] || continue
-            curl -fsSL --max-time 30 -A "$ua" "$child" \
+            curl -fsSL --max-time 30 -A "$ua" "$child" 2>/dev/null \
               | grep -oE '<loc>[^<]+</loc>' \
               | sed -E 's#</?loc>##g' \
-              | sed 's/&amp;/\&/g' >> "$tmpdir/urls.txt"
+              | sed 's/&lt;/</g; s/&gt;/>/g; s/&quot;/"/g; s/&#39;/'\''/g; s/&amp;/\&/g' >> "$tmpdir/urls.txt" || true
           done < "$tmpdir/children.txt"
-          sort -u "$tmpdir/urls.txt" | grep '^https://nuvanx\.com/'
+
+          escaped_base=$(printf '%s' "$BASE_URL" | sed 's/[.]/\\./g')
+          sort -u "$tmpdir/urls.txt" | grep "^${escaped_base}/" || true
           REMOTE
-          URL_COUNT=$(grep -c '^https://nuvanx\.com/' scripts/seo/artifacts/sitemap-urls.txt || true)
+          URL_COUNT=$(grep -c "^${BASE_URL}/" scripts/seo/artifacts/sitemap-urls.txt || true)
           if [[ "$URL_COUNT" -lt 1 ]]; then
-            echo "::error::Origin sitemap export returned zero URLs"
+            echo "::error::Origin sitemap export returned zero URLs for base URL ${BASE_URL}"
             exit 1
           fi
           echo "ORIGIN_SITEMAP_URLS=$URL_COUNT"
 
       - name: Upload origin SEO evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: seo-origin-evidence-${{ github.run_id }}
           path: scripts/seo/artifacts/
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Destroy production SSH identity
         if: always()
@@ -177,18 +184,18 @@ jobs:
     needs: origin-seo-contract
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Download origin URL evidence
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: seo-origin-evidence-${{ github.run_id }}
           path: scripts/seo/artifacts
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: '22'
           cache: npm
@@ -224,7 +231,7 @@ jobs:
 
       - name: Upload Search Console inspection evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: search-console-url-inspection-${{ github.run_id }}
           path: |

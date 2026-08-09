@@ -65,7 +65,7 @@ jobs:
           fi
 
           SCORE=$(echo "$RESPONSE" | grep -o '"score": [0-9.]*' | head -n 1 | awk '{print $2}' || echo "N/A")
-          if [[ "$SCORE" != "N/A" ]]; then
+          if [[ "$SCORE" != "N/A" && -n "$SCORE" ]]; then
             PCT=$(awk "BEGIN {print int($SCORE * 100)}")
             echo "PAGESPEED_MOBILE_PERFORMANCE_SCORE=$PCT"
             echo "## PageSpeed Mobile Audit" >> "$GITHUB_STEP_SUMMARY"

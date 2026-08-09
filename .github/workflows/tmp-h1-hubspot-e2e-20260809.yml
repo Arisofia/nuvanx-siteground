@@ -27,9 +27,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .tmp-h1
-          cd .tmp-h1
-          npm init -y >/dev/null 2>&1
+          mkdir -p tmp-h1
+          cd tmp-h1
+          npm init -y
           npm install --no-audit --no-fund playwright@1.54.2
           npx playwright install --with-deps chromium
 
@@ -37,12 +37,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          NODE_PATH="$PWD/.tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee .tmp-h1/h1-e2e.log
+          NODE_PATH="$PWD/tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee tmp-h1/h1-e2e.log
 
       - name: Upload sanitized E2E log
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: h1-hubspot-e2e-20260809-1510
-          path: .tmp-h1/h1-e2e.log
+          path: tmp-h1/h1-e2e.log
           retention-days: 7

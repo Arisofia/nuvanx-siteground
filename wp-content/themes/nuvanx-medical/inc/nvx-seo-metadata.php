@@ -419,8 +419,20 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		return;
 	}
 
-	$query       = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
-	$destination = home_url( $target ) . ( '' !== $query ? '?' . $query : '' );
+	$destination = home_url( $target );
+
+	// Only forward the request query string when the alias target has none of
+	// its own; parse_str + add_query_arg re-encode it so raw request input
+	// never reaches the Location header verbatim.
+	if ( false === strpos( $target, '?' ) ) {
+		$query = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
+		$args  = array();
+		parse_str( $query, $args );
+		if ( ! empty( $args ) ) {
+			$destination = add_query_arg( $args, $destination );
+		}
+	}
+
 	wp_safe_redirect( $destination, 301, 'NUVANX' );
 	exit;
 }

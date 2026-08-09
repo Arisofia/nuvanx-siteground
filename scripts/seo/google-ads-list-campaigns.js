@@ -143,12 +143,24 @@ async function main() {
 main().catch((err) => {
   const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
 
+  // Recursively sanitize every textual value while preserving nested diagnostic
+  // fields (details, trigger, location) that help troubleshoot API rejections.
+  const sanitizeValue = (value) => {
+    if (typeof value === 'string') {
+      return sanitizeMessage(value);
+    }
+    if (Array.isArray(value)) {
+      return value.map(sanitizeValue);
+    }
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeValue(v)]));
+    }
+    return value;
+  };
+
   console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
   if (Array.isArray(err?.errors)) {
-    const sanitizedErrors = err.errors.map((e) => ({
-      error_code: e.error_code || e.errorCode,
-      message: sanitizeMessage(e.message),
-    }));
+    const sanitizedErrors = err.errors.map((e) => sanitizeValue(e));
     console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
   }
   console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));

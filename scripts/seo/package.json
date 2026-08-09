@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "googleapis": "^140.0.0",
-    "google-ads-api": "^5.0.0"
+    "google-ads-api": "latest"
   },
   "engines": {
     "node": ">=18"

@@ -377,7 +377,10 @@ async function triggerSubmit(page, frame, signals, scenario, network) {
   console.log(`SUBMIT_CONTROL_${scenario}=${JSON.stringify(submitMeta)}`);
   await button.click();
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
+  // Observe up to ~15s before the requestSubmit fallback. HubSpot v4 can start its POST late
+  // (validation round-trips, reCAPTCHA, slow CI network); a short 3s window would fire the
+  // fallback while the first submission is still in flight, creating duplicate CRM leads.
+  for (let attempt = 0; attempt < 60; attempt += 1) {
     if (network.requests.length > 0 || signals.success.length > 0 || signals.failures.length > 0 || signals.conversions.length > 0) break;
     await sleep(250);
   }

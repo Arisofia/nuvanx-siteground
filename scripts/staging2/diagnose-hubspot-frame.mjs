@@ -19,7 +19,7 @@ function sanitizeUrl(value) {
 
 function isHubSpotUrl(value) {
   try {
-    return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net|forms-eu1\.com|hsforms\.net|hsforms\.com)$/.test(new URL(value).hostname.toLowerCase());
+    return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net|forms-eu1\.com)$/.test(new URL(value).hostname.toLowerCase());
   } catch {
     return false;
   }
@@ -197,7 +197,9 @@ try {
   const before = await frame.locator('form').first().evaluate((form) => ({ valid: form.checkValidity(), submitDisabled: Boolean(form.querySelector('[type="submit"]')?.disabled) }));
   console.log(`BEFORE_SUBMIT=${JSON.stringify(before)}`);
   await button.click();
-  await page.waitForTimeout(3000);
+  // Wait up to ~15s for the first submission's POST before considering a fallback, so a slow
+  // HubSpot v4 submission is not double-submitted (which would create a duplicate CRM lead).
+  for (let attempt = 0; attempt < 60 && hubSpotPosts.length === 0; attempt += 1) await page.waitForTimeout(250);
 
   let after = await frame.evaluate(() => ({
     domSubmit: window.__nvxDiagDomSubmit || [],

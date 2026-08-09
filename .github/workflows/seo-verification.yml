@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running PageSpeed Mobile Audit on $BASE_URL..."
-          
+
           API_URL="https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${BASE_URL}&strategy=mobile"
           if [[ -n "${PAGESPEED_API_KEY:-}" ]]; then
             API_URL="${API_URL}&key=${PAGESPEED_API_KEY}"
@@ -47,7 +47,7 @@ jobs:
           fi
 
           RESPONSE=$(curl -sSL --max-time 45 --retry 3 --retry-delay 2 "$API_URL" || echo "")
-          
+
           if [[ -z "$RESPONSE" ]]; then
             echo "::warning::PageSpeed API request timed out or returned empty response."
             exit 0
@@ -58,14 +58,19 @@ jobs:
             ERR_REASON=$(echo "$RESPONSE" | grep -o '"reason": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "Unknown")
             echo "::warning::PageSpeed API returned an error ($ERR_REASON): $ERR_MSG"
             echo "## PageSpeed Mobile Audit (Notice)" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Status: Warning ($ERR_REASON)" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Status: API unavailable / quota warning ($ERR_REASON)" >> "$GITHUB_STEP_SUMMARY"
             echo "- Message: $ERR_MSG" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Action Required: Configure a valid PAGESPEED_API_KEY in Repository Secrets." >> "$GITHUB_STEP_SUMMARY"
+            echo "- Detailed Lighthouse audit is maintained separately and does not depend on PSI quota." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          SCORE=$(echo "$RESPONSE" | grep -o '"score": [0-9.]*' | head -n 1 | awk '{print $2}' || echo "N/A")
-          if [[ "$SCORE" != "N/A" && -n "$SCORE" ]]; then
+          if command -v jq >/dev/null 2>&1; then
+            SCORE=$(printf '%s' "$RESPONSE" | jq -r '.lighthouseResult.categories.performance.score // empty' 2>/dev/null || true)
+          else
+            SCORE=$(printf '%s' "$RESPONSE" | grep -o '"score":[[:space:]]*[0-9.]\+' | head -n 1 | awk '{print $2}' || true)
+          fi
+
+          if [[ -n "$SCORE" ]]; then
             PCT=$(awk "BEGIN {print int($SCORE * 100)}")
             echo "PAGESPEED_MOBILE_PERFORMANCE_SCORE=$PCT"
             echo "## PageSpeed Mobile Audit" >> "$GITHUB_STEP_SUMMARY"
@@ -73,65 +78,141 @@ jobs:
             echo "- Target: $BASE_URL" >> "$GITHUB_STEP_SUMMARY"
             echo "- Performance Score: ${PCT}/100" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "::warning::Could not parse performance score from PageSpeed API response."
+            echo "::warning::PageSpeed response did not contain a Lighthouse performance score."
           fi
 
   sitemap-status:
     name: Sitemap Status Verification
     runs-on: ubuntu-latest
     needs: pagespeed-mobile-audit
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify Sitemap Accessibility & Indexing Status
+      - name: Verify sitemap index and child sitemaps
         shell: bash
         env:
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          echo "Checking sitemap index at $BASE_URL/sitemap_index.xml..."
-          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL/sitemap_index.xml" || echo "000")
-          if [[ "$HTTP_CODE" -eq 200 ]]; then
-            echo "SITEMAP_STATUS=PASS (HTTP 200)"
-          else
-            echo "::warning::Sitemap returned HTTP status $HTTP_CODE"
-            echo "SITEMAP_STATUS=WARNING_HTTP_$HTTP_CODE"
+          mkdir -p artifacts
+
+          fetch_200() {
+            local url="$1"
+            local output="$2"
+            local status="000"
+            for attempt in 1 2 3 4 5 6; do
+              status=$(curl -sS -L -A 'Mozilla/5.0 (compatible; NUVANX-SEO-Audit/1.0)' \
+                --connect-timeout 20 --max-time 45 \
+                -o "$output" -w '%{http_code}' "$url") || status="000"
+              echo "FETCH attempt=$attempt status=$status url=$url"
+              if [[ "$status" == "200" ]]; then return 0; fi
+              if [[ "$status" == "202" || "$status" == "429" || "$status" =~ ^5 ]]; then
+                sleep $((attempt * 2))
+                continue
+              fi
+              break
+            done
+            return 1
+          }
+
+          INDEX="$BASE_URL/sitemap_index.xml"
+          fetch_200 "$INDEX" artifacts/sitemap-index.xml || {
+            echo "::error::sitemap_index.xml did not return HTTP 200 after transient retries"
+            exit 1
+          }
+
+          mapfile -t CHILDREN < <(grep -oE '<loc>[^<]+</loc>' artifacts/sitemap-index.xml | sed -E 's#</?loc>##g')
+          if [[ "${#CHILDREN[@]}" -eq 0 ]]; then
+            echo "::error::No child sitemaps discovered"
+            exit 1
           fi
 
-  search-console-verification:
-    name: Search Console Verification
+          total_urls=0
+          child_index=0
+          for child in "${CHILDREN[@]}"; do
+            child_index=$((child_index + 1))
+            file="artifacts/sitemap-child-${child_index}.xml"
+            fetch_200 "$child" "$file" || {
+              echo "::error::Child sitemap failed: $child"
+              exit 1
+            }
+            count=$(grep -o '<url>' "$file" | wc -l || true)
+            total_urls=$((total_urls + count))
+            echo "CHILD_SITEMAP=$child URLS=$count"
+          done
+
+          if [[ "$total_urls" -lt 1 ]]; then
+            echo "::error::Sitemap children contain zero URLs"
+            exit 1
+          fi
+
+          echo "SITEMAP_STATUS=PASS"
+          echo "SITEMAP_CHILDREN=${#CHILDREN[@]}"
+          echo "SITEMAP_URLS=$total_urls"
+
+  seo-origin-contract:
+    name: Canonical & Robots Origin Contract
     runs-on: ubuntu-latest
     needs: sitemap-status
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Verify Search Console Metadata & Directives
+      - name: Verify production canonical and indexability
         shell: bash
         env:
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          echo "Verifying SEO metadata on $BASE_URL..."
-          curl -fsSL --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL" -o index.html || echo "::warning::Failed to fetch $BASE_URL"
-          if [[ -f index.html ]]; then
-            grep -i '<meta name="robots"' index.html || echo "::warning::No robots meta tag found"
-            grep -i 'rel="canonical"' index.html || echo "::warning::No canonical tag found"
+          status="000"
+          for attempt in 1 2 3 4 5 6; do
+            status=$(curl -sS -L -A 'Mozilla/5.0 (compatible; NUVANX-SEO-Audit/1.0)' \
+              --connect-timeout 20 --max-time 45 \
+              -o index.html -w '%{http_code}' "$BASE_URL/") || status="000"
+            echo "FETCH attempt=$attempt status=$status"
+            if [[ "$status" == "200" ]]; then break; fi
+            if [[ "$status" == "202" || "$status" == "429" || "$status" =~ ^5 ]]; then
+              sleep $((attempt * 2))
+              continue
+            fi
+            break
+          done
+
+          if [[ "$status" != "200" ]]; then
+            echo "::error::Could not retrieve production home HTML with HTTP 200"
+            exit 1
           fi
 
-  index-all-pages:
-    name: Index All Pages via Search Console
+          EXPECTED_CANONICAL="$BASE_URL/"
+
+          canonical_tag=$(grep -ioE '<link[^>]+rel=["'"']canonical["'"'][^>]*>' index.html | head -n 1 || true)
+          canonical_href=$(printf '%s' "$canonical_tag" | grep -ioE 'href=["'"'][^"'"']+["'"']' | head -n 1 | sed -E 's/^href=["'"']//; s/["'"']$//' || true)
+          if [[ -z "$canonical_href" || "$canonical_href" != "$EXPECTED_CANONICAL" ]]; then
+            echo "::error::Canonical home URL missing or unexpected (found '${canonical_href:-none}', expected '$EXPECTED_CANONICAL')"
+            exit 1
+          fi
+
+          if grep -qiE '<meta[^>]+name=["'"']robots["'"'][^>]+content=["'"'][^"'"']*noindex' index.html; then
+            echo "::error::Production home is marked noindex"
+            exit 1
+          fi
+
+          robots_header=$(curl -sSI -L -A 'Mozilla/5.0 (compatible; NUVANX-SEO-Audit/1.0)' \
+            --connect-timeout 20 --max-time 45 "$BASE_URL/" | grep -i '^x-robots-tag:' || true)
+          if printf '%s' "$robots_header" | grep -qi 'noindex'; then
+            echo "::error::Production home returns X-Robots-Tag noindex"
+            exit 1
+          fi
+
+          echo "SEO_ORIGIN_CONTRACT=PASS"
+          echo "CANONICAL_HOME=$EXPECTED_CANONICAL"
+          echo "ROBOTS_INDEXABLE=true"
+
+  inspect-search-console-pages:
+    name: Inspect Sitemap URLs via Search Console
     runs-on: ubuntu-latest
-    needs: search-console-verification
-    continue-on-error: true
+    needs: seo-origin-contract
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -140,38 +221,47 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/seo/package-lock.json
 
       - name: Install SEO script dependencies
-        run: |
-          cd scripts/seo
-          npm install
+        run: npm ci --prefix scripts/seo
 
-      - name: Index All Pages via Search Console
+      - name: Inspect Search Console coverage
+        id: inspection
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS || secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON: ${{ secrets.SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON || secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           SEARCH_CONSOLE_PROPERTY: ${{ secrets.SEARCH_CONSOLE_PROPERTY }}
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          
-          CREDS="${GOOGLE_APPLICATION_CREDENTIALS:-}"
+
+          CREDS="${SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON:-}"
           if [[ -z "$CREDS" || "$CREDS" == *"{{"* ]]; then
-            echo "::warning::GOOGLE_APPLICATION_CREDENTIALS / GOOGLE_ADS_JSON secret is missing or empty."
-            echo "To enable Search Console indexing, configure the required secret in Repository Secrets."
+            echo "::warning::Search Console service-account JSON is not configured; URL Inspection skipped."
+            echo "SEARCH_CONSOLE_INSPECTION=SKIPPED_NO_CREDENTIALS" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          
-          SEARCH_PROP="${SEARCH_CONSOLE_PROPERTY:-$BASE_URL}"
-          
+
+          SEARCH_PROP="${SEARCH_CONSOLE_PROPERTY:-https://nuvanx.com/}"
           mkdir -p scripts/seo/artifacts
-          
-          # Write credentials to file
-          echo "$CREDS" > scripts/seo/credentials.json
-          
-          # Run page indexing
-          cd scripts/seo
-          node index-pages.js \
+          printf '%s' "$CREDS" > scripts/seo/credentials.json
+          trap 'rm -f scripts/seo/credentials.json' EXIT
+
+          node scripts/seo/index-pages.js \
             --property "$SEARCH_PROP" \
             --url "$BASE_URL" \
-            | tee artifacts/index-pages.log
+            --max-urls 200 \
+            | tee scripts/seo/artifacts/url-inspection.log
+
+      - name: Upload Search Console inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-console-url-inspection-${{ github.run_id }}
+          path: |
+            scripts/seo/artifacts/indexing-results.json
+            scripts/seo/artifacts/url-inspection.log
+          if-no-files-found: warn
+          retention-days: 14

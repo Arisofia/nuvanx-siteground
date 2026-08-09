@@ -14,10 +14,6 @@ if ( ! current_theme_supports( 'title-tag' ) ) :
 	<title><?php echo esc_html( wp_get_document_title() ); ?></title>
 	<?php
 endif;
-if ( is_front_page() ) {
-	$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
-	echo '<link rel="preload" as="image" href="' . esc_url( $poster_url ) . '" type="image/webp">' . "\n";
-}
 wp_head();
 ?>
 </head>

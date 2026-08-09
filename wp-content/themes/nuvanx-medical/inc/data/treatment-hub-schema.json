@@ -101,7 +101,7 @@
     {
         "key": "rinomodelacion",
         "name": "Rinomodelación",
-        "path": "/rinomodelacion-madrid/",
+        "path": "/rinomodelacion-sin-cirugia-madrid/",
         "types": [
             "MedicalProcedure",
             "Service"

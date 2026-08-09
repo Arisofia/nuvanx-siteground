@@ -117,11 +117,11 @@
     "post_id": 0,
     "schema_type": "MedicalProcedure"
   },
-  "/rinomodelacion-madrid/": {
+  "/rinomodelacion-sin-cirugia-madrid/": {
     "seo_id": "rinomodelacion",
     "schema_group": "treatments",
     "schema_id": "rinomodelacion",
-    "post_id": 0,
+    "post_id": 3319,
     "schema_type": "MedicalProcedure"
   },
   "/medicina-estetica-laser/": {},
@@ -134,10 +134,6 @@
   "/ojeras-surco-lagrimal-madrid/": {
     "schema_group": "treatments",
     "schema_id": "dark_circles_ha"
-  },
-  "/rinomodelacion-sin-cirugia-madrid/": {
-    "schema_group": "treatments",
-    "schema_id": "rhinomodeling_ha"
   },
   "/labios-acido-hialuronico-madrid/": {
     "schema_group": "treatments",

@@ -524,13 +524,6 @@ function nvx_schema_clinics() {
 					'closes'    => '18:00',
 				),
 			),
-			'aggregateRating'           => array(
-				'@type'       => 'AggregateRating',
-				'ratingValue' => '5',
-				'bestRating'  => '5',
-				'worstRating' => '1',
-				'reviewCount' => '105',
-			),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
 			),
@@ -571,13 +564,6 @@ function nvx_schema_clinics() {
 					'opens'     => '11:00',
 					'closes'    => '20:00',
 				),
-			),
-			'aggregateRating'           => array(
-				'@type'       => 'AggregateRating',
-				'ratingValue' => '5',
-				'bestRating'  => '5',
-				'worstRating' => '1',
-				'reviewCount' => '105',
 			),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
@@ -1601,3 +1587,22 @@ function nvx_schema_deduplicate_ids( $graph ) {
 	return array_values( $graph );
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_deduplicate_ids', PHP_INT_MAX, 1 );
+
+// Resolves static analysis (e.g. Intelephense) undefined function lint errors when edited outside WP context.
+if ( false ) {
+	function get_template_directory() { return ''; }
+	function number_format_i18n( $number, $decimals = 0 ) { return ''; }
+	function get_permalink( $post = 0, $leavename = false ) { return ''; }
+	function wp_parse_url( $url, $component = -1 ) { return array(); }
+	function home_url( $path = '', $scheme = null ) { return ''; }
+	function untrailingslashit( $string ) { return ''; }
+	function get_page_uri( $page ) { return ''; }
+	function get_post_meta( $post_id, $key = '', $single = false ) { return ''; }
+	function is_front_page() { return false; }
+	function trailingslashit( $string ) { return ''; }
+	function is_admin() { return false; }
+	function is_feed() { return false; }
+	function is_singular( $post_types = '' ) { return false; }
+	function get_queried_object_id() { return 0; }
+	function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) { return true; }
+}

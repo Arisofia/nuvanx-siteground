@@ -56,7 +56,7 @@ jobs:
                   --output-path="$out" \
                   --only-categories=performance \
                   --quiet \
-                  --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+                  --chrome-flags="--headless --disable-dev-shm-usage" \
                   "${extra[@]}"; then
                   score="$(jq -r '.categories.performance.score // empty' "$out")"
                   if [[ -n "$score" ]]; then success=1; break; fi

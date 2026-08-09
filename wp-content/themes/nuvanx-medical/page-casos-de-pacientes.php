@@ -54,20 +54,20 @@ get_header();
 				<h2 id="nvx-cases-intro-title" class="nvx-brand-title"><?php esc_html_e( 'Evolución documentada, no promesas', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-brand-body nvx-cases-holding__lead"><?php esc_html_e( 'Estamos preparando esta sección con casos clínicos reales revisados por el equipo médico. Solo publicaremos material con consentimiento documentado y contexto suficiente para interpretar la evolución sin convertir una imagen en una promesa de resultado.', 'nuvanx-medical' ); ?></p>
 
-				<div class="nvx-cases-holding__grid" role="list">
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+				<ul class="nvx-cases-holding__grid">
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Misma persona y seguimiento', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'Cada caso identificará el momento de seguimiento y evitará presentar imágenes de personas distintas como una misma evolución.', 'nuvanx-medical' ); ?></p>
-					</article>
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+					</li>
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Fotografía comparable', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'Cuando sea posible, mantendremos encuadre, posición y luz comparables para reducir distorsiones visuales.', 'nuvanx-medical' ); ?></p>
-					</article>
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+					</li>
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Contexto clínico', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'La indicación, el tratamiento realizado, el seguimiento y los límites del caso acompañarán a las imágenes.', 'nuvanx-medical' ); ?></p>
-					</article>
-				</div>
+					</li>
+				</ul>
 			</div>
 		</section>
 
@@ -76,23 +76,23 @@ get_header();
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'EN PREPARACIÓN', 'nuvanx-medical' ); ?></p>
 				<h2 id="nvx-cases-scope-title" class="nvx-brand-title"><?php esc_html_e( 'Qué encontrarás cuando se publique', 'nuvanx-medical' ); ?></h2>
 
-				<div class="nvx-cases-holding__grid" role="list">
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+				<ul class="nvx-cases-holding__grid">
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<p class="nvx-brand-card__kicker"><?php esc_html_e( 'ROSTRO', 'nuvanx-medical' ); ?></p>
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Contorno y calidad de piel', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'Casos seleccionados por indicación médica, con seguimiento suficiente para explicar qué cambió y qué no.', 'nuvanx-medical' ); ?></p>
-					</article>
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+					</li>
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<p class="nvx-brand-card__kicker"><?php esc_html_e( 'CUERPO', 'nuvanx-medical' ); ?></p>
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Grasa localizada y firmeza', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'Evoluciones corporales contextualizadas por zona, técnica, tiempos y características de partida.', 'nuvanx-medical' ); ?></p>
-					</article>
-					<article class="nvx-brand-card nvx-cases-holding__card" role="listitem">
+					</li>
+					<li class="nvx-brand-card nvx-cases-holding__card">
 						<p class="nvx-brand-card__kicker"><?php esc_html_e( 'PIEL', 'nuvanx-medical' ); ?></p>
 						<h3 class="nvx-brand-card__title"><?php esc_html_e( 'Textura, cicatrices y fotodaño', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-brand-card__body"><?php esc_html_e( 'Documentación clínica que permita valorar respuesta y recuperación sin ocultar variabilidad individual.', 'nuvanx-medical' ); ?></p>
-					</article>
-				</div>
+					</li>
+				</ul>
 			</div>
 		</section>
 

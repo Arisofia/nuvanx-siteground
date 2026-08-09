@@ -11,7 +11,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--nvx-gap-base);
   width: 100%;
-  margin-top: var(--nvx-space-6);
+  margin: var(--nvx-space-6) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .nvx-cases-holding__card {

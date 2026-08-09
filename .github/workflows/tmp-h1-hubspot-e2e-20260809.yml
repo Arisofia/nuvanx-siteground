@@ -25,19 +25,17 @@ jobs:
 
       - name: Install Playwright
         shell: bash
-        run: |
           set -euo pipefail
-          mkdir -p tmp-h1
-          cd tmp-h1
           npm init -y
           npm install --no-audit --no-fund playwright@1.54.2
           npx playwright install --with-deps chromium
+          mkdir -p tmp-h1
 
       - name: Run production H1 E2E
         shell: bash
         run: |
           set -euo pipefail
-          NODE_PATH="$PWD/tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee tmp-h1/h1-e2e.log
+          node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee tmp-h1/h1-e2e.log
 
       - name: Upload sanitized E2E log
         if: always()

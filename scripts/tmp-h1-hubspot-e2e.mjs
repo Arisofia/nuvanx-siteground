@@ -1,7 +1,6 @@
 import { chromium } from 'playwright';
 
 const base = 'https://nuvanx.com';
-const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const gclid = 'NUVANX_QA_H1_20260809_1510';
 const email = 'nvxqa-h1-20260809-1510@example.com';
 const phone = '+34600000000';
@@ -9,6 +8,15 @@ const target = `${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
 const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sel = (name) => `input[name="${name}"],input[name="0-1/${name}"]`;
+
+function safeUrl(value) {
+  try {
+    const u = new URL(value);
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    return '';
+  }
+}
 
 const browser = await chromium.launch({ headless: true });
 try {
@@ -52,16 +60,40 @@ try {
   if (consent !== true) throw new Error('Marketing consent was not granted');
 
   const host = page.locator('#nvx-hubspot-form');
+  if (!await host.count()) throw new Error('#nvx-hubspot-form is missing');
   await host.dispatchEvent('focusin').catch(() => {});
+  await sleep(3000);
 
-  const iframe = page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first();
-  await iframe.waitFor({ state: 'attached', timeout: 45000 });
-  const handle = await iframe.elementHandle();
-  const frame = handle ? await handle.contentFrame() : null;
-  if (!frame) throw new Error('HubSpot iframe content frame unavailable');
-  await frame.locator(sel('email')).first().waitFor({ state: 'attached', timeout: 30000 });
+  let formFrame = null;
+  for (let attempt = 0; attempt < 90 && !formFrame; attempt++) {
+    for (const candidate of page.frames()) {
+      try {
+        if (await candidate.locator(sel('email')).count()) {
+          formFrame = candidate;
+          break;
+        }
+      } catch {}
+    }
+    if (!formFrame) await sleep(500);
+  }
 
-  const names = await frame.locator('input').evaluateAll((nodes) => nodes.map((n) => n.getAttribute('name') || '').filter(Boolean));
+  const iframeMeta = await page.locator('iframe').evaluateAll((nodes) => nodes.map((node) => ({
+    src: node.getAttribute('src') || '',
+    title: node.getAttribute('title') || '',
+    testId: node.getAttribute('data-test-id') || '',
+    id: node.id || '',
+    name: node.getAttribute('name') || '',
+    insideValoracion: Boolean(node.closest('#nvx-hubspot-form')),
+  })));
+  console.log(`IFRAME_COUNT=${iframeMeta.length}`);
+  console.log(`IFRAME_META=${JSON.stringify(iframeMeta.map((m) => ({ ...m, src: safeUrl(m.src) })))}`);
+  console.log(`FRAME_URLS=${JSON.stringify(page.frames().map((f) => safeUrl(f.url())))}`);
+
+  if (!formFrame) throw new Error('No live frame containing HubSpot email field was found');
+  console.log(`FORM_FRAME_URL=${safeUrl(formFrame.url())}`);
+
+  const names = await formFrame.locator('input').evaluateAll((nodes) => nodes.map((n) => n.getAttribute('name') || '').filter(Boolean));
+  console.log(`FORM_INPUT_NAMES=${JSON.stringify(names)}`);
   const hasCustom = names.includes('nvx_google_click_id') || names.includes('0-1/nvx_google_click_id');
   const hasNative = names.includes('hs_google_click_id') || names.includes('0-1/hs_google_click_id');
   console.log(`FIELD_CUSTOM_PRESENT=${hasCustom}`);
@@ -69,19 +101,14 @@ try {
   if (!hasCustom) throw new Error('nvx_google_click_id is not present in published HubSpot form');
   if (!hasNative) throw new Error('hs_google_click_id is not present in published HubSpot form');
 
-  // Re-fire consent lifecycle after the legacy form is registered by onFormReady.
+  // Re-fire consent lifecycle after the legacy form has registered its onFormReady hook.
   await page.evaluate(() => {
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
     document.dispatchEvent(new Event('wp_consent_type_defined'));
   });
 
-  /**
-   * Waits for a form field to receive the expected Google Click ID.
-   * @param {string} name - The field name used to locate the input.
-   * @return {Promise<string>} The field's current value after matching or the wait period ends.
-   */
   async function waitForValue(name) {
-    const input = frame.locator(sel(name)).first();
+    const input = formFrame.locator(sel(name)).first();
     for (let i = 0; i < 40; i++) {
       const value = await input.inputValue().catch(() => '');
       if (value === gclid) return value;
@@ -94,11 +121,11 @@ try {
   const nativeValue = await waitForValue('hs_google_click_id');
   console.log(`CUSTOM_GCLID_MATCH=${customValue === gclid}`);
   console.log(`NATIVE_GCLID_MATCH=${nativeValue === gclid}`);
-  if (customValue !== gclid) throw new Error(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
-  if (nativeValue !== gclid) throw new Error(`Native GCLID not populated; value=${JSON.stringify(nativeValue)}`);
+  if (customValue !== gclid) throw new Error(`Custom GCLID not populated; field exists but value did not match`);
+  if (nativeValue !== gclid) throw new Error(`Native GCLID not populated; field exists but value did not match`);
 
   const fill = async (name, value) => {
-    const input = frame.locator(sel(name)).first();
+    const input = formFrame.locator(sel(name)).first();
     if (!await input.count()) throw new Error(`Required HubSpot field missing: ${name}`);
     await input.fill(value);
     await input.press('Tab').catch(() => {});
@@ -106,21 +133,21 @@ try {
   await fill('firstname', 'QA');
   await fill('lastname', 'H1 Attribution');
   await fill('email', email);
-  const phoneInput = frame.locator('input[type="tel"]').first();
+  const phoneInput = formFrame.locator('input[type="tel"]').first();
   if (!await phoneInput.count()) throw new Error('Required phone field missing');
   await phoneInput.fill(phone);
   await phoneInput.press('Tab').catch(() => {});
 
-  const checks = frame.locator('input[type="checkbox"][required],input[type="checkbox"][aria-required="true"]');
+  const checks = formFrame.locator('input[type="checkbox"][required],input[type="checkbox"][aria-required="true"]');
   for (let i = 0; i < await checks.count(); i++) {
     if (!await checks.nth(i).isChecked().catch(() => false)) await checks.nth(i).check({ force: true });
   }
 
-  const form = frame.locator('form').first();
+  const form = formFrame.locator('form').first();
   const valid = await form.evaluate((f) => f.checkValidity());
   console.log(`FORM_VALID=${valid}`);
   if (!valid) {
-    const invalid = await frame.locator(':invalid').evaluateAll((nodes) => nodes.map((n) => ({ name: n.getAttribute('name'), type: n.getAttribute('type') })));
+    const invalid = await formFrame.locator(':invalid').evaluateAll((nodes) => nodes.map((n) => ({ name: n.getAttribute('name'), type: n.getAttribute('type') })));
     throw new Error(`Form invalid: ${JSON.stringify(invalid)}`);
   }
 
@@ -131,7 +158,7 @@ try {
     } catch {}
   });
 
-  const button = frame.locator('button[type="submit"],input[type="submit"]').first();
+  const button = formFrame.locator('button[type="submit"],input[type="submit"]').first();
   await button.click();
   for (let i = 0; i < 60 && !submitted; i++) await sleep(250);
   console.log(`HUBSPOT_POST_SUCCESS=${submitted}`);

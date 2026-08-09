@@ -391,7 +391,7 @@ add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
  * Perform HTTP 301 redirect for routes configured with a route_alias in routes.json.
  */
 function nvx_seo_handle_route_alias_redirect(): void {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return;
 	}
 
@@ -407,7 +407,7 @@ function nvx_seo_handle_route_alias_redirect(): void {
 			}
 			$query       = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
 			$destination = home_url( $target ) . ( '' !== $query ? '?' . $query : '' );
-			wp_safe_redirect( $destination, 301 );
+			wp_safe_redirect( $destination, 301, 'NUVANX' );
 			exit;
 		}
 	}

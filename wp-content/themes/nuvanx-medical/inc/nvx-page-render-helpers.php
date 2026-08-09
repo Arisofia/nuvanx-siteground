@@ -10,14 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Devuelve el "dueño" lógico de la página actual.
+ * Devuelve el "dueÃ±o" lÃ³gico de la pÃ¡gina actual.
  *
- * Los módulos pueden engancharse al filtro 'nvx_page_owner' para declararse
- * propietarios en función del contexto (is_page(), is_singular(), etc.).
+ * Los mÃ³dulos pueden engancharse al filtro 'nvx_page_owner' para declararse
+ * propietarios en funciÃ³n del contexto (is_page(), is_singular(), etc.).
  */
 function nvx_get_page_owner() {
 	/**
-	 * Filtro que permite a los módulos declarar la propiedad de la página.
+	 * Filtro que permite a los mÃ³dulos declarar la propiedad de la pÃ¡gina.
 	 *
 	 * Debe devolver un identificador estable de propietario (string) o null.
 	 */
@@ -130,10 +130,10 @@ function nvx_page_brand_section_heading_markup(
 }
 
 /**
- * Devuelve si la p�gina actual utiliza el page-shell de NUVANX.
+ * Devuelve si la página actual utiliza el page-shell de NUVANX.
  */
 function nvx_has_page_shell(): bool {
-	// Si tiene 'nvx_page_owner', asumimos que est� gobernado por el shell u otro orquestador que necesita su propio <main>.
+	// Si tiene 'nvx_page_owner', asumimos que está gobernado por el shell u otro orquestador que necesita su propio <main>.
 	if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
 		return true;
 	}
@@ -141,3 +141,79 @@ function nvx_has_page_shell(): bool {
 	// Otras comprobaciones de plantillas
 	return is_page() || is_single() || is_404();
 }
+
+/**
+ * Remove stale local responsive-image candidates whose files are missing.
+ *
+ * WordPress attachment metadata can outlive generated upload derivatives after
+ * a migration or media cleanup. Advertising those stale files in `srcset`
+ * makes browsers request predictable 404s even when the primary image exists.
+ * External/CDN candidates are left untouched because their filesystem cannot
+ * be verified from the WordPress uploads directory.
+ *
+ * @param array|false $sources       Responsive image candidates keyed by width.
+ * @param int[]       $size_array    Requested image dimensions.
+ * @param string      $image_src     Primary image URL.
+ * @param array       $image_meta    Attachment metadata.
+ * @param int         $attachment_id Attachment ID.
+ * @return array|false Filtered sources, or false when no valid local candidate remains.
+ */
+function nvx_filter_missing_local_srcset_sources( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+	unset( $size_array, $image_src, $image_meta, $attachment_id );
+
+	if ( ! is_array( $sources ) || array() === $sources ) {
+		return $sources;
+	}
+
+	$uploads = wp_upload_dir();
+	if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) || empty( $uploads['basedir'] ) ) {
+		return $sources;
+	}
+
+	$base_url  = (string) $uploads['baseurl'];
+	$base_host = strtolower( (string) wp_parse_url( $base_url, PHP_URL_HOST ) );
+	$base_path = rawurldecode( (string) wp_parse_url( $base_url, PHP_URL_PATH ) );
+	$base_path = '/' . trim( $base_path, '/' );
+	$base_dir  = untrailingslashit( (string) $uploads['basedir'] );
+
+	if ( '' === $base_host || '/' === $base_path || '' === $base_dir ) {
+		return $sources;
+	}
+
+	static $file_exists = array();
+
+	foreach ( $sources as $width => $source ) {
+		if ( ! is_array( $source ) || empty( $source['url'] ) ) {
+			continue;
+		}
+
+		$source_url  = (string) $source['url'];
+		$source_host = strtolower( (string) wp_parse_url( $source_url, PHP_URL_HOST ) );
+		$source_path = rawurldecode( (string) wp_parse_url( $source_url, PHP_URL_PATH ) );
+
+		if ( $source_host !== $base_host || '' === $source_path ) {
+			continue;
+		}
+
+		if ( $source_path !== $base_path && 0 !== strpos( $source_path, $base_path . '/' ) ) {
+			continue;
+		}
+
+		$relative_path = ltrim( substr( $source_path, strlen( $base_path ) ), '/' );
+		if ( '' === $relative_path || false !== strpos( $relative_path, '..' ) ) {
+			continue;
+		}
+
+		$local_file = $base_dir . '/' . $relative_path;
+		if ( ! array_key_exists( $local_file, $file_exists ) ) {
+			$file_exists[ $local_file ] = is_file( $local_file );
+		}
+
+		if ( ! $file_exists[ $local_file ] ) {
+			unset( $sources[ $width ] );
+		}
+	}
+
+	return array() === $sources ? false : $sources;
+}
+add_filter( 'wp_calculate_image_srcset', 'nvx_filter_missing_local_srcset_sources', 20, 5 );

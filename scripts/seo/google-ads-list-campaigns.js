@@ -77,9 +77,9 @@ async function main() {
   let rawLoginCustomerId = loginCustomerIdRes.value;
 
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
-  if (rawCustomerId && rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {
+  if (rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
     const tempSecret = rawCustomerId;
-    rawCustomerId = clientSecret && !clientSecret.startsWith('GOCSPX-') ? clientSecret : (rawLoginCustomerId || '');
+    rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
     clientSecret = tempSecret;
   }
 
@@ -138,14 +138,14 @@ async function main() {
 main().catch((err) => {
   const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
 
-  console.error('Error listing campaigns:', sanitizeMessage(err && err.message ? err.message : String(err)));
-  if (err && Array.isArray(err.errors)) {
+  console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
+  if (Array.isArray(err?.errors)) {
     const sanitizedErrors = err.errors.map((e) => ({
       error_code: e.error_code || e.errorCode,
       message: sanitizeMessage(e.message),
     }));
     console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
   }
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err && err.message ? err.message : 'unknown error'));
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));
   process.exit(1);
 });

@@ -56,13 +56,21 @@ async function main() {
 
   const oauth = json.installed || json.web || json.credentials || json.oauth || json;
 
-  const clientId = pick(oauth.client_id, oauth.clientId, process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID);
-  const clientSecret = pick(oauth.client_secret, oauth.clientSecret, process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET);
-  const devToken = pick(oauth.developer_token, oauth.developerToken, process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN);
-  const refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
-  const rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
+  let clientId = pick(oauth.client_id, oauth.clientId, process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID);
+  let clientSecret = pick(oauth.client_secret, oauth.clientSecret, process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET);
+  let devToken = pick(oauth.developer_token, oauth.developerToken, process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN);
+  let refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
+  let rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
+  let rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
+
+  // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
+  if (rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {
+    const tempSecret = rawCustomerId;
+    rawCustomerId = clientSecret && !clientSecret.startsWith('GOCSPX-') ? clientSecret : (rawLoginCustomerId || '');
+    clientSecret = tempSecret;
+  }
+
   const customerId = rawCustomerId.replace(/-/g, '');
-  const rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
   const loginCustomerId = rawLoginCustomerId.replace(/-/g, '');
 
   const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');

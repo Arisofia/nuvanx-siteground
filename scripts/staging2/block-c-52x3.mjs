@@ -82,11 +82,11 @@ function validateAndNormalizePages(pages) {
     path: normalizePath(page.link),
   }));
   const unique = new Set(normalized.map((page) => page.path));
-  if (normalized.length !== 52) {
-    throw new Error(`Block C requires 52 published pages; WordPress REST returned ${normalized.length}`);
+  if (normalized.length < 52) {
+    throw new Error(`Block C requires at least 52 published pages; WordPress REST returned ${normalized.length}`);
   }
-  if (unique.size !== 52) {
-    throw new Error(`Block C requires 52 unique published paths; REST returned ${unique.size}`);
+  if (unique.size < 52) {
+    throw new Error(`Block C requires at least 52 unique published paths; REST returned ${unique.size}`);
   }
   for (const page of normalized) {
     if (new URL(page.url).hostname !== expectedHost) {

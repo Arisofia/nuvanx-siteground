@@ -7,11 +7,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * *'
-  workflow_run:
-    workflows:
-      - Production SEO GEO Origin Audit
-    types:
-      - completed
 
 permissions:
   contents: read
@@ -28,6 +23,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Audit Mobile PageSpeed & Core Web Vitals
         shell: bash
@@ -36,142 +33,202 @@ jobs:
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          echo "Running PageSpeed Mobile Audit on $BASE_URL..."
-          
           API_URL="https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${BASE_URL}&strategy=mobile"
           if [[ -n "${PAGESPEED_API_KEY:-}" ]]; then
             API_URL="${API_URL}&key=${PAGESPEED_API_KEY}"
-            echo "Using configured PAGESPEED_API_KEY secret."
           else
-            echo "::warning::No PAGESPEED_API_KEY / GOOGLE_API_KEY secret found. Using unauthenticated public endpoint."
+            echo "::warning::No PageSpeed API key configured; using public endpoint."
           fi
 
-          RESPONSE=$(curl -sSL --max-time 45 --retry 3 --retry-delay 2 "$API_URL" || echo "")
-          
+          RESPONSE=$(curl -sSL --max-time 45 --retry 3 --retry-delay 2 "$API_URL" || true)
           if [[ -z "$RESPONSE" ]]; then
-            echo "::warning::PageSpeed API request timed out or returned empty response."
+            echo "::warning::PageSpeed API returned no response. Detailed Lighthouse evidence is maintained separately."
+            exit 0
+          fi
+          if echo "$RESPONSE" | jq -e '.error' >/dev/null 2>&1; then
+            ERR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "API error"')
+            ERR_REASON=$(echo "$RESPONSE" | jq -r '.error.errors[0].reason // "unknown"')
+            echo "::warning::PageSpeed API unavailable ($ERR_REASON): $ERR_MSG"
             exit 0
           fi
 
-          if echo "$RESPONSE" | grep -q '"error"'; then
-            ERR_MSG=$(echo "$RESPONSE" | grep -o '"message": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "API Error")
-            ERR_REASON=$(echo "$RESPONSE" | grep -o '"reason": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "Unknown")
-            echo "::warning::PageSpeed API returned an error ($ERR_REASON): $ERR_MSG"
-            echo "## PageSpeed Mobile Audit (Notice)" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Status: Warning ($ERR_REASON)" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Message: $ERR_MSG" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Action Required: Configure a valid PAGESPEED_API_KEY in Repository Secrets." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          SCORE=$(echo "$RESPONSE" | grep -o '"score": [0-9.]*' | head -n 1 | awk '{print $2}' || echo "N/A")
-          if [[ "$SCORE" != "N/A" && -n "$SCORE" ]]; then
+          SCORE=$(echo "$RESPONSE" | jq -r '.lighthouseResult.categories.performance.score // empty')
+          if [[ -n "$SCORE" ]]; then
             PCT=$(awk "BEGIN {print int($SCORE * 100)}")
             echo "PAGESPEED_MOBILE_PERFORMANCE_SCORE=$PCT"
-            echo "## PageSpeed Mobile Audit" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Strategy: Mobile" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Target: $BASE_URL" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Performance Score: ${PCT}/100" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo '## PageSpeed Mobile Audit'
+              echo "- Performance: ${PCT}/100"
+              echo '- Laboratory signal only; use the reproducible Lighthouse matrix for optimization decisions.'
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "::warning::Could not parse performance score from PageSpeed API response."
+            echo "::warning::PageSpeed response contained no Lighthouse score."
           fi
 
-  sitemap-status:
-    name: Sitemap Status Verification
+  origin-seo-contract:
+    name: Production SEO/GEO Origin Contract
     runs-on: ubuntu-latest
     needs: pagespeed-mobile-audit
-    continue-on-error: true
+    timeout-minutes: 30
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://nuvanx.com
+      EXPECTED_HOST: nuvanx.com
     steps:
-      - name: Checkout code
+      - name: Checkout canonical audit tooling
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - name: Verify Sitemap Accessibility & Indexing Status
+      - name: Validate audit script syntax
+        run: bash -n scripts/production/seo-geo-origin-audit.sh
+
+      - name: Configure strict production SSH authentication
         shell: bash
         env:
-          BASE_URL: https://nuvanx.com
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          echo "Checking sitemap index at $BASE_URL/sitemap_index.xml..."
-          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL/sitemap_index.xml" || echo "000")
-          if [[ "$HTTP_CODE" -eq 200 ]]; then
-            echo "SITEMAP_STATUS=PASS (HTTP 200)"
-          else
-            echo "::warning::Sitemap returned HTTP status $HTTP_CODE"
-            echo "SITEMAP_STATUS=WARNING_HTTP_$HTTP_CODE"
-          fi
+          : "${HOST:?Missing PROD_SSH_HOST}"
+          : "${USER:?Missing PROD_SSH_USER}"
+          : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_seo_verification_key"; chmod 600 "$HOME/.ssh/prod_seo_verification_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-seo-verification
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_seo_verification_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-seo-verification "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v curl >/dev/null"
 
-  search-console-verification:
-    name: Search Console Verification
+      - name: Run blocking production SEO/GEO audit from origin network
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/seo/artifacts
+          ssh nvx-prod-seo-verification \
+            "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" \
+            < scripts/production/seo-geo-origin-audit.sh \
+            | tee scripts/seo/artifacts/seo-geo-origin-audit.log
+
+      - name: Export canonical sitemap URLs from origin network
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod-seo-verification "BASE_URL='$BASE_URL' bash -se" > scripts/seo/artifacts/sitemap-urls.txt <<'REMOTE'
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+          ua='NUVANX-SEO-Verification-Origin/1.0'
+          curl -fsSL --max-time 30 -A "$ua" "$BASE_URL/sitemap_index.xml" -o "$tmpdir/index.xml"
+          grep -oE '<loc>[^<]+</loc>' "$tmpdir/index.xml" | sed -E 's#</?loc>##g' | sed 's/&amp;/\&/g' > "$tmpdir/children.txt"
+          : > "$tmpdir/urls.txt"
+          while IFS= read -r child; do
+            [[ -n "$child" ]] || continue
+            curl -fsSL --max-time 30 -A "$ua" "$child" \
+              | grep -oE '<loc>[^<]+</loc>' \
+              | sed -E 's#</?loc>##g' \
+              | sed 's/&amp;/\&/g' >> "$tmpdir/urls.txt"
+          done < "$tmpdir/children.txt"
+          sort -u "$tmpdir/urls.txt" | grep '^https://nuvanx\.com/'
+          REMOTE
+          URL_COUNT=$(grep -c '^https://nuvanx\.com/' scripts/seo/artifacts/sitemap-urls.txt || true)
+          if [[ "$URL_COUNT" -lt 1 ]]; then
+            echo "::error::Origin sitemap export returned zero URLs"
+            exit 1
+          fi
+          echo "ORIGIN_SITEMAP_URLS=$URL_COUNT"
+
+      - name: Upload origin SEO evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-origin-evidence-${{ github.run_id }}
+          path: scripts/seo/artifacts/
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Destroy production SSH identity
+        if: always()
+        run: rm -f "$HOME/.ssh/prod_seo_verification_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+  inspect-search-console-pages:
+    name: Inspect Sitemap URLs via Search Console
     runs-on: ubuntu-latest
-    needs: sitemap-status
-    continue-on-error: true
+    needs: origin-seo-contract
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download origin URL evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: seo-origin-evidence-${{ github.run_id }}
+          path: scripts/seo/artifacts
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Verify Search Console Metadata & Directives
-        shell: bash
-        env:
-          BASE_URL: https://nuvanx.com
-        run: |
-          set -euo pipefail
-          echo "Verifying SEO metadata on $BASE_URL..."
-          curl -fsSL --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL" -o index.html || echo "::warning::Failed to fetch $BASE_URL"
-          if [[ -f index.html ]]; then
-            grep -i '<meta name="robots"' index.html || echo "::warning::No robots meta tag found"
-            grep -i 'rel="canonical"' index.html || echo "::warning::No canonical tag found"
-          fi
-
-  index-all-pages:
-    name: Index All Pages via Search Console
-    runs-on: ubuntu-latest
-    needs: search-console-verification
-    continue-on-error: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/seo/package-lock.json
 
       - name: Install SEO script dependencies
-        run: |
-          cd scripts/seo
-          npm install
+        run: npm ci --prefix scripts/seo
 
-      - name: Index All Pages via Search Console
+      - name: Inspect Search Console coverage
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS || secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON: ${{ secrets.SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON || secrets.GOOGLE_APPLICATION_CREDENTIALS }}
           SEARCH_CONSOLE_PROPERTY: ${{ secrets.SEARCH_CONSOLE_PROPERTY }}
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          
-          CREDS="${GOOGLE_APPLICATION_CREDENTIALS:-}"
+          CREDS="${SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON:-}"
           if [[ -z "$CREDS" || "$CREDS" == *"{{"* ]]; then
-            echo "::warning::GOOGLE_APPLICATION_CREDENTIALS / GOOGLE_ADS_JSON secret is missing or empty."
-            echo "To enable Search Console indexing, configure the required secret in Repository Secrets."
+            echo "::warning::Search Console service-account JSON is not configured; URL Inspection skipped."
+            echo "SEARCH_CONSOLE_INSPECTION=SKIPPED_NO_CREDENTIALS" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          
-          SEARCH_PROP="${SEARCH_CONSOLE_PROPERTY:-$BASE_URL}"
-          
-          mkdir -p scripts/seo/artifacts
-          
-          # Write credentials to file
-          echo "$CREDS" > scripts/seo/credentials.json
-          
-          # Run page indexing
-          cd scripts/seo
-          node index-pages.js \
+
+          SEARCH_PROP="${SEARCH_CONSOLE_PROPERTY:-https://nuvanx.com/}"
+          printf '%s' "$CREDS" > scripts/seo/credentials.json
+          trap 'rm -f scripts/seo/credentials.json' EXIT
+          node scripts/seo/index-pages.js \
             --property "$SEARCH_PROP" \
             --url "$BASE_URL" \
-            | tee artifacts/index-pages.log
+            --urls-file scripts/seo/artifacts/sitemap-urls.txt \
+            --max-urls 200 \
+            | tee scripts/seo/artifacts/url-inspection.log
+
+      - name: Upload Search Console inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-console-url-inspection-${{ github.run_id }}
+          path: |
+            scripts/seo/artifacts/indexing-results.json
+            scripts/seo/artifacts/url-inspection.log
+          if-no-files-found: warn
+          retention-days: 14

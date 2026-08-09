@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: h1-hubspot-e2e
+  group: h1-hubspot-e2e-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c08020d05da54fe8137545ad # v4.1.0
         with:
           node-version: '22'
 
@@ -37,7 +37,7 @@ jobs:
           cd tmp-h1
           npm init -y
           npm install --ignore-scripts --no-audit --no-fund playwright@1.54.2
-          npx --no-install playwright@1.54.2 install --with-deps chromium
+          npx --no-install playwright install --with-deps chromium
 
       - name: Run H1 E2E against production
         shell: bash

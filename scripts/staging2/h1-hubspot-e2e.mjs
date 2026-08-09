@@ -3,8 +3,9 @@ import { chromium } from 'playwright';
 const base = 'https://nuvanx.com';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 
-// Generate unique per-run QA credentials based on run ID or timestamp.
-const runId = process.env.GITHUB_RUN_ID || Date.now().toString();
+// Generate unique per-run QA credentials based on run ID, run attempt or timestamp.
+const runAttempt = process.env.GITHUB_RUN_ATTEMPT || '1';
+const runId = `${process.env.GITHUB_RUN_ID || Date.now().toString()}-${runAttempt}`;
 const gclid = `NUVANX_QA_H1_${runId}`;
 const email = `nvxqa-h1-${runId}@example.com`;
 const phone = '+34600000000';
@@ -15,7 +16,7 @@ const sel = (name) => `input[name="${name}"],input[name="0-1/${name}"]`;
 
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 try {
   const context = await browser.newContext({ userAgent: ua });
   const page = await context.newPage();
@@ -127,7 +128,8 @@ try {
   }
 
   const customValue = await waitForValue('nvx_google_click_id', 40);
-  const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 40) : '';
+  // Native field is informational only (never asserted), so use a short budget.
+  const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 4) : '';
   console.log(`CUSTOM_GCLID_MATCH=${customValue === gclid}`);
   console.log(`NATIVE_GCLID_MATCH=${nativeValue === gclid}`);
   if (customValue !== gclid) throw new Error(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
@@ -151,10 +153,14 @@ try {
     const box = checks.nth(i);
     const checked = await box.isChecked().catch(() => false);
     if (!checked) {
-      // First try standard click/check interaction for React framework state.
-      await box.click({ force: true }).catch(() => {});
+      // Prefer Playwright's real user interaction so HubSpot's React state
+      // registers the change through its own value setter.
+      await box.check({ force: true }).catch(async () => {
+        await box.click({ force: true }).catch(() => {});
+      });
       const nowChecked = await box.isChecked().catch(() => false);
       if (!nowChecked) {
+        // Last-resort DOM fallback if the framework interaction did not stick.
         await box.evaluate((el) => {
           el.checked = true;
           el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -177,8 +183,12 @@ try {
     try {
       const request = response.request();
       const targetUrl = response.url();
+      // Match only the concrete HubSpot form-submission endpoint for this form
+      // (e.g. api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>)
+      // to avoid false positives from HubSpot analytics/telemetry traffic.
       const isSubmissionPost = request.method() === 'POST' &&
-        (/submissions/i.test(targetUrl) || /hsforms/i.test(targetUrl) || /hubspot/i.test(targetUrl));
+        /\/submissions\/v3\/integration\/submit\//i.test(targetUrl) &&
+        targetUrl.includes(formId);
       if (isSubmissionPost && response.status() >= 200 && response.status() < 400) {
         submitted = true;
       }

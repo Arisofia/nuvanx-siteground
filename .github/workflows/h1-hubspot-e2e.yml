@@ -1,11 +1,17 @@
 name: H1 HubSpot Attribution E2E
 
+# This E2E performs a REAL form submission against the production site
+# (https://nuvanx.com), creating a QA contact in the live HubSpot CRM on every run.
+# It is therefore intentionally NOT wired to pull_request / push triggers to avoid
+# generating junk leads (and downstream sales/conversion automations) on every commit.
+# Run it deliberately via workflow_dispatch when H1 attribution needs verification.
 on:
-  pull_request:
-    branches: [master]
-  push:
-    branches: [master, 'audit/*']
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Optional 40-hex deploy SHA to assert against the production nvx-deploy-sha meta tag'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -42,6 +48,8 @@ jobs:
 
       - name: Run H1 E2E against production
         shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
         run: |
           set -euo pipefail
           mkdir -p scripts/staging2/h1-artifacts

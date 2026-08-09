@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Inspect nuvanx.com URLs through the Google Search Console URL Inspection API.
- * URLs may be discovered from the public sitemap or supplied from a trusted
- * origin-derived file to avoid SiteGround AntiBot responses on GitHub runners.
+ * Inspect nuvanx.com sitemap URLs through the Google Search Console URL Inspection API.
+ *
+ * Important: Search Console does not provide a general-purpose "submit URL for indexing"
+ * method. This script inspects the indexed state only. Google's separate Indexing API is
+ * restricted to JobPosting and BroadcastEvent pages and is not appropriate for NUVANX
+ * treatment/clinic pages.
  */
 
 const { google } = require('googleapis');
@@ -13,27 +16,30 @@ const path = require('path');
 const args = process.argv.slice(2);
 let property = '';
 let baseUrl = '';
-let urlsFile = '';
 let maxUrls = 200;
 
 for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--property' && args[i + 1]) property = args[++i];
-  else if (args[i] === '--url' && args[i + 1]) baseUrl = args[++i];
-  else if (args[i] === '--urls-file' && args[i + 1]) urlsFile = args[++i];
-  else if (args[i] === '--max-urls' && args[i + 1]) maxUrls = Number.parseInt(args[++i], 10);
+  if (args[i] === '--property' && args[i + 1]) {
+    property = args[++i];
+  } else if (args[i] === '--url' && args[i + 1]) {
+    baseUrl = args[++i];
+  } else if (args[i] === '--max-urls' && args[i + 1]) {
+    maxUrls = Number.parseInt(args[++i], 10);
+  }
 }
 
 if (!property || !baseUrl) {
   console.error('Error: --property and --url are required');
+  console.error('Usage: node index-pages.js --property <property> --url <url> [--max-urls 200]');
   process.exit(1);
 }
+
 if (!Number.isFinite(maxUrls) || maxUrls < 1 || maxUrls > 500) {
   console.error('Error: --max-urls must be between 1 and 500');
   process.exit(1);
 }
 
 const normalizedBase = baseUrl.replace(/\/$/, '');
-const baseOrigin = new URL(normalizedBase).origin;
 const sitemapIndexUrl = `${normalizedBase}/sitemap_index.xml`;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -50,78 +56,89 @@ function extractLocs(xml) {
   return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)].map(match => decodeXml(match[1].trim()));
 }
 
-function normalizeCandidateUrls(candidates) {
-  const urls = new Set();
-  for (const candidate of candidates) {
-    try {
-      const parsed = new URL(String(candidate).trim());
-      if (parsed.origin === baseOrigin) urls.add(parsed.href);
-    } catch {
-      console.warn(`Ignoring invalid URL: ${candidate}`);
-    }
-  }
-  const normalized = [...urls].slice(0, maxUrls);
-  if (normalized.length === 0) throw new Error('URL discovery returned zero same-origin URLs');
-  return normalized;
-}
-
 async function fetchTextWithRetry(url, attempts = 6) {
   let lastStatus = 0;
   let lastError = null;
+
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const response = await fetch(url, {
-        headers: { 'user-agent': 'Mozilla/5.0 (compatible; NUVANX-SEO-Audit/1.0)' },
+        headers: {
+          'user-agent': 'Mozilla/5.0 (compatible; NUVANX-SEO-Audit/1.0)'
+        },
         redirect: 'follow'
       });
       lastStatus = response.status;
-      if (response.status === 200) return await response.text();
+
+      if (response.status === 200) {
+        return await response.text();
+      }
+
       if (response.status === 202 || response.status === 429 || response.status >= 500) {
         await sleep(attempt * 2000);
         continue;
       }
+
       const fatal = new Error(`HTTP ${response.status} for ${url}`);
       fatal.nonRetryable = true;
       throw fatal;
     } catch (error) {
-      if (error?.nonRetryable) throw error;
+      if (error?.nonRetryable) {
+        throw error;
+      }
       lastError = error;
-      if (attempt < attempts) await sleep(attempt * 2000);
+      if (attempt < attempts) {
+        await sleep(attempt * 2000);
+      }
     }
   }
+
   throw new Error(lastError?.message || `Unable to fetch ${url}; last HTTP status ${lastStatus}`);
 }
 
 async function discoverCanonicalUrls() {
-  if (urlsFile) {
-    const resolved = path.resolve(urlsFile);
-    if (!fs.existsSync(resolved)) throw new Error(`URLs file not found: ${resolved}`);
-    const candidates = fs.readFileSync(resolved, 'utf8')
-      .split(/\r?\n/)
-      .map(value => value.trim())
-      .filter(Boolean);
-    const urls = normalizeCandidateUrls(candidates);
-    console.log(`Canonical URLs loaded from origin evidence: ${urls.length}`);
-    return urls;
-  }
-
   console.log(`Fetching sitemap index: ${sitemapIndexUrl}`);
   const indexXml = await fetchTextWithRetry(sitemapIndexUrl);
   const indexEntries = extractLocs(indexXml);
   const childSitemapPattern = /\.xml(?:\.gz)?(?:$|\?)/i;
   const childSitemaps = indexEntries.filter(url => childSitemapPattern.test(url));
+
+  for (const entry of indexEntries) {
+    if (!childSitemapPattern.test(entry)) {
+      console.warn(`Skipping non-sitemap index entry: ${entry}`);
+    }
+  }
+
   if (childSitemaps.length === 0) {
     throw new Error(`No child sitemaps found in sitemap_index.xml (index contained ${indexEntries.length} entries)`);
   }
 
-  const candidates = [];
+  console.log(`Child sitemaps: ${childSitemaps.length}`);
+  const urls = new Set();
+
   for (const sitemapUrl of childSitemaps) {
     const xml = await fetchTextWithRetry(sitemapUrl);
     const locs = extractLocs(xml);
     console.log(`  ${sitemapUrl}: ${locs.length} URLs`);
-    candidates.push(...locs);
+
+    for (const candidate of locs) {
+      try {
+        const parsed = new URL(candidate);
+        if (parsed.origin === new URL(normalizedBase).origin) {
+          urls.add(parsed.href);
+        }
+      } catch {
+        console.warn(`Ignoring invalid sitemap URL: ${candidate}`);
+      }
+    }
   }
-  return normalizeCandidateUrls(candidates);
+
+  const discovered = [...urls].slice(0, maxUrls);
+  if (discovered.length === 0) {
+    throw new Error('Sitemap discovery returned zero canonical URLs');
+  }
+
+  return discovered;
 }
 
 function simplifyInspection(url, inspectionResult) {
@@ -144,13 +161,16 @@ function simplifyInspection(url, inspectionResult) {
 
 async function inspectAllPages() {
   const credentialsPath = path.join(__dirname, 'credentials.json');
-  if (!fs.existsSync(credentialsPath)) throw new Error('credentials.json not found');
+  if (!fs.existsSync(credentialsPath)) {
+    throw new Error('credentials.json not found');
+  }
 
   const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
   });
+
   const searchconsole = google.searchconsole({ version: 'v1', auth });
   const urls = await discoverCanonicalUrls();
 
@@ -166,18 +186,26 @@ async function inspectAllPages() {
   for (const url of urls) {
     try {
       const response = await searchconsole.urlInspection.index.inspect({
-        requestBody: { inspectionUrl: url, siteUrl: property, languageCode: 'es-ES' }
+        requestBody: {
+          inspectionUrl: url,
+          siteUrl: property,
+          languageCode: 'es-ES'
+        }
       });
+
       const row = simplifyInspection(url, response.data.inspectionResult);
       const indexed = row.verdict === 'PASS';
-      const blocked = row.indexingState === 'BLOCKED_BY_META_TAG' ||
-        row.indexingState === 'BLOCKED_BY_HTTP_HEADER' ||
-        row.robotsTxtState === 'DISALLOWED';
-      const canonicalMismatch = Boolean(row.googleCanonical && row.userCanonical && row.googleCanonical !== row.userCanonical);
+      const blocked = row.indexingState === 'BLOCKED_BY_META_TAG' || row.indexingState === 'BLOCKED_BY_HTTP_HEADER' || row.robotsTxtState === 'DISALLOWED';
+      const canonicalMismatch = row.googleCanonical && row.userCanonical && row.googleCanonical !== row.userCanonical;
 
-      if (indexed && !blocked && !canonicalMismatch) pass++;
-      else if (!indexed) notIndexed++;
-      if (blocked || canonicalMismatch) warnings++;
+      if (indexed && !blocked && !canonicalMismatch) {
+        pass++;
+      } else if (!indexed) {
+        notIndexed++;
+      }
+      if (blocked || canonicalMismatch) {
+        warnings++;
+      }
 
       results.push({ ...row, apiStatus: 'ok', blocked, canonicalMismatch });
       console.log(`${indexed ? 'PASS' : 'NOT_INDEXED'} ${url} coverage="${row.coverageState}" crawl="${row.lastCrawlTime || 'none'}"`);
@@ -186,6 +214,7 @@ async function inspectAllPages() {
       results.push({ url, apiStatus: 'error', error: error.message });
       console.error(`API_ERROR ${url}: ${error.message}`);
     }
+
     await sleep(150);
   }
 
@@ -196,14 +225,21 @@ async function inspectAllPages() {
     JSON.stringify({
       generatedAt: new Date().toISOString(),
       property,
-      source: urlsFile ? 'origin-url-file' : 'public-sitemap',
       sitemapIndexUrl,
-      totals: { urls: urls.length, pass, notIndexed, warnings, apiErrors },
+      totals: {
+        urls: urls.length,
+        pass,
+        notIndexed,
+        warnings,
+        apiErrors
+      },
       results
     }, null, 2)
   );
 
   const errorRatio = urls.length > 0 ? apiErrors / urls.length : 0;
+  const maxErrorRatio = 0.2;
+
   console.log('\n=== Search Console URL Inspection Summary ===');
   console.log(`TOTAL_URLS=${urls.length}`);
   console.log(`INDEXED_PASS=${pass}`);
@@ -212,7 +248,13 @@ async function inspectAllPages() {
   console.log(`API_ERRORS=${apiErrors}`);
   console.log(`API_ERROR_RATIO=${errorRatio.toFixed(3)}`);
   console.log('INSPECTION_COMPLETED=true');
-  if (apiErrors > 0 && errorRatio > 0.2) process.exitCode = 2;
+
+  // Tolerate a small ratio of transient API errors (quota/5xx). Only fail the run
+  // when the error ratio exceeds the threshold, which signals a systemic problem.
+  if (apiErrors > 0 && errorRatio > maxErrorRatio) {
+    console.error(`::error::API error ratio ${errorRatio.toFixed(3)} exceeds threshold ${maxErrorRatio}`);
+    process.exitCode = 2;
+  }
 }
 
 inspectAllPages().catch(error => {

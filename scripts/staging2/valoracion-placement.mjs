@@ -5,6 +5,7 @@ import path from 'node:path';
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const url = `${baseUrl}/madrid/valoracion/`;
+const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA');
@@ -32,6 +33,55 @@ async function navigate(page) {
     await page.waitForTimeout(2500 * attempt);
   }
   return last;
+}
+
+async function inspectHubSpotInteractivity(page, embeddedSrc) {
+  const state = {
+    frameFound: false,
+    frameUrl: '',
+    controls: 0,
+    visibleControls: 0,
+    bodyTextLength: 0,
+    bodyScrollHeight: 0,
+  };
+
+  const deadline = Date.now() + 12000;
+  while (Date.now() < deadline) {
+    const candidateFrames = page.frames().filter((frame) => {
+      if (frame === page.mainFrame()) return false;
+      const frameUrl = frame.url() || '';
+      return frameUrl.includes(expectedFormId) || (embeddedSrc && frameUrl === embeddedSrc);
+    });
+
+    for (const frame of candidateFrames) {
+      state.frameFound = true;
+      state.frameUrl = frame.url() || '';
+
+      const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
+      const count = await controls.count().catch(() => 0);
+      let visibleControls = 0;
+      for (let index = 0; index < Math.min(count, 40); index += 1) {
+        if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
+      }
+
+      const bodyText = await frame.locator('body').innerText().catch(() => '');
+      const bodyScrollHeight = await frame
+        .locator('body')
+        .evaluate((body) => Math.round(Math.max(body.scrollHeight, body.getBoundingClientRect().height)))
+        .catch(() => 0);
+
+      state.controls = Math.max(state.controls, count);
+      state.visibleControls = Math.max(state.visibleControls, visibleControls);
+      state.bodyTextLength = Math.max(state.bodyTextLength, String(bodyText || '').trim().length);
+      state.bodyScrollHeight = Math.max(state.bodyScrollHeight, bodyScrollHeight);
+
+      if (visibleControls > 0) return state;
+    }
+
+    await page.waitForTimeout(750);
+  }
+
+  return state;
 }
 
 for (const viewport of viewports) {
@@ -77,6 +127,7 @@ for (const viewport of viewports) {
       adjacent: Boolean(hero && formSection && hero.nextElementSibling === formSection),
       heroHeight: hr ? Math.round(hr.height) : 0,
       formTop: fr ? Math.round(fr.top) : null,
+      formHeight: fr ? Math.round(fr.height) : 0,
       heroBottom: hr ? Math.round(hr.bottom) : null,
       headerBottom: hdr ? Math.round(hdr.bottom) : null,
     };
@@ -122,12 +173,15 @@ for (const viewport of viewports) {
     const embedded = section?.querySelector('.hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]') || null;
     const embeddedSrc = embedded?.getAttribute('src') || '';
     const embeddedTestId = embedded?.getAttribute('data-test-id') || '';
+    const embeddedRect = embedded?.getBoundingClientRect();
     const rogueLegacy = Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((el) => !section?.contains(el)).length;
     const rogueIframes = Array.from(document.querySelectorAll('iframe[data-test-id^="embedded-form-"]')).filter((el) => !section?.contains(el)).length;
     return {
       embedded: Boolean(embedded),
       embeddedSrc,
       embeddedTestId,
+      embeddedWidth: embeddedRect ? Math.round(embeddedRect.width) : 0,
+      embeddedHeight: embeddedRect ? Math.round(embeddedRect.height) : 0,
       expectedIdentity: Boolean(
         embedded &&
         embeddedSrc.includes(`_hsPortalId=${expectedPortalId}`) &&
@@ -145,8 +199,39 @@ for (const viewport of viewports) {
     issues.push(`Found ${mountState.rogueMounts} HubSpot form mount(s) outside #nvx-hubspot-form`);
   }
 
+  let interactiveState = {
+    frameFound: false,
+    frameUrl: '',
+    controls: 0,
+    visibleControls: 0,
+    bodyTextLength: 0,
+    bodyScrollHeight: 0,
+  };
+
+  if (mountState.embedded) {
+    interactiveState = await inspectHubSpotInteractivity(page, mountState.embeddedSrc);
+    if (!interactiveState.frameFound) {
+      issues.push('HubSpot iframe element exists but its document frame was not reachable');
+    } else if (interactiveState.visibleControls < 1) {
+      issues.push(
+        `HubSpot iframe has no visible interactive controls (controls=${interactiveState.controls}, text=${interactiveState.bodyTextLength}, height=${interactiveState.bodyScrollHeight})`
+      );
+    }
+  } else if (mounted) {
+    const legacyControls = page.locator(
+      '#nvx-hubspot-form .hbspt-form input:not([type="hidden"]), #nvx-hubspot-form .hbspt-form textarea, #nvx-hubspot-form .hbspt-form select, #nvx-hubspot-form .hbspt-form button, #nvx-hubspot-form form.hs-form input:not([type="hidden"]), #nvx-hubspot-form form.hs-form textarea, #nvx-hubspot-form form.hs-form select, #nvx-hubspot-form form.hs-form button'
+    );
+    interactiveState.controls = await legacyControls.count().catch(() => 0);
+    for (let index = 0; index < Math.min(interactiveState.controls, 40); index += 1) {
+      if (await legacyControls.nth(index).isVisible().catch(() => false)) interactiveState.visibleControls += 1;
+    }
+    if (interactiveState.visibleControls < 1) {
+      issues.push(`Legacy HubSpot form mounted without visible interactive controls (controls=${interactiveState.controls})`);
+    }
+  }
+
   await page.screenshot({ path: path.join(outDir, `valoracion-${viewport.key}.jpg`), type: 'jpeg', quality: 78, fullPage: true });
-  results.push({ viewport, placement, mounted, mountState, issues });
+  results.push({ viewport, placement, mounted, mountState, interactiveState, issues });
   console.log(`${issues.length ? 'FIX' : 'PASS'} /madrid/valoracion/ ${viewport.width}x${viewport.height}`);
   issues.forEach((issue) => console.error(`  ${issue}`));
   await context.close();
@@ -156,4 +241,5 @@ await browser.close();
 await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`);
 
 if (results.some((result) => result.issues.length > 0)) process.exit(1);
+console.log('VALORACION_INTERACTIVITY=PASS');
 console.log('VALORACION_PLACEMENT=PASS');

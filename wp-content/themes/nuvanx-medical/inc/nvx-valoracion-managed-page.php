@@ -14,6 +14,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Canonical clinical explanation for the managed valuation landing.
+ *
+ * A virtual orientation can start the process, while physical examination is
+ * still required whenever it is clinically necessary before treatment.
+ */
+function nvx_valoracion_managed_intro_markup(): string {
+	$html  = '<section class="nvx-brand-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
+	$html .= '<div class="nvx-container">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Puedes iniciar el proceso con una orientación virtual o reservar directamente una valoración presencial en Chamberí o Salamanca–Goya. La cita suele durar entre 15 y 30 minutos. Durante ese tiempo revisamos el motivo de consulta, las opciones de tratamiento, los tiempos de recuperación y el presupuesto individualizado. Cuando la exploración física sea necesaria para confirmar la indicación, se completa de forma presencial antes de tratar.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Al finalizar tendrás una orientación clara sobre los siguientes pasos. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres criterios:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ol class="nvx-treatment-process__steps nvx-valoracion-steps">';
+
+	$steps = function_exists( 'nvx_valoracion_process_steps' ) ? nvx_valoracion_process_steps() : array();
+	foreach ( $steps as $step ) {
+		$html .= '<li class="nvx-treatment-process__step">';
+		$html .= '<h3 class="nvx-treatment-process__step-title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
+		$html .= '</li>';
+	}
+	$html .= '</ol>';
+
+	if ( function_exists( 'nvx_contact_privacy_disclaimer_markup' ) ) {
+		$html .= nvx_contact_privacy_disclaimer_markup();
+	}
+	$html .= '</div></section>';
+
+	$html .= '<section class="nvx-brand-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
+	$html .= '<div class="nvx-container">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
+	if ( function_exists( 'nvx_contact_clinics_markup' ) ) {
+		$html .= nvx_contact_clinics_markup();
+	}
+	$html .= '</div></section>';
+
+	return $html;
+}
+
+/**
  * Build the canonical valuation page before form-order and HubSpot MU filters.
  */
 function nvx_valoracion_managed_page_markup(): string {
@@ -23,9 +64,10 @@ function nvx_valoracion_managed_page_markup(): string {
 	global $nvx_page_shell_has_hero;
 	$nvx_page_shell_has_hero = true;
 
-	$valuation_url = home_url( '/madrid/valoracion/' );
-	$form_id       = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-	$portal_id     = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
+	$valuation_url  = home_url( '/madrid/valoracion/' );
+	$doctoralia_url = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+	$form_id        = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+	$portal_id      = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
 
 	$html  = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
 
@@ -42,15 +84,16 @@ function nvx_valoracion_managed_page_markup(): string {
 	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'SOLICITUD DE VALORACIÓN', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-valoracion-form-title" class="nvx-brand-title">' . esc_html__( 'Cuéntanos qué quieres valorar', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-body">' . esc_html__( 'Completa tus datos, indica la zona o tratamiento de interés y selecciona tu sede preferida. El equipo de NUVANX te contactará para coordinar la cita.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-body">' . esc_html__( 'Completa tus datos e indica la zona o tratamiento de interés. El equipo de NUVANX te contactará para coordinar una orientación virtual o una valoración presencial. La cita suele durar entre 15 y 30 minutos y permite revisar tu caso, las opciones de tratamiento y el presupuesto individualizado.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-form nvx-hs-native-section" aria-label="' . esc_attr__( 'Formulario de valoración médica NUVANX', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-hs-native-box">';
 	$html .= '<div id="nvx-hubspot-native-form" class="nvx-hubspot-native-form-v2" data-nvx-hubspot-native="1" data-nvx-hubspot-eager="1" data-form-id="' . esc_attr( $form_id ) . '" data-portal-id="' . esc_attr( $portal_id ) . '" data-page-origin="' . esc_attr__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '" data-page-url="' . esc_url( $valuation_url ) . '"></div>';
 	$html .= '<p class="nvx-copy nvx-form-note">' . esc_html__( 'La información enviada se utiliza para gestionar tu solicitud. La indicación final depende de valoración médica y los resultados pueden variar según cada paciente.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-copy nvx-form-note nvx-doctoralia-proof">' . esc_html__( 'Más de 100 opiniones verificadas en Doctoralia.', 'nuvanx-medical' ) . ' <a class="nvx-brand-inline-link" href="' . esc_url( $doctoralia_url ) . '" target="_blank" rel="noopener noreferrer external">' . esc_html__( 'Consultar opiniones verificadas', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></div></div></section>';
 
 	// Keep clinical explanation and locations after the conversion block.
-	$html .= nvx_valoracion_intro_markup();
+	$html .= nvx_valoracion_managed_intro_markup();
 
 	// Runtime governance owns the HubSpot loader. Trigger the page mount once all
 	// DOMContentLoaded listeners are installed so the dedicated form does not wait
@@ -75,6 +118,20 @@ function nvx_render_managed_valoracion_page( $content ): string {
 	return nvx_valoracion_managed_page_markup();
 }
 add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );
+
+/**
+ * Keep the SERP description aligned with the lower-friction valuation journey.
+ *
+ * @param string $description Existing Yoast description.
+ */
+function nvx_valoracion_managed_metadesc( $description ): string {
+	if ( ! function_exists( 'nvx_is_valoracion_page_request' ) || ! nvx_is_valoracion_page_request() ) {
+		return (string) $description;
+	}
+
+	return 'Valoración médica estética virtual o presencial en Madrid. 15–30 min para revisar tu caso, opciones de tratamiento y presupuesto individualizado.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_valoracion_managed_metadesc', 40 );
 
 /**
  * Register valoración page as page owner to prevent shell hero duplication.

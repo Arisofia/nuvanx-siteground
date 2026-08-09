@@ -36,8 +36,6 @@ if ( is_readable( $css_path ) ) {
 	);
 }
 
-$valuation_url = home_url( '/madrid/valoracion/#nvx-hubspot-form' );
-
 get_header();
 ?>
 <main id="main-content" class="nvx-page nvx-page--cases-holding">
@@ -107,15 +105,6 @@ get_header();
 					<div><p class="nvx-brand-body"><?php esc_html_e( 'Una fotografía aislada no explica una indicación. Por eso cada publicación deberá identificar, cuando corresponda, la zona tratada, la técnica utilizada, el tiempo transcurrido y las condiciones de la toma fotográfica.', 'nuvanx-medical' ); ?></p></div>
 					<div><p class="nvx-brand-body"><?php esc_html_e( 'Los resultados pueden variar entre pacientes. La valoración médica individual sigue siendo el punto de partida para determinar si un tratamiento tiene indicación y qué expectativas son razonables.', 'nuvanx-medical' ); ?></p></div>
 				</div>
-			</div>
-		</section>
-
-		<section class="nvx-brand-section nvx-cases-holding__cta" aria-labelledby="nvx-cases-cta-title">
-			<div class="nvx-shell nvx-brand-section__inner">
-				<p class="nvx-brand-kicker"><?php esc_html_e( 'TU CASO ES INDIVIDUAL', 'nuvanx-medical' ); ?></p>
-				<h2 id="nvx-cases-cta-title" class="nvx-brand-title"><?php esc_html_e( 'Empieza por una valoración médica', 'nuvanx-medical' ); ?></h2>
-				<p class="nvx-brand-body nvx-cases-holding__lead"><?php esc_html_e( 'Revisamos tu caso, la posible indicación, los tiempos de recuperación y el presupuesto individualizado antes de decidir cualquier tratamiento.', 'nuvanx-medical' ); ?></p>
-				<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
 			</div>
 		</section>
 	</div>

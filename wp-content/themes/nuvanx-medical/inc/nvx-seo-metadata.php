@@ -395,14 +395,20 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		return;
 	}
 
-	$path = nvx_seo_current_path();
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
 	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
 		$routes = nvx_catalog_json_resolved( 'routes.json' );
 		if ( ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] ) ) {
 			$target = (string) $routes[ $path ]['route_alias'];
+			if ( '/' . trim( $target, '/' ) . '/' === $path ) {
+				return;
+			}
 			wp_safe_redirect( home_url( $target ), 301 );
 			exit;
 		}
+	}
 	}
 }
 add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );

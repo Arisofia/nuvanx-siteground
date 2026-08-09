@@ -183,11 +183,12 @@ try {
     try {
       const request = response.request();
       const targetUrl = response.url();
-      // Match only the concrete HubSpot form-submission endpoint for this form
-      // (e.g. api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>)
+      // Match both v2 and v3 HubSpot form-submission endpoints for this form
+      // v2: api.hsforms.com/submissions/v3/integration/async/submit/<portalId>/<formId>
+      // v3: api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>
       // to avoid false positives from HubSpot analytics/telemetry traffic.
       const isSubmissionPost = request.method() === 'POST' &&
-        /\/submissions\/v3\/integration\/submit\//i.test(targetUrl) &&
+        /\/submissions\/v3\/integration\/(async\/)?submit\//i.test(targetUrl) &&
         targetUrl.includes(formId);
       if (isSubmissionPost && response.status() >= 200 && response.status() < 400) {
         submitted = true;

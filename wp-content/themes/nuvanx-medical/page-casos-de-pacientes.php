@@ -110,7 +110,19 @@ get_header();
 					the_post();
 					if ( get_the_content() ) {
 						echo '<div class="nvx-cases-holding__editorial-content">';
+						
+						$downgrade_h1 = function ( $content ) {
+							if ( false === stripos( $content, '<h1' ) ) {
+								return $content;
+							}
+							$content = (string) preg_replace( '/<h1(\b[^>]*)>/iu', '<h2$1>', $content );
+							return (string) str_ireplace( '</h1>', '</h2>', $content );
+						};
+						
+						add_filter( 'the_content', $downgrade_h1, 20 );
 						the_content();
+						remove_filter( 'the_content', $downgrade_h1, 20 );
+						
 						echo '</div>';
 					}
 				}

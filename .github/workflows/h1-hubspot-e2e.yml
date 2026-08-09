@@ -1,9 +1,10 @@
 name: H1 HubSpot Attribution E2E
 
 on:
+  pull_request:
+    branches: [master]
   push:
-    branches:
-      - audit/h1-hubspot-e2e-20260809-1510
+    branches: [master, 'audit/*']
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
 
 concurrency:
   group: h1-hubspot-e2e-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   h1-e2e:
@@ -19,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out audit branch
+      - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -28,29 +29,28 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Install Playwright
+      - name: Install Playwright from lockfile
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p tmp-h1
-          cd tmp-h1
-          npm init -y
-          npm install --ignore-scripts --no-audit --no-fund playwright@1.54.2
+          cd scripts/staging2
+          npm ci --ignore-scripts
           npx --no-install playwright install --with-deps chromium
 
       - name: Run H1 E2E against production
         shell: bash
         run: |
           set -euo pipefail
-          cp scripts/h1-hubspot-e2e.mjs tmp-h1/e2e.mjs
-          cd tmp-h1
-          node e2e.mjs 2>&1 | tee h1-e2e.log
+          mkdir -p scripts/h1-artifacts
+          NODE_PATH=scripts/staging2/node_modules node scripts/h1-hubspot-e2e.mjs 2>&1 | tee scripts/h1-artifacts/h1-e2e.log
 
       - name: Upload H1 evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: h1-hubspot-e2e-pr432
-          path: tmp-h1/h1-e2e.log
+          name: h1-hubspot-e2e-evidence
+          path: scripts/h1-artifacts/*.log
           retention-days: 7

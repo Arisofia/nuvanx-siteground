@@ -44,8 +44,11 @@ try {
     throw new TypeError(`Production valoración route not reachable with HTTP 200; last=${status}`);
   }
 
-  const sha = await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '');
-  console.log(`PRODUCTION_SHA=${sha}`);
+  // Fast-check for deploy SHA meta tag with short 2s timeout to avoid 30s silent stall.
+  const metaLocator = page.locator('meta[name="nvx-deploy-sha"]').first();
+  const metaCount = await metaLocator.count().catch(() => 0);
+  const sha = metaCount > 0 ? (await metaLocator.getAttribute('content', { timeout: 2000 }).catch(() => '')) || '' : '';
+  console.log(`PRODUCTION_SHA=${sha || '(none)'}`);
   if (expectedSha && sha !== expectedSha) {
     console.warn(`WARNING: Production SHA mismatch: current=${sha}, expected=${expectedSha}`);
   }
@@ -99,9 +102,9 @@ try {
   // Re-resolve the frame handle after consent lifecycle re-fire to prevent stale execution context.
   frame = await getActiveFrame();
 
-  async function waitForValue(name) {
+  async function waitForValue(name, maxPoll = 40) {
     const input = frame.locator(sel(name)).first();
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < maxPoll; i++) {
       const value = await input.inputValue().catch(() => '');
       if (value === gclid) return value;
       await sleep(250);
@@ -109,8 +112,8 @@ try {
     return await input.inputValue().catch(() => '');
   }
 
-  const customValue = await waitForValue('nvx_google_click_id');
-  const nativeValue = hasNative ? await waitForValue('hs_google_click_id') : '';
+  const customValue = await waitForValue('nvx_google_click_id', 40);
+  const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 4) : '';
   console.log(`CUSTOM_GCLID_MATCH=${customValue === gclid}`);
   console.log(`NATIVE_GCLID_MATCH=${nativeValue === gclid}`);
   if (customValue !== gclid) throw new TypeError(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
@@ -165,7 +168,8 @@ try {
   console.log(`HUBSPOT_POST_SUCCESS=${submitted}`);
   if (!submitted) throw new TypeError('No successful HubSpot submission POST observed after submit');
 
-  console.log(`QA_EMAIL=${email}`);
+  const maskedEmail = email.replace(/(^.).*(@.*$)/, '$1***$2');
+  console.log(`QA_EMAIL=${maskedEmail}`);
   console.log(`QA_GCLID=${gclid}`);
   console.log('H1_BROWSER_E2E=PASS');
 } finally {

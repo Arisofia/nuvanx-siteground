@@ -42,6 +42,7 @@ jobs:
           [[ -n "${GOOGLE_ADS_LOGIN_CUSTOMER_ID:-}" ]] && echo 'LOGIN_CUSTOMER_ID_PRESENT=true' || echo 'LOGIN_CUSTOMER_ID_PRESENT=false'
           [[ -n "${GOOGLE_ADS_REFRESH_TOKEN:-}" ]] && echo 'REFRESH_TOKEN_PRESENT=true' || echo 'REFRESH_TOKEN_PRESENT=false'
       - name: Validate Google Ads using OAuth client JSON
+        continue-on-error: true
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
           GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}

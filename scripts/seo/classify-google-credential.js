@@ -42,7 +42,7 @@ const envMap = {
 const has = (k) => {
   const camelKey = camelMap[k];
   const envKeys = envMap[k] || [];
-  const inJson = Boolean(data[k] || oauth[k] || (camelKey && (data[camelKey] || oauth[camelKey])));
+  const inJson = Boolean(oauth[k] || (camelKey && oauth[camelKey]));
   const inEnv = envKeys.some((envKey) => Boolean(process.env[envKey]));
   return inJson || inEnv;
 };

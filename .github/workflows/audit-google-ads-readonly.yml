@@ -1,0 +1,36 @@
+name: Google Ads Read-only Credential Audit
+
+on:
+  push:
+    branches:
+      - audit/google-ads-readonly-20260809
+
+permissions:
+  contents: read
+
+jobs:
+  list-campaigns:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/seo/package-lock.json
+      - run: npm ci --prefix scripts/seo
+      - name: Validate Google Ads credentials read-only
+        shell: bash
+        env:
+          GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GOOGLE_ADS_JSON:-}" ]]; then
+            echo "GOOGLE_ADS_CREDENTIALS=MISSING"
+            exit 3
+          fi
+          cd scripts/seo
+          node google-ads-list-campaigns.js

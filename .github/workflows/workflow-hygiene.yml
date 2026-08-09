@@ -101,3 +101,38 @@ jobs:
             exit 1
           fi
           echo 'REPOSITORY_EMPTY_RESIDUE_GATE=PASS'
+
+  h1-attribution-e2e:
+    name: H1 production HubSpot attribution E2E
+    if: github.head_ref == 'audit/h1-hubspot-e2e-20260809-1510'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out audit branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp-h1
+          cd tmp-h1
+          npm init -y
+          npm install --no-audit --no-fund playwright@1.54.2
+          npx playwright install --with-deps chromium
+
+      - name: Run H1 E2E against production
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE_PATH="$PWD/tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee tmp-h1/h1-e2e.log
+
+      - name: Upload H1 evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: h1-hubspot-e2e-pr432
+          path: tmp-h1/h1-e2e.log
+          retention-days: 7

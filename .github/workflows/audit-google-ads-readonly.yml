@@ -26,7 +26,26 @@ jobs:
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
         run: node scripts/seo/classify-google-credential.js
+      - name: Report separate credential presence only
+        env:
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${GOOGLE_ADS_DEVELOPER_TOKEN:-}" ]] && echo 'DEVELOPER_TOKEN_PRESENT=true' || echo 'DEVELOPER_TOKEN_PRESENT=false'
+          [[ -n "${GOOGLE_ADS_CUSTOMER_ID:-}" ]] && echo 'CUSTOMER_ID_PRESENT=true' || echo 'CUSTOMER_ID_PRESENT=false'
+          [[ -n "${GOOGLE_ADS_LOGIN_CUSTOMER_ID:-}" ]] && echo 'LOGIN_CUSTOMER_ID_PRESENT=true' || echo 'LOGIN_CUSTOMER_ID_PRESENT=false'
+          [[ -n "${GOOGLE_ADS_REFRESH_TOKEN:-}" ]] && echo 'REFRESH_TOKEN_PRESENT=true' || echo 'REFRESH_TOKEN_PRESENT=false'
       - name: Validate Google Ads credentials read-only
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
         run: node scripts/seo/google-ads-list-campaigns.js

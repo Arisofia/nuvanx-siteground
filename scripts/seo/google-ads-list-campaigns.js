@@ -1,24 +1,24 @@
 const { GoogleAdsApi } = require('google-ads-api');
 const fs = require('fs');
 
-function loadCredentials() {
+function loadJsonCredentials() {
   const raw = process.env.GOOGLE_ADS_JSON || '';
   const explicitPath = process.env.GOOGLE_ADS_JSON_PATH || '';
   const defaultPath = './google-ads.json';
 
   for (const candidate of [explicitPath, defaultPath]) {
     if (candidate && fs.existsSync(candidate)) {
-      console.log('Credentials loaded from file');
+      console.log('OAuth client JSON loaded from file');
       return JSON.parse(fs.readFileSync(candidate, 'utf8'));
     }
   }
 
   if (raw) {
-    console.log('Credentials loaded from environment');
+    console.log('OAuth client JSON loaded from environment');
     return JSON.parse(raw);
   }
 
-  throw new Error('No Google Ads credentials found');
+  return {};
 }
 
 function normalizeCustomerId(value) {
@@ -26,7 +26,18 @@ function normalizeCustomerId(value) {
 }
 
 async function main() {
-  const credentials = loadCredentials();
+  const json = loadJsonCredentials();
+  const oauth = json.installed || json.web || json;
+
+  const credentials = {
+    client_id: process.env.GOOGLE_ADS_CLIENT_ID || oauth.client_id || '',
+    client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET || oauth.client_secret || '',
+    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || json.developer_token || '',
+    customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID || json.customer_id || '',
+    login_customer_id: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || json.login_customer_id || '',
+    refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN || json.refresh_token || '',
+  };
+
   const required = ['client_id', 'client_secret', 'developer_token', 'customer_id', 'refresh_token'];
   const missing = required.filter((key) => !credentials[key]);
   if (missing.length) {

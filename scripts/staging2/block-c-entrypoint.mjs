@@ -83,6 +83,19 @@ function isTransientFailure(result) {
 
   if (antiBotOnly) return true;
 
+  const navigationNoResponseOnly =
+    result.status === 'BLOCKED' &&
+    status === 0 &&
+    result.geometry == null &&
+    blockers.length > 0 &&
+    blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
+    issues.length === 0 &&
+    networkErrors.length === 0 &&
+    typeof result.finalUrl === 'string' &&
+    result.finalUrl.startsWith(`${baseUrl}/`);
+
+  if (navigationNoResponseOnly) return true;
+
   const expectedDocumentUrl = `${baseUrl}${String(result.route || '')}`;
   const retryAbortOnly =
     result.status === 'FIX' &&

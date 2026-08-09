@@ -29,6 +29,8 @@ function nvx_get_clinics_config(): array {
 			'whatsapp_href' => nvx_whatsapp_url( 'chamberi' ),
 			'hours'         => 'lunes a viernes, 12:00–20:00; sábados, 10:00–18:00',
 			'days'          => 'Martes y jueves',
+			'latitude'      => 40.431204,
+			'longitude'     => -3.693425,
 		),
 		'goya'     => array(
 			'name'          => 'Centro Clínico NUVANX Salamanca / Goya',
@@ -41,6 +43,8 @@ function nvx_get_clinics_config(): array {
 			'whatsapp_href' => nvx_whatsapp_url( 'goya' ),
 			'hours'         => 'lunes a viernes, 11:00–20:00',
 			'days'          => 'Miércoles',
+			'latitude'      => 40.423912,
+			'longitude'     => -3.675648,
 		),
 	);
 }

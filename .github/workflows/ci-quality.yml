@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run color lint
-        run: node scripts/lint/no-hardcoded-colors.mjs
+        run: node scripts/lint/no-hardcoded-colors.mjs --strict
       - name: Run font-size lint
         run: node scripts/lint/no-hardcoded-fontsize.mjs
       - name: Run inline styles lint

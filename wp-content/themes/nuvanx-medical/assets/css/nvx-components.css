@@ -279,9 +279,9 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {
   --button-bg: var(--nvx-charcoal);
-  --button-color: #ffffff;
-  --button-border: rgba(255, 255, 255, 0.3);
-  --button-hover-bg: #ffffff;
+  --button-color: var(--nvx-on-dark);
+  --button-border: var(--nvx-border-on-dark-45);
+  --button-hover-bg: var(--nvx-on-dark);
   --button-hover-color: var(--nvx-ink);
   --button-hover-border: var(--nvx-light);
   --button-focus: var(--nvx-light);
@@ -1366,7 +1366,7 @@ article.nvx-page > .nvx-page-hero{
 .nvx-page-hero__copy .nvx-eyebrow,
 .nvx-hero__copy .nvx-kicker,
 .nvx-hero__copy .nvx-eyebrow {
-  color: var(--nvx-text-on-dark-88, rgba(247, 247, 245, 0.88));
+  color: var(--nvx-text-on-dark-88);
   margin-bottom: var(--nvx-space-2);
   max-width: 34ch;
   font-size: var(--nvx-type-kicker);

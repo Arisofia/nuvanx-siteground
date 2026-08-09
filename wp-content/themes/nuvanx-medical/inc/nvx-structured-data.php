@@ -497,6 +497,11 @@ function nvx_schema_clinics() {
 				'postalCode'      => $ch['postal_code'] ?? '28010',
 				'addressCountry'  => 'ES',
 			),
+			'geo'                       => array(
+				'@type'     => 'GeoCoordinates',
+				'latitude'  => $ch['latitude'] ?? 40.431204,
+				'longitude' => $ch['longitude'] ?? -3.693425,
+			),
 			'identifier'                => array(
 				'@type'      => 'PropertyValue',
 				'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
@@ -537,6 +542,11 @@ function nvx_schema_clinics() {
 				'addressRegion'   => 'Comunidad de Madrid',
 				'postalCode'      => $go['postal_code'] ?? '28009',
 				'addressCountry'  => 'ES',
+			),
+			'geo'                       => array(
+				'@type'     => 'GeoCoordinates',
+				'latitude'  => $go['latitude'] ?? 40.423912,
+				'longitude' => $go['longitude'] ?? -3.675648,
 			),
 			'identifier'                => array(
 				'@type'      => 'PropertyValue',

@@ -56,14 +56,14 @@ async function scanFile(filePath) {
     // Skip if line contains shadow (allow rgba in shadows)
     if (/shadow/i.test(line)) continue;
 
-    // Skip if line is a var() declaration
-    if (/var\(--[\w-]+\)/.test(line)) continue;
+    // Strip var() expressions from line context before checking for hardcoded colors
+    const checkLine = line.replace(/var\(--[\w-]+\)/g, '');
 
     // Skip if inside comment block
     if (line.includes('/*') && line.includes('*/')) continue;
 
     for (const pattern of COLOR_PATTERNS) {
-      const matches = line.matchAll(pattern);
+      const matches = checkLine.matchAll(pattern);
       for (const match of matches) {
         const matchedText = match[0];
         

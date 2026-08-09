@@ -22,6 +22,10 @@ The original incident documented:
 3. **Access Control**: Review and approve current administrator list
 4. **Documentation**: This document should remain in the repository until all closure criteria are met
 
+## Target Closure Date
+
+- **Target Date**: 2026-08-14 (Assigned on 2026-08-09 to ensure timely resolution of the active security risk)
+
 ## Closure Criteria
 
 - [ ] GitHub Support confirms PR refs have been purged

@@ -1,21 +1,35 @@
 const { GoogleAdsApi } = require('google-ads-api');
 const fs = require('fs');
 
+function parseJsonFile(candidate) {
+  const parsed = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+  console.log('OAuth client JSON loaded from file');
+  return parsed;
+}
+
 function loadJsonCredentials() {
   const raw = process.env.GOOGLE_ADS_JSON || '';
   const explicitPath = process.env.GOOGLE_ADS_JSON_PATH || '';
   const defaultPath = './google-ads.json';
 
-  for (const candidate of [explicitPath, defaultPath]) {
-    if (candidate && fs.existsSync(candidate)) {
-      console.log('OAuth client JSON loaded from file');
-      return JSON.parse(fs.readFileSync(candidate, 'utf8'));
-    }
+  // Explicit path env var takes precedence over any file on disk.
+  if (explicitPath && fs.existsSync(explicitPath)) {
+    return parseJsonFile(explicitPath);
   }
 
+  // Interpret GOOGLE_ADS_JSON as inline JSON first; if it is a path to an
+  // existing file (backwards-compatible behaviour), load that file instead.
   if (raw) {
+    if (fs.existsSync(raw)) {
+      return parseJsonFile(raw);
+    }
     console.log('OAuth client JSON loaded from environment');
     return JSON.parse(raw);
+  }
+
+  // Fall back to the conventional default file only when nothing is configured.
+  if (fs.existsSync(defaultPath)) {
+    return parseJsonFile(defaultPath);
   }
 
   return {};
@@ -29,13 +43,17 @@ async function main() {
   const json = loadJsonCredentials();
   const oauth = json.installed || json.web || json;
 
+  // Ads-specific fields may live either at the top level or nested inside the
+  // installed/web OAuth wrapper, so check both to avoid false "missing" errors.
+  const pick = (key) => json[key] || oauth[key] || '';
+
   const credentials = {
     client_id: process.env.GOOGLE_ADS_CLIENT_ID || oauth.client_id || '',
     client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET || oauth.client_secret || '',
-    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || json.developer_token || '',
-    customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID || json.customer_id || '',
-    login_customer_id: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || json.login_customer_id || '',
-    refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN || json.refresh_token || '',
+    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || pick('developer_token'),
+    customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID || pick('customer_id'),
+    login_customer_id: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || pick('login_customer_id'),
+    refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN || pick('refresh_token'),
   };
 
   const required = ['client_id', 'client_secret', 'developer_token', 'customer_id', 'refresh_token'];

@@ -136,6 +136,9 @@ async function gotoCanonical(page, gclid) {
   page.on('response', onResponse);
   try {
     for (let attempt = 1; attempt <= 6; attempt += 1) {
+      // Reset per attempt so a document status recorded in a previous iteration cannot be
+      // mistaken for this attempt's result when page.goto resolves with a null response.
+      documentStatus = 0;
       try {
         const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
         const status = response?.status() || documentStatus || 0;

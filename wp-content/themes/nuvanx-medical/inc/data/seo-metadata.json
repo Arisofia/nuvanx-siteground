@@ -12,11 +12,11 @@
         "description": "Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas."
     },
     "chamberi": {
-        "title": "Medicina estética en Chamberí | NUVANX Madrid",
+        "title": "Clínica Medicina Estética Láser Chamberí | Endolift y CO₂ | NUVANX",
         "description": "Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada."
     },
     "goya": {
-        "title": "Medicina estética en Salamanca–Goya | NUVANX",
+        "title": "Medicina Estética Goya · Barrio Salamanca | Endolift | NUVANX",
         "description": "Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada."
     },
     "endolift": {
@@ -44,7 +44,7 @@
         "description": "Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento."
     },
     "por_que_nuvanx": {
-        "title": "Por qué NUVANX | Criterio médico en Madrid",
+        "title": "Por qué NUVANX | Criterio Médico en Tratamientos Láser y Estética",
         "description": "Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid."
     },
     "inversion": {
@@ -52,15 +52,103 @@
         "description": "Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid."
     },
     "valoracion": {
-        "title": "Consulta médica estética en Madrid | NUVANX",
+        "title": "Pedir Valoración Médica Estética Madrid | NUVANX — Sin Compromiso",
         "description": "Valoración médica estética virtual o presencial en Madrid. 15–30 min para revisar tu caso, opciones de tratamiento y presupuesto individualizado."
     },
     "soluciones": {
-        "title": "Soluciones médicas | NUVANX Madrid",
+        "title": "Soluciones Médicas para Rostro y Cuerpo en Madrid | NUVANX",
         "description": "Soluciones médicas para rostro, piel y contorno corporal en NUVANX Madrid. La preocupación orienta la consulta; el diagnóstico define el plan."
     },
     "blog": {
         "title": "Blog NUVANX | Medicina estética láser Madrid",
         "description": "Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid."
+    },
+    "exion_face": {
+        "title": "EXION® Face Madrid | Tratamiento Facial y Cuello | NUVANX",
+        "description": "EXION® Face en Madrid para laxitud y contorno facial mediante radiofrecuencia fraccionada. Valoración médica y presupuesto individualizado en NUVANX."
+    },
+    "exion_fractional": {
+        "title": "EXION® Fractional RF Madrid | Textura y Cicatrices | NUVANX",
+        "description": "EXION® Fractional RF en Madrid para cicatrices de acné, poros y textura con microagujas impulsadas por IA. Evaluación clínica en NUVANX."
+    },
+    "exion_body": {
+        "title": "EXION® Body Madrid | Grasa Localizada y Laxitud | NUVANX",
+        "description": "EXION® Body en Madrid para zonas corporales con grasa localizada y flacidez. Protocolos personalizados tras valoración médica en NUVANX."
+    },
+    "emfusion": {
+        "title": "EMFUSION™ Madrid | Innovación en Medicina Estética | NUVANX",
+        "description": "EMFUSION™ en Madrid para indicaciones estéticas avanzadas. Recuperación y tarifas tras valoración clínica presencial en clínicas NUVANX."
+    },
+    "collagen_bio": {
+        "title": "Bioestimuladores de Colágeno Madrid | Radiesse y Sculptra | NUVANX",
+        "description": "Bioestimuladores de colágeno en Madrid para flacidez y redensificación cutánea. Diagnóstico médico e infiltración precisa en NUVANX."
+    },
+    "dark_circles_ha": {
+        "title": "Ácido Hialurónico en Ojeras Madrid | Surco Lagrimal | NUVANX",
+        "description": "Tratamiento de ojeras y surco lagrimal con ácido hialurónico en Madrid. Valoración anatómica y abordaje médico especializado en NUVANX."
+    },
+    "lips_ha": {
+        "title": "Ácido Hialurónico en Labios Madrid | Hidratación y Perfilado | NUVANX",
+        "description": "Perfilado, hidratación y volumen de labios con ácido hialurónico en Madrid. Criterio médico y resultados armónicos en NUVANX."
+    },
+    "body_contouring_laser": {
+        "title": "Remodelación Corporal Láser Madrid | Liposculpt Air | NUVANX",
+        "description": "Remodelación corporal láser en Madrid. Protocolo avanzado para contorno, flacidez y grasa. Evaluación clínica y seguimiento en NUVANX."
+    },
+    "postpartum": {
+        "title": "Tratamiento Postparto Abdomen Madrid | Contorno Corporal | NUVANX",
+        "description": "Abordaje integral postparto en Madrid para flacidez abdominal y contorno corporal. Valoración médica individualizada en clínicas NUVANX."
+    },
+    "double_chin": {
+        "title": "Endolift® en Papada y Mandíbula Madrid | NUVANX",
+        "description": "Definición mandibular y reducción de papada con Endolift® en Madrid. Diagnóstico clínico, procedimiento láser y cuidados en NUVANX."
+    },
+    "skin_quality": {
+        "title": "Calidad de Piel, Firmeza y Luminosidad Madrid | NUVANX",
+        "description": "Protocolos para mejorar la calidad, firmeza y luminosidad de la piel en Madrid. Abordaje médico integral y tecnología láser en NUVANX."
+    },
+    "acne_scars": {
+        "title": "Tratamiento de Cicatrices de Acné y Poros Madrid | NUVANX",
+        "description": "Láser CO₂ y radiofrecuencia fraccionada en Madrid para marcas, textura y poros. Plan de tratamiento clínico según severidad en NUVANX."
+    },
+    "pigmentation": {
+        "title": "Fotorejuvenecimiento y Manchas IPL Madrid | NUVANX",
+        "description": "Tratamiento de manchas, rojeces y fotorejuvenecimiento con IPL en Madrid. Diagnóstico diferencial y control clínico en clínicas NUVANX."
+    },
+    "local_fat_abdomen": {
+        "title": "Grasa Localizada en Abdomen y Flancos Madrid | NUVANX",
+        "description": "Endoláser y tecnología avanzada para reducción de grasa en abdomen y flancos en Madrid. Evaluación clínica y presupuesto en NUVANX."
+    },
+    "arms_fat_laxity": {
+        "title": "Flacidez y Grasa Localizada en Brazos Madrid | NUVANX",
+        "description": "Tratamiento médico-estético en Madrid para tensado y reducción de grasa en brazos (alas de murciélago). Valoración médica en NUVANX."
+    },
+    "back_fat": {
+        "title": "Grasa Localizada en Espalda y Sujetador Madrid | NUVANX",
+        "description": "Remodelación láser en Madrid para grasa localizada en espalda y zona del sujetador. Resultados progresivos tras valoración médica en NUVANX."
+    },
+    "inner_thighs": {
+        "title": "Flacidez en Muslos y Subglúteo Madrid | NUVANX",
+        "description": "Tratamiento de flacidez en cara interna de muslos y pliegue subglúteo en Madrid. Criterio clínico y tecnología láser en clínicas NUVANX."
+    },
+    "knees": {
+        "title": "Tratamiento de Rodillas: Grasa y Flacidez Madrid | NUVANX",
+        "description": "Abordaje médico en Madrid para el exceso de grasa y laxitud cutánea suprapatelar (rodillas). Protocolos personalizados en NUVANX."
+    },
+    "male_body_contouring": {
+        "title": "Contorno Corporal Masculino Madrid | NUVANX",
+        "description": "Remodelación corporal láser y reducción de grasa localizada para hombres en Madrid. Evaluación anatómica y médica en clínicas NUVANX."
+    },
+    "neuromodulador": {
+        "title": "Neuromodulador (Bótox) Madrid | Arrugas de Expresión | NUVANX",
+        "description": "Tratamiento médico con neuromodulador en Madrid para arrugas del tercio superior. Criterio clínico, naturalidad y seguimiento en NUVANX."
+    },
+    "acido_hialuronico": {
+        "title": "Relleno con Ácido Hialurónico Madrid | NUVANX",
+        "description": "Tratamientos faciales con ácido hialurónico en Madrid: surcos, reposicionamiento y estructuración. Valoración médica experta en NUVANX."
+    },
+    "rinomodelacion": {
+        "title": "Rinomodelación Sin Cirugía Madrid | Ácido Hialurónico | NUVANX",
+        "description": "Rinomodelación sin cirugía en Madrid mediante ácido hialurónico. Armonización del perfil nasal tras diagnóstico médico en NUVANX."
     }
 }

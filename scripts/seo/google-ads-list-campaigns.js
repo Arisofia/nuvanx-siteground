@@ -56,6 +56,7 @@ async function main() {
 
   const oauth = json.installed || json.web || json.credentials || json.oauth || json;
 
+  // Environment variables take precedence over OAuth JSON credentials to allow runtime overrides in CI/CD.
   let clientId = pick(process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID, oauth.client_id, oauth.clientId);
   let clientSecret = pick(process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET, oauth.client_secret, oauth.clientSecret);
   let devToken = pick(process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN, oauth.developer_token, oauth.developerToken);
@@ -64,7 +65,7 @@ async function main() {
   let rawLoginCustomerId = pick(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID, oauth.login_customer_id, oauth.loginCustomerId);
 
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
-  if (rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {
+  if (rawCustomerId && rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {
     const tempSecret = rawCustomerId;
     rawCustomerId = clientSecret && !clientSecret.startsWith('GOCSPX-') ? clientSecret : (rawLoginCustomerId || '');
     clientSecret = tempSecret;
@@ -123,8 +124,16 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Error listing campaigns:', err);
-  if (err.errors) console.error('Details:', JSON.stringify(err.errors, null, 2));
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.message || 'unknown error');
+  const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
+
+  console.error('Error listing campaigns:', sanitizeMessage(err && err.message ? err.message : String(err)));
+  if (err && Array.isArray(err.errors)) {
+    const sanitizedErrors = err.errors.map((e) => ({
+      error_code: e.error_code || e.errorCode,
+      message: sanitizeMessage(e.message),
+    }));
+    console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
+  }
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err && err.message ? err.message : 'unknown error'));
   process.exit(1);
 });

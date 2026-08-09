@@ -388,35 +388,27 @@ function nvx_seo_enforce_http_robots_header() {
 add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
 
 /**
- * Perform HTTP 301 redirect for routes configured with a route_alias in routes.json.
+ * Resolve the 301 destination for a route_alias, or null when no redirect applies.
+ *
+ * @param string $path Normalized request path (with leading/trailing slash).
+ * @return string|null Absolute destination URL, or null when the request is not aliased.
  */
-function nvx_seo_handle_route_alias_redirect(): void {
-	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return;
-	}
-
+function nvx_seo_route_alias_destination( string $path ): ?string {
 	if ( ! function_exists( 'nvx_catalog_json_resolved' ) ) {
-		return;
+		return null;
 	}
-
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
-	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
-	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
 
 	$routes = nvx_catalog_json_resolved( 'routes.json' );
 	if ( empty( $routes[ $path ]['route_alias'] ) || ! is_string( $routes[ $path ]['route_alias'] ) ) {
-		return;
+		return null;
 	}
 
 	$target      = (string) $routes[ $path ]['route_alias'];
 	$target_path = '' !== trim( $target, '/' ) ? '/' . trim( $target, '/' ) . '/' : '/';
-	if ( $target_path === $path ) {
-		return;
-	}
 
-	// Never chain redirects: a target that is itself an alias would 301 twice.
-	if ( ! empty( $routes[ $target_path ]['route_alias'] ) ) {
-		return;
+	// Skip self-redirects and never chain: a target that is itself an alias would 301 twice.
+	if ( $target_path === $path || ! empty( $routes[ $target_path ]['route_alias'] ) ) {
+		return null;
 	}
 
 	$destination = home_url( $target );
@@ -433,7 +425,25 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		}
 	}
 
-	wp_safe_redirect( $destination, 301, 'NUVANX' );
-	exit;
+	return $destination;
+}
+
+/**
+ * Perform HTTP 301 redirect for routes configured with a route_alias in routes.json.
+ */
+function nvx_seo_handle_route_alias_redirect(): void {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
+
+	$destination = nvx_seo_route_alias_destination( $path );
+	if ( null !== $destination ) {
+		wp_safe_redirect( $destination, 301, 'NUVANX' );
+		exit;
+	}
 }
 add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );

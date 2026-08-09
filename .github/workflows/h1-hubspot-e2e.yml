@@ -1,8 +1,10 @@
 name: H1 HubSpot Attribution E2E
 
 on:
+  pull_request:
+    branches: [master]
   push:
-    branches: ['audit/*']
+    branches: [master, 'audit/*']
   workflow_dispatch:
 
 permissions:
@@ -51,4 +53,5 @@ jobs:
         with:
           name: h1-hubspot-e2e-evidence
           path: scripts/staging2/h1-artifacts/*.log
+          if-no-files-found: ignore
           retention-days: 7

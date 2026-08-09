@@ -23,8 +23,9 @@ try {
     try {
       const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
       status = response?.status() || 0;
-      console.log(`NAV attempt=${attempt} status=${status} path=${new URL(page.url()).pathname}`);
-      if (status === 200 && new URL(page.url()).pathname === '/madrid/valoracion/') {
+      const currentPath = new URL(page.url()).pathname;
+      console.log(`NAV attempt=${attempt} status=${status} path=${currentPath}`);
+      if (status === 200 && currentPath === '/madrid/valoracion/') {
         reached = true;
         break;
       }
@@ -41,7 +42,8 @@ try {
     await sleep(2500);
   }
   if (!reached) {
-    throw new TypeError(`Production valoración route not reachable with HTTP 200; last=${status}`);
+    const finalPath = new URL(page.url()).pathname;
+    throw new Error(`Production valoración route not reachable at /madrid/valoracion/; lastStatus=${status}, finalPath=${finalPath}`);
   }
 
   // Fast-check for deploy SHA meta tag with short 2s timeout to avoid 30s silent stall.
@@ -55,7 +57,7 @@ try {
 
   await page.evaluate(() => {
     if (typeof window.wp_set_consent !== 'function' || typeof window.wp_has_consent !== 'function') {
-      throw new TypeError('WordPress consent API unavailable');
+      throw new Error('WordPress consent API unavailable');
     }
     window.wp_set_consent('marketing', 'allow');
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
@@ -65,7 +67,7 @@ try {
   const consent = await page.evaluate(() => window.wp_has_consent('marketing'));
   console.log(`MARKETING_CONSENT=${consent}`);
   if (consent !== true) {
-    throw new TypeError('Marketing consent was not granted');
+    throw new Error('Marketing consent was not granted');
   }
 
   const host = page.locator('#nvx-hubspot-form');
@@ -78,7 +80,7 @@ try {
     await iframe.waitFor({ state: 'attached', timeout: 45000 });
     const handle = await iframe.elementHandle();
     const frame = handle ? await handle.contentFrame() : null;
-    if (!frame) throw new TypeError('HubSpot iframe content frame unavailable');
+    if (!frame) throw new Error('HubSpot iframe content frame unavailable');
     return frame;
   };
 
@@ -90,7 +92,7 @@ try {
   const hasNative = names.includes('hs_google_click_id') || names.includes('0-1/hs_google_click_id');
   console.log(`FIELD_CUSTOM_PRESENT=${hasCustom}`);
   console.log(`FIELD_NATIVE_PRESENT=${hasNative}`);
-  if (!hasCustom) throw new TypeError('nvx_google_click_id is not present in published HubSpot form');
+  if (!hasCustom) throw new Error('nvx_google_click_id is not present in published HubSpot form');
 
   // Re-fire consent lifecycle after the legacy form is registered by onFormReady.
   await page.evaluate(() => {
@@ -116,11 +118,11 @@ try {
   const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 4) : '';
   console.log(`CUSTOM_GCLID_MATCH=${customValue === gclid}`);
   console.log(`NATIVE_GCLID_MATCH=${nativeValue === gclid}`);
-  if (customValue !== gclid) throw new TypeError(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
+  if (customValue !== gclid) throw new Error(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
 
   const fill = async (name, value) => {
     const input = frame.locator(sel(name)).first();
-    if (!await input.count()) throw new TypeError(`Required HubSpot field missing: ${name}`);
+    if (!await input.count()) throw new Error(`Required HubSpot field missing: ${name}`);
     await input.fill(value);
     await input.press('Tab').catch(() => {});
   };
@@ -128,7 +130,7 @@ try {
   await fill('lastname', 'H1 Attribution');
   await fill('email', email);
   const phoneInput = frame.locator('input[type="tel"]').first();
-  if (!await phoneInput.count()) throw new TypeError('Required phone field missing');
+  if (!await phoneInput.count()) throw new Error('Required phone field missing');
   await phoneInput.fill(phone);
   await phoneInput.press('Tab').catch(() => {});
 
@@ -142,7 +144,7 @@ try {
   console.log(`FORM_VALID=${valid}`);
   if (!valid) {
     const invalid = await frame.locator(':invalid').evaluateAll((nodes) => nodes.map((n) => ({ name: n.getAttribute('name'), type: n.getAttribute('type') })));
-    throw new TypeError(`Form invalid: ${JSON.stringify(invalid)}`);
+    throw new Error(`Form invalid: ${JSON.stringify(invalid)}`);
   }
 
   let submitted = false;
@@ -166,9 +168,10 @@ try {
     await sleep(250);
   }
   console.log(`HUBSPOT_POST_SUCCESS=${submitted}`);
-  if (!submitted) throw new TypeError('No successful HubSpot submission POST observed after submit');
+  if (!submitted) throw new Error('No successful HubSpot submission POST observed after submit');
 
-  const maskedEmail = email.replace(/(^.).*(@.*$)/, '$1***$2');
+  const [localPart, domainPart] = email.split('@');
+  const maskedEmail = localPart ? `${localPart[0]}***@${domainPart || ''}` : email;
   console.log(`QA_EMAIL=${maskedEmail}`);
   console.log(`QA_GCLID=${gclid}`);
   console.log('H1_BROWSER_E2E=PASS');

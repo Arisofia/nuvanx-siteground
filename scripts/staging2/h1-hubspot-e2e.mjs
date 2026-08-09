@@ -57,7 +57,7 @@ try {
 
   await page.evaluate(() => {
     if (typeof window.wp_set_consent !== 'function' || typeof window.wp_has_consent !== 'function') {
-      throw new Error('WordPress consent API unavailable');
+      throw new TypeError('WordPress consent API unavailable');
     }
     window.wp_set_consent('marketing', 'allow');
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));

@@ -2,8 +2,11 @@ import { chromium } from 'playwright';
 
 const base = 'https://nuvanx.com';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-const gclid = 'NUVANX_QA_H1_20260809_1510';
-const email = 'nvxqa-h1-20260809-1510@example.com';
+
+// Generate unique per-run QA credentials based on run ID or timestamp.
+const runId = process.env.GITHUB_RUN_ID || Date.now().toString();
+const gclid = `NUVANX_QA_H1_${runId}`;
+const email = `nvxqa-h1-${runId}@example.com`;
 const phone = '+34600000000';
 const target = `${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
 const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
@@ -16,38 +19,43 @@ const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ userAgent: ua });
   const page = await context.newPage();
-  let status = 0;
+  let lastHttpStatus = 0;
   let reached = false;
-
   let lastError = null;
+
   for (let attempt = 1; attempt <= 6; attempt++) {
-    status = 0;
     try {
       const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      status = response?.status() || 0;
+      const currentStatus = response?.status() || 0;
+      if (currentStatus > 0) {
+        lastHttpStatus = currentStatus;
+      }
       const currentPath = new URL(page.url()).pathname;
-      console.log(`NAV attempt=${attempt} status=${status} path=${currentPath}`);
-      if (status === 200 && currentPath === '/madrid/valoracion/') {
+      console.log(`NAV attempt=${attempt} status=${currentStatus} path=${currentPath}`);
+      if (currentStatus === 200 && currentPath === '/madrid/valoracion/') {
         reached = true;
         break;
       }
-      if (status === 202) {
+      if (currentStatus === 202) {
         console.log(`Attempt ${attempt}: Antibot challenge (HTTP 202); waiting 10s...`);
         await sleep(10000);
-      } else if (status >= 500 || status === 429) {
-        console.log(`Attempt ${attempt}: Transient server response (HTTP ${status}); backing off ${3000 * attempt}ms...`);
+      } else if (currentStatus >= 500 || currentStatus === 429) {
+        console.log(`Attempt ${attempt}: Transient server response (HTTP ${currentStatus}); backing off ${3000 * attempt}ms...`);
         await sleep(3000 * attempt);
+      } else {
+        await sleep(2500);
       }
     } catch (e) {
       lastError = e;
       console.log(`NAV attempt=${attempt} error=${e.message}`);
+      await sleep(2500);
     }
-    await sleep(2500);
   }
+
   if (!reached) {
     const finalPath = new URL(page.url()).pathname;
     const errDetails = lastError ? `; lastError=${lastError.message}` : '';
-    throw new Error(`Production valoración route not reachable at /madrid/valoracion/; lastStatus=${status}, finalPath=${finalPath}${errDetails}`);
+    throw new Error(`Production valoración route not reachable at /madrid/valoracion/; lastStatus=${lastHttpStatus}, finalPath=${finalPath}${errDetails}`);
   }
 
   // Fast-check for deploy SHA meta tag with short 2s timeout to avoid 30s silent stall.
@@ -119,7 +127,7 @@ try {
   }
 
   const customValue = await waitForValue('nvx_google_click_id', 40);
-  const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 4) : '';
+  const nativeValue = hasNative ? await waitForValue('hs_google_click_id', 40) : '';
   console.log(`CUSTOM_GCLID_MATCH=${customValue === gclid}`);
   console.log(`NATIVE_GCLID_MATCH=${nativeValue === gclid}`);
   if (customValue !== gclid) throw new Error(`Custom GCLID not populated; value=${JSON.stringify(customValue)}`);
@@ -143,11 +151,16 @@ try {
     const box = checks.nth(i);
     const checked = await box.isChecked().catch(() => false);
     if (!checked) {
-      await box.evaluate((el) => {
-        el.checked = true;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }).catch(() => {});
+      // First try standard click/check interaction for React framework state.
+      await box.click({ force: true }).catch(() => {});
+      const nowChecked = await box.isChecked().catch(() => false);
+      if (!nowChecked) {
+        await box.evaluate((el) => {
+          el.checked = true;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      }
     }
   }
 
@@ -182,9 +195,7 @@ try {
   console.log(`HUBSPOT_POST_SUCCESS=${submitted}`);
   if (!submitted) throw new Error('No successful HubSpot submission POST observed after submit');
 
-  const [localPart, domainPart] = email.split('@');
-  const maskedEmail = localPart ? `${localPart[0]}***@${domainPart || ''}` : email;
-  console.log(`QA_EMAIL=${maskedEmail}`);
+  console.log(`QA_EMAIL=${email}`);
   console.log(`QA_GCLID=${gclid}`);
   console.log('H1_BROWSER_E2E=PASS');
 } finally {

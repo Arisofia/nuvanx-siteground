@@ -158,9 +158,25 @@ main().catch((err) => {
     return value;
   };
 
+  // Only surface a bounded allow-list of diagnostic fields; dumping arbitrary
+  // nested content risks printing credential/request metadata to CI logs.
+  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode', 'message', 'details', 'trigger', 'location'];
+  const projectError = (e) => {
+    if (!e || typeof e !== 'object') {
+      return sanitizeValue(e);
+    }
+    const projected = {};
+    for (const field of DIAGNOSTIC_FIELDS) {
+      if (e[field] !== undefined) {
+        projected[field] = sanitizeValue(e[field]);
+      }
+    }
+    return projected;
+  };
+
   console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
   if (Array.isArray(err?.errors)) {
-    const sanitizedErrors = err.errors.map((e) => sanitizeValue(e));
+    const sanitizedErrors = err.errors.map((e) => projectError(e));
     console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
   }
   console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));

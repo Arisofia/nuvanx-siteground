@@ -1,0 +1,111 @@
+name: Google Ads Campaign Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - create-campaigns
+          - list-campaigns
+          - pause-campaign
+          - resume-campaign
+      campaign_id:
+        description: 'Campaign ID (required for pause/resume)'
+        required: false
+        type: string
+  schedule:
+    - cron: '0 8 * * 1' # Every Monday at 8 AM UTC - list campaigns
+
+permissions:
+  contents: read
+
+concurrency:
+  group: google-ads-campaigns
+  cancel-in-progress: false
+
+jobs:
+  google-ads:
+    name: Google Ads Campaign Management
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/seo/package.json
+
+      - name: Install dependencies
+        run: |
+          cd scripts/seo
+          npm install
+
+      - name: Run Google Ads Action
+        shell: bash
+        env:
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+          GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+          ACTION: ${{ github.event.inputs.action || 'list-campaigns' }}
+          CAMPAIGN_ID: ${{ github.event.inputs.campaign_id || '' }}
+        run: |
+          set -euo pipefail
+          : "${GOOGLE_ADS_DEVELOPER_TOKEN:?Missing GOOGLE_ADS_DEVELOPER_TOKEN}"
+          : "${GOOGLE_ADS_CLIENT_ID:?Missing GOOGLE_ADS_CLIENT_ID}"
+          : "${GOOGLE_ADS_CLIENT_SECRET:?Missing GOOGLE_ADS_CLIENT_SECRET}"
+          : "${GOOGLE_ADS_CUSTOMER_ID:?Missing GOOGLE_ADS_CUSTOMER_ID}"
+          : "${ACTION:?Missing ACTION}"
+          
+          mkdir -p scripts/ads/artifacts
+          
+          # Build command arguments
+          ARGS="--action $ACTION --customer-id $GOOGLE_ADS_CUSTOMER_ID --developer-token $GOOGLE_ADS_DEVELOPER_TOKEN --client-id $GOOGLE_ADS_CLIENT_ID --client-secret $GOOGLE_ADS_CLIENT_SECRET"
+          
+          if [ -n "$GOOGLE_ADS_REFRESH_TOKEN" ]; then
+            ARGS="$ARGS --refresh-token $GOOGLE_ADS_REFRESH_TOKEN"
+          fi
+          
+          if [ -n "$CAMPAIGN_ID" ]; then
+            ARGS="$ARGS --campaign-id $CAMPAIGN_ID"
+          fi
+          
+          # Run Google Ads script
+          cd scripts/ads
+          node google-ads-campaigns.js $ARGS \
+            | tee artifacts/google-ads-${ACTION}.log
+
+      - name: Upload Google Ads artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: google-ads-${{ github.event.inputs.action || 'list' }}-${{ github.run_id }}
+          path: scripts/ads/artifacts/*.log
+          retention-days: 30
+
+      - name: Write Google Ads summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Google Ads Campaign Results'
+            echo
+            echo "**Action:** ${{ github.event.inputs.action || 'list-campaigns' }}"
+            echo
+            if [ -f scripts/ads/artifacts/google-ads-${{ github.event.inputs.action || 'list' }}.log ]; then
+              grep -E '(GOOGLE_ADS_ACTION|ACTION|CUSTOMER_ID|ACTIVE_CAMPAIGNS|CAMPAIGNS_CREATED|CAMPAIGNS_ERRORS|CAMPAIGN_PAUSED|CAMPAIGN_RESUMED)' scripts/ads/artifacts/google-ads-${{ github.event.inputs.action || 'list' }}.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
+            else
+              echo "Google Ads log not found"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

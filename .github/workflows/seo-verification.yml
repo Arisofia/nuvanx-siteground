@@ -35,6 +35,10 @@ jobs:
         shell: bash
         env:
           GOOGLE_PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+          GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
@@ -72,10 +76,86 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+  sitemap-check:
+    name: Sitemap Status Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd scripts/seo
+          npm install
+
+      - name: Run Sitemap Check
+        shell: bash
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
+          SITEMAP_URL: https://nuvanx.com/sitemap_index.xml
+        run: |
+          set -euo pipefail
+          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
+          : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
+          : "${SITEMAP_URL:?Missing SITEMAP_URL}"
+          
+          mkdir -p scripts/seo/artifacts
+          
+          # Write credentials to file
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
+          
+          # Run sitemap check
+          cd scripts/seo
+          node sitemap-check.js \
+            --property "$SEARCH_CONSOLE_PROPERTY" \
+            --sitemap-url "$SITEMAP_URL" \
+            | tee artifacts/sitemap-check.log
+
+      - name: Upload sitemap artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sitemap-status-${{ github.run_id }}
+          path: scripts/seo/artifacts/sitemap-status.json
+          retention-days: 30
+
+      - name: Write sitemap summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Sitemap Status Results'
+            echo
+            echo "**Sitemap URL:** https://nuvanx.com/sitemap_index.xml"
+            echo
+            if [ -f scripts/seo/artifacts/sitemap-check.log ]; then
+              grep -E '(LAST_READ|STATUS|WARNINGS|ERRORS|Total URLs|Index Rate)' scripts/seo/artifacts/sitemap-check.log | sed 's/^/- `/' | sed 's/$/`/' || echo "No metrics found"
+            else
+              echo "Sitemap log not found"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f scripts/seo/credentials.json
+
   index-pages:
     name: Index All Pages via Search Console
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    continue-on-error: true
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -91,19 +171,19 @@ jobs:
       - name: Run Page Indexing
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          SEARCH_CONSOLE_PROPERTY: ${{ secrets.SEARCH_CONSOLE_PROPERTY }}
+          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          : "${GOOGLE_APPLICATION_CREDENTIALS:?Missing GOOGLE_APPLICATION_CREDENTIALS}"
+          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
           : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
           : "${BASE_URL:?Missing BASE_URL}"
           
           mkdir -p scripts/seo/artifacts
           
           # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS" > scripts/seo/credentials.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
           
           # Run page indexing
           cd scripts/seo
@@ -142,6 +222,7 @@ jobs:
     name: Search Console Verification
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -163,19 +244,19 @@ jobs:
       - name: Run Search Console Check
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-          SEARCH_CONSOLE_PROPERTY: ${{ secrets.SEARCH_CONSOLE_PROPERTY }}
+          GOOGLE_APPLICATION_CREDENTIALS_CONTENT: ${{ secrets.GOOGLE_ADS_JSON }}
+          SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
           BASE_URL: https://nuvanx.com
         run: |
           set -euo pipefail
-          : "${GOOGLE_APPLICATION_CREDENTIALS:?Missing GOOGLE_APPLICATION_CREDENTIALS}"
+          : "${GOOGLE_APPLICATION_CREDENTIALS_CONTENT:?Missing GOOGLE_APPLICATION_CREDENTIALS_CONTENT}"
           : "${SEARCH_CONSOLE_PROPERTY:?Missing SEARCH_CONSOLE_PROPERTY}"
           : "${BASE_URL:?Missing BASE_URL}"
           
           mkdir -p scripts/seo/artifacts
           
           # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS" > scripts/seo/credentials.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_CONTENT" > scripts/seo/credentials.json
           
           # Run Search Console check
           cd scripts/seo

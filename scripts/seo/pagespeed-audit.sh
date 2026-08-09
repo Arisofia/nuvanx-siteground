@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-# PageSpeed Insights API audit script
-# Usage: ./pagespeed-audit.sh --url <URL> --strategy <mobile|desktop> --api-key <API_KEY>
+# PageSpeed Insights Audit Script
+# Usage: bash pagespeed-audit.sh --url <url> --strategy <mobile|desktop> --api-key <key>
 
 URL=""
 STRATEGY="mobile"
@@ -29,51 +29,64 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$URL" || -z "$API_KEY" ]]; then
-  echo "Error: URL and API_KEY are required"
+if [[ -z "$URL" || -z "$STRATEGY" || -z "$API_KEY" ]]; then
+  echo "Error: --url, --strategy, and --api-key are required"
   exit 1
 fi
 
-echo "Running PageSpeed audit for $URL (strategy: $STRATEGY)"
+echo "Running PageSpeed audit for: $URL (strategy: $STRATEGY)"
 
-# Call PageSpeed Insights API
+# Run PageSpeed Insights API
 API_URL="https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${URL}&strategy=${STRATEGY}&key=${API_KEY}"
 
-response=$(curl -s "$API_URL")
+RESPONSE=$(curl -s "$API_URL")
 
 # Extract key metrics
-performance_score=$(echo "$response" | jq -r '.lighthouseResult.categories.performance.score // "N/A"')
-fcp=$(echo "$response" | jq -r '.lighthouseResult.audits["first-contentful-paint"].displayValue // "N/A"')
-lcp=$(echo "$response" | jq -r '.lighthouseResult.audits["largest-contentful-paint"].displayValue // "N/A"')
-cls=$(echo "$response" | jq -r '.lighthouseResult.audits["cumulative-layout-shift"].displayValue // "N/A"')
-tti=$(echo "$response" | jq -r '.lighthouseResult.audits["interactive"].displayValue // "N/A"')
-speed_index=$(echo "$response" | jq -r '.lighthouseResult.audits["speed-index"].displayValue // "N/A"')
-tbt=$(echo "$response" | jq -r '.lighthouseResult.audits["total-blocking-time"].displayValue // "N/A"')
-
-# Convert score to percentage
-if [[ "$performance_score" != "N/A" ]]; then
-  performance_score=$(awk "BEGIN {printf \"%.0f\", $performance_score * 100}")
+PERFORMANCE_SCORE=$(echo "$RESPONSE" | jq -r '.lighthouseResult.categories.performance.score // null')
+if [[ "$PERFORMANCE_SCORE" != "null" && "$PERFORMANCE_SCORE" != "" ]]; then
+  PERFORMANCE_SCORE_INT=$(echo "$PERFORMANCE_SCORE * 100" | bc 2>/dev/null || echo "0")
+  PERFORMANCE_SCORE_INT=${PERFORMANCE_SCORE_INT%.*}  # Remove decimal
+else
+  PERFORMANCE_SCORE_INT=0
 fi
 
-echo "PERFORMANCE_SCORE=${performance_score}"
-echo "FCP=${fcp}"
-echo "LCP=${lcp}"
-echo "CLS=${cls}"
-echo "TTI=${tti}"
-echo "SPEED_INDEX=${speed_index}"
-echo "TOTAL_BLOCKING_TIME=${tbt}"
+FCP=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["first-contentful-paint"].displayValue // null')
+LCP=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["largest-contentful-paint"].displayValue // null')
+CLS=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["cumulative-layout-shift"].displayValue // null')
+TTI=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["interactive"].displayValue // null')
+SPEED_INDEX=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["speed-index"].displayValue // null')
+TBT=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["total-blocking-time"].displayValue // null')
+TTFB=$(echo "$RESPONSE" | jq -r '.lighthouseResult.audits["server-response-time"].displayValue // null')
+
+# Output results
+echo "PERFORMANCE_SCORE=${PERFORMANCE_SCORE_INT}"
+echo "FCP=${FCP}"
+echo "LCP=${LCP}"
+echo "CLS=${CLS}"
+echo "TTI=${TTI}"
+echo "SPEED_INDEX=${SPEED_INDEX}"
+echo "TOTAL_BLOCKING_TIME=${TBT}"
+echo "TTFB=${TTFB}"
+
+# Save full response
+mkdir -p artifacts
+echo "$RESPONSE" > artifacts/pagespeed-${STRATEGY}-$(date +%s).json
+
+echo "Audit completed. Full response saved to artifacts/"
 
 # Determine pass/fail thresholds
 if [[ "$STRATEGY" == "mobile" ]]; then
   # Mobile thresholds (stricter)
-  if (( $(echo "$performance_score >= 50" | bc -l) )); then
+  SCORE_INT=$(echo "$PERFORMANCE_SCORE * 100" | bc 2>/dev/null || echo "0")
+  if [[ "$SCORE_INT" -ge 50 ]]; then
     echo "STATUS=PASS"
   else
     echo "STATUS=FAIL"
   fi
 else
   # Desktop thresholds
-  if (( $(echo "$performance_score >= 70" | bc -l) )); then
+  SCORE_INT=$(echo "$PERFORMANCE_SCORE * 100" | bc 2>/dev/null || echo "0")
+  if [[ "$SCORE_INT" -ge 70 ]]; then
     echo "STATUS=PASS"
   else
     echo "STATUS=FAIL"

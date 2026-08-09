@@ -9,7 +9,8 @@
     "index-pages": "node index-pages.js"
   },
   "dependencies": {
-    "googleapis": "^140.0.0"
+    "googleapis": "^140.0.0",
+    "google-ads-api": "^5.0.0"
   },
   "engines": {
     "node": ">=18"

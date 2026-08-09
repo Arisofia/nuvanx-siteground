@@ -25,6 +25,7 @@ jobs:
 
       - name: Install Playwright
         shell: bash
+        run: |
           set -euo pipefail
           npm init -y
           npm install --no-audit --no-fund playwright@1.54.2

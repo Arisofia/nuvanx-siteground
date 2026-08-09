@@ -58,10 +58,13 @@ globalThis.fetch = async (input, init) => {
           ? input.url
           : '';
 
-  // Only replace the initial publication-inventory REST call. Every page
-  // navigation, image request, boundary probe and rendered assertion still
-  // targets the live Staging2 site.
-  if (requestUrl.startsWith(pagesEndpoint)) {
+  // Only replace the initial publication-inventory REST call (the collection
+  // endpoint, optionally with a query string). Single-page requests such as
+  // `${pagesEndpoint}/2645`, page navigation, image requests, boundary probes
+  // and rendered assertions still target the live Staging2 site.
+  const isPagesCollection =
+    requestUrl === pagesEndpoint || requestUrl.startsWith(`${pagesEndpoint}?`);
+  if (isPagesCollection) {
     return new Response(JSON.stringify(normalizedInventory), {
       status: 200,
       headers: {

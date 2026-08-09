@@ -1,0 +1,18 @@
+{
+  "name": "nuvanx-seo-verification",
+  "version": "1.0.0",
+  "description": "SEO verification scripts for Search Console and PageSpeed Insights",
+  "main": "search-console-check.js",
+  "scripts": {
+    "search-console": "node search-console-check.js",
+    "pagespeed": "bash pagespeed-audit.sh",
+    "index-pages": "node index-pages.js"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0",
+    "google-ads-api": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

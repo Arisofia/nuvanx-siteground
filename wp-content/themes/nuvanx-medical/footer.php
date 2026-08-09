@@ -6,7 +6,20 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+// Close nvx-brand-page wrapper only if it was opened in header.php, and do so
+// before </main> so the div nests correctly inside the main landmark.
+$has_standard_wrapper = false;
+if ( is_page() ) {
+	$post_id              = get_the_ID();
+	$content              = get_post_field( 'post_content', $post_id );
+	$has_standard_wrapper = (bool) preg_match( '/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content );
+}
 ?>
+
+<?php if ( ! $has_standard_wrapper ) : ?>
+		</div><!-- .nvx-brand-page -->
+<?php endif; ?>
 
 </main>
 
@@ -48,15 +61,15 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 			>
 				<span class="nvx-logo__wordmark">NUVANX</span>
 				<span class="nvx-logo__tagline">MEDICINA ESTÉTICA LÁSER</span>
-				<div class="nvx-footer__social">
-					<a href="https://www.instagram.com/nuvanx/" class="nvx-footer__social-link" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Síguenos en Instagram', 'nuvanx-medical' ); ?>">
-						<svg class="nvx-footer__social-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-					</a>
-					<a href="https://www.facebook.com/nuvanx/" class="nvx-footer__social-link" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Síguenos en Facebook', 'nuvanx-medical' ); ?>">
-						<svg class="nvx-footer__social-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-					</a>
-				</div>
 			</a>
+			<div class="nvx-footer__social">
+				<a href="https://www.instagram.com/nuvanx/" class="nvx-footer__social-link" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Síguenos en Instagram', 'nuvanx-medical' ); ?>">
+					<svg class="nvx-footer__social-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+				</a>
+				<a href="https://www.facebook.com/nuvanx/" class="nvx-footer__social-link" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Síguenos en Facebook', 'nuvanx-medical' ); ?>">
+					<svg class="nvx-footer__social-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+				</a>
+			</div>
 		</div>
 
 		<div class="nvx-footer__main">
@@ -131,20 +144,6 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 		</div>
 	</div>
 </footer>
-
-<?php
-// Close nvx-brand-page wrapper only if it was opened in header.php
-$has_standard_wrapper = false;
-if (is_page()) {
-	$post_id = get_the_ID();
-	$content = get_post_field('post_content', $post_id);
-	$has_standard_wrapper = (bool) preg_match('/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content);
-}
-
-if (!$has_standard_wrapper) :
-?>
-		</div><!-- .nvx-brand-page -->
-<?php endif; ?>
 
 <?php wp_footer(); ?>
 

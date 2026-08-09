@@ -227,10 +227,18 @@ try {
   }));
   after.messages = after.messages.map((item) => ({ ...item, text: redact(item.text) }));
   console.log(`AFTER_CLICK=${JSON.stringify(after)}`);
-  console.log(`PARENT_EVENTS_AFTER_CLICK=${JSON.stringify(await page.evaluate(() => window.__nvxDiagFormEvents || []))}`);
+  const parentEventsAfterClick = await page.evaluate(() => window.__nvxDiagFormEvents || []);
+  console.log(`PARENT_EVENTS_AFTER_CLICK=${JSON.stringify(parentEventsAfterClick)}`);
   console.log(`HUBSPOT_POSTS_AFTER_CLICK=${JSON.stringify(hubSpotPosts.slice(postCountBeforeSubmit))}`);
 
-  if (hubSpotPosts.length === postCountBeforeSubmit) {
+  // Only fall back to requestSubmit when there is NO evidence the click already submitted:
+  // no new HubSpot POST, no DOM submit event, and no HubSpot form CustomEvent. Relying on the
+  // POST alone would double-submit (duplicate CRM lead) if the real submission went to a host
+  // outside isHubSpotUrl's allow-list and was therefore never recorded.
+  const domSubmitted = Array.isArray(after.domSubmit) && after.domSubmit.length > 0;
+  const formEventFired = parentEventsAfterClick.length > 0;
+  const noSubmitEvidence = hubSpotPosts.length === postCountBeforeSubmit && !domSubmitted && !formEventFired;
+  if (noSubmitEvidence) {
     await button.evaluate((node) => node.form?.requestSubmit(node));
     await page.waitForTimeout(3000);
     after = await frame.evaluate(() => ({

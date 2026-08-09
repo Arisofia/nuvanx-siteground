@@ -479,7 +479,18 @@ async function runScenario(browser, scenario) {
   try {
     const page = await context.newPage();
     await installPersistentObservers(page, signals);
-    await page.route('**/*', async (route) => {
+    // Only route Google measurement hosts. Intercepting every request ('**/*') would proxy the
+    // keepalive attribution audit POST through Playwright and could drop it if HubSpot navigates
+    // right after submit; leaving non-Google requests unrouted preserves that keepalive guarantee.
+    const googleHostGlobs = [
+      '**://googleadservices.com/**', '**://*.googleadservices.com/**',
+      '**://googlesyndication.com/**', '**://*.googlesyndication.com/**',
+      '**://doubleclick.net/**', '**://*.doubleclick.net/**',
+      '**://googletagmanager.com/**', '**://*.googletagmanager.com/**',
+      '**://google-analytics.com/**', '**://*.google-analytics.com/**',
+      '**://google.*/**', '**://*.google.*/**',
+    ];
+    const routeHandler = async (route) => {
       let block = false;
       try {
         const url = new URL(route.request().url());
@@ -488,7 +499,8 @@ async function runScenario(browser, scenario) {
         block = googleHost && measurement;
       } catch {}
       return block ? route.abort().catch(() => {}) : route.continue().catch(() => {});
-    });
+    };
+    for (const glob of googleHostGlobs) await page.route(glob, routeHandler);
     page.on('request', (request) => {
       if (request.method() === 'POST' && request.url().includes(edgeNeedle)) {
         auditRequests.push({ url: sanitizeUrl(request.url()), body: request.postData() || '' });

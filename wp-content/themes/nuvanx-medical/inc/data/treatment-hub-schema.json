@@ -57,7 +57,7 @@
     {
         "key": "bioestimulacion-colageno",
         "name": "Bioestimulación de colágeno",
-        "path": "/medicina-estetica/",
+        "path": "/bioestimuladores-colageno-madrid/",
         "types": [
             "MedicalProcedure",
             "Service"
@@ -107,6 +107,6 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Rinomodelación no quirúrgica con inductores de colágeno según anatomía nasal. Rinomodelación Chamberí, Goya y Salamanca Madrid."
+        "description": "Rinomodelación no quirúrgica con ácido hialurónico según anatomía nasal y valoración médica. Rinomodelación en Chamberí y Salamanca–Goya, Madrid."
     }
 ]

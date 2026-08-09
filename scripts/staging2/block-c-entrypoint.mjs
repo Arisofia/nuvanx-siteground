@@ -7,11 +7,51 @@ const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const attemptScript = fileURLToPath(new URL('./block-c-52x3.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
+const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
+const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
 
-function runAttempt(attempt) {
+async function prepareTrustedPagesPreload() {
+  const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
+  if (!pagesFile) return null;
+
+  const pages = JSON.parse(await fs.readFile(pagesFile, 'utf8'));
+  if (!Array.isArray(pages) || pages.length < 52) {
+    throw new Error(`Trusted WordPress page inventory must contain at least 52 pages; got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
+  }
+
+  const normalizedPages = pages.map((page) => ({
+    id: Number(page.id),
+    link: String(page.link || ''),
+    slug: String(page.slug || ''),
+    title: {
+      rendered: typeof page.title === 'string' ? page.title : String(page.title?.rendered || ''),
+    },
+  }));
+
+  for (const page of normalizedPages) {
+    const url = new URL(page.link);
+    if (url.hostname !== new URL(baseUrl).hostname) {
+      throw new Error(`Trusted WordPress page ${page.id} points outside staging: ${page.link}`);
+    }
+  }
+
+  const payload = JSON.stringify(normalizedPages);
+  const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
+  const source = `const nativeFetch = globalThis.fetch.bind(globalThis);\nconst pagesEndpoint = ${JSON.stringify(pagesEndpoint)};\nconst pagesPayload = ${JSON.stringify(payload)};\nglobalThis.fetch = async (input, init) => {\n  const rawUrl = typeof input === 'string' ? input : (input && typeof input.url === 'string' ? input.url : String(input));\n  if (rawUrl.startsWith(pagesEndpoint)) {\n    return new Response(pagesPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli' } });\n  }\n  return nativeFetch(input, init);\n};\n`;
+
+  await fs.mkdir(preloadDir, { recursive: true });
+  await fs.writeFile(preloadUrl, source, 'utf8');
+  console.log(`BLOCK_C_INVENTORY_SOURCE=trusted-wp-cli pages=${normalizedPages.length}`);
+  return preloadUrl.href;
+}
+
+async function runAttempt(attempt) {
   console.log(`BLOCK_C_ATTEMPT=${attempt}/${maxAttempts}`);
+  const preloadModule = await prepareTrustedPagesPreload();
+  const args = preloadModule ? ['--import', preloadModule, attemptScript] : [attemptScript];
+
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [attemptScript], {
+    const child = spawn(process.execPath, args, {
       env: process.env,
       stdio: 'inherit',
     });

@@ -62,15 +62,18 @@ async function main() {
   const refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
   const rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
   const customerId = rawCustomerId.replace(/-/g, '');
+  const rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
+  const loginCustomerId = rawLoginCustomerId.replace(/-/g, '');
 
   const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');
 
   console.log('CREDENTIAL_DIAGNOSTICS:');
   console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${oauth.client_id || oauth.clientId ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_ID ? 'ENV' : 'MISSING'})`);
-  console.log(`- client_secret_fingerprint=${maskSuffix(clientSecret)} (source: ${oauth.client_secret || oauth.clientSecret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
+  console.log(`- client_secret_status=${clientSecret ? 'SET' : 'MISSING'} (source: ${oauth.client_secret || oauth.clientSecret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
   console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${oauth.developer_token || oauth.developerToken ? 'JSON' : process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? 'ENV' : 'MISSING'})`);
-  console.log(`- refresh_token_fingerprint=${maskSuffix(refreshToken)} (source: ${oauth.refresh_token || oauth.refreshToken ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
+  console.log(`- refresh_token_status=${refreshToken ? 'SET' : 'MISSING'} (source: ${oauth.refresh_token || oauth.refreshToken ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
   console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${oauth.customer_id || oauth.customerId ? 'JSON' : process.env.GOOGLE_ADS_CUSTOMER_ID ? 'ENV' : 'MISSING'})`);
+  console.log(`- login_customer_id_fingerprint=${maskSuffix(loginCustomerId)} (source: ${oauth.login_customer_id || oauth.loginCustomerId ? 'JSON' : process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ? 'ENV' : 'OPTIONAL_MISSING'})`);
 
   if (!clientId || !clientSecret || !devToken || !refreshToken || !customerId) {
     const missing = [];
@@ -80,8 +83,6 @@ async function main() {
     if (!refreshToken) missing.push('refresh_token');
     if (!customerId) missing.push('customer_id');
 
-    console.log('JSON_TOP_LEVEL_KEYS:', Object.keys(json));
-    console.log('OAUTH_KEYS:', Object.keys(oauth));
     throw new Error(`Missing required Google Ads credential parameters: ${missing.join(', ')}`);
   }
 
@@ -91,10 +92,15 @@ async function main() {
     developer_token: devToken,
   });
 
-  const customer = GoogleAds.Customer({
+  const customerOptions = {
     customer_id: customerId,
     refresh_token: refreshToken,
-  });
+  };
+  if (loginCustomerId) {
+    customerOptions.login_customer_id = loginCustomerId;
+  }
+
+  const customer = GoogleAds.Customer(customerOptions);
 
   console.log('Attempting read-only GAQL campaign query...');
   const campaigns = await customer.query(`

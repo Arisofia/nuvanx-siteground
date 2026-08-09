@@ -67,7 +67,8 @@ jobs:
                 # Soft-fail: record the failure and keep auditing the remaining
                 # pages so a single run yields complete evidence.
                 echo "LIGHTHOUSE_FAILED page=$page mode=$mode" >&2
-                printf '%s\t%s\tFAILED\n' "$page" "$mode" >> perf-results/summary.tsv
+                # Pad to the full 16-column width so the artifact stays machine-readable.
+                printf '%s\t%s\tFAILED\t\t\t\t\t\t\t\t\t\t\t\t\t\n' "$page" "$mode" >> perf-results/summary.tsv
                 continue
               fi
 

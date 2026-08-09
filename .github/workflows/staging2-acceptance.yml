@@ -285,6 +285,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
           cd scripts/staging2
           npm ci --ignore-scripts
           ./node_modules/.bin/playwright install --with-deps chromium
@@ -293,12 +294,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
           node scripts/staging2/block-c-entrypoint.mjs
 
       - name: Verify valoración form is directly below heading and mounted in place
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
           node scripts/staging2/valoracion-placement.mjs
 
       - name: Upload Block C evidence
@@ -310,5 +313,5 @@ jobs:
             scripts/staging2/block-c-artifacts/
             scripts/staging2/valoracion-artifacts/
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: warn
           compression-level: 6

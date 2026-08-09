@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const attemptScript = fileURLToPath(new URL('./block-c-attempt.mjs', import.meta.url));
+const attemptScript = fileURLToPath(new URL('./block-c-52x3.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 
 function runAttempt(attempt) {

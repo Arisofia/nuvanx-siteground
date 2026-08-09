@@ -11,6 +11,12 @@ try {
   process.exit(4);
 }
 console.log('SECRET_JSON_VALID=true');
+// Guard against valid JSON that is not an object (null, primitive, array), so
+// the subsequent key inspection stays deterministic instead of throwing.
+if (!data || typeof data !== 'object' || Array.isArray(data)) {
+  console.log('SECRET_JSON_IS_OBJECT=false');
+  process.exit(5);
+}
 // Do not echo raw secret key names; report only the top-level key count.
 console.log('SECRET_TOP_LEVEL_KEY_COUNT=' + Object.keys(data).length);
 // OAuth client JSON may nest credentials under installed/web, so inspect both.

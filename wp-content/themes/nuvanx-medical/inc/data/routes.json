@@ -196,5 +196,17 @@
   "/casos-de-pacientes/": {},
   "/tratamientos/": {
     "seo_id": "tratamientos"
+  },
+  "/liposculpt-air/": {
+    "schema_group": "treatments",
+    "schema_id": "liposculpt_air",
+    "post_id": 3490,
+    "schema_type": "MedicalProcedure"
+  },
+  "/v-lift-awake/": {
+    "schema_group": "treatments",
+    "schema_id": "v_lift_awake",
+    "post_id": 3491,
+    "schema_type": "MedicalProcedure"
   }
 }

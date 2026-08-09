@@ -53,7 +53,7 @@ async function fetchPublishedPages() {
     try {
       const response = await fetch(endpoint, {
         headers: {
-          'user-agent': 'NUVANX-BlockC-Registry/1.0',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 NUVANX-BlockC/1.0',
           accept: 'application/json',
         },
       });

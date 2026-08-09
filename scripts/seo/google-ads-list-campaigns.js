@@ -69,10 +69,11 @@ async function main() {
 
   console.log('CREDENTIAL_DIAGNOSTICS:');
   console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${oauth.client_id || oauth.clientId ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_ID ? 'ENV' : 'MISSING'})`);
-  console.log(`- client_secret_fingerprint=${maskSuffix(clientSecret)} (source: ${oauth.client_secret || oauth.clientSecret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
+  console.log(`- client_secret_status=${clientSecret ? 'SET' : 'MISSING'} (source: ${oauth.client_secret || oauth.clientSecret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
   console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${oauth.developer_token || oauth.developerToken ? 'JSON' : process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? 'ENV' : 'MISSING'})`);
-  console.log(`- refresh_token_fingerprint=${maskSuffix(refreshToken)} (source: ${oauth.refresh_token || oauth.refreshToken ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
+  console.log(`- refresh_token_status=${refreshToken ? 'SET' : 'MISSING'} (source: ${oauth.refresh_token || oauth.refreshToken ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
   console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${oauth.customer_id || oauth.customerId ? 'JSON' : process.env.GOOGLE_ADS_CUSTOMER_ID ? 'ENV' : 'MISSING'})`);
+  console.log(`- login_customer_id_fingerprint=${maskSuffix(loginCustomerId)} (source: ${oauth.login_customer_id || oauth.loginCustomerId ? 'JSON' : process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ? 'ENV' : 'OPTIONAL_MISSING'})`);
 
   if (!clientId || !clientSecret || !devToken || !refreshToken || !customerId) {
     const missing = [];
@@ -82,8 +83,6 @@ async function main() {
     if (!refreshToken) missing.push('refresh_token');
     if (!customerId) missing.push('customer_id');
 
-    console.log('JSON_TOP_LEVEL_KEYS:', Object.keys(json));
-    console.log('OAUTH_KEYS:', Object.keys(oauth));
     throw new Error(`Missing required Google Ads credential parameters: ${missing.join(', ')}`);
   }
 
@@ -97,8 +96,6 @@ async function main() {
     customer_id: customerId,
     refresh_token: refreshToken,
   };
-  // Required when the OAuth credentials belong to a manager (MCC) account
-  // querying a client account, otherwise the API rejects the query.
   if (loginCustomerId) {
     customerOptions.login_customer_id = loginCustomerId;
   }

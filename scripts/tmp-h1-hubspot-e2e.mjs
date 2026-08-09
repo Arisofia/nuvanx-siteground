@@ -1,3 +1,4 @@
+// isolated H1 production attribution probe
 import { chromium } from 'playwright';
 
 const base = 'https://nuvanx.com';
@@ -69,7 +70,6 @@ try {
   if (!hasCustom) throw new Error('nvx_google_click_id is not present in published HubSpot form');
   if (!hasNative) throw new Error('hs_google_click_id is not present in published HubSpot form');
 
-  // Re-fire consent lifecycle after the legacy form is registered by onFormReady.
   await page.evaluate(() => {
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
     document.dispatchEvent(new Event('wp_consent_type_defined'));

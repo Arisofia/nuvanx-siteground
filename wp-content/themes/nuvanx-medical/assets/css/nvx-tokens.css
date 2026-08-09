@@ -35,6 +35,8 @@
     linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 100%);
   --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
+  --nvx-border-on-dark: rgba(247, 247, 245, 0.45);
+  --nvx-accent-success: #25d366;
   --nvx-ink-muted: rgba(17, 17, 17, 0.82);
 
   /* Form-stage */
@@ -197,7 +199,7 @@
   --nvx-index-number-track: 0.16em;
 
   /* Superficies oscuras editoriales */
-  --nvx-surface-dark:  #111111;
+  --nvx-surface-dark-editorial: #111111;
 
   --nvx-on-dark:       #f7f7f5;
   /* Aliases — prefer --nvx-text-on-dark-88 / --nvx-text-on-dark-72 for new code */

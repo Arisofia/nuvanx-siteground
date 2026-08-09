@@ -79,8 +79,16 @@ async function main() {
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
   if (rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
     const tempSecret = rawCustomerId;
-    rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
+    const tempSecretSource = customerIdRes.source;
+    if (clientSecret && !clientSecret.startsWith('GOCSPX-')) {
+      rawCustomerId = clientSecret;
+      customerIdRes = { value: rawCustomerId, source: clientSecretRes.source };
+    } else {
+      rawCustomerId = rawLoginCustomerId || '';
+      customerIdRes = { value: rawCustomerId, source: loginCustomerIdRes.source };
+    }
     clientSecret = tempSecret;
+    clientSecretRes = { value: clientSecret, source: tempSecretSource };
   }
 
   const customerId = rawCustomerId.replace(/-/g, '');

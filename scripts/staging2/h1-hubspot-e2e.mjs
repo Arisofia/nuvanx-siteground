@@ -19,7 +19,9 @@ try {
   let status = 0;
   let reached = false;
 
+  let lastError = null;
   for (let attempt = 1; attempt <= 6; attempt++) {
+    status = 0;
     try {
       const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
       status = response?.status() || 0;
@@ -37,13 +39,15 @@ try {
         await sleep(3000 * attempt);
       }
     } catch (e) {
+      lastError = e;
       console.log(`NAV attempt=${attempt} error=${e.message}`);
     }
     await sleep(2500);
   }
   if (!reached) {
     const finalPath = new URL(page.url()).pathname;
-    throw new Error(`Production valoración route not reachable at /madrid/valoracion/; lastStatus=${status}, finalPath=${finalPath}`);
+    const errDetails = lastError ? `; lastError=${lastError.message}` : '';
+    throw new Error(`Production valoración route not reachable at /madrid/valoracion/; lastStatus=${status}, finalPath=${finalPath}${errDetails}`);
   }
 
   // Fast-check for deploy SHA meta tag with short 2s timeout to avoid 30s silent stall.

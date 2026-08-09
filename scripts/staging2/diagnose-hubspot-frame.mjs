@@ -33,9 +33,14 @@ function redact(text) {
     .slice(0, 300);
 }
 
+// Desktop Chrome UA to clear SiteGround's anti-bot layer, matching the established
+// scripts/staging2/google-attribution-audit.mjs harness (default headless UA is flakier here).
+const desktopUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+
 const browser = await chromium.launch({ headless: true });
 try {
-  const page = await browser.newPage();
+  const context = await browser.newContext({ userAgent: desktopUserAgent });
+  const page = await context.newPage();
   const failures = [];
   const hubSpotPosts = [];
   const hubSpotResponses = [];

@@ -46,14 +46,13 @@ jobs:
             echo "::warning::No PAGESPEED_API_KEY / GOOGLE_API_KEY secret found. Using unauthenticated public endpoint."
           fi
 
-          RESPONSE=$(curl -sSL --max-time 45 "$API_URL" || echo "")
+          RESPONSE=$(curl -sSL --max-time 45 --retry 3 --retry-delay 2 "$API_URL" || echo "")
           
           if [[ -z "$RESPONSE" ]]; then
             echo "::warning::PageSpeed API request timed out or returned empty response."
             exit 0
           fi
 
-          # Check for API error response (e.g. 429 quota, 400 invalid key)
           if echo "$RESPONSE" | grep -q '"error"'; then
             ERR_MSG=$(echo "$RESPONSE" | grep -o '"message": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "API Error")
             ERR_REASON=$(echo "$RESPONSE" | grep -o '"reason": "[^"]*"' | head -n 1 | cut -d'"' -f4 || echo "Unknown")
@@ -93,7 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Checking sitemap index at $BASE_URL/sitemap_index.xml..."
-          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "$BASE_URL/sitemap_index.xml")
+          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL/sitemap_index.xml" || echo "000")
           if [[ "$HTTP_CODE" -eq 200 ]]; then
             echo "SITEMAP_STATUS=PASS (HTTP 200)"
           else
@@ -122,9 +121,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "Verifying SEO metadata on $BASE_URL..."
-          curl -fsSL --max-time 15 "$BASE_URL" -o index.html
-          grep -i '<meta name="robots"' index.html || echo "::warning::No robots meta tag found"
-          grep -i 'rel="canonical"' index.html || echo "::warning::No canonical tag found"
+          curl -fsSL --max-time 45 --retry 3 --retry-delay 2 "$BASE_URL" -o index.html || echo "::warning::Failed to fetch $BASE_URL"
+          if [[ -f index.html ]]; then
+            grep -i '<meta name="robots"' index.html || echo "::warning::No robots meta tag found"
+            grep -i 'rel="canonical"' index.html || echo "::warning::No canonical tag found"
+          fi
 
   index-all-pages:
     name: Index All Pages via Search Console
@@ -149,7 +150,8 @@ jobs:
         run: |
           set -euo pipefail
           
-          if [[ -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+          CREDS="${GOOGLE_APPLICATION_CREDENTIALS:-}"
+          if [[ -z "$CREDS" || "$CREDS" == *"{{"* ]]; then
             echo "::warning::GOOGLE_APPLICATION_CREDENTIALS / GOOGLE_ADS_JSON secret is missing or empty."
             echo "To enable Search Console indexing, configure the required secret in Repository Secrets."
             exit 0
@@ -160,7 +162,7 @@ jobs:
           mkdir -p scripts/seo/artifacts
           
           # Write credentials to file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS" > scripts/seo/credentials.json
+          echo "$CREDS" > scripts/seo/credentials.json
           
           # Run page indexing
           cd scripts/seo

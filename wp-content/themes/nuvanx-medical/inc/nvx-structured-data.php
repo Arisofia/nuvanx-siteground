@@ -508,7 +508,8 @@ function nvx_schema_clinics() {
 				'value'      => $ch['reg'] ?? 'CS20144',
 			),
 			'hasMap'                    => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
-			'areaServed'                => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Madrid' ),
+			'areaServed'                => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Malasaña', 'Ríos Rosas', 'Madrid' ),
+			'description'               => 'Medicina estética láser premium en Chamberí, Madrid. Endolift®, endoláser corporal, láser CO₂ fraccionado y neuromoduladores con dirección médica especializada. Cerca de Almagro, Malasaña y Ríos Rosas.',
 			'openingHoursSpecification' => array(
 				array(
 					'@type'     => 'OpeningHoursSpecification',
@@ -522,6 +523,13 @@ function nvx_schema_clinics() {
 					'opens'     => '10:00',
 					'closes'    => '18:00',
 				),
+			),
+			'aggregateRating'           => array(
+				'@type'       => 'AggregateRating',
+				'ratingValue' => '5',
+				'bestRating'  => '5',
+				'worstRating' => '1',
+				'reviewCount' => '105',
 			),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
@@ -554,7 +562,8 @@ function nvx_schema_clinics() {
 				'value'      => $go['reg'] ?? 'CS20073',
 			),
 			'hasMap'                    => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
-			'areaServed'                => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Madrid' ),
+			'areaServed'                => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Velázquez', 'Serrano', 'Madrid' ),
+			'description'               => 'Medicina estética láser premium en Goya, Barrio Salamanca, Madrid. Endolift®, endoláser corporal, láser CO₂ fraccionado y neuromoduladores con dirección médica especializada. Cerca de Lista, Recoletos, Velázquez y Serrano.',
 			'openingHoursSpecification' => array(
 				array(
 					'@type'     => 'OpeningHoursSpecification',
@@ -562,6 +571,13 @@ function nvx_schema_clinics() {
 					'opens'     => '11:00',
 					'closes'    => '20:00',
 				),
+			),
+			'aggregateRating'           => array(
+				'@type'       => 'AggregateRating',
+				'ratingValue' => '5',
+				'bestRating'  => '5',
+				'worstRating' => '1',
+				'reviewCount' => '105',
 			),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
@@ -691,20 +707,23 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 	$label_b      = function_exists( 'nvx_co2_price_body_eur' ) ? nvx_format_price_eur( nvx_co2_price_body_eur() ) : '';
 
 	if ( 'endolift_facial' === $key ) {
+		$label_from    = nvx_endolift_price_from_eur();
+		$label_papada  = function_exists( 'nvx_endolift_papada_price_eur' ) ? nvx_format_price_eur( nvx_endolift_papada_price_eur() ) : $label_from;
+
 		return array(
 			'@type'             => array( 'MedicalProcedure', 'Service' ),
 			'@id'               => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
 			'name'              => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'     => array( NVX_SD_ENDOLIFT_FACIAL, 'Láser intersticial facial' ),
+			'alternateName'     => array( NVX_SD_ENDOLIFT_FACIAL, 'Láser intersticial facial', 'Endolift Chamberí Madrid', 'Endolift Goya Madrid' ),
 			'url'               => $permalink,
 			'mainEntityOfPage'  => array( '@id' => $permalink ),
 			'provider'          => array( '@id' => $organization_id ),
-			'description'       => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica. PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €.',
+			'description'       => 'Endolift® premium con dirección médica especializada en láser intersticial. Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello. Valoración anatómica exhaustiva por Dr. Javier Rivera Tejeda (Máster Universitario en Medicina Estética UCM). PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €. Tarifa premium por autoridad clínica y protocolo médico personalizado.',
 			'bodyLocation'      => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
 			'procedureType'     => 'https://schema.org/MinimallyInvasiveProcedure',
-			'preparation'       => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
-			'howPerformed'      => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
-			'followup'          => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
+			'preparation'       => 'Valoración médica presencial exhaustiva de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía. Planificación individualizada por médico especialista.',
+			'howPerformed'      => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona. Protocolo médico personalizado según anatomía y objetivos.',
+			'followup'          => 'Seguimiento clínico protocolizado por dirección médica (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
 			'indication'        => array(
 				array(
 					'@type' => 'MedicalIndication',

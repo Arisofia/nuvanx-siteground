@@ -103,6 +103,27 @@
     "post_id": 0,
     "schema_type": "Service"
   },
+  "/neuromodulador-botox-madrid/": {
+    "seo_id": "neuromodulador",
+    "schema_group": "treatments",
+    "schema_id": "neuromodulador",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
+  },
+  "/acido-hialuronico-relleno-madrid/": {
+    "seo_id": "acido_hialuronico",
+    "schema_group": "treatments",
+    "schema_id": "acido_hialuronico",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
+  },
+  "/rinomodelacion-madrid/": {
+    "seo_id": "rinomodelacion",
+    "schema_group": "treatments",
+    "schema_id": "rinomodelacion",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
+  },
   "/medicina-estetica-laser/": {},
   "/medicina-estetica/": {},
   "/estetica-avanzada/": {},

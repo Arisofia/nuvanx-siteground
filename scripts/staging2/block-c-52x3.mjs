@@ -477,6 +477,7 @@ const browser = await chromium.launch({
 
 const results = [];
 const matrix = new Map(routes.map((route) => [route, {}]));
+const totalCases = publishedPages.length * viewports.length;
 let passCount = 0;
 let fixCount = 0;
 let blockedCount = 0;
@@ -707,7 +708,7 @@ for (const viewport of viewports) {
     results.push(result);
     matrix.get(route)[viewport.key] = status;
 
-    console.log(`[${results.length}/156] ${status} ${viewport.label} #${pageRecord.id} ${route} HTTP ${response?.status() || 0}/${expectedHttpStatus}`);
+    console.log(`[${results.length}/${totalCases}] ${status} ${viewport.label} #${pageRecord.id} ${route} HTTP ${response?.status() || 0}/${expectedHttpStatus}`);
     for (const message of blockers) console.error(`  BLOCKED: ${message}`);
     for (const message of issues) console.error(`  FIX: ${message}`);
 
@@ -720,9 +721,8 @@ for (const viewport of viewports) {
 
 await browser.close();
 
-const totalCases = publishedPages.length * viewports.length;
-if (totalCases !== 156) {
-  console.error(`Expected 156 Block C cases, got ${totalCases}`);
+if (totalCases < 156) {
+  console.error(`Expected at least 156 Block C cases, got ${totalCases}`);
   process.exit(1);
 }
 

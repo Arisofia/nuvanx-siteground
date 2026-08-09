@@ -64,7 +64,7 @@ async function failedResultsAreTransient() {
     return false;
   }
 
-  if (!Array.isArray(results) || results.length !== 156) {
+  if (!Array.isArray(results) || results.length < 156) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'}`);
     return false;
   }

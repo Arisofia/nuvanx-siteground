@@ -42,13 +42,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p scripts/h1-artifacts
-          NODE_PATH=scripts/staging2/node_modules node scripts/h1-hubspot-e2e.mjs 2>&1 | tee scripts/h1-artifacts/h1-e2e.log
+          mkdir -p scripts/staging2/h1-artifacts
+          node scripts/staging2/h1-hubspot-e2e.mjs 2>&1 | tee scripts/staging2/h1-artifacts/h1-e2e.log
 
       - name: Upload H1 evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: h1-hubspot-e2e-evidence
-          path: scripts/h1-artifacts/*.log
+          path: scripts/staging2/h1-artifacts/*.log
           retention-days: 7

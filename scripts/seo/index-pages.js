@@ -51,13 +51,38 @@ async function indexAllPages() {
     console.log(`Indexing pages for property: ${property}`);
     console.log(`Base URL: ${baseUrl}`);
 
-    // Fetch sitemap
+    // Fetch sitemap with transient retry logic
     const sitemapUrl = `${baseUrl}/sitemap.xml`;
     console.log(`Fetching sitemap: ${sitemapUrl}`);
-    
-    const sitemapResponse = await fetch(sitemapUrl);
-    if (!sitemapResponse.ok) {
-      throw new Error(`Failed to fetch sitemap: ${sitemapResponse.status}`);
+
+    let sitemapResponse = null;
+    let sitemapError = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        sitemapResponse = await fetch(sitemapUrl);
+        if (sitemapResponse.ok) {
+          sitemapError = null;
+          break;
+        }
+        const status = sitemapResponse.status;
+        if (status === 202 || status === 429 || status >= 500) {
+          console.log(`Attempt ${attempt}: Transient sitemap status (${status}); retrying...`);
+          await new Promise((r) => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        const fatal = new Error(`Failed to fetch sitemap: HTTP ${status}`);
+        fatal.nonRetryable = true;
+        throw fatal;
+      } catch (err) {
+        sitemapError = err;
+        if (err.nonRetryable || attempt === 3) {
+          throw err;
+        }
+        await new Promise((r) => setTimeout(r, attempt * 2000));
+      }
+    }
+    if (sitemapError || !sitemapResponse || !sitemapResponse.ok) {
+      throw sitemapError || new Error('Failed to fetch sitemap');
     }
 
     const sitemapText = await sitemapResponse.text();

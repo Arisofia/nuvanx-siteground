@@ -11,6 +11,7 @@ if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,63}$/.test(qaEmailDomain)) thro
 
 const emailRunId = runId.replace(/[^A-Za-z0-9]/g, '').toLowerCase().slice(-18) || 'run';
 const edgeNeedle = '/functions/v1/google-click-attribution';
+const auditOrigin = new URL(baseUrl).origin;
 const phoneValue = '+34600000000';
 const scenarios = [
   { name: 'ALLOW', allowed: true, gclid: `NVXALLOW-${runId}`, email: `nvxqaallow${emailRunId}@${qaEmailDomain}` },
@@ -395,14 +396,36 @@ async function awaitAuditCount(accumulator, expected) {
   await sleep(3000);
 }
 
-function assertAllowPayload(email, auditRequests, auditResponses) {
-  if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
-    throw new Error(`ALLOW: audit response statuses=${JSON.stringify(auditResponses)}`);
-  }
-  const payload = JSON.parse(auditRequests[0] || '{}');
+async function verifyPersistedAudit(email, auditRequest, auditResponses) {
+  const payloadRaw = String(auditRequest?.body || '');
+  const payload = JSON.parse(payloadRaw || '{}');
   if (JSON.stringify(payload).includes(email)) throw new Error('ALLOW: raw email leaked in audit payload');
   const expectedHash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
   if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
+
+  if (auditResponses.length > 1) throw new Error(`ALLOW: browser audit response count=${auditResponses.length}, expected<=1`);
+  if (auditResponses.length === 1 && (auditResponses[0] < 200 || auditResponses[0] >= 300)) {
+    throw new Error(`ALLOW: browser audit response statuses=${JSON.stringify(auditResponses)}`);
+  }
+
+  const verifyResponse = await fetch(auditRequest.url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: auditOrigin,
+    },
+    body: payloadRaw,
+  });
+  const verifyBody = await verifyResponse.json().catch(() => ({}));
+  if (
+    verifyResponse.status !== 200
+    || verifyBody?.success !== true
+    || verifyBody?.stored !== false
+    || verifyBody?.duplicate !== true
+  ) {
+    throw new Error(`ALLOW: persistence verification failed status=${verifyResponse.status} body=${JSON.stringify(verifyBody)}`);
+  }
+  console.log(`ALLOW_AUDIT_PERSISTENCE=PASS browserResponses=${JSON.stringify(auditResponses)} verifyStatus=200 duplicate=true`);
 }
 
 async function assertAudit(scenario, email, state, auditRequests, auditResponses) {
@@ -417,8 +440,7 @@ async function assertAudit(scenario, email, state, auditRequests, auditResponses
     const hint = missingCustomEvent ? ' (no hs-form-event CustomEvent; success came from postMessage only)' : '';
     throw new Error(`ALLOW: audit request count=${auditRequests.length}, expected=1 sources=${JSON.stringify(state.successSources)}${hint}`);
   }
-  await awaitAuditCount(auditResponses, 1);
-  assertAllowPayload(email, auditRequests, auditResponses);
+  await verifyPersistedAudit(email, auditRequests[0], auditResponses);
 }
 
 async function submit(page, frame, signals, scenario, email, auditRequests, auditResponses) {
@@ -465,7 +487,9 @@ async function runScenario(browser, scenario) {
       return block ? route.abort().catch(() => {}) : route.continue().catch(() => {});
     });
     page.on('request', (request) => {
-      if (request.method() === 'POST' && request.url().includes(edgeNeedle)) auditRequests.push(request.postData() || '');
+      if (request.method() === 'POST' && request.url().includes(edgeNeedle)) {
+        auditRequests.push({ url: sanitizeUrl(request.url()), body: request.postData() || '' });
+      }
     });
     page.on('response', (response) => {
       if (response.request().method() === 'POST' && response.url().includes(edgeNeedle)) auditResponses.push(response.status());

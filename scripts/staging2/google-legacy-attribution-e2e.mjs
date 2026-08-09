@@ -411,8 +411,11 @@ async function verifyPersistedAudit(email, auditRequest, auditResponses) {
   if (payload.email_hash !== expectedHash) throw new Error('ALLOW: email_hash mismatch');
 
   if (auditResponses.length > 1) throw new Error(`ALLOW: browser audit response count=${auditResponses.length}, expected<=1`);
-  if (auditResponses.length === 1 && (auditResponses[0] < 200 || auditResponses[0] >= 300)) {
-    throw new Error(`ALLOW: browser audit response statuses=${JSON.stringify(auditResponses)}`);
+  // Only replay once the browser POST already reached the server with a 2xx. Replaying when the
+  // browser response is missing/non-2xx risks the Node fetch becoming the FIRST insert, writing QA
+  // data into the real attribution store; the replay must only ever be a dedupe (stored:false).
+  if (auditResponses.length !== 1 || auditResponses[0] < 200 || auditResponses[0] >= 300) {
+    throw new Error(`ALLOW: browser audit not confirmed 2xx, skipping replay; statuses=${JSON.stringify(auditResponses)}`);
   }
 
   const verifyResponse = await fetch(auditRequest.url, {

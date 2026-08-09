@@ -98,7 +98,7 @@ function nvx_valoracion_managed_page_markup(): string {
 	// Runtime governance owns the HubSpot loader. Trigger the page mount once all
 	// DOMContentLoaded listeners are installed so the dedicated form does not wait
 	// for scroll/intersection before loading.
-	$html .= '<script id="nvx-valoracion-form-eager">window.addEventListener("load",function(){var host=document.getElementById("nvx-hubspot-form");if(host){host.dispatchEvent(new Event("focusin",{bubbles:true}));}},{once:true});</script>';
+	$html .= '<script id="nvx-valoracion-form-eager">window.addEventListener("load",function(){var host=document.getElementById("nvx-hubspot-native-form");if(host){host.dispatchEvent(new Event("focusin",{bubbles:true}));}},{once:true});</script>';
 	$html .= '</div>';
 
 	return $html;
@@ -154,3 +154,12 @@ add_filter(
 	},
 	10
 );
+
+/**
+ * Preload HubSpot script and optimize priority on valuation page to improve LCP.
+ */
+add_action( 'wp_head', function() {
+	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+		echo '<link rel="preload" href="https://js.hsforms.net/forms/embed/v2.js" as="script" fetchpriority="high" />' . "\n";
+	}
+}, 5 );

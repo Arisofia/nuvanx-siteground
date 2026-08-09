@@ -338,8 +338,26 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
 		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
 		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
+		
+		$skeleton_html = '<style>
+			.nvx-skeleton-wrapper { display: flex; flex-direction: column; gap: 16px; padding: 20px 0; width: 100%; max-width: 600px; animation: nvx-pulse-anim 1.5s infinite ease-in-out; }
+			.nvx-skeleton-field { height: 48px; background-color: rgba(0,0,0,0.05); border-radius: 4px; width: 100%; }
+			.nvx-skeleton-field.short { width: 60%; }
+			.nvx-skeleton-button { height: 56px; background-color: rgba(0,0,0,0.1); border-radius: 4px; width: 220px; margin-top: 16px; }
+			@keyframes nvx-pulse-anim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+			/* Hide skeleton when HubSpot form is loaded */
+			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-skeleton-wrapper { display: none; }
+			#nvx-hubspot-native-form:has(iframe) .nvx-skeleton-wrapper { display: none; }
+		</style>
+		<div class="nvx-skeleton-wrapper" aria-hidden="true">
+			<div class="nvx-skeleton-field"></div>
+			<div class="nvx-skeleton-field"></div>
+			<div class="nvx-skeleton-field"></div>
+			<div class="nvx-skeleton-field short"></div>
+			<div class="nvx-skeleton-button"></div>
+		</div>';
 
-		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
+		return $skeleton_html . '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
 			. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
 	}
 }

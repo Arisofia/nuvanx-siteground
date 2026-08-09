@@ -17,6 +17,6 @@ console.log('SECRET_TOP_LEVEL_KEY_COUNT=' + Object.keys(data).length);
 const oauth = data.installed || data.web || data;
 const has = (k) => Boolean(data[k]) || Boolean(oauth[k]);
 const ads = ['client_id','client_secret','developer_token','customer_id','refresh_token'];
-console.log('GOOGLE_ADS_REQUIRED_KEYS_PRESENT=' + ads.filter(has).sort().join(','));
+console.log('GOOGLE_ADS_REQUIRED_KEYS_PRESENT=' + ads.filter(has).sort((a, b) => a.localeCompare(b)).join(','));
 const serviceAccount = ['type','project_id','private_key_id','private_key','client_email','client_id','auth_uri','token_uri'];
 console.log('SERVICE_ACCOUNT_SIGNATURE=' + (serviceAccount.filter((k) => Boolean(data[k])).length >= 5 ? 'true' : 'false'));

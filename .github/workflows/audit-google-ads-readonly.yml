@@ -22,7 +22,7 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: scripts/seo/package-lock.json
-      - run: npm ci --prefix scripts/seo
+      - run: npm ci --ignore-scripts --prefix scripts/seo
       - name: Classify configured credential schema safely
         continue-on-error: true
         env:

@@ -19,8 +19,9 @@ if (!data || typeof data !== 'object' || Array.isArray(data)) {
 }
 // Do not echo raw secret key names; report only the top-level key count.
 console.log('SECRET_TOP_LEVEL_KEY_COUNT=' + Object.keys(data).length);
-// OAuth client JSON may nest credentials under installed/web, so inspect both.
-const oauth = data.installed || data.web || data;
+// OAuth client JSON may nest credentials under installed/web/credentials/oauth,
+// so inspect the same wrappers the validator uses to keep diagnostics in sync.
+const oauth = data.installed || data.web || data.credentials || data.oauth || data;
 const has = (k) => Boolean(data[k]) || Boolean(oauth[k]);
 const ads = ['client_id','client_secret','developer_token','customer_id','refresh_token'];
 console.log('GOOGLE_ADS_REQUIRED_KEYS_PRESENT=' + ads.filter(has).sort((a, b) => a.localeCompare(b)).join(','));

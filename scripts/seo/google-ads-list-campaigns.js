@@ -62,6 +62,8 @@ async function main() {
   const refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
   const rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
   const customerId = rawCustomerId.replace(/-/g, '');
+  const rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
+  const loginCustomerId = rawLoginCustomerId.replace(/-/g, '');
 
   const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');
 
@@ -91,10 +93,17 @@ async function main() {
     developer_token: devToken,
   });
 
-  const customer = GoogleAds.Customer({
+  const customerOptions = {
     customer_id: customerId,
     refresh_token: refreshToken,
-  });
+  };
+  // Required when the OAuth credentials belong to a manager (MCC) account
+  // querying a client account, otherwise the API rejects the query.
+  if (loginCustomerId) {
+    customerOptions.login_customer_id = loginCustomerId;
+  }
+
+  const customer = GoogleAds.Customer(customerOptions);
 
   console.log('Attempting read-only GAQL campaign query...');
   const campaigns = await customer.query(`

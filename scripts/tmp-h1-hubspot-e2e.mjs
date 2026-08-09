@@ -1,4 +1,3 @@
-// isolated H1 production attribution probe
 import { chromium } from 'playwright';
 
 const base = 'https://nuvanx.com';
@@ -70,11 +69,17 @@ try {
   if (!hasCustom) throw new Error('nvx_google_click_id is not present in published HubSpot form');
   if (!hasNative) throw new Error('hs_google_click_id is not present in published HubSpot form');
 
+  // Re-fire consent lifecycle after the legacy form is registered by onFormReady.
   await page.evaluate(() => {
     document.dispatchEvent(new Event('wp_listen_for_consent_change'));
     document.dispatchEvent(new Event('wp_consent_type_defined'));
   });
 
+  /**
+   * Waits for a form field to receive the expected Google Click ID.
+   * @param {string} name - The field name used to locate the input.
+   * @return {Promise<string>} The field's current value after matching or the wait period ends.
+   */
   async function waitForValue(name) {
     const input = frame.locator(sel(name)).first();
     for (let i = 0; i < 40; i++) {

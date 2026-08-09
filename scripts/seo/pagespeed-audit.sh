@@ -77,16 +77,14 @@ echo "Audit completed. Full response saved to artifacts/"
 # Determine pass/fail thresholds
 if [[ "$STRATEGY" == "mobile" ]]; then
   # Mobile thresholds (stricter)
-  SCORE_INT=$(echo "$PERFORMANCE_SCORE * 100" | bc 2>/dev/null || echo "0")
-  if [[ "$SCORE_INT" -ge 50 ]]; then
+  if [[ "$PERFORMANCE_SCORE_INT" -ge 50 ]]; then
     echo "STATUS=PASS"
   else
     echo "STATUS=FAIL"
   fi
 else
   # Desktop thresholds
-  SCORE_INT=$(echo "$PERFORMANCE_SCORE * 100" | bc 2>/dev/null || echo "0")
-  if [[ "$SCORE_INT" -ge 70 ]]; then
+  if [[ "$PERFORMANCE_SCORE_INT" -ge 70 ]]; then
     echo "STATUS=PASS"
   else
     echo "STATUS=FAIL"

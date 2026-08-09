@@ -198,15 +198,9 @@
     "seo_id": "tratamientos"
   },
   "/liposculpt-air/": {
-    "schema_group": "treatments",
-    "schema_id": "liposculpt_air",
-    "post_id": 3490,
-    "schema_type": "MedicalProcedure"
+    "route_alias": "/remodelacion-corporal-laser-madrid/"
   },
   "/v-lift-awake/": {
-    "schema_group": "treatments",
-    "schema_id": "v_lift_awake",
-    "post_id": 3491,
-    "schema_type": "MedicalProcedure"
+    "route_alias": "/endolift-facial-papada-mandibula/"
   }
 }

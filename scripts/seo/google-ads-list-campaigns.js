@@ -1,89 +1,71 @@
 const { GoogleAdsApi } = require('google-ads-api');
 const fs = require('fs');
 
-function loadJsonCredentials() {
-  const raw = process.env.GOOGLE_ADS_JSON || '';
-  const explicitPath = process.env.GOOGLE_ADS_JSON_PATH || '';
-  const defaultPath = './google-ads.json';
+// Load credentials from environment or file
+const credentialsPath = process.env.GOOGLE_ADS_JSON || './google-ads.json';
+let credentials = {};
 
-  for (const candidate of [explicitPath, defaultPath]) {
-    if (candidate && fs.existsSync(candidate)) {
-      console.log('OAuth client JSON loaded from file');
-      return JSON.parse(fs.readFileSync(candidate, 'utf8'));
+try {
+  if (fs.existsSync(credentialsPath)) {
+    try {
+      credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+      console.log('Credentials loaded from file');
+    } catch {
+      console.log('Credentials path is not a valid JSON file');
+    }
+  } else if (process.env.GOOGLE_ADS_JSON) {
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_ADS_JSON);
+      console.log('Credentials loaded from GOOGLE_ADS_JSON env');
+    } catch {
+      console.log('GOOGLE_ADS_JSON env is not valid JSON string');
     }
   }
 
-  if (raw) {
-    if (fs.existsSync(raw)) {
-      console.log('OAuth client JSON loaded from file');
-      return JSON.parse(fs.readFileSync(raw, 'utf8'));
-    }
-    console.log('OAuth client JSON loaded from environment');
-    return JSON.parse(raw);
+  const clientId = credentials.client_id || process.env.GOOGLE_ADS_CLIENT_ID || '';
+  const clientSecret = credentials.client_secret || process.env.GOOGLE_ADS_CLIENT_SECRET || '';
+  const devToken = credentials.developer_token || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '';
+  const refreshToken = credentials.refresh_token || process.env.GOOGLE_ADS_REFRESH_TOKEN || '';
+  const customerId = (credentials.customer_id || process.env.GOOGLE_ADS_CUSTOMER_ID || '').replace(/-/g, '');
+
+  const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');
+
+  console.log('CREDENTIAL_DIAGNOSTICS:');
+  console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${credentials.client_id ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_ID ? 'ENV' : 'MISSING'})`);
+  console.log(`- client_secret_fingerprint=${maskSuffix(clientSecret)} (source: ${credentials.client_secret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
+  console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${credentials.developer_token ? 'JSON' : process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? 'ENV' : 'MISSING'})`);
+  console.log(`- refresh_token_fingerprint=${maskSuffix(refreshToken)} (source: ${credentials.refresh_token ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
+  console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${credentials.customer_id ? 'JSON' : process.env.GOOGLE_ADS_CUSTOMER_ID ? 'ENV' : 'MISSING'})`);
+
+  if (!clientId || !clientSecret || !devToken || !refreshToken || !customerId) {
+    console.error('Error: Missing required Google Ads credential parameters.');
+    process.exit(1);
   }
 
-  return {};
-}
-
-function normalizeCustomerId(value) {
-  return String(value || '').replace(/-/g, '').trim();
-}
-
-async function main() {
-  const json = loadJsonCredentials();
-  const oauth = json.installed || json.web || json;
-
-  const credentials = {
-    client_id: process.env.GOOGLE_ADS_CLIENT_ID || oauth.client_id || '',
-    client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET || oauth.client_secret || '',
-    developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || json.developer_token || '',
-    customer_id: process.env.GOOGLE_ADS_CUSTOMER_ID || json.customer_id || '',
-    login_customer_id: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || json.login_customer_id || '',
-    refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN || json.refresh_token || '',
-  };
-
-  const required = ['client_id', 'client_secret', 'developer_token', 'customer_id', 'refresh_token'];
-  const missing = required.filter((key) => !credentials[key]);
-  if (missing.length) {
-    throw new Error(`Missing Google Ads credential fields: ${missing.join(', ')}`);
-  }
-
-  const client = new GoogleAdsApi({
-    client_id: credentials.client_id,
-    client_secret: credentials.client_secret,
-    developer_token: credentials.developer_token,
+  const GoogleAds = new GoogleAdsApi({
+    client_id: clientId,
+    client_secret: clientSecret,
+    developer_token: devToken,
   });
 
-  const customerOptions = {
-    customer_id: normalizeCustomerId(credentials.customer_id),
-    refresh_token: credentials.refresh_token,
-  };
-  if (credentials.login_customer_id) {
-    customerOptions.login_customer_id = normalizeCustomerId(credentials.login_customer_id);
-  }
+  const customer = GoogleAds.Customer({
+    customer_id: customerId,
+    refresh_token: refreshToken,
+  });
 
-  const customer = client.Customer(customerOptions);
-  console.log('Attempting read-only GAQL campaign query...');
-
-  const campaigns = await customer.query(`
-    SELECT
-      campaign.id,
-      campaign.name,
-      campaign.status,
-      campaign.advertising_channel_type
-    FROM campaign
-    ORDER BY campaign.id
-  `);
-
-  console.log(`Campaigns found: ${campaigns.length}`);
-  for (const row of campaigns) {
-    const campaign = row.campaign || {};
-    console.log(`CAMPAIGN id=${campaign.id || ''} status=${campaign.status || ''} channel=${campaign.advertising_channel_type || ''} name=${campaign.name || ''}`);
-  }
-  console.log('GOOGLE_ADS_READ_ONLY=PASS');
-}
-
-main().catch((error) => {
-  console.error(`GOOGLE_ADS_READ_ONLY=FAIL ${error.message}`);
+  console.log('Attempting to list campaigns...');
+  customer.campaigns.list()
+    .then(campaigns => {
+      console.log('Campaigns found:', campaigns.length);
+      campaigns.forEach(c => console.log('-', c.id, c.name, c.status));
+      console.log('SUCCESS: Google Ads credentials are valid for read-only access');
+    })
+    .catch(err => {
+      console.error('Error listing campaigns:', err.message);
+      console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.message);
+      process.exit(1);
+    });
+} catch (error) {
+  console.error('Error:', error.message);
   process.exit(1);
-});
+}

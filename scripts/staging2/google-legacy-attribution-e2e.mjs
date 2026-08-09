@@ -270,10 +270,14 @@ async function syncV4State(page, email) {
     await new Promise((resolve) => setTimeout(resolve, 500));
     const after = await form.getFormFieldValues();
     const values = new Map((Array.isArray(after) ? after : []).map((field) => [field?.name || '', String(field?.value ?? '')]));
+    // HubSpot v4 may reformat stored values (email casing/whitespace, phone spacing/country-code),
+    // so compare normalized forms: email trimmed+lowercased, phone reduced to digits.
+    const digitsOnly = (value) => String(value ?? '').replace(/\D/g, '');
+    const normEmail = (value) => String(value ?? '').trim().toLowerCase();
     return {
       applied,
-      emailMatches: Boolean(applied.email) && values.get(applied.email) === emailValue,
-      phoneReady: Boolean(applied.phone) && values.get(applied.phone) === phone,
+      emailMatches: Boolean(applied.email) && normEmail(values.get(applied.email)) === normEmail(emailValue),
+      phoneReady: Boolean(applied.phone) && digitsOnly(values.get(applied.phone)) === digitsOnly(phone),
       fieldCount: available.size,
     };
   }, { canonicalFormId: formId, emailValue: email, phone: phoneValue });

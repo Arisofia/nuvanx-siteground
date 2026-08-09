@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t transient < <(find . -path './.git' -prune -o -type f \( -name '*-once.yml' -o -name '*-once.yaml' -o -name '*-once.sh' -o -name '*-once.mjs' \) -print | sort)
+          mapfile -t transient < <(find . -path './.git' -prune -o -type f \( -name '*-once.*' -o -name '*-temp.*' -o -name 'tmp-*' -o -name 'tmp_*' -o -name 'temp-*' -o -name 'temp_*' \) -print | sort)
           if (( ${#transient[@]} > 0 )); then
             echo 'Transient one-shot files are not allowed on persistent branches:' >&2
             printf '  %s\n' "${transient[@]}" >&2

@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
           cd scripts/staging2
           npm ci --ignore-scripts
-          npx --no-install playwright install --with-deps chromium
+          ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Run H1 E2E against production
         shell: bash

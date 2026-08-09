@@ -129,10 +129,7 @@
    */
   function initValoracionModalGovernance() {
     const cfg = window.nvxValoracionModal || {};
-    if (cfg.enabled === false) return;
-
     const modal = document.getElementById(cfg.modalId || 'nvx-valoracion-modal');
-    if (!modal || typeof modal.showModal !== 'function') return;
 
     let lastFocus = null;
     const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
@@ -216,27 +213,50 @@
     document.addEventListener('click', function (e) {
       const a = e.target && e.target.closest ? e.target.closest('a') : null;
       if (!shouldIntercept(a)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      openModal(a);
+
+      if (modal && typeof modal.showModal === 'function') {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal(a);
+        return;
+      }
+
+      const formStage = document.querySelector('#nvx-hubspot-form, .nvx-form-stage, #nvx-hubspot-native-form');
+      if (formStage) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMobileNav();
+        formStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const frame = formStage.querySelector('.hs-form-frame');
+        if (frame && typeof frame.dispatchEvent === 'function') {
+          frame.dispatchEvent(new Event('focusin', { bubbles: true }));
+        }
+      }
     }, true);
 
-    modal.addEventListener('click', function (e) {
-      // Close when clicking on backdrop or close button
-      const isBackdrop = e.target.classList && e.target.classList.contains('nvx-valoracion-modal__backdrop');
-      const isCloseBtn = e.target.closest && e.target.closest('[data-nvx-valoracion-modal-close]');
-      if (isBackdrop || isCloseBtn) {
-        e.preventDefault();
-        closeModal();
-      }
-    });
-    
-    modal.addEventListener('close', function() {
-       closeModal();
-    });
+    if (modal) {
+      modal.addEventListener('click', function (e) {
+        // Close when clicking on backdrop or close button
+        const isBackdrop = e.target.classList && e.target.classList.contains('nvx-valoracion-modal__backdrop');
+        const isCloseBtn = e.target.closest && e.target.closest('[data-nvx-valoracion-modal-close]');
+        if (isBackdrop || isCloseBtn) {
+          e.preventDefault();
+          closeModal();
+        }
+      });
+      
+      modal.addEventListener('close', function() {
+         closeModal();
+      });
+    }
 
     window.nvxOpenValoracionModal = function () {
-      openModal(document.activeElement);
+      if (modal) openModal(document.activeElement);
+      else {
+        const formStage = document.querySelector('#nvx-hubspot-form, .nvx-form-stage, #nvx-hubspot-native-form');
+        if (formStage) formStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.location.href = DEFAULT_VALORACION_PATH + '#nvx-hubspot-form';
+      }
     };
     window.nvxCloseValoracionModal = closeModal;
   }

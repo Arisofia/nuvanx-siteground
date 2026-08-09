@@ -127,7 +127,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          NODE_PATH="$PWD/tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee tmp-h1/h1-e2e.log
+          cp scripts/tmp-h1-hubspot-e2e.mjs tmp-h1/e2e.mjs
+          cd tmp-h1
+          node e2e.mjs 2>&1 | tee h1-e2e.log
 
       - name: Upload H1 evidence
         if: always()

@@ -37,13 +37,18 @@ function loadJsonCredentials() {
   return {};
 }
 
-function pick(...values) {
-  for (const v of values) {
-    if (v !== undefined && v !== null && v !== '') {
-      return String(v).trim();
+function pickWithValueAndSource(envCandidates, jsonCandidates, isOptional = false) {
+  for (const envVal of envCandidates) {
+    if (envVal !== undefined && envVal !== null && envVal !== '') {
+      return { value: String(envVal).trim(), source: 'ENV' };
     }
   }
-  return '';
+  for (const jsonVal of jsonCandidates) {
+    if (jsonVal !== undefined && jsonVal !== null && jsonVal !== '') {
+      return { value: String(jsonVal).trim(), source: 'JSON' };
+    }
+  }
+  return { value: '', source: isOptional ? 'OPTIONAL_MISSING' : 'MISSING' };
 }
 
 async function main() {
@@ -56,17 +61,25 @@ async function main() {
 
   const oauth = json.installed || json.web || json.credentials || json.oauth || json;
 
-  let clientId = pick(oauth.client_id, oauth.clientId, process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID);
-  let clientSecret = pick(oauth.client_secret, oauth.clientSecret, process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET);
-  let devToken = pick(oauth.developer_token, oauth.developerToken, process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN);
-  let refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
-  let rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
-  let rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
+  // Environment variables take precedence over OAuth JSON credentials to allow runtime overrides in CI/CD.
+  const clientIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID], [oauth.client_id, oauth.clientId]);
+  const clientSecretRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET], [oauth.client_secret, oauth.clientSecret]);
+  const devTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN], [oauth.developer_token, oauth.developerToken]);
+  const refreshTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN], [oauth.refresh_token, oauth.refreshToken]);
+  let customerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID], [oauth.customer_id, oauth.customerId]);
+  let loginCustomerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID], [oauth.login_customer_id, oauth.loginCustomerId], true);
+
+  let clientId = clientIdRes.value;
+  let clientSecret = clientSecretRes.value;
+  let devToken = devTokenRes.value;
+  let refreshToken = refreshTokenRes.value;
+  let rawCustomerId = customerIdRes.value;
+  let rawLoginCustomerId = loginCustomerIdRes.value;
 
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
-  if (rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {
+  if (rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
     const tempSecret = rawCustomerId;
-    rawCustomerId = clientSecret && !clientSecret.startsWith('GOCSPX-') ? clientSecret : (rawLoginCustomerId || '');
+    rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
     clientSecret = tempSecret;
   }
 
@@ -76,12 +89,12 @@ async function main() {
   const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');
 
   console.log('CREDENTIAL_DIAGNOSTICS:');
-  console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${oauth.client_id || oauth.clientId ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_ID ? 'ENV' : 'MISSING'})`);
-  console.log(`- client_secret_status=${clientSecret ? 'SET' : 'MISSING'} (source: ${oauth.client_secret || oauth.clientSecret ? 'JSON' : process.env.GOOGLE_ADS_CLIENT_SECRET ? 'ENV' : 'MISSING'})`);
-  console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${oauth.developer_token || oauth.developerToken ? 'JSON' : process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? 'ENV' : 'MISSING'})`);
-  console.log(`- refresh_token_status=${refreshToken ? 'SET' : 'MISSING'} (source: ${oauth.refresh_token || oauth.refreshToken ? 'JSON' : process.env.GOOGLE_ADS_REFRESH_TOKEN ? 'ENV' : 'MISSING'})`);
-  console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${oauth.customer_id || oauth.customerId ? 'JSON' : process.env.GOOGLE_ADS_CUSTOMER_ID ? 'ENV' : 'MISSING'})`);
-  console.log(`- login_customer_id_fingerprint=${maskSuffix(loginCustomerId)} (source: ${oauth.login_customer_id || oauth.loginCustomerId ? 'JSON' : process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ? 'ENV' : 'OPTIONAL_MISSING'})`);
+  console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${clientIdRes.source})`);
+  console.log(`- client_secret_status=${clientSecret ? 'SET' : 'MISSING'} (source: ${clientSecretRes.source})`);
+  console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${devTokenRes.source})`);
+  console.log(`- refresh_token_status=${refreshToken ? 'SET' : 'MISSING'} (source: ${refreshTokenRes.source})`);
+  console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${customerIdRes.source})`);
+  console.log(`- login_customer_id_fingerprint=${maskSuffix(loginCustomerId)} (source: ${loginCustomerIdRes.source})`);
 
   if (!clientId || !clientSecret || !devToken || !refreshToken || !customerId) {
     const missing = [];
@@ -123,7 +136,16 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Error listing campaigns:', err.message);
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.message);
+  const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
+
+  console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
+  if (Array.isArray(err?.errors)) {
+    const sanitizedErrors = err.errors.map((e) => ({
+      error_code: e.error_code || e.errorCode,
+      message: sanitizeMessage(e.message),
+    }));
+    console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
+  }
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));
   process.exit(1);
 });

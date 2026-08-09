@@ -386,3 +386,23 @@ function nvx_seo_enforce_http_robots_header() {
 	}
 }
 add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
+
+/**
+ * Perform HTTP 301 redirect for routes configured with a route_alias in routes.json.
+ */
+function nvx_seo_handle_route_alias_redirect(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+
+	$path = nvx_seo_current_path();
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$routes = nvx_catalog_json_resolved( 'routes.json' );
+		if ( ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] ) ) {
+			$target = (string) $routes[ $path ]['route_alias'];
+			wp_safe_redirect( home_url( $target ), 301 );
+			exit;
+		}
+	}
+}
+add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );

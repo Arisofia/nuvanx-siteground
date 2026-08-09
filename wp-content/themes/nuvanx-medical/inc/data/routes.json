@@ -73,24 +73,28 @@
     "schema_type": "Service"
   },
   "/exion-face/": {
+    "seo_id": "exion_face",
     "schema_group": "treatments",
     "schema_id": "exion_face",
     "post_id": 0,
     "schema_type": "Service"
   },
   "/exion-fractional/": {
+    "seo_id": "exion_fractional",
     "schema_group": "treatments",
     "schema_id": "exion_fractional",
     "post_id": 0,
     "schema_type": "Service"
   },
   "/exion-body/": {
+    "seo_id": "exion_body",
     "schema_group": "treatments",
     "schema_id": "exion_body",
     "post_id": 0,
     "schema_type": "Service"
   },
   "/emfusion/": {
+    "seo_id": "emfusion",
     "schema_group": "treatments",
     "schema_id": "emfusion",
     "post_id": 0,
@@ -128,62 +132,77 @@
   "/medicina-estetica/": {},
   "/estetica-avanzada/": {},
   "/bioestimuladores-colageno-madrid/": {
+    "seo_id": "collagen_bio",
     "schema_group": "treatments",
     "schema_id": "collagen_bio"
   },
   "/ojeras-surco-lagrimal-madrid/": {
+    "seo_id": "dark_circles_ha",
     "schema_group": "treatments",
     "schema_id": "dark_circles_ha"
   },
   "/labios-acido-hialuronico-madrid/": {
+    "seo_id": "lips_ha",
     "schema_group": "treatments",
     "schema_id": "lips_ha"
   },
   "/remodelacion-corporal-laser-madrid/": {
+    "seo_id": "body_contouring_laser",
     "schema_group": "treatments",
     "schema_id": "body_contouring_laser"
   },
   "/tratamiento-postparto-abdomen-contorno-corporal-madrid/": {
+    "seo_id": "postpartum",
     "schema_group": "treatments",
     "schema_id": "postpartum"
   },
   "/papada-definicion-mandibular-madrid/": {
+    "seo_id": "double_chin",
     "schema_group": "treatments",
     "schema_id": "double_chin"
   },
   "/calidad-piel-firmeza-luminosidad-madrid/": {
+    "seo_id": "skin_quality",
     "schema_group": "treatments",
     "schema_id": "skin_quality"
   },
   "/cicatrices-acne-poros-textura-madrid/": {
+    "seo_id": "acne_scars",
     "schema_group": "treatments",
     "schema_id": "acne_scars"
   },
   "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/": {
+    "seo_id": "pigmentation",
     "schema_group": "treatments",
     "schema_id": "pigmentation"
   },
   "/grasa-localizada-abdomen-flancos-madrid/": {
+    "seo_id": "local_fat_abdomen",
     "schema_group": "treatments",
     "schema_id": "local_fat_abdomen"
   },
   "/flacidez-grasa-localizada-brazos-madrid/": {
+    "seo_id": "arms_fat_laxity",
     "schema_group": "treatments",
     "schema_id": "arms_fat_laxity"
   },
   "/grasa-espalda-zona-sujetador-madrid/": {
+    "seo_id": "back_fat",
     "schema_group": "treatments",
     "schema_id": "back_fat"
   },
   "/flacidez-muslos-internos-subgluteo-madrid/": {
+    "seo_id": "inner_thighs",
     "schema_group": "treatments",
     "schema_id": "inner_thighs"
   },
   "/tratamiento-rodillas-grasa-flacidez-madrid/": {
+    "seo_id": "knees",
     "schema_group": "treatments",
     "schema_id": "knees"
   },
   "/contorno-corporal-masculino-madrid/": {
+    "seo_id": "male_body_contouring",
     "schema_group": "treatments",
     "schema_id": "male_body_contouring"
   },
@@ -198,7 +217,11 @@
     "seo_id": "tratamientos"
   },
   "/liposculpt-air/": {
-    "route_alias": "/remodelacion-corporal-laser-madrid/"
+    "seo_id": "liposculpt_air",
+    "schema_group": "treatments",
+    "schema_id": "liposculpt_air",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
   },
   "/v-lift-awake/": {
     "route_alias": "/endolift-facial-papada-mandibula/"

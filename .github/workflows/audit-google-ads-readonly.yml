@@ -23,32 +23,10 @@ jobs:
           cache-dependency-path: scripts/seo/package-lock.json
       - run: npm ci --prefix scripts/seo
       - name: Classify configured credential schema safely
-        shell: bash
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
-        run: |
-          set -euo pipefail
-          if [[ -z "${GOOGLE_ADS_JSON:-}" ]]; then
-            echo "GOOGLE_ADS_CREDENTIALS=MISSING"
-            exit 3
-          fi
-          node - <<'NODE'
-          const raw = process.env.GOOGLE_ADS_JSON || '';
-          let data;
-          try { data = JSON.parse(raw); } catch { console.log('SECRET_JSON_VALID=false'); process.exit(4); }
-          console.log('SECRET_JSON_VALID=true');
-          console.log('SECRET_TOP_LEVEL_KEYS=' + Object.keys(data).sort().join(','));
-          const ads = ['client_id','client_secret','developer_token','customer_id','refresh_token'];
-          console.log('GOOGLE_ADS_REQUIRED_KEYS_PRESENT=' + ads.filter(k => Boolean(data[k])).sort().join(','));
-          const svc = ['type','project_id','private_key_id','private_key','client_email','client_id','auth_uri','token_uri'];
-          const svcCount = svc.filter(k => Boolean(data[k])).length;
-          console.log('SERVICE_ACCOUNT_SIGNATURE=' + (svcCount >= 5 ? 'true' : 'false'));
-NODE
+        run: node scripts/seo/classify-google-credential.js
       - name: Validate Google Ads credentials read-only
-        shell: bash
         env:
           GOOGLE_ADS_JSON: ${{ secrets.GOOGLE_ADS_JSON }}
-        run: |
-          set -euo pipefail
-          cd scripts/seo
-          node google-ads-list-campaigns.js
+        run: node scripts/seo/google-ads-list-campaigns.js

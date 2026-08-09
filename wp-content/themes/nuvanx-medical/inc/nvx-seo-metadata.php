@@ -388,21 +388,58 @@ function nvx_seo_enforce_http_robots_header() {
 add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
 
 /**
+ * Resolve the 301 destination for a route_alias, or null when no redirect applies.
+ *
+ * @param string $path Normalized request path (with leading/trailing slash).
+ * @return string|null Absolute destination URL, or null when the request is not aliased.
+ */
+function nvx_seo_route_alias_destination( string $path ): ?string {
+	$routes = function_exists( 'nvx_catalog_json_resolved' ) ? nvx_catalog_json_resolved( 'routes.json' ) : array();
+	$target = ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] )
+		? (string) $routes[ $path ]['route_alias']
+		: '';
+
+	$target_path = '' !== trim( $target, '/' ) ? '/' . trim( $target, '/' ) . '/' : '/';
+
+	// Skip empty aliases, self-redirects and chains: a target that is itself an
+	// alias would 301 twice.
+	if ( '' === $target || $target_path === $path || ! empty( $routes[ $target_path ]['route_alias'] ) ) {
+		return null;
+	}
+
+	$destination = home_url( $target );
+
+	// Only forward the request query string when the alias target has none of
+	// its own; parse_str + add_query_arg re-encode it so raw request input
+	// never reaches the Location header verbatim.
+	if ( false === strpos( $target, '?' ) ) {
+		$query = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
+		$args  = array();
+		parse_str( $query, $args );
+		if ( ! empty( $args ) ) {
+			$destination = add_query_arg( $args, $destination );
+		}
+	}
+
+	return $destination;
+}
+
+/**
  * Perform HTTP 301 redirect for routes configured with a route_alias in routes.json.
  */
 function nvx_seo_handle_route_alias_redirect(): void {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return;
 	}
 
-	$path = nvx_seo_current_path();
-	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
-		$routes = nvx_catalog_json_resolved( 'routes.json' );
-		if ( ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] ) ) {
-			$target = (string) $routes[ $path ]['route_alias'];
-			wp_safe_redirect( home_url( $target ), 301 );
-			exit;
-		}
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
+
+	$destination = nvx_seo_route_alias_destination( $path );
+	if ( null !== $destination ) {
+		wp_safe_redirect( $destination, 301, 'NUVANX' );
+		exit;
 	}
 }
 add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );

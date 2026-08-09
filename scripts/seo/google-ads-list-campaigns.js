@@ -39,13 +39,15 @@ function loadJsonCredentials() {
 
 function pickWithValueAndSource(envCandidates, jsonCandidates, isOptional = false) {
   for (const envVal of envCandidates) {
-    if (envVal !== undefined && envVal !== null && envVal !== '') {
-      return { value: String(envVal).trim(), source: 'ENV' };
+    const value = envVal == null ? '' : String(envVal).trim();
+    if (value) {
+      return { value, source: 'ENV' };
     }
   }
   for (const jsonVal of jsonCandidates) {
-    if (jsonVal !== undefined && jsonVal !== null && jsonVal !== '') {
-      return { value: String(jsonVal).trim(), source: 'JSON' };
+    const value = jsonVal == null ? '' : String(jsonVal).trim();
+    if (value) {
+      return { value, source: 'JSON' };
     }
   }
   return { value: '', source: isOptional ? 'OPTIONAL_MISSING' : 'MISSING' };
@@ -63,7 +65,7 @@ async function main() {
 
   // Environment variables take precedence over OAuth JSON credentials to allow runtime overrides in CI/CD.
   const clientIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID], [oauth.client_id, oauth.clientId]);
-  const clientSecretRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET], [oauth.client_secret, oauth.clientSecret]);
+  let clientSecretRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET], [oauth.client_secret, oauth.clientSecret]);
   const devTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN], [oauth.developer_token, oauth.developerToken]);
   const refreshTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN], [oauth.refresh_token, oauth.refreshToken]);
   let customerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID], [oauth.customer_id, oauth.customerId]);
@@ -79,8 +81,11 @@ async function main() {
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
   if (rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
     const tempSecret = rawCustomerId;
+    const previousCustomerSource = customerIdRes.source;
     rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
+    customerIdRes = { value: rawCustomerId, source: (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecretRes.source : loginCustomerIdRes.source };
     clientSecret = tempSecret;
+    clientSecretRes = { value: clientSecret, source: previousCustomerSource };
   }
 
   const customerId = rawCustomerId.replace(/-/g, '');
@@ -138,12 +143,40 @@ async function main() {
 main().catch((err) => {
   const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
 
+  // Recursively sanitize every textual value while preserving nested diagnostic
+  // fields (details, trigger, location) that help troubleshoot API rejections.
+  const sanitizeValue = (value) => {
+    if (typeof value === 'string') {
+      return sanitizeMessage(value);
+    }
+    if (Array.isArray(value)) {
+      return value.map(sanitizeValue);
+    }
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeValue(v)]));
+    }
+    return value;
+  };
+
+  // Only surface a bounded allow-list of diagnostic fields; dumping arbitrary
+  // nested content risks printing credential/request metadata to CI logs.
+  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode', 'message', 'details', 'trigger', 'location'];
+  const projectError = (e) => {
+    if (!e || typeof e !== 'object') {
+      return sanitizeValue(e);
+    }
+    const projected = {};
+    for (const field of DIAGNOSTIC_FIELDS) {
+      if (e[field] !== undefined) {
+        projected[field] = sanitizeValue(e[field]);
+      }
+    }
+    return projected;
+  };
+
   console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
   if (Array.isArray(err?.errors)) {
-    const sanitizedErrors = err.errors.map((e) => ({
-      error_code: e.error_code || e.errorCode,
-      message: sanitizeMessage(e.message),
-    }));
+    const sanitizedErrors = err.errors.map((e) => projectError(e));
     console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
   }
   console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));

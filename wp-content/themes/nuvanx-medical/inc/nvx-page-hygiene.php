@@ -4,6 +4,8 @@
  *
  * - Redirect superseded cookie documents to the Complianz EU statement.
  * - Keep transactional / incomplete-evidence pages out of search results.
+ * - Keep published routes addressable; editorial readiness governs indexing,
+ *   not whether a published WordPress page returns HTTP 200.
  * - Does not print schema or CSS.
  *
  * @package NUVANX_Medical
@@ -104,31 +106,6 @@ function nvx_nofollow_page_ids() {
 }
 
 /**
- * Force 404 on patient cases gallery until explicitly marked publication-ready.
- */
-function nvx_force_404_empty_cases() {
-	if ( ! is_page() ) {
-		return;
-	}
-	$cases_id = function_exists( 'nvx_page_id_by_slug' )
-		? nvx_page_id_by_slug( 'casos-de-pacientes' )
-		: 0;
-	if ( $cases_id <= 0 || (int) get_queried_object_id() !== $cases_id ) {
-		return;
-	}
-	if ( '1' === (string) get_post_meta( $cases_id, '_nvx_cases_publication_ready', true ) ) {
-		return;
-	}
-
-	global $wp_query;
-	$wp_query->set_404();
-	status_header( 404 );
-	nocache_headers();
-	// Do not exit: WordPress must still select and render its 404 template.
-}
-add_action( 'template_redirect', 'nvx_force_404_empty_cases', 1 );
-
-/**
  * Comparison articles retained for internal medical/evidence review only.
  *
  * They are intentionally not deleted here: editorial and clinical teams need a
@@ -227,7 +204,8 @@ function nvx_noindex_page_ids() {
 		$ids = array_merge( $ids, nvx_strategy_pending_page_ids() );
 	}
 
-	// Casos de pacientes: only index after explicit editorial meta.
+	// Casos de pacientes: keep the published route reachable, but only index it
+	// after explicit editorial approval of real patient evidence.
 	$cases_id = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'casos-de-pacientes' )
 		: 0;

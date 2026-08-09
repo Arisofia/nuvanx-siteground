@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const formId = (process.env.FORM_ID || '5042522a-0bc5-4381-ac3e-5aee8649b69c').trim().toLowerCase();
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const runId = String(process.env.QA_RUN_ID || Date.now()).replace(/[^A-Za-z0-9-]/g, '').slice(0, 40);
-const qaEmailDomain = (process.env.QA_EMAIL_DOMAIN || 'gmail.com').trim().toLowerCase();
+const qaEmailDomain = (process.env.QA_EMAIL_DOMAIN || 'example.com').trim().toLowerCase();
 if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
 if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,63}$/.test(qaEmailDomain)) throw new Error('QA_EMAIL_DOMAIN must be a valid domain');
 
@@ -82,7 +82,7 @@ async function installPersistentObservers(page, signals) {
     const allowedHubSpotOrigin = (origin) => {
       if (!origin || origin === 'null') return false;
       try {
-        return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(new URL(origin).hostname.toLowerCase());
+        return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net|forms-eu1\.com)$/.test(new URL(origin).hostname.toLowerCase());
       } catch {
         return false;
       }
@@ -428,6 +428,9 @@ async function verifyPersistedAudit(email, auditRequest, auditResponses) {
       Origin: auditOrigin,
     },
     body: payloadRaw,
+    signal: AbortSignal.timeout(15000),
+  }).catch((error) => {
+    throw new Error(`ALLOW: persistence verification request failed (timeout/network): ${error.message}`);
   });
   const verifyBody = await verifyResponse.json().catch(() => ({}));
   if (
@@ -496,25 +499,20 @@ async function runScenario(browser, scenario) {
     // Only route Google measurement hosts. Intercepting every request ('**/*') would proxy the
     // keepalive attribution audit POST through Playwright and could drop it if HubSpot navigates
     // right after submit; leaving non-Google requests unrouted preserves that keepalive guarantee.
-    const googleHostGlobs = [
-      '**://googleadservices.com/**', '**://*.googleadservices.com/**',
-      '**://googlesyndication.com/**', '**://*.googlesyndication.com/**',
-      '**://doubleclick.net/**', '**://*.doubleclick.net/**',
-      '**://googletagmanager.com/**', '**://*.googletagmanager.com/**',
-      '**://google-analytics.com/**', '**://*.google-analytics.com/**',
-      '**://google.*/**', '**://*.google.*/**',
-    ];
+    // Match Google measurement hosts with a single RegExp (covers every scheme, subdomain and
+    // regional TLD). Playwright does not document a '**://' protocol glob, so a RegExp is the
+    // reliable way to route only these hosts while leaving the keepalive audit POST untouched.
+    const googleHostRoute = /^https?:\/\/([a-z0-9-]+\.)*(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google-analytics\.com|google\.[a-z.]+)(\/|$)/i;
     const routeHandler = async (route) => {
       let block = false;
       try {
         const url = new URL(route.request().url());
-        const googleHost = /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|googletagmanager\.com|google-analytics\.com|google\.[a-z.]+)$/.test(url.hostname);
         const measurement = /conversion|viewthroughconversion|pagead\/1p-conversion|pagead\/gen_204|\/ccm\/collect|\/g\/collect|\/collect/i.test(url.pathname);
-        block = googleHost && measurement;
+        block = measurement;
       } catch {}
       return block ? route.abort().catch(() => {}) : route.continue().catch(() => {});
     };
-    for (const glob of googleHostGlobs) await page.route(glob, routeHandler);
+    await page.route(googleHostRoute, routeHandler);
     page.on('request', (request) => {
       if (request.method() === 'POST' && request.url().includes(edgeNeedle)) {
         auditRequests.push({ url: sanitizeUrl(request.url()), body: request.postData() || '' });

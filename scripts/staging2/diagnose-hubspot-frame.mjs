@@ -120,15 +120,22 @@ try {
           id: node.id || '',
           required: Boolean(node.required || node.getAttribute('aria-required') === 'true'),
         })).slice(0, 100));
-      } catch (error) {
-        inspectError = `FRAME_INSPECT_ERROR:${redact(error.message)}`;
+      } catch {
+        inspectError = 'FRAME_INSPECT_ERROR';
       }
       console.log(`FRAME_${i}=${JSON.stringify({ url: sanitizeUrl(frame.url()), forms, fields, inspectError })}`);
     }
     console.log(`HUBSPOT_REQUEST_FAILURES=${JSON.stringify(failures)}`);
   }
 
-  await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
+  try {
+    await page.locator(`#nvx-hubspot-form iframe[data-test-id*="${formId}"]`).first().waitFor({ state: 'attached', timeout: 30000 });
+  } catch (error) {
+    // The iframe never attached — collect the diagnostics we do have (this is the case the
+    // script exists to investigate) before surfacing the failure.
+    await collectDiagnostics().catch(() => {});
+    throw error;
+  }
   await page.waitForTimeout(5000);
   await collectDiagnostics();
 
@@ -201,10 +208,13 @@ try {
   const button = frame.locator('button[type="submit"],input[type="submit"]').first();
   const before = await frame.locator('form').first().evaluate((form) => ({ valid: form.checkValidity(), submitDisabled: Boolean(form.querySelector('[type="submit"]')?.disabled) }));
   console.log(`BEFORE_SUBMIT=${JSON.stringify(before)}`);
+  // Baseline the POST count so only requests produced by THIS click are considered; hubSpotPosts
+  // accumulates from before page.goto, so a pre-existing POST would otherwise mask this attempt.
+  const postCountBeforeSubmit = hubSpotPosts.length;
   await button.click();
   // Wait up to ~15s for the first submission's POST before considering a fallback, so a slow
   // HubSpot v4 submission is not double-submitted (which would create a duplicate CRM lead).
-  for (let attempt = 0; attempt < 60 && hubSpotPosts.length === 0; attempt += 1) await page.waitForTimeout(250);
+  for (let attempt = 0; attempt < 60 && hubSpotPosts.length === postCountBeforeSubmit; attempt += 1) await page.waitForTimeout(250);
 
   let after = await frame.evaluate(() => ({
     domSubmit: window.__nvxDiagDomSubmit || [],
@@ -218,9 +228,9 @@ try {
   after.messages = after.messages.map((item) => ({ ...item, text: redact(item.text) }));
   console.log(`AFTER_CLICK=${JSON.stringify(after)}`);
   console.log(`PARENT_EVENTS_AFTER_CLICK=${JSON.stringify(await page.evaluate(() => window.__nvxDiagFormEvents || []))}`);
-  console.log(`HUBSPOT_POSTS_AFTER_CLICK=${JSON.stringify(hubSpotPosts)}`);
+  console.log(`HUBSPOT_POSTS_AFTER_CLICK=${JSON.stringify(hubSpotPosts.slice(postCountBeforeSubmit))}`);
 
-  if (hubSpotPosts.length === 0) {
+  if (hubSpotPosts.length === postCountBeforeSubmit) {
     await button.evaluate((node) => node.form?.requestSubmit(node));
     await page.waitForTimeout(3000);
     after = await frame.evaluate(() => ({

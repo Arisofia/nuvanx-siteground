@@ -150,4 +150,6 @@ function nvx_btl_govern_metadescription( string $description ): string {
 
 	return $descriptions[ $slug ] ?? $description;
 }
-add_filter( 'wpseo_metadesc', 'nvx_btl_govern_metadescription', 99 );
+add_filter( 'wpseo_metadesc', 'nvx_btl_govern_metadescription', 101 );
+add_filter( 'wpseo_opengraph_desc', 'nvx_btl_govern_metadescription', 101 );
+add_filter( 'wpseo_twitter_description', 'nvx_btl_govern_metadescription', 101 );

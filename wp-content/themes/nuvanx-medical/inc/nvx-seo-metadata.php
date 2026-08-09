@@ -394,20 +394,16 @@ add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
  * @return string|null Absolute destination URL, or null when the request is not aliased.
  */
 function nvx_seo_route_alias_destination( string $path ): ?string {
-	if ( ! function_exists( 'nvx_catalog_json_resolved' ) ) {
-		return null;
-	}
+	$routes = function_exists( 'nvx_catalog_json_resolved' ) ? nvx_catalog_json_resolved( 'routes.json' ) : array();
+	$target = ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] )
+		? (string) $routes[ $path ]['route_alias']
+		: '';
 
-	$routes = nvx_catalog_json_resolved( 'routes.json' );
-	if ( empty( $routes[ $path ]['route_alias'] ) || ! is_string( $routes[ $path ]['route_alias'] ) ) {
-		return null;
-	}
-
-	$target      = (string) $routes[ $path ]['route_alias'];
 	$target_path = '' !== trim( $target, '/' ) ? '/' . trim( $target, '/' ) . '/' : '/';
 
-	// Skip self-redirects and never chain: a target that is itself an alias would 301 twice.
-	if ( $target_path === $path || ! empty( $routes[ $target_path ]['route_alias'] ) ) {
+	// Skip empty aliases, self-redirects and chains: a target that is itself an
+	// alias would 301 twice.
+	if ( '' === $target || $target_path === $path || ! empty( $routes[ $target_path ]['route_alias'] ) ) {
 		return null;
 	}
 

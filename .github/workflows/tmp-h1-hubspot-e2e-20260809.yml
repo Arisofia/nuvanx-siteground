@@ -20,15 +20,14 @@ jobs:
       - name: Checkout audit branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
 
-      - name: Prepare historical validated E2E harness
+      - name: Install Playwright
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .tmp-h1
-          git show bbf58980aabea51f3aa39a6c9ab4d04c033ca71b:scripts/staging2/google-legacy-attribution-e2e.mjs > .tmp-h1/e2e.mjs
           cd .tmp-h1
           npm init -y >/dev/null 2>&1
           npm install --no-audit --no-fund playwright@1.54.2
@@ -36,16 +35,9 @@ jobs:
 
       - name: Run production H1 E2E
         shell: bash
-        env:
-          BASE_URL: https://nuvanx.com
-          FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
-          EXPECTED_SHA: 1bfd42caa839503c475d10458fc4bdbc0b391d2f
-          QA_RUN_ID: H1-20260809-1510
-          QA_EMAIL_DOMAIN: example.com
         run: |
           set -euo pipefail
-          cd .tmp-h1
-          node e2e.mjs 2>&1 | tee h1-e2e.log
+          NODE_PATH="$PWD/.tmp-h1/node_modules" node scripts/tmp-h1-hubspot-e2e.mjs 2>&1 | tee .tmp-h1/h1-e2e.log
 
       - name: Upload sanitized E2E log
         if: always()

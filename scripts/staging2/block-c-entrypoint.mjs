@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const onceScript = fileURLToPath(new URL('./block-c-once.mjs', import.meta.url));
+const attemptScript = fileURLToPath(new URL('./block-c-attempt.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 
-function runOnce(attempt) {
+function runAttempt(attempt) {
   console.log(`BLOCK_C_ATTEMPT=${attempt}/${maxAttempts}`);
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [onceScript], {
+    const child = spawn(process.execPath, [attemptScript], {
       env: process.env,
       stdio: 'inherit',
     });
@@ -83,7 +83,7 @@ async function failedResultsAreTransient() {
 }
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-  const code = await runOnce(attempt);
+  const code = await runAttempt(attempt);
   if (code === 0) {
     console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
     process.exit(0);

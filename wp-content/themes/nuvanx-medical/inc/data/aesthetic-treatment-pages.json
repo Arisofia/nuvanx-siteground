@@ -301,5 +301,81 @@
                 "Pérdida de densidad dérmica"
             ]
         }
+    },
+    "neuromodulators": {
+        "slug": "neuromoduladores-botox-madrid",
+        "page_id": 3322,
+        "h1": "Tratamiento de neuromoduladores faciales en Madrid",
+        "seo_title": "Neuromoduladores faciales Madrid | Diagnóstico NUVANX",
+        "description": "Valoración médica de neuromoduladores para el abordaje de arrugas de expresión en tercio superior facial, evaluando dinámica muscular y simetría.",
+        "kicker": "Medicina estética facial · Madrid",
+        "lead": "El uso de neuromoduladores no persigue congelar la expresión ni estandarizar rostros. Analizamos la dinámica muscular del tercio superior para adaptar dosis y puntos de aplicación preservando la naturalidad.",
+        "diagnosis": "La exploración evalúa las arrugas dinámicas en frente, entrecejo y patas de gallo, diferenciándolas de arrugas estáticas profundas o laxitud cutánea. También analiza la posición de las cejas, la simetría facial y los antecedentes médicos antes de proponer tratamiento.",
+        "mechanism": "Cuando existe indicación, se administran dosis microdosificadas de neuromodulador en puntos musculares específicos para relajar temporalmente la contracción excesiva sin anular la movilidad ni alterar la mirada.",
+        "indications": [
+            "Arrugas dinámicas de expresión en entrecejo, frente y zona periocular.",
+            "Prevenir la profundización de arrugas dinámicas en pacientes seleccionados.",
+            "Asimetrías musculares faciales leves con indicación médica favorable."
+        ],
+        "precautions": [
+            "Enfermedades neuromusculares (como miastenia gravis o síndrome de Eaton-Lambert) contraindican el procedimiento.",
+            "Infección activa o inflamación en los puntos de inyección requieren aplazar el tratamiento.",
+            "Embarazo, lactancia, alergia a componentes o uso de determinados antibióticos deben valorarse en consulta.",
+            "Laxitud palpebral severa o ptosis previa requieren evaluación médica cautelosa."
+        ],
+        "process": [
+            "Historia clínica, evaluación de la mímica facial estática y dinámica y registro fotográfico.",
+            "Diseño de mapa de inyección individualizado según fuerza y simetría muscular.",
+            "Aplicación médica de microdosis con agujas de alta precisión.",
+            "Recomendaciones post-procedimiento y citación de revisión clínica a los 14-21 días."
+        ],
+        "evolution": "El efecto no es inmediato: comienza a percibirse a los 3-5 días y alcanza su pico máximo entre los 14 y 21 días. En la revisión clínica se evalúa el resultado y la necesidad —o no— de retocar.",
+        "risks": [
+            "Hematoma leve, molestia local o cefalea transitoria en las primeras horas.",
+            "Asimetría o difusión indeseada del producto (ej. ptosis palpebral o de ceja) transitoria.",
+            "Respuesta insuficiente o acortamiento de la duración en casos seleccionados."
+        ],
+        "combinations": [
+            "Puede combinarse secuencialmente con ácido hialurónico o calidad de piel tras la revisión clínica.",
+            "No se aplican múltiples procedimientos inyectables en la misma zona el mismo día por rutina."
+        ],
+        "faqs": [
+            {
+                "q": "¿El resultado es inmediato?",
+                "a": "No. La relajación muscular comienza habitualmente entre el 3.º y 5.º día, completando su efecto a las 2 o 3 semanas, momento en el que se realiza la revisión médica."
+            },
+            {
+                "q": "¿Congela o paraliza el rostro?",
+                "a": "No. La dosificación y técnica en NUVANX buscan modular la fuerza muscular manteniendo la mímica natural y la expresividad del paciente."
+            },
+            {
+                "q": "¿Cuánto dura el efecto?",
+                "a": "La duración media suele situarse entre 3 y 5 meses, dependiendo del metabolismo individual, fuerza muscular y mímica del paciente."
+            },
+            {
+                "q": "¿Qué cuidados debo seguir las primeras horas?",
+                "a": "Se aconseja no frotar la zona tratada, evitar tumbarse o realizar ejercicio físico intenso durante las primeras 4 horas tras la aplicación."
+            }
+        ],
+        "schema": {
+            "name": "Tratamiento de neuromoduladores faciales",
+            "alternateName": [
+                "Neuromoduladores en Madrid",
+                "Tratamiento de arrugas de expresión"
+            ],
+            "bodyLocation": "Tercio superior facial (entrecejo, frente y patas de gallo)",
+            "procedureType": "https://schema.org/MinimallyInvasiveProcedure",
+            "preparation": "Evaluación médica de la dinámica muscular facial, tono, simetría y antecedentes neuromusculares o de salud.",
+            "howPerformed": "Inyección médica de microdosis de neuromodulador en puntos anatómicos definidos.",
+            "followup": "Revisión médica a los 14-21 días para comprobar simetría y evolución clínica.",
+            "indications": [
+                "Arrugas dinámicas del entrecejo",
+                "Arrugas dinámicas de la frente",
+                "Arrugas perioculares (patas de gallo)"
+            ],
+            "conditions": [
+                "Arrugas de expresión dinámicas"
+            ]
+        }
     }
 }

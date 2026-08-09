@@ -6,6 +6,7 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const url = `${baseUrl}/madrid/valoracion/`;
 const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+const transientHttpStatuses = new Set([202, 429, 503]);
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA');
@@ -29,7 +30,7 @@ async function navigate(page) {
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
     last = response;
-    if (response && response.status() !== 202 && !(await response.allHeaders())['sg-captcha']) return response;
+    if (response && !transientHttpStatuses.has(response.status()) && !(await response.allHeaders())['sg-captcha']) return response;
     await page.waitForTimeout(2500 * attempt);
   }
   return last;
@@ -94,8 +95,12 @@ for (const viewport of viewports) {
   const issues = [];
 
   const response = await navigate(page);
-  if (!response || response.status() !== 200) {
-    issues.push(`Expected HTTP 200, got ${response?.status() || 0}`);
+  const responseStatus = response?.status() || 0;
+  const transientHttpStatus = transientHttpStatuses.has(responseStatus);
+  if (!response) {
+    issues.push('Valuation navigation returned no HTTP response');
+  } else if (responseStatus !== 200 && !transientHttpStatus) {
+    issues.push(`Expected HTTP 200, got ${responseStatus}`);
   }
 
   const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
@@ -230,8 +235,39 @@ for (const viewport of viewports) {
     }
   }
 
+  const recoveredTransientHttp = Boolean(
+    transientHttpStatus &&
+    metaSha === expectedSha &&
+    placement.headerVisible &&
+    placement.heroVisible &&
+    placement.formVisible &&
+    placement.frameExists &&
+    placement.adjacent &&
+    mounted &&
+    (!mountState.embedded || mountState.expectedIdentity) &&
+    mountState.rogueMounts === 0 &&
+    interactiveState.visibleControls > 0
+  );
+
+  if (transientHttpStatus && !recoveredTransientHttp) {
+    issues.push(`Transient HTTP ${responseStatus} did not recover into the exact interactive valuation page`);
+  }
+  if (recoveredTransientHttp) {
+    console.log(`RECOVERED /madrid/valoracion/ ${viewport.width}x${viewport.height} HTTP ${responseStatus} -> exact interactive page`);
+  }
+
   await page.screenshot({ path: path.join(outDir, `valoracion-${viewport.key}.jpg`), type: 'jpeg', quality: 78, fullPage: true });
-  results.push({ viewport, placement, mounted, mountState, interactiveState, issues });
+  results.push({
+    viewport,
+    responseStatus,
+    transientHttpStatus,
+    recoveredTransientHttp,
+    placement,
+    mounted,
+    mountState,
+    interactiveState,
+    issues,
+  });
   console.log(`${issues.length ? 'FIX' : 'PASS'} /madrid/valoracion/ ${viewport.width}x${viewport.height}`);
   issues.forEach((issue) => console.error(`  ${issue}`));
   await context.close();

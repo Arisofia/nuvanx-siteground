@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           mkdir -p perf-results
           npm init -y >/dev/null 2>&1
-          npm install --no-audit --no-fund lighthouse@latest >/dev/null 2>&1
+          npm install --ignore-scripts --no-audit --no-fund lighthouse@12.8.2 >/dev/null 2>&1
           LH="./node_modules/.bin/lighthouse"
           "$LH" --version | tee perf-results/lighthouse-version.txt
 

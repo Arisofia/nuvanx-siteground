@@ -405,7 +405,9 @@ function nvx_seo_handle_route_alias_redirect(): void {
 			if ( '/' . trim( $target, '/' ) . '/' === $path ) {
 				return;
 			}
-			wp_safe_redirect( home_url( $target ), 301 );
+			$query       = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
+			$destination = home_url( $target ) . ( '' !== $query ? '?' . $query : '' );
+			wp_safe_redirect( $destination, 301 );
 			exit;
 		}
 	}

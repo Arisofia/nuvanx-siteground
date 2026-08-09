@@ -395,21 +395,27 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		return;
 	}
 
+	if ( ! function_exists( 'nvx_catalog_json_resolved' ) ) {
+		return;
+	}
+
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
 	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
 	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
-	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
-		$routes = nvx_catalog_json_resolved( 'routes.json' );
-		if ( ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] ) ) {
-			$target = (string) $routes[ $path ]['route_alias'];
-			if ( '/' . trim( $target, '/' ) . '/' === $path ) {
-				return;
-			}
-			$query       = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
-			$destination = home_url( $target ) . ( '' !== $query ? '?' . $query : '' );
-			wp_safe_redirect( $destination, 301, 'NUVANX' );
-			exit;
-		}
+
+	$routes = nvx_catalog_json_resolved( 'routes.json' );
+	if ( empty( $routes[ $path ]['route_alias'] ) || ! is_string( $routes[ $path ]['route_alias'] ) ) {
+		return;
 	}
+
+	$target = (string) $routes[ $path ]['route_alias'];
+	if ( '/' . trim( $target, '/' ) . '/' === $path ) {
+		return;
+	}
+
+	$query       = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
+	$destination = home_url( $target ) . ( '' !== $query ? '?' . $query : '' );
+	wp_safe_redirect( $destination, 301, 'NUVANX' );
+	exit;
 }
 add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );

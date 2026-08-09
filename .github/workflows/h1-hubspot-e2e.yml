@@ -1,10 +1,8 @@
 name: H1 HubSpot Attribution E2E
 
 on:
-  pull_request:
-    branches: [master]
   push:
-    branches: [master, 'audit/*']
+    branches: ['audit/*']
   workflow_dispatch:
 
 permissions:

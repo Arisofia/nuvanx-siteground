@@ -140,7 +140,15 @@ try {
 
   const checks = frame.locator('input[type="checkbox"][required],input[type="checkbox"][aria-required="true"]');
   for (let i = 0; i < await checks.count(); i++) {
-    if (!await checks.nth(i).isChecked().catch(() => false)) await checks.nth(i).check({ force: true });
+    const box = checks.nth(i);
+    const checked = await box.isChecked().catch(() => false);
+    if (!checked) {
+      await box.evaluate((el) => {
+        el.checked = true;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }).catch(() => {});
+    }
   }
 
   const form = frame.locator('form').first();

@@ -45,21 +45,6 @@
   border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
-.nvx-cases-holding__cta {
-  background: var(--nvx-surface-dark);
-  color: var(--nvx-text-on-dark);
-}
-
-.nvx-cases-holding__cta .nvx-brand-kicker,
-.nvx-cases-holding__cta .nvx-brand-title,
-.nvx-cases-holding__cta .nvx-brand-body {
-  color: var(--nvx-text-on-dark);
-}
-
-.nvx-cases-holding__cta .nvx-brand-btn {
-  margin-top: var(--nvx-space-4);
-}
-
 @media (max-width: 980px) {
   .nvx-cases-holding__grid {
     grid-template-columns: 1fr;

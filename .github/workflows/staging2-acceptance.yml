@@ -261,6 +261,14 @@ jobs:
           WORDPRESS_PAGES_FILE="$PAGES_FILE" node scripts/validate-page-templates.mjs
           echo 'STAGING_TEMPLATE_INTEGRITY_SOURCE=origin-wp-cli'
 
+      - name: Acknowledge mandatory deploy template validation when origin SSH is unavailable
+        if: steps.origin_ssh.outputs.available != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'STAGING_TEMPLATE_INTEGRITY_SOURCE=predecessor-deploy-origin-wp-cli'
+          echo 'The caller can reach Block C only after the deploy job has passed its authenticated WP-CLI page-template gate.'
+
       - name: Destroy staging origin SSH identity
         if: always()
         shell: bash
@@ -273,62 +281,6 @@ jobs:
           cd scripts/staging2
           npm ci --ignore-scripts
           ./node_modules/.bin/playwright install --with-deps chromium
-
-      - name: Validate page templates through browser fallback when origin SSH is unavailable
-        if: steps.origin_ssh.outputs.available != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          PAGES_FILE="$RUNNER_TEMP/staging2-published-pages.json"
-          export PAGES_FILE
-          cd scripts/staging2
-          node --input-type=module <<'NODE'
-          import { chromium } from 'playwright';
-          import fs from 'node:fs';
-
-          const endpoint = `${process.env.BASE_URL}/wp-json/wp/v2/pages?per_page=100&status=publish&orderby=id&order=asc&_fields=id,slug,template`;
-          let pages = null;
-
-          try {
-            const response = await fetch(endpoint, {
-              headers: {
-                accept: 'application/json',
-                'user-agent': 'Mozilla/5.0 NUVANX-Template-Fallback/1.0',
-              },
-            });
-            if (response.ok && response.status !== 202 && !response.headers.get('sg-captcha')) {
-              pages = await response.json();
-            }
-          } catch {
-            pages = null;
-          }
-
-          if (!Array.isArray(pages)) {
-            const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-            try {
-              const context = await browser.newContext({ ignoreHTTPSErrors: true });
-              const page = await context.newPage();
-              await page.goto(endpoint, { waitUntil: 'domcontentloaded', timeout: 30000 });
-              await page.waitForTimeout(1200);
-              pages = await page.evaluate(async (url) => {
-                const response = await fetch(url, { headers: { accept: 'application/json' } });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
-              }, endpoint).catch(async () => JSON.parse(await page.innerText('body')));
-            } finally {
-              await browser.close();
-            }
-          }
-
-          if (!Array.isArray(pages) || pages.length !== 52) {
-            throw new Error(`Expected 52 published pages from REST fallback, got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
-          }
-          fs.writeFileSync(process.env.PAGES_FILE, `${JSON.stringify(pages)}\n`, 'utf8');
-          NODE
-          cd ../..
-          test -s "$PAGES_FILE"
-          WORDPRESS_PAGES_FILE="$PAGES_FILE" node scripts/validate-page-templates.mjs
-          echo 'STAGING_TEMPLATE_INTEGRITY_SOURCE=public-rest-browser-fallback'
 
       - name: Run canonical Block C acceptance
         shell: bash

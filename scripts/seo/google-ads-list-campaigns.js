@@ -56,12 +56,12 @@ async function main() {
 
   const oauth = json.installed || json.web || json.credentials || json.oauth || json;
 
-  let clientId = pick(oauth.client_id, oauth.clientId, process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID);
-  let clientSecret = pick(oauth.client_secret, oauth.clientSecret, process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET);
-  let devToken = pick(oauth.developer_token, oauth.developerToken, process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN);
-  let refreshToken = pick(oauth.refresh_token, oauth.refreshToken, process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN);
-  let rawCustomerId = pick(oauth.customer_id, oauth.customerId, process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID);
-  let rawLoginCustomerId = pick(oauth.login_customer_id, oauth.loginCustomerId, process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID);
+  let clientId = pick(process.env.GOOGLE_ADS_CLIENT_ID, process.env.CLIENT_ID, oauth.client_id, oauth.clientId);
+  let clientSecret = pick(process.env.GOOGLE_ADS_CLIENT_SECRET, process.env.CLIENT_SECRET, oauth.client_secret, oauth.clientSecret);
+  let devToken = pick(process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN, oauth.developer_token, oauth.developerToken);
+  let refreshToken = pick(process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN, oauth.refresh_token, oauth.refreshToken);
+  let rawCustomerId = pick(process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID, oauth.customer_id, oauth.customerId);
+  let rawLoginCustomerId = pick(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID, oauth.login_customer_id, oauth.loginCustomerId);
 
   // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
   if (rawCustomerId.startsWith('GOCSPX-') && (!clientSecret || !clientSecret.startsWith('GOCSPX-'))) {

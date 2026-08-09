@@ -77,7 +77,6 @@ function nvx_page_render_brand_wrapper(
 	return '<div class="' . esc_attr( $fallback_class ) . '">' . $inner_markup . '</div>';
 }
 
-
 /**
  * Open a canonical brand section and its inner shell.
  *
@@ -143,6 +142,66 @@ function nvx_has_page_shell(): bool {
 }
 
 /**
+ * Resolve a same-host WordPress uploads URL to its local filesystem path.
+ *
+ * Returns an empty string for external/CDN URLs or URLs that cannot be mapped
+ * safely into the active uploads directory.
+ */
+function nvx_local_upload_file_from_url( string $url ): string {
+	if ( '' === trim( $url ) ) {
+		return '';
+	}
+
+	$uploads = wp_upload_dir();
+	if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) || empty( $uploads['basedir'] ) ) {
+		return '';
+	}
+
+	$base_url  = (string) $uploads['baseurl'];
+	$base_host = strtolower( (string) wp_parse_url( $base_url, PHP_URL_HOST ) );
+	$base_path = rawurldecode( (string) wp_parse_url( $base_url, PHP_URL_PATH ) );
+	$base_path = '/' . trim( $base_path, '/' );
+	$base_dir  = untrailingslashit( (string) $uploads['basedir'] );
+
+	$source_host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+	$source_path = rawurldecode( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+
+	if ( '' === $base_host || '/' === $base_path || '' === $base_dir || '' === $source_path || $source_host !== $base_host ) {
+		return '';
+	}
+
+	if ( $source_path !== $base_path && 0 !== strpos( $source_path, $base_path . '/' ) ) {
+		return '';
+	}
+
+	$relative_path = ltrim( substr( $source_path, strlen( $base_path ) ), '/' );
+	if ( '' === $relative_path || false !== strpos( $relative_path, '..' ) ) {
+		return '';
+	}
+
+	return $base_dir . '/' . $relative_path;
+}
+
+/**
+ * Determine whether a local uploads URL exists on disk.
+ *
+ * @return bool|null True/false for local uploads, null for external/unmappable URLs.
+ */
+function nvx_local_upload_url_exists( string $url ) {
+	$local_file = nvx_local_upload_file_from_url( $url );
+	if ( '' === $local_file ) {
+		return null;
+	}
+
+	static $file_exists = array();
+	if ( ! array_key_exists( $local_file, $file_exists ) ) {
+		$file_exists[ $local_file ] = is_file( $local_file );
+	}
+
+	return $file_exists[ $local_file ];
+}
+
+/**
  * Remove stale local responsive-image candidates whose files are missing.
  *
  * WordPress attachment metadata can outlive generated upload derivatives after
@@ -165,51 +224,13 @@ function nvx_filter_missing_local_srcset_sources( $sources, $size_array, $image_
 		return $sources;
 	}
 
-	$uploads = wp_upload_dir();
-	if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) || empty( $uploads['basedir'] ) ) {
-		return $sources;
-	}
-
-	$base_url  = (string) $uploads['baseurl'];
-	$base_host = strtolower( (string) wp_parse_url( $base_url, PHP_URL_HOST ) );
-	$base_path = rawurldecode( (string) wp_parse_url( $base_url, PHP_URL_PATH ) );
-	$base_path = '/' . trim( $base_path, '/' );
-	$base_dir  = untrailingslashit( (string) $uploads['basedir'] );
-
-	if ( '' === $base_host || '/' === $base_path || '' === $base_dir ) {
-		return $sources;
-	}
-
-	static $file_exists = array();
-
 	foreach ( $sources as $width => $source ) {
 		if ( ! is_array( $source ) || empty( $source['url'] ) ) {
 			continue;
 		}
 
-		$source_url  = (string) $source['url'];
-		$source_host = strtolower( (string) wp_parse_url( $source_url, PHP_URL_HOST ) );
-		$source_path = rawurldecode( (string) wp_parse_url( $source_url, PHP_URL_PATH ) );
-
-		if ( $source_host !== $base_host || '' === $source_path ) {
-			continue;
-		}
-
-		if ( $source_path !== $base_path && 0 !== strpos( $source_path, $base_path . '/' ) ) {
-			continue;
-		}
-
-		$relative_path = ltrim( substr( $source_path, strlen( $base_path ) ), '/' );
-		if ( '' === $relative_path || false !== strpos( $relative_path, '..' ) ) {
-			continue;
-		}
-
-		$local_file = $base_dir . '/' . $relative_path;
-		if ( ! array_key_exists( $local_file, $file_exists ) ) {
-			$file_exists[ $local_file ] = is_file( $local_file );
-		}
-
-		if ( ! $file_exists[ $local_file ] ) {
+		$exists = nvx_local_upload_url_exists( (string) $source['url'] );
+		if ( false === $exists ) {
 			unset( $sources[ $width ] );
 		}
 	}
@@ -217,3 +238,44 @@ function nvx_filter_missing_local_srcset_sources( $sources, $size_array, $image_
 	return array() === $sources ? false : $sources;
 }
 add_filter( 'wp_calculate_image_srcset', 'nvx_filter_missing_local_srcset_sources', 20, 5 );
+
+/**
+ * Remove rendered content images that point to missing local upload files.
+ *
+ * This is a fail-safe for migrated/editorial content whose HTML still points to
+ * media that no longer exists. It never fabricates replacement patient media
+ * and does not alter external/CDN images. The surrounding copy remains visible.
+ */
+function nvx_remove_missing_local_content_images( $content ) {
+	if ( ! is_string( $content ) || false === stripos( $content, '<img' ) ) {
+		return $content;
+	}
+
+	$filtered = preg_replace_callback(
+		'/<img\b[^>]*>/iu',
+		static function ( $matches ) {
+			$tag = isset( $matches[0] ) ? (string) $matches[0] : '';
+			if ( '' === $tag ) {
+				return $tag;
+			}
+
+			if ( ! preg_match( '/\bsrc\s*=\s*(["\'])(.*?)\1/iu', $tag, $src_match ) ) {
+				return $tag;
+			}
+
+			$src = html_entity_decode( (string) $src_match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			return false === nvx_local_upload_url_exists( $src ) ? '' : $tag;
+		},
+		$content
+	);
+
+	if ( ! is_string( $filtered ) ) {
+		return $content;
+	}
+
+	// Remove only figures left completely empty after deleting a broken image.
+	$filtered = preg_replace( '/<figure\b[^>]*>\s*<\/figure>/iu', '', $filtered ) ?? $filtered;
+
+	return $filtered;
+}
+add_filter( 'the_content', 'nvx_remove_missing_local_content_images', 20 );

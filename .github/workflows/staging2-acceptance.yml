@@ -52,6 +52,10 @@ jobs:
           }
           git checkout --detach "$EXPECTED_SHA"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test -f scripts/staging2/block-c-entrypoint.mjs || {
+            echo 'Candidate SHA does not contain the canonical Block C entrypoint.' >&2
+            exit 1
+          }
           test -f scripts/staging2/block-c-52x3.mjs || {
             echo 'Candidate SHA does not contain the canonical Block C harness.' >&2
             exit 1
@@ -249,6 +253,8 @@ jobs:
               return array(
                 "id"       => (int) $page->ID,
                 "slug"     => (string) $page->post_name,
+                "title"    => (string) get_the_title( $page ),
+                "link"     => (string) get_permalink( $page ),
                 "template" => (string) get_page_template_slug( $page->ID ),
               );
             },
@@ -259,6 +265,7 @@ jobs:
           REMOTE
           test -s "$PAGES_FILE"
           WORDPRESS_PAGES_FILE="$PAGES_FILE" node scripts/validate-page-templates.mjs
+          echo "WORDPRESS_PAGES_FILE=$PAGES_FILE" >> "$GITHUB_ENV"
           echo 'STAGING_TEMPLATE_INTEGRITY_SOURCE=origin-wp-cli'
 
       - name: Acknowledge mandatory deploy template validation when origin SSH is unavailable
@@ -286,7 +293,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/block-c-52x3.mjs
+          node scripts/staging2/block-c-entrypoint.mjs
 
       - name: Verify valoración form is directly below heading and mounted in place
         shell: bash

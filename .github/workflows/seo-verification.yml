@@ -141,6 +141,11 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install SEO script dependencies
+        run: |
+          cd scripts/seo
+          npm install
+
       - name: Index All Pages via Search Console
         shell: bash
         env:

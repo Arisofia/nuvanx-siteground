@@ -1,0 +1,25 @@
+/* NUVANX Journal archive layout — responsive grid correction.
+ * Loaded after nvx-posts.css so the archive stays inside the canonical shell.
+ */
+
+.nvx-blog-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  width: 100%;
+  max-width: 100%;
+}
+
+.nvx-blog-card {
+  grid-column: span 4;
+}
+
+@media (max-width: 1023px) {
+  .nvx-blog-card {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 640px) {
+  .nvx-blog-card {
+    grid-column: 1 / -1;
+  }
+}

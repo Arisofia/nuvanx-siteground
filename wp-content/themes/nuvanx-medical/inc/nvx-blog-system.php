@@ -50,7 +50,8 @@ function nvx_theme_enqueue_blog_styles(): void {
 		return;
 	}
 
-	$absolute = get_template_directory() . '/assets/css/nvx-posts.css';
+	$absolute        = get_template_directory() . '/assets/css/nvx-posts.css';
+	$layout_absolute = get_template_directory() . '/assets/css/nvx-posts-layout.css';
 
 	if ( ! is_readable( $absolute ) ) {
 		return;
@@ -62,6 +63,15 @@ function nvx_theme_enqueue_blog_styles(): void {
 		array( 'nvx-footer' ),
 		(string) filemtime( $absolute )
 	);
+
+	if ( is_readable( $layout_absolute ) ) {
+		wp_enqueue_style(
+			'nvx-posts-layout',
+			get_template_directory_uri() . '/assets/css/nvx-posts-layout.css',
+			array( 'nvx-posts' ),
+			(string) filemtime( $layout_absolute )
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_enqueue_blog_styles', 40 );
 

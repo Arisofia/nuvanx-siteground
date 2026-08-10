@@ -5,6 +5,8 @@ run-name: >-
 on:
   push:
     branches: [release/production]
+    paths:
+      - 'release/production-candidate.txt'
   workflow_dispatch:
     inputs:
       deploy:

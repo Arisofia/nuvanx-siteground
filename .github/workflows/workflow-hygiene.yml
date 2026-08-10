@@ -114,12 +114,23 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Run Gitleaks on full Git history
+      - name: Run Gitleaks v3 with canonical custom configuration
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_DETECT_YES: true
-        with:
-          config-path: .github/gitleaks-config.yml
-          report-path: gitleaks-report.json
-          format: json
+          GITLEAKS_CONFIG: .github/gitleaks-config.yml
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
+      - name: Enforce full-history scan with the installed Gitleaks CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v gitleaks >/dev/null
+          gitleaks detect \
+            --config .github/gitleaks-config.yml \
+            --redact \
+            --verbose \
+            --exit-code=2 \
+            --report-format=json \
+            --report-path=gitleaks-full-history.json
+          echo 'GITLEAKS_FULL_HISTORY=PASS'

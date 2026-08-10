@@ -128,7 +128,9 @@
     "post_id": 3319,
     "schema_type": "MedicalProcedure"
   },
-  "/medicina-estetica-laser/": {},
+  "/medicina-estetica-laser/": {
+    "seo_id": "laser_medicine"
+  },
   "/medicina-estetica/": {},
   "/estetica-avanzada/": {},
   "/bioestimuladores-colageno-madrid/": {

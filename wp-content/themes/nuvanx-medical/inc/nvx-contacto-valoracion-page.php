@@ -594,6 +594,34 @@ function nvx_contacto_resolve_legacy_template( string $template ): string {
 add_filter( 'page_template', 'nvx_contacto_resolve_legacy_template', 5 );
 
 /**
+ * Set custom SEO title for contacto page.
+ *
+ * @param string $title Yoast title.
+ * @return string
+ */
+function nvx_contacto_seo_title( string $title ): string {
+	if ( ! nvx_is_contacto_page_request() ) {
+		return $title;
+	}
+	return 'Clínicas NUVANX Madrid: Contacto, Teléfonos y Sedes | Chamberí y Salamanca–Goya';
+}
+add_filter( 'wpseo_title', 'nvx_contacto_seo_title', 10, 1 );
+
+/**
+ * Set custom SEO meta description for contacto page.
+ *
+ * @param string $description Yoast meta description.
+ * @return string
+ */
+function nvx_contacto_seo_metadesc( string $description ): string {
+	if ( ! nvx_is_contacto_page_request() ) {
+		return $description;
+	}
+	return 'Contacto NUVANX Madrid: direcciones, teléfonos, WhatsApp y horarios de las clínicas Chamberí (CS20144) y Salamanca–Goya (CS20073). Valoración médica presencial para medicina estética láser.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_contacto_seo_metadesc', 10, 1 );
+
+/**
  * Rewrite legacy _wp_page_template meta to the canonical contact template slug.
  */
 function nvx_contacto_migrate_legacy_template_meta(): void {

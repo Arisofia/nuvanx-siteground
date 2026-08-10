@@ -7,8 +7,10 @@
 /* Archive grid and cards */
 .nvx-blog-grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(280px, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--nvx-gap-base);
+  width: 100%;
+  max-width: 100%;
   background: var(--nvx-color-line);
   align-items: stretch;
 }
@@ -262,10 +264,6 @@
 .nvx-blog-hero__author-link:hover,
 .nvx-blog-hero__author-link:focus-visible {
   color: var(--nvx-light);
-}
-
-.nvx-blog-hero__media {
-  display: none;
 }
 
 /* Long-form article stage - diseño elegante */
@@ -663,4 +661,16 @@
 
 .nvx-blog-nav__item--next {
   text-align: left;
+}
+
+@media (max-width: 1023px) {
+  .nvx-blog-card {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 640px) {
+  .nvx-blog-card {
+    grid-column: 1 / -1;
+  }
 }

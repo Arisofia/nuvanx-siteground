@@ -329,6 +329,7 @@ jobs:
         env:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_HOST: staging2.nuvanx.com
+          ORIGIN_SSH_ALIAS: nvx-staging2
         run: |
           set -euo pipefail
           pass=0

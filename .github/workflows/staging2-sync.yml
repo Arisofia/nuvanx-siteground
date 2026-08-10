@@ -63,8 +63,10 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 20
-            ConnectionAttempts 5
+            ConnectTimeout 30
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 3
           EOF
           chmod 600 "$HOME/.ssh/config"
 
@@ -72,7 +74,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2-sync "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE'
+
+          normalize_remote() {
+            ssh nvx-staging2-sync "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$WP_ROOT"
           test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
@@ -99,6 +103,30 @@ jobs:
           echo 'Speed Optimizer could not be restored to inactive state.' >&2
           exit 1
           REMOTE
+          }
+
+          for attempt in 1 2 3 4 5; do
+            if normalize_remote; then
+              echo "STAGING_NORMALIZE_SSH=PASS attempt=$attempt"
+              exit 0
+            else
+              rc=$?
+            fi
+
+            if [[ "$rc" -ne 255 ]]; then
+              echo "STAGING_NORMALIZE=FAIL_REMOTE rc=$rc; refusing to retry a non-transport failure." >&2
+              exit "$rc"
+            fi
+
+            if [[ "$attempt" -lt 5 ]]; then
+              delay=$(( attempt * 15 ))
+              echo "STAGING_NORMALIZE_SSH=RETRY attempt=$attempt/5 rc=255 delay=${delay}s" >&2
+              sleep "$delay"
+            fi
+          done
+
+          echo 'STAGING_NORMALIZE_SSH=FAIL_TRANSPORT after 5 attempts.' >&2
+          exit 255
 
       - name: Destroy SSH identity
         if: always()

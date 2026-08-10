@@ -1541,6 +1541,18 @@ function nvx_extend_yoast_schema_graph( $graph ) {
 		$organization['index'] = array_key_last( $graph );
 	}
 
+	// Add WebSite node for homepage
+	if ( is_front_page() ) {
+		$graph[] = array(
+			'@type'       => 'WebSite',
+			'@id'         => home_url( '/#website' ),
+			'url'         => home_url( '/' ),
+			'name'        => 'NUVANX Medicina Estética Láser Madrid',
+			'description' => 'Medicina estética láser en Madrid: Endolift, EXION, BTL, láser CO₂. Valoración presencial en Chamberí y Salamanca–Goya. Protocolos médicos basados en evidencia.',
+			'publisher'   => array( '@id' => $organization['id'] ),
+		);
+	}
+
 	$physicians = nvx_schema_build_physicians( $page_id, $organization['id'] );
 	$physician  = ! empty( $physicians ) ? $physicians[0] : null;
 

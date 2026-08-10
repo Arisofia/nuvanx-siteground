@@ -1,0 +1,648 @@
+name: Staging
+run-name: >-
+  Staging · ${{ github.event_name == 'pull_request_target' && format('PR #{0}', github.event.pull_request.number) || (github.event_name == 'workflow_dispatch' && 'manual' || github.sha) }}
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'scripts/**'
+      - 'tools/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'scripts/**'
+      - 'tools/**'
+      - '.github/workflows/staging.yml'
+      - '.github/workflows/production.yml'
+  pull_request_target:
+    branches: [master]
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Optional full master-contained SHA. Blank uses the triggering SHA.
+        required: false
+        type: string
+      run_acceptance:
+        description: Run the production-eligible Block C browser acceptance after deployment.
+        required: true
+        default: true
+        type: boolean
+      deep_quality:
+        description: Also run PHPCS and PHPStan.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('nuvanx-quality-{0}', github.event.pull_request.number) || 'nuvanx-environment-mutation' }}
+  cancel-in-progress: false
+
+env:
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  STAGING_PARENT: /home/customer/www/staging2.nuvanx.com
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  STAGING_URL: https://staging2.nuvanx.com
+  CI: true
+
+jobs:
+  quality:
+    name: Static quality and repository integrity
+    if: ${{ github.event_name != 'pull_request_target' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || (github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha) }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Enforce repository hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t transient < <(git ls-files | grep -E '(-(once|temp)\.(yml|yaml|sh|mjs)$)|(^|/)(tmp|temp)[_-]' || true)
+          if (( ${#transient[@]} > 0 && ${#transient[0]} > 0 )); then
+            printf 'Transient files are forbidden:\n%s\n' "${transient[*]}" >&2
+            exit 1
+          fi
+
+          offenders=()
+          while IFS= read -r file; do
+            grep -Eq '(^|[[:space:]])git[[:space:]]+push([[:space:]]|$)' "$file" && offenders+=("$file") || true
+          done < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -print | sort)
+          (( ${#offenders[@]} == 0 )) || { printf 'Workflow self-mutation forbidden: %s\n' "${offenders[*]}" >&2; exit 1; }
+
+          forbidden=(DEPLOY_TRIGGER.txt composer.phar wp-content/themes/nuvanx-medical/composer.phar)
+          for file in "${forbidden[@]}"; do
+            ! git ls-files --error-unmatch "$file" >/dev/null 2>&1 || { echo "Tracked generated file: $file" >&2; exit 1; }
+          done
+          for prefix in .vscode/ audit/ .github/audit/ wp-content/themes/nuvanx-medical/vendor/; do
+            ! git ls-files | grep -Fq "$prefix" || { echo "Tracked generated prefix: $prefix" >&2; exit 1; }
+          done
+
+          while IFS= read -r file; do
+            [[ -f "$file" && -s "$file" ]] || { echo "Empty tracked file: $file" >&2; exit 1; }
+            case "$file" in *.orig|*.rej|*.bak|*.tmp|*.swp|*~|*/.DS_Store|.DS_Store) echo "Editor residue: $file" >&2; exit 1 ;; esac
+          done < <(git ls-files)
+
+          mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
+          if [[ "${workflows[*]}" != 'production.yml staging.yml' ]]; then
+            printf 'Exactly two canonical workflows are required; found: %s\n' "${workflows[*]}" >&2
+            exit 1
+          fi
+          echo 'REPOSITORY_HYGIENE=PASS workflows=2'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Run blocking static gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          find wp-content/themes/nuvanx-medical -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null
+          node scripts/lint/no-hardcoded-colors.mjs --strict
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+          schema='wp-content/themes/nuvanx-medical/inc/data/routes.schema.json'
+          data='wp-content/themes/nuvanx-medical/inc/data/routes.json'
+          if [[ -f "$schema" && -f "$data" ]]; then node scripts/lint/validate-routes-schema.mjs "$schema" "$data"; fi
+          bash -n tools/deploy/deploy-to-staging2.sh
+          bash -n tools/deploy/deploy-required-mu-plugins.sh
+          node --check scripts/staging2/verify-staging-boundary.mjs
+          node --check scripts/staging2/block-c-entrypoint.mjs
+          echo 'STATIC_GATES=PASS'
+
+      - name: Run deep PHP quality gates
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deep_quality }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd wp-content/themes/nuvanx-medical
+          composer install --no-interaction --no-progress --prefer-dist
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=full -s
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G
+
+      - name: Scan committed history for secrets
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
+  deploy_staging:
+    name: Deploy exact master SHA and run acceptance
+    needs: quality
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 105
+    env:
+      CANDIDATE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha }}
+      RUN_ACCEPTANCE: ${{ github.event_name == 'push' || inputs.run_acceptance }}
+    steps:
+      - name: Check out master history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve immutable candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE_SHA="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
+          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          git fetch --no-tags origin master
+          git cat-file -e "${CANDIDATE_SHA}^{commit}"
+          git merge-base --is-ancestor "$CANDIDATE_SHA" origin/master || { echo 'Refusing SHA outside origin/master.' >&2; exit 1; }
+          git checkout --detach "$CANDIDATE_SHA"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          echo "CANDIDATE_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Configure strict Staging2 SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 30
+            ConnectionAttempts 5
+            ServerAliveInterval 20
+            ServerAliveCountMax 3
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          connected=0
+          for attempt in 1 2 3 4 5; do
+            if ssh -n nvx-staging "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then connected=1; break; fi
+            [[ "$attempt" -eq 5 ]] || sleep $((attempt * 10))
+          done
+          test "$connected" = 1
+          echo 'STAGING_SSH=PASS'
+
+      - name: Verify environment isolation and normalize runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" != "$PROD_ROOT"
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          if ! wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'; then
+            wp config set WP_DEBUG_DISPLAY false --raw
+          fi
+          wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
+          wp plugin is-installed sg-cachepress
+          if wp plugin is-active sg-cachepress; then wp plugin deactivate sg-cachepress --quiet; fi
+          ! wp plugin is-active sg-cachepress
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          echo 'ENVIRONMENT_ISOLATION=PASS'
+          REMOTE
+
+      - name: Create full rollback snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}"
+          [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
+          echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          umask 077
+          mkdir -p "$ROLLBACK_DIR"
+          tar -czf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d "$STAGING_ROOT/wp-content/mu-plugins" ]]; then tar -czf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT" wp-content/mu-plugins; fi
+          cd "$STAGING_ROOT"
+          wp db export "$ROLLBACK_DIR/staging-db.sql" --quiet
+          test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
+          if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"; else : > "$ROLLBACK_DIR/previous-sha.txt"; fi
+          echo "ROLLBACK_SNAPSHOT=PASS path=$ROLLBACK_DIR"
+          REMOTE
+          echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
+
+      - name: Upload immutable payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-staging "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging:$REMOTE_RELEASE/deploy-to-staging2.sh"
+          rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
+          rsync -az tools/wp-cli/hygiene-content-fix.php "nvx-staging:$REMOTE_RELEASE/hygiene-content-fix.php"
+
+      - name: Deploy theme, required MU plugins and content hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
+          ssh nvx-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
+          ssh nvx-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
+          ssh nvx-staging "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+
+      - name: Purge caches and verify exact Staging2 identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          wp cache flush
+          plugin_slug='sg-cachepress'
+          if ! wp plugin is-active "$plugin_slug"; then wp plugin activate "$plugin_slug" --quiet; fi
+          wp sg purge
+          wp plugin deactivate "$plugin_slug" --quiet
+          ! wp plugin is-active "$plugin_slug"
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$CANDIDATE_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          echo "STAGING_DEPLOYED_SHA=$CANDIDATE_SHA"
+          REMOTE
+
+      - name: Verify public Staging2 boundary
+        shell: bash
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_HOST: staging2.nuvanx.com
+        run: |
+          set -euo pipefail
+          pass=0
+          for attempt in {1..12}; do
+            if node scripts/staging2/verify-staging-boundary.mjs; then pass=1; break; fi
+            sleep 10
+          done
+          test "$pass" = 1
+
+      - name: Validate WordPress page templates from origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAGES_FILE="$RUNNER_TEMP/staging2-published-pages.json"
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE' > "$PAGES_FILE"
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          wp eval '$pages=get_posts(array("post_type"=>"page","post_status"=>"publish","posts_per_page"=>-1,"orderby"=>"ID","order"=>"ASC")); $payload=array_map(static function($p){return array("id"=>(int)$p->ID,"slug"=>(string)$p->post_name,"template"=>(string)get_page_template_slug($p->ID));},$pages); echo wp_json_encode($payload);'
+          REMOTE
+          test -s "$PAGES_FILE"
+          WORDPRESS_PAGES_FILE="$PAGES_FILE" node scripts/validate-page-templates.mjs
+          echo 'STAGING_TEMPLATE_INTEGRITY=PASS'
+
+      - name: Install browser acceptance dependencies
+        if: ${{ env.RUN_ACCEPTANCE == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Run canonical Block C and valoración placement
+        if: ${{ env.RUN_ACCEPTANCE == 'true' }}
+        shell: bash
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_HOST: staging2.nuvanx.com
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
+          node scripts/staging2/block-c-entrypoint.mjs
+          node scripts/staging2/valoracion-placement.mjs
+          echo 'STAGING_BLOCK_C=PASS'
+
+      - name: Verify production unchanged read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          echo 'PRODUCTION_UNCHANGED=PASS'
+          REMOTE
+
+      - name: Upload production-eligible acceptance evidence
+        if: ${{ always() && env.RUN_ACCEPTANCE == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging2-block-c-${{ env.CANDIDATE_SHA }}
+          path: |
+            scripts/staging2/artifacts/
+            scripts/staging2/block-c-artifacts/
+            scripts/staging2/valoracion-artifacts/
+          retention-days: 14
+          if-no-files-found: warn
+          compression-level: 6
+
+      - name: Roll back complete Staging2 state after failure
+        if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
+          test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
+          rm -rf "$STAGING_ROOT/wp-content/themes/nuvanx-medical"
+          tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT"
+          if [[ -f "$ROLLBACK_DIR/mu-plugins.tgz" ]]; then rm -rf "$STAGING_ROOT/wp-content/mu-plugins"; tar -xzf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT"; fi
+          cd "$STAGING_ROOT"
+          wp db import "$ROLLBACK_DIR/staging-db.sql"
+          wp cache flush
+          plugin_slug='sg-cachepress'
+          if wp plugin is-installed "$plugin_slug"; then
+            if ! wp plugin is-active "$plugin_slug"; then wp plugin activate "$plugin_slug" --quiet || true; fi
+            wp sg purge || true
+            wp plugin deactivate "$plugin_slug" --quiet || true
+          fi
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+          previous="$(cat "$ROLLBACK_DIR/previous-sha.txt" 2>/dev/null || true)"
+          if [[ -n "$previous" ]]; then test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$previous"; fi
+          echo 'ROLLBACK_STAGING=PASS'
+          REMOTE
+
+      - name: Clean remote payload, snapshot and SSH identity
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging "rm -rf '$REMOTE_RELEASE'" || true
+            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
+          fi
+          rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+      - name: Write staging summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Staging PASS'
+            echo
+            echo "- Exact SHA: \`$CANDIDATE_SHA\`"
+            echo '- Single workflow owns static gates, deployment, rollback and acceptance.'
+            echo '- Staging/Production mutations are serialized through one repository-wide concurrency group.'
+            echo "- Block C production eligibility: \`$RUN_ACCEPTANCE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  pr_preview:
+    name: Labeled same-repo PR preview on Staging2
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'deploy-staging2' &&
+      github.event.pull_request.base.ref == 'master' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check out trusted master tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate trusted PR boundary and candidate syntax
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ && "$PR_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags origin master
+          git fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/nvx-pr-preview"
+          test "$(git rev-parse refs/remotes/origin/nvx-pr-preview)" = "$PR_SHA"
+          git merge-base --is-ancestor origin/master "$PR_SHA" || { echo 'Rebase PR onto current master before preview.' >&2; exit 1; }
+          mapfile -t changed < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' | sort -u)
+          (( ${#changed[@]} > 0 ))
+          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
+          git diff --check origin/master "$PR_SHA"
+          ! git ls-tree -r "$PR_SHA" wp-content/themes/nuvanx-medical/ | awk '$1 == "120000" { found=1 } END { exit(found ? 0 : 1) }'
+          CANDIDATE_ROOT="$RUNNER_TEMP/nvx-pr-${PR_NUMBER}-${PR_SHA}"
+          git worktree add --detach "$CANDIDATE_ROOT" "$PR_SHA"
+          echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
+          find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null
+          echo 'PR_BOUNDARY=PASS'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Configure strict Staging2 SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_pr_key"; chmod 600 "$HOME/.ssh/staging_pr_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-pr
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_pr_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"
+
+      - name: Snapshot and deploy PR candidate with trusted tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/pr-${PR_NUMBER}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_SHA}"
+          REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/pr-${PR_NUMBER}-${PR_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"; echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" != "$PROD_ROOT"
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'; test "$(wp option get home)" = 'https://staging2.nuvanx.com'; test "$(wp option get blog_public)" = '0'
+          if wp plugin is-active sg-cachepress; then wp plugin deactivate sg-cachepress --quiet; fi
+          umask 077; mkdir -p "$ROLLBACK_DIR"
+          tar -czf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d wp-content/mu-plugins ]]; then tar -czf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT" wp-content/mu-plugins; fi
+          wp db export "$ROLLBACK_DIR/staging-db.sql" --quiet
+          if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"; else : > "$ROLLBACK_DIR/previous-sha.txt"; fi
+          REMOTE
+          echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
+          ssh nvx-staging-pr "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete --exclude='.git' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-staging-pr:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh tools/deploy/deploy-required-mu-plugins.sh tools/wp-cli/hygiene-content-fix.php "nvx-staging-pr:$REMOTE_RELEASE/"
+          echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
+          ssh nvx-staging-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$PR_SHA' --confirm"
+          ssh nvx-staging-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
+          ssh nvx-staging-pr "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' PR_SHA='$PR_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          wp cache flush
+          plugin_slug='sg-cachepress'
+          if ! wp plugin is-active "$plugin_slug"; then wp plugin activate "$plugin_slug" --quiet; fi
+          wp sg purge
+          wp plugin deactivate "$plugin_slug" --quiet
+          ! wp plugin is-active "$plugin_slug"
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$PR_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          echo "PR_STAGING_IDENTITY=PASS sha=$PR_SHA"
+          REMOTE
+
+      - name: Verify PR preview boundary and browser acceptance
+        shell: bash
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_HOST: staging2.nuvanx.com
+          EXPECTED_SHA: ${{ env.PR_SHA }}
+          ORIGIN_SSH_ALIAS: nvx-staging-pr
+        run: |
+          set -euo pipefail
+          ssh nvx-staging-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_SHA'"
+          pass=0; for attempt in {1..12}; do if node scripts/staging2/verify-staging-boundary.mjs; then pass=1; break; fi; sleep 10; done; test "$pass" = 1
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+          cd ../..
+          mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
+          node scripts/staging2/block-c-52x3.mjs
+          node scripts/staging2/valoracion-placement.mjs
+          echo 'PR_BLOCK_C=PASS'
+
+      - name: Verify production unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging-pr "cd '$PROD_ROOT' && test \"\$(wp config get DB_NAME)\" = 'db0ecrycwv2tgb' && test \"\$(wp option get home)\" = 'https://nuvanx.com' && test \"\$(wp option get blog_public)\" = '1'"
+
+      - name: Upload PR-only evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging2-pr-preview-${{ env.PR_NUMBER }}-${{ env.PR_SHA }}
+          path: |
+            scripts/staging2/artifacts/
+            scripts/staging2/block-c-artifacts/
+            scripts/staging2/valoracion-artifacts/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Roll back failed PR preview
+        if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
+          rm -rf "$STAGING_ROOT/wp-content/themes/nuvanx-medical"; tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT"
+          if [[ -f "$ROLLBACK_DIR/mu-plugins.tgz" ]]; then rm -rf "$STAGING_ROOT/wp-content/mu-plugins"; tar -xzf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT"; fi
+          cd "$STAGING_ROOT"; wp db import "$ROLLBACK_DIR/staging-db.sql"; wp cache flush
+          if wp plugin is-installed sg-cachepress; then wp plugin activate sg-cachepress --quiet || true; wp sg purge || true; wp plugin deactivate sg-cachepress --quiet || true; fi
+          echo 'PR_ROLLBACK_STAGING=PASS'
+          REMOTE
+
+      - name: Cleanup PR preview
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging-pr "rm -rf '$REMOTE_RELEASE'" || true
+            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging-pr "rm -rf '$ROLLBACK_DIR'" || true; fi
+          fi
+          rm -f "$HOME/.ssh/staging_pr_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

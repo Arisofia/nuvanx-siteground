@@ -131,7 +131,9 @@
   "/medicina-estetica-laser/": {
     "seo_id": "laser_medicine"
   },
-  "/medicina-estetica/": {},
+  "/medicina-estetica/": {
+    "seo_id": "aesthetic_medicine"
+  },
   "/estetica-avanzada/": {},
   "/bioestimuladores-colageno-madrid/": {
     "seo_id": "collagen_bio",

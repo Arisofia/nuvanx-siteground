@@ -1,0 +1,125 @@
+[
+  {
+    "viewport": {
+      "key": "desktop",
+      "width": 1440,
+      "height": 1100
+    },
+    "responseStatus": 200,
+    "transientHttpStatus": false,
+    "recoveredTransientHttp": false,
+    "placement": {
+      "headerVisible": true,
+      "heroVisible": true,
+      "formVisible": true,
+      "frameExists": true,
+      "adjacent": true,
+      "heroHeight": 372,
+      "formTop": 471,
+      "formHeight": 851,
+      "heroBottom": 471,
+      "headerBottom": 98
+    },
+    "mounted": true,
+    "mountState": {
+      "embedded": true,
+      "embeddedSrc": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=0ce5518d-b676-4239-b671-acef744e9d4c",
+      "embeddedTestId": "embedded-form-5042522a-0bc5-4381-ac3e-5aee8649b69c",
+      "embeddedWidth": 502,
+      "embeddedHeight": 192,
+      "expectedIdentity": true,
+      "rogueMounts": 0
+    },
+    "interactiveState": {
+      "frameFound": true,
+      "frameUrl": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=0ce5518d-b676-4239-b671-acef744e9d4c",
+      "controls": 9,
+      "visibleControls": 8,
+      "bodyTextLength": 589,
+      "bodyScrollHeight": 933
+    },
+    "issues": []
+  },
+  {
+    "viewport": {
+      "key": "tablet",
+      "width": 1024,
+      "height": 768
+    },
+    "responseStatus": 200,
+    "transientHttpStatus": false,
+    "recoveredTransientHttp": false,
+    "placement": {
+      "headerVisible": true,
+      "heroVisible": true,
+      "formVisible": true,
+      "frameExists": true,
+      "adjacent": true,
+      "heroHeight": 327,
+      "formTop": 424,
+      "formHeight": 792,
+      "heroBottom": 424,
+      "headerBottom": 97
+    },
+    "mounted": true,
+    "mountState": {
+      "embedded": true,
+      "embeddedSrc": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=79c416be-369a-41d6-abbb-ec6b72faa0eb",
+      "embeddedTestId": "embedded-form-5042522a-0bc5-4381-ac3e-5aee8649b69c",
+      "embeddedWidth": 502,
+      "embeddedHeight": 192,
+      "expectedIdentity": true,
+      "rogueMounts": 0
+    },
+    "interactiveState": {
+      "frameFound": true,
+      "frameUrl": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=79c416be-369a-41d6-abbb-ec6b72faa0eb",
+      "controls": 9,
+      "visibleControls": 8,
+      "bodyTextLength": 589,
+      "bodyScrollHeight": 933
+    },
+    "issues": []
+  },
+  {
+    "viewport": {
+      "key": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "responseStatus": 200,
+    "transientHttpStatus": false,
+    "recoveredTransientHttp": false,
+    "placement": {
+      "headerVisible": true,
+      "heroVisible": true,
+      "formVisible": true,
+      "frameExists": true,
+      "adjacent": true,
+      "heroHeight": 343,
+      "formTop": 440,
+      "formHeight": 986,
+      "heroBottom": 440,
+      "headerBottom": 97
+    },
+    "mounted": true,
+    "mountState": {
+      "embedded": true,
+      "embeddedSrc": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=92e1556f-799c-4b55-aeb4-a1c153bfc70b",
+      "embeddedTestId": "embedded-form-5042522a-0bc5-4381-ac3e-5aee8649b69c",
+      "embeddedWidth": 268,
+      "embeddedHeight": 192,
+      "expectedIdentity": true,
+      "rogueMounts": 0
+    },
+    "interactiveState": {
+      "frameFound": true,
+      "frameUrl": "https://js-eu1.hsforms.net/ui-forms-embed-components-app/frame.html?_hsPortalId=147416356&_hsFormId=5042522a-0bc5-4381-ac3e-5aee8649b69c&_hsIsQa=false&_hsHublet=eu1&_hsDisableScriptloader=true&_hsDisableRedirect=true&_hsInstanceId=92e1556f-799c-4b55-aeb4-a1c153bfc70b",
+      "controls": 9,
+      "visibleControls": 8,
+      "bodyTextLength": 589,
+      "bodyScrollHeight": 1049
+    },
+    "issues": []
+  }
+]

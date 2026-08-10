@@ -1,0 +1,58 @@
+import { chromium } from 'playwright';
+
+const baseUrl = 'https://nuvanx.com';
+const criticalUrls = [
+  '/',
+  '/madrid/valoracion/',
+  '/endolift-facial-papada-mandibula/',
+  '/contacto/',
+  '/clinicas-de-medicina-estetica-nuvanx/',
+  '/tratamientos/',
+  '/blog/',
+];
+
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const results = [];
+
+for (const path of criticalUrls) {
+  const url = baseUrl + path;
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 1100 },
+    ignoreHTTPSErrors: true,
+  });
+  const page = await context.newPage();
+  
+  try {
+    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const status = response?.status() || 0;
+    
+    // Check for critical elements
+    const hasHeader = await page.locator('header, .nvx-header, .nvx-site-header').count() > 0;
+    const hasContent = await page.locator('.entry-content, .nvx-page__content, main').count() > 0;
+    const hasFooter = await page.locator('footer, .nvx-footer').count() > 0;
+    
+    const issues = [];
+    if (status !== 200) issues.push(`HTTP ${status}`);
+    if (!hasHeader) issues.push('Missing header');
+    if (!hasContent) issues.push('Missing content area');
+    if (!hasFooter) issues.push('Missing footer');
+    
+    results.push({ url, status, issues, pass: issues.length === 0 });
+    console.log(`${issues.length === 0 ? 'PASS' : 'FAIL'} ${url} ${status}`);
+    if (issues.length > 0) issues.forEach(i => console.error(`  ${i}`));
+  } catch (error) {
+    results.push({ url, status: 0, issues: [error.message], pass: false });
+    console.log(`FAIL ${url} ${error.message}`);
+  }
+  
+  await context.close();
+}
+
+await browser.close();
+
+const failed = results.filter(r => !r.pass);
+if (failed.length > 0) {
+  console.log(`\n${failed.length} pages failed`);
+  process.exit(1);
+}
+console.log('\nAll critical pages passed');

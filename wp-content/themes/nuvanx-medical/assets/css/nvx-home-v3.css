@@ -462,7 +462,7 @@
 .nvx-home-closure__desc {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
-	color: var(--nvx-surface-soft);
+	color: var(--nvx-light);
 	margin-bottom: var(--nvx-space-8);
 	max-width: var(--nvx-measure);
 	margin-inline: auto;

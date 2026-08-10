@@ -64,10 +64,7 @@ jobs:
                 sleep $((attempt * 5))
               done
               if [[ "$success" != "1" ]]; then
-                # Soft-fail: record the failure and keep auditing the remaining
-                # pages so a single run yields complete evidence.
                 echo "LIGHTHOUSE_FAILED page=$page mode=$mode" >&2
-                # Pad to the full 16-column width so the artifact stays machine-readable.
                 printf '%s\t%s\tFAILED\t\t\t\t\t\t\t\t\t\t\t\t\t\n' "$page" "$mode" >> perf-results/summary.tsv
                 continue
               fi
@@ -100,6 +97,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: production-performance-audit-20260809
+          name: production-performance-${{ github.run_id }}-attempt-${{ github.run_attempt }}
           path: perf-results/
           retention-days: 14

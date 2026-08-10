@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   hygiene:
@@ -101,3 +102,24 @@ jobs:
             exit 1
           fi
           echo 'REPOSITORY_EMPTY_RESIDUE_GATE=PASS'
+
+  historical-secret-scan:
+    name: Gitleaks full-history scan
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full Git history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run Gitleaks on full Git history
+        uses: zricethezav/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_DETECT_YES: true
+        with:
+          config-path: .github/gitleaks-config.yml
+          report-path: gitleaks-report.json
+          format: json

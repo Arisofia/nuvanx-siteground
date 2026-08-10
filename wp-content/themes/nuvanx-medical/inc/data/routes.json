@@ -18,7 +18,9 @@
   "/inversion-medicina-estetica/": {
     "seo_id": "inversion"
   },
-  "/nosotros/": {},
+  "/nosotros/": {
+    "seo_id": "nosotros"
+  },
   "/equipo-medico/": {
     "seo_id": "equipo"
   },

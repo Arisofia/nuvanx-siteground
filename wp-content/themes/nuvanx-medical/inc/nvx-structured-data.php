@@ -482,7 +482,7 @@ function nvx_schema_clinics() {
 
 	return array(
 		'chamberi' => array(
-			'@type'                     => 'MedicalClinic',
+			'@type'                     => array( 'MedicalClinic', 'LocalBusiness' ),
 			'@id'                       => home_url( '/#/schema/medical-clinic/chamberi' ),
 			'name'                      => $ch['name'] ?? 'NUVANX Medicina Estética Láser — Chamberí',
 			'branchCode'                => 'chamberi',
@@ -529,7 +529,7 @@ function nvx_schema_clinics() {
 			),
 		),
 		'goya'     => array(
-			'@type'                     => 'MedicalClinic',
+			'@type'                     => array( 'MedicalClinic', 'LocalBusiness' ),
 			'@id'                       => home_url( '/#/schema/medical-clinic/goya' ),
 			'name'                      => $go['name'] ?? 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
 			'branchCode'                => 'goya',

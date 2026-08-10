@@ -136,7 +136,9 @@
   "/medicina-estetica/": {
     "seo_id": "aesthetic_medicine"
   },
-  "/estetica-avanzada/": {},
+  "/estetica-avanzada/": {
+    "seo_id": "advanced_aesthetics"
+  },
   "/bioestimuladores-colageno-madrid/": {
     "seo_id": "collagen_bio",
     "schema_group": "treatments",

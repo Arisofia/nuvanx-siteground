@@ -47,7 +47,7 @@ jobs:
       CI: true
     steps:
       - name: Check out master history
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: master
           fetch-depth: 0
@@ -71,7 +71,7 @@ jobs:
           find wp-content/themes/nuvanx-medical/ -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
@@ -110,25 +110,26 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 10
-            ConnectionAttempts 1
+            ConnectTimeout 30
+            ConnectionAttempts 3
             ServerAliveInterval 15
             ServerAliveCountMax 3
           EOF
           chmod 600 "$HOME/.ssh/config"
           ssh_ready=0
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             if ssh -n nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
               ssh_ready=1
               break
             fi
-            if [[ "$attempt" -lt 3 ]]; then
-              echo "SSH preflight attempt $attempt failed; retrying in 2s..."
-              sleep 2
+            if [[ "$attempt" -lt 5 ]]; then
+              delay=$(( attempt * 15 ))
+              echo "SSH preflight attempt $attempt/5 failed; retrying in ${delay}s..."
+              sleep "$delay"
             fi
           done
           if [[ "$ssh_ready" -ne 1 ]]; then
-            echo 'SSH_PREFLIGHT=FAIL_TRANSPORT: runner could not reach the strict SiteGround SSH endpoint.' >&2
+            echo 'SSH_PREFLIGHT=FAIL_TRANSPORT: runner could not reach the strict SiteGround SSH endpoint after 5 attempts.' >&2
             exit 255
           fi
           echo 'SSH_PREFLIGHT=PASS'
@@ -434,7 +435,7 @@ jobs:
 
       - name: Upload Block A boundary evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.6.2
         with:
           name: staging2-boundary-${{ inputs.sha }}-attempt-${{ github.run_attempt }}
           path: scripts/staging2/artifacts/staging2-boundary.json

@@ -1,11 +1,3 @@
-/* NUVANX — Home brand surface and hero layout. */
-
-.nvx-home {
-	overflow-x: clip;
-	background: var(--nvx-color-paper);
-	color: var(--nvx-ink);
-}
-
 /**
  * Home page layout and typography for front-page.php.
  */

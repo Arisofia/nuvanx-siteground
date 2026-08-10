@@ -105,7 +105,7 @@ jobs:
 
   historical-secret-scan:
     name: Gitleaks full-history scan
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out full Git history

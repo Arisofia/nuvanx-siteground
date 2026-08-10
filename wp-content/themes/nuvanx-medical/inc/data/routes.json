@@ -9,7 +9,9 @@
   "/soluciones-medicas/": {
     "seo_id": "soluciones"
   },
-  "/protocolos-signature/": {},
+  "/protocolos-signature/": {
+    "seo_id": "signature_protocols"
+  },
   "/por-que-nuvanx/": {
     "seo_id": "por_que_nuvanx"
   },

@@ -162,5 +162,9 @@
     "aesthetic_medicine": {
         "title": "Medicina Estética Madrid | Valoración Médica y Tratamientos | NUVANX",
         "description": "Medicina estética en Madrid con criterio clínico: ácido hialurónico, neuromoduladores, bioestimuladores y tecnología láser. Valoración presencial en Chamberí y Salamanca–Goya."
+    },
+    "signature_protocols": {
+        "title": "Protocolos Signature NUVANX | Contour Architecture™ | Madrid",
+        "description": "Protocolos médicos NUVANX Contour Architecture™ para contorno corporal y facial. Valoración clínica y plan individualizado en clínicas de Madrid."
     }
 }

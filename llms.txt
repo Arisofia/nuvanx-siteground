@@ -1,4 +1,4 @@
-# NUVANX Medicina Estética Láser - AI Agent Accessibility
+# NUVANX Medicina Estética Láser
 
 ## Site Overview
 NUVANX is a medical aesthetics clinic in Madrid, Spain, specializing in laser treatments and personalized medical aesthetic procedures with clinical criteria.
@@ -69,3 +69,12 @@ This file provides structured information for AI agents to understand the site's
 - Patient data protection follows GDPR
 - Professional medical licensing displayed
 - Clear pricing and treatment information
+
+## Important Links
+- [Main Website](https://nuvanx.com)
+- [Medical Evaluation](https://nuvanx.com/madrid/valoracion/)
+- [Chamberí Clinic](https://nuvanx.com/chamberi/)
+- [Goya Clinic](https://nuvanx.com/goya/)
+- [Medical Team](https://nuvanx.com/equipo-medico/)
+- [Patient Cases](https://nuvanx.com/casos-de-pacientes/)
+- [Blog](https://nuvanx.com/blog/)

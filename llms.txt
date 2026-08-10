@@ -1,0 +1,71 @@
+# NUVANX Medicina Estética Láser - AI Agent Accessibility
+
+## Site Overview
+NUVANX is a medical aesthetics clinic in Madrid, Spain, specializing in laser treatments and personalized medical aesthetic procedures with clinical criteria.
+
+## Purpose
+This file provides structured information for AI agents to understand the site's content, structure, and purpose.
+
+## Core Information
+- **Business Type**: Medical aesthetics clinic
+- **Location**: Madrid, Spain (Chamberí and Goya clinics)
+- **Specialty**: Laser medicine, facial treatments, body contouring
+- **Philosophy**: Evidence-based medicine with individualized treatment plans
+
+## Key Services
+- Endolift facial treatments
+- Laser medicine procedures
+- Medical consultations and evaluations
+- Personalized treatment planning
+- Facial rejuvenation
+- Body contouring
+
+## Site Structure
+- **Home**: Overview of philosophy and services
+- **Treatments**: Detailed treatment information
+- **Medical Team**: Professional profiles
+- **Patient Cases**: Clinical evidence (when published)
+- **Contact**: Clinic locations and contact methods
+- **Blog**: Educational content
+
+## Content Guidelines
+- All medical content is evidence-based
+- Treatment recommendations require medical evaluation
+- No guarantees of outcomes are made
+- Individual results may vary
+- Professional medical oversight is emphasized
+
+## Contact Information
+- **Main Phone**: +34 669 319 836 (Chamberí)
+- **Goya Phone**: +34 647 505 107
+- **WhatsApp**: Available for quick inquiries
+- **Locations**: Chamberí and Goya, Madrid
+
+## Accessibility Notes
+- Site follows WCAG AA standards
+- Forms include proper labels and error handling
+- Color contrast meets accessibility requirements
+- Responsive design for all devices
+
+## Content Authority
+- Medical content is reviewed by qualified professionals
+- Treatment protocols are clinically validated
+- Professional medical licensing information is provided
+
+## Technical Notes
+- WordPress-based CMS
+- Custom theme with medical aesthetics focus
+- HubSpot forms for lead generation
+- Google Analytics for performance tracking
+- SEO-optimized for medical aesthetics terms
+
+## Language
+- Primary: Spanish (es)
+- Secondary: English (en) for some content
+- Medical terminology uses standard Spanish medical terms
+
+## Legal & Compliance
+- Compliant with Spanish medical advertising regulations
+- Patient data protection follows GDPR
+- Professional medical licensing displayed
+- Clear pricing and treatment information

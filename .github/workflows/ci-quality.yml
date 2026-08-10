@@ -27,12 +27,13 @@ jobs:
       - name: Run PHP Parallel Lint
         run: |
           set -o pipefail
-          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt || true
+          set +e
+          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt
           STATUS=${PIPESTATUS[0]}
+          set -e
           if [ "$STATUS" -ne 0 ]; then
             echo "parallel-lint detected syntax errors (exit $STATUS). See ci-parallel-lint.txt"
-            cat ci-parallel-lint.txt
-            exit $STATUS
+            exit "$STATUS"
           fi
       - name: Upload parallel-lint output
         if: always()
@@ -81,16 +82,17 @@ jobs:
         run: |
           cd wp-content/themes/nuvanx-medical
           composer install --no-interaction --no-progress --prefer-dist
-      - name: Run PHP_CodeSniffer (produce report artifact)
+      - name: Run PHP_CodeSniffer (strict full report)
         run: |
           set -o pipefail
           cd wp-content/themes/nuvanx-medical
-          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary 2>&1 | tee ci-phpcs.txt || true
+          set +e
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=full -s 2>&1 | tee ci-phpcs.txt
           STATUS=${PIPESTATUS[0]}
+          set -e
           if [ "$STATUS" -ne 0 ]; then
             echo "phpcs found coding standard violations (exit $STATUS). See ci-phpcs.txt"
-            cat ci-phpcs.txt
-            exit $STATUS
+            exit "$STATUS"
           fi
       - name: Upload PHPCS report
         if: always()

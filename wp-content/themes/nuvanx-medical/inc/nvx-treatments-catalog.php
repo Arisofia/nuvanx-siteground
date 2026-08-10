@@ -202,8 +202,6 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		1
 	) ?? $content;
 
-
-
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu',
 		$links,

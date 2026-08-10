@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function nvx_environment_is_staging2(): bool {
 	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	$parsed_host = parse_url( 'https://' . $raw_host, PHP_URL_HOST );
+	$parsed_host = wp_parse_url( 'https://' . $raw_host, PHP_URL_HOST );
 	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;
 
 	/**

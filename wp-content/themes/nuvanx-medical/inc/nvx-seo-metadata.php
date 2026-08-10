@@ -224,9 +224,9 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	}
 
 	// SiteGround preview/staging hosts must never be indexable.
-	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	// parse_url correctly strips the port from both 'host:port' and '[::1]:port' (IPv6) forms.
-	$parsed_host = parse_url( 'https://' . $raw_host, PHP_URL_HOST );
+	$raw_host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	// wp_parse_url() strips the port from both 'host:port' and '[::1]:port' (IPv6) forms.
+	$parsed_host = wp_parse_url( 'https://' . $raw_host, PHP_URL_HOST );
 	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;
 	if ( false !== strpos( $raw_host, '.sg-host.com' ) || false !== strpos( $raw_host, 'staging' ) || false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
 		return true;
@@ -235,12 +235,12 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	if ( defined( 'NVX_ENV' ) ) {
 		return NVX_ENV !== 'production';
 	}
-	
+
 	// Local development environments (localhost, 127.0.0.1, local domains)
 	if ( in_array( $host, array( 'localhost', '127.0.0.1', 'nuvanx.local', 'nuvanx.test' ), true ) ) {
 		return true;
 	}
-	
+
 	// No NVX_ENV defined and not in known non-production hosts:
 	// FAIL SAFE (noindex) rather than FAIL OPEN (index) to prevent accidental indexing
 	error_log( '[nuvanx] CRITICAL: NVX_ENV constant is not defined and host is not recognized. Assuming non-production environment (noindex enabled) for safety. Define NVX_ENV=production in wp-config.php for production hosts.' );

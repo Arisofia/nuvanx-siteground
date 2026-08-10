@@ -338,7 +338,7 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
 		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
 		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
-		
+
 		$skeleton_html = '<style>
 			.nvx-skeleton-wrapper { display: flex; flex-direction: column; gap: 16px; padding: 20px 0; width: 100%; max-width: 600px; animation: nvx-pulse-anim 1.5s infinite ease-in-out; }
 			.nvx-skeleton-field { height: 48px; background-color: rgba(0,0,0,0.05); border-radius: 4px; width: 100%; }

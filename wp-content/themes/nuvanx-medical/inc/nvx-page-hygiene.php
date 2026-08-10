@@ -340,8 +340,8 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 
 		$is_blocked_cases_url = false;
 		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {
-			$path = (string) wp_parse_url( $item->url, PHP_URL_PATH );
-			$path = '/' . trim( $path, '/' ) . '/';
+			$path                 = (string) wp_parse_url( $item->url, PHP_URL_PATH );
+			$path                 = '/' . trim( $path, '/' ) . '/';
 			$is_blocked_cases_url = '/casos-de-pacientes/' === $path;
 		}
 

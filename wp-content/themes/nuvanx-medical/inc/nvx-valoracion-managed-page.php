@@ -69,7 +69,7 @@ function nvx_valoracion_managed_page_markup(): string {
 	$form_id        = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 	$portal_id      = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
 
-	$html  = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
+	$html = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
 
 	// Conversion-first page header: site header/menu -> concise page heading -> form.
 	$html .= '<section class="nvx-brand-hero nvx-valoracion-hero" aria-labelledby="nvx-valoracion-h1">';
@@ -158,8 +158,12 @@ add_filter(
 /**
  * Preload HubSpot script and optimize priority on valuation page to improve LCP.
  */
-add_action( 'wp_head', function() {
-	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-		echo '<link rel="preload" href="https://js.hsforms.net/forms/embed/v2.js" as="script" fetchpriority="high" />' . "\n";
-	}
-}, 5 );
+add_action(
+	'wp_head',
+	function () {
+		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+			echo '<link rel="preload" href="https://js.hsforms.net/forms/embed/v2.js" as="script" fetchpriority="high" />' . "\n";
+		}
+	},
+	5
+);

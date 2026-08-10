@@ -108,7 +108,7 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 		</section>
 	</div>
 	<div class="entry-content nvx-page__content nvx-prose">
-		<?php  the_content(); ?>
+		<?php the_content(); ?>
 	</div>
 
 <?php

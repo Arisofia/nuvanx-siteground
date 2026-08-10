@@ -67,7 +67,7 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 	if ( ! nvx_btl_detail_is_singular() || is_front_page() || is_home() ) {
 		return null;
 	}
-	
+
 	// Skip if content has a Protocolos Signature marker
 	if ( false !== strpos( $content, 'NUVANX_PROTOCOL_PAGE:' ) ) {
 		return null;
@@ -88,7 +88,7 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		if ( ! is_array( $cfg ) || empty( $cfg['path'] ) ) {
 			continue;
 		}
-		
+
 		if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
 			return $slug;
 		}
@@ -103,7 +103,7 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		}
 	}
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	$slug     = (string) get_post_field( 'post_name', get_queried_object_id() );
 	$registry = nvx_btl_detail_registry();
 	if ( isset( $registry[ $slug ] ) && is_array( $registry[ $slug ] ) ) {
 		return $slug;

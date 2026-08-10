@@ -335,12 +335,12 @@ add_filter(
 
 				// Implement Delay Script Execution for GTM and analytics scripts to improve TBT on Home
 				$has_delayed = false;
-				$buffer = preg_replace_callback(
+				$buffer      = preg_replace_callback(
 					'/<script([^>]*)>(.*?)<\/script>/is',
 					function ( $matches ) use ( &$has_delayed ) {
-						$attrs = $matches[1];
+						$attrs   = $matches[1];
 						$content = $matches[2];
-						$is_gtm = ( strpos( $attrs, 'googletagmanager.com' ) !== false || strpos( $content, 'googletagmanager.com' ) !== false );
+						$is_gtm  = ( strpos( $attrs, 'googletagmanager.com' ) !== false || strpos( $content, 'googletagmanager.com' ) !== false );
 						if ( $is_gtm ) {
 							$has_delayed = true;
 							if ( strpos( $attrs, 'type=' ) !== false ) {
@@ -380,7 +380,7 @@ add_filter(
     setTimeout(loadDelayedScripts, 5000);
 })();
 </script>';
-					$buffer = str_replace( '</body>', $delay_script . '</body>', $buffer );
+					$buffer       = str_replace( '</body>', $delay_script . '</body>', $buffer );
 				}
 
 				return $buffer;

@@ -10,8 +10,8 @@
 
 get_header();
 
-$shell_content  = get_query_var( 'nvx_shell_content' );
-$shell_skip_hdr = get_query_var( 'nvx_shell_skip_header' );
+$shell_content   = get_query_var( 'nvx_shell_content' );
+$shell_skip_hdr  = get_query_var( 'nvx_shell_skip_header' );
 $shell_with_wrap = get_query_var( 'nvx_shell_with_wrapper' );
 
 if ( ! empty( $shell_content ) && ! is_singular() ) {
@@ -157,13 +157,13 @@ while ( have_posts() ) :
 	<?php
 	// Check if post_content already has standard wrapper
 	$has_standard_wrapper = (bool) preg_match( '/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content );
-	
+
 	// EXION BTL page needs standard prose wrapper for consistent margins
 	$is_exion_btl = is_page() && 'exion-btl' === get_post_field( 'post_name', get_the_ID() );
-	
+
 	// If post_content already owns the full standard wrapper, do not add another
 	// wrapper, but still run the canonical the_content filter chain.
-	if ( $has_standard_wrapper && strpos($content, '<div class="entry-content nvx-page__content nvx-prose">') === 0 ) {
+	if ( $has_standard_wrapper && strpos( $content, '<div class="entry-content nvx-page__content nvx-prose">' ) === 0 ) {
 		the_content();
 	} else {
 		// Force prose wrap for EXION BTL regardless of other conditions
@@ -172,11 +172,11 @@ while ( have_posts() ) :
 		} else {
 			$no_prose_wrap = empty( $shell_with_wrap ) || $has_managed_editorial || $has_standard_wrapper;
 		}
-		
+
 		if ( ! $no_prose_wrap ) {
-		?>
+			?>
 			<div class="entry-content nvx-page__content nvx-prose">
-		<?php
+			<?php
 		}
 		?>
 			<?php
@@ -188,9 +188,9 @@ while ( have_posts() ) :
 			?>
 		<?php
 		if ( ! $no_prose_wrap ) {
-		?>
+			?>
 			</div>
-		<?php
+			<?php
 		}
 	}
 	?>

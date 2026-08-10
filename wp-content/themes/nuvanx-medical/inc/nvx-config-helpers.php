@@ -2,8 +2,8 @@
 /**
  * Configuration helpers for externalized values.
  *
- * Loads and provides access to configuration data from JSON files,
- * centralizing values like WhatsApp numbers and medical staff credentials.
+ * Loads and provides access to configuration data from JSON files for values
+ * that are not part of the canonical clinic business configuration.
  *
  * @package nuvanx-medical
  */
@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Get configuration value from JSON config file.
  *
- * @param string $key     Configuration key in dot notation (e.g., 'contact.whatsapp.primary')
- * @param mixed  $default Default value if key not found
- * @return mixed Configuration value or default
+ * @param string $key     Configuration key in dot notation.
+ * @param mixed  $default Default value if key not found.
+ * @return mixed Configuration value or default.
  */
 function nvx_config_get( string $key, $default = '' ) {
 	static $config = null;
@@ -48,24 +48,31 @@ function nvx_config_get( string $key, $default = '' ) {
 }
 
 /**
- * Get WhatsApp number for specific clinic or primary.
+ * Get WhatsApp number for a specific clinic or the primary clinic.
  *
- * @param string $clinic Clinic identifier ('primary', 'chamberi', 'goya')
- * @return string WhatsApp number
+ * Clinic phone data is owned by nvx_get_clinics_config(); this helper only
+ * normalizes that canonical value for wa.me links.
+ *
+ * @param string $clinic Clinic identifier ('primary', 'chamberi', 'goya').
+ * @return string WhatsApp number in international digits-only format.
  */
 function nvx_whatsapp_number( string $clinic = 'primary' ): string {
-	$number = nvx_config_get( 'contact.whatsapp.' . $clinic, '' );
-	if ( '' === $number && 'primary' !== $clinic ) {
-		$number = nvx_config_get( 'contact.whatsapp.primary', '' );
+	if ( ! function_exists( 'nvx_get_clinics_config' ) ) {
+		return '';
 	}
-	return $number;
+
+	$key     = 'primary' === $clinic ? 'chamberi' : $clinic;
+	$clinics = nvx_get_clinics_config();
+	$phone   = isset( $clinics[ $key ]['phone_href'] ) ? (string) $clinics[ $key ]['phone_href'] : '';
+
+	return preg_replace( '/\D+/', '', $phone ) ?? '';
 }
 
 /**
  * Get full WhatsApp URL for specific clinic.
  *
- * @param string $clinic Clinic identifier ('primary', 'chamberi', 'goya')
- * @return string Full WhatsApp URL (https://wa.me/NUMBER)
+ * @param string $clinic Clinic identifier ('primary', 'chamberi', 'goya').
+ * @return string Full WhatsApp URL (https://wa.me/NUMBER).
  */
 function nvx_whatsapp_url( string $clinic = 'primary' ): string {
 	$number = nvx_whatsapp_number( $clinic );
@@ -75,8 +82,8 @@ function nvx_whatsapp_url( string $clinic = 'primary' ): string {
 /**
  * Get medical colegiado number by doctor ID.
  *
- * @param string $doctor_id Doctor identifier ('director', 'ivon', 'fabio')
- * @return string Colegiado number or empty string if not found
+ * @param string $doctor_id Doctor identifier ('director', 'ivon', 'fabio').
+ * @return string Colegiado number or empty string if not found.
  */
 function nvx_medical_colegiado( string $doctor_id ): string {
 	$staff = nvx_config_get( 'medical_staff.directors', array() );
@@ -91,8 +98,8 @@ function nvx_medical_colegiado( string $doctor_id ): string {
 /**
  * Get doctor name by doctor ID.
  *
- * @param string $doctor_id Doctor identifier ('director', 'ivon', 'fabio')
- * @return string Doctor name or empty string if not found
+ * @param string $doctor_id Doctor identifier ('director', 'ivon', 'fabio').
+ * @return string Doctor name or empty string if not found.
  */
 function nvx_medical_doctor_name( string $doctor_id ): string {
 	$staff = nvx_config_get( 'medical_staff.directors', array() );

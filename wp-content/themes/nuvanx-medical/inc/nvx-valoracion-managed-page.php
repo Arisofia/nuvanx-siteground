@@ -134,6 +134,20 @@ function nvx_valoracion_managed_metadesc( $description ): string {
 add_filter( 'wpseo_metadesc', 'nvx_valoracion_managed_metadesc', 40 );
 
 /**
+ * Optimize SERP title for the valuation landing page (primary conversion page).
+ *
+ * @param string $title Existing Yoast title.
+ */
+function nvx_valoracion_managed_title( $title ): string {
+	if ( ! function_exists( 'nvx_is_valoracion_page_request' ) || ! nvx_is_valoracion_page_request() ) {
+		return (string) $title;
+	}
+
+	return 'Valoración Médica Estética Madrid | Diagnóstico y Presupuesto NUVANX';
+}
+add_filter( 'wpseo_title', 'nvx_valoracion_managed_title', 40 );
+
+/**
  * Register valoración page as page owner to prevent shell hero duplication.
  *
  * When the shell evaluates $has_managed_editorial in nvx-page-shell.php,

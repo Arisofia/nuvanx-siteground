@@ -17,7 +17,7 @@ $page_id = (int) get_queried_object_id();
 $ready   = $page_id > 0 && '1' === (string) get_post_meta( $page_id, '_nvx_cases_publication_ready', true );
 
 if ( $ready ) {
-	require get_template_directory() . '/page.php';
+	require_once get_template_directory() . '/page.php';
 	return;
 }
 

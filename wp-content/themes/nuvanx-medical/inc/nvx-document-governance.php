@@ -173,12 +173,18 @@ function nvx_document_governance_enqueue_assets(): void {
 	$modal_enabled = function_exists( 'nvx_valoracion_modal_enabled' )
 		? nvx_valoracion_modal_enabled()
 		: false;
+
+	$page_url = function_exists( 'nvx_cta_valoracion_url' )
+		? nvx_cta_valoracion_url()
+		: home_url( '/madrid/valoracion/' );
+
 	// Never emit a full hsforms URL in server HTML: consent/optimizer scanners
 	// treat any inline mention of that domain as an eager marketing embed and can
 	// drop the entire runtime-governance handle from modal-enabled routes.
 	$config = array(
 		'modalEnabled'     => $modal_enabled,
 		'modalId'          => 'nvx-valoracion-modal',
+		'pageUrl'          => $page_url,
 		'mobileNavId'      => 'nvx-mobile-nav',
 		'hubspotScriptId'  => 'nvx-hubspot-forms-runtime',
 		'hubspotPageMount' => true,

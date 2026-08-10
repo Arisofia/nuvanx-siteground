@@ -133,7 +133,7 @@
 
     let lastFocus = null;
     const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
-    const pageUrl = DEFAULT_VALORACION_PATH;
+    const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
 
     let pagePath;
     try {
@@ -212,12 +212,15 @@
 
     document.addEventListener('click', function (e) {
       const a = e.target && e.target.closest ? e.target.closest('a') : null;
-      if (!shouldIntercept(a)) return;
+      const button = e.target && e.target.closest ? e.target.closest('button') : null;
+      const trigger = a || button;
+
+      if (!shouldIntercept(trigger)) return;
 
       if (modal && typeof modal.showModal === 'function') {
         e.preventDefault();
         e.stopPropagation();
-        openModal(a);
+        openModal(trigger);
         return;
       }
 

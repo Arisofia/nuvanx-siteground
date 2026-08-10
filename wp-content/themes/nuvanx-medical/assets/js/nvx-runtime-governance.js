@@ -128,12 +128,12 @@
    * Governs the valuation modal and intercepts qualifying valuation links to open it.
    */
   function initValoracionModalGovernance() {
-    const cfg = window.nvxValoracionModal || {};
+    const cfg = window.nvxRuntimeGovernance || {};
     const modal = document.getElementById(cfg.modalId || 'nvx-valoracion-modal');
 
     let lastFocus = null;
     const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
-    const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
+    const pageUrl = DEFAULT_VALORACION_PATH;
 
     let pagePath;
     try {

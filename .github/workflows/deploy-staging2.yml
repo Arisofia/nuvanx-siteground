@@ -110,19 +110,28 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 30
-            ConnectionAttempts 5
+            ConnectTimeout 10
+            ConnectionAttempts 1
             ServerAliveInterval 15
             ServerAliveCountMax 3
           EOF
           chmod 600 "$HOME/.ssh/config"
+          ssh_ready=0
           for attempt in 1 2 3; do
             if ssh -n nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
+              ssh_ready=1
               break
             fi
-            echo "SSH preflight attempt $attempt failed; retrying in 3s..."
-            sleep 3
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "SSH preflight attempt $attempt failed; retrying in 2s..."
+              sleep 2
+            fi
           done
+          if [[ "$ssh_ready" -ne 1 ]]; then
+            echo 'SSH_PREFLIGHT=FAIL_TRANSPORT: runner could not reach the strict SiteGround SSH endpoint.' >&2
+            exit 255
+          fi
+          echo 'SSH_PREFLIGHT=PASS'
 
       - name: Enforce staging runtime safety
         shell: bash

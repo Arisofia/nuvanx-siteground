@@ -24,6 +24,17 @@ global $nvx_page_shell_has_hero;
 $nvx_page_shell_has_hero = true;
 
 ob_start();
+
+if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+	echo '<div class="entry-content nvx-page__content nvx-prose">';
+	the_content();
+	echo '</div>';
+	$content = ob_get_clean();
+	set_query_var( 'nvx_shell_content', $content );
+	set_query_var( 'nvx_shell_skip_header', true );
+	get_template_part( 'template-parts/content/nvx-page-shell' );
+	return;
+}
 ?>
 
 <!-- Content goes inside .nvx-brand-page wrapper from header.php -->

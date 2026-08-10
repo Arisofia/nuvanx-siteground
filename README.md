@@ -4,7 +4,7 @@ Canonical source repository for the NUVANX WordPress theme and the operational t
 
 ## Source of truth
 
-- Canonical branch: `master`
+- Canonical source branch: `master`
 - Theme: `wp-content/themes/nuvanx-medical/`
 - Required MU plugin source: `wp-content/mu-plugins/`
 - Staging2: `https://staging2.nuvanx.com`
@@ -15,22 +15,20 @@ Git history is the archive for retired audits, diagnostics and incident-era impl
 
 ## Permanent GitHub Actions
 
+Exactly two workflows are persistent:
+
 | Workflow | Purpose |
 |---|---|
-| `audit-production-performance.yml` | Manual Lighthouse performance audit against production. |
-| `ci-quality.yml` | Manual strict PHP syntax, custom CSS/PHP lints, PHPCS and PHPStan gate. |
-| `deploy-staging2.yml` | Reusable exact-SHA Staging2 deployment with isolation, rollback and Block A checks. |
-| `deploy.yml` | Reusable production Block B gate and atomic deployment, executed only with explicit authorization. |
-| `h1-hubspot-e2e.yml` | Manual real-submit production QA for the HubSpot valuation funnel. |
-| `indexnow-submit.yml` | Post-release IndexNow submission for production URLs. |
-| `production-release.yml` | Release-control caller on `release/production`; resolves the immutable candidate manifest and authorizes `deploy.yml`. |
-| `production-seo-geo-audit.yml` | Post-release production SEO/GEO origin audit. |
-| `staging2-acceptance.yml` | Reusable Block C acceptance over the live published-page inventory at three viewports plus valoración placement. |
-| `staging2-pr-preview.yml` | Labeled same-repository PR preview with guarded Staging2 deployment, acceptance and rollback. |
-| `staging2-sync.yml` | Automatically syncs relevant `master` changes to Staging2 and runs Block C. |
-| `workflow-hygiene.yml` | Repository hygiene plus Gitleaks full-history security scanning. |
+| `staging.yml` | Repository/static quality, exact-SHA Staging2 deployment, full rollback snapshot, environment isolation, public/template validation, canonical Block C acceptance, valoración placement and guarded same-repo PR preview. |
+| `production.yml` | Resolve the exact live-and-accepted Staging2 SHA, enforce production readiness, perform guarded atomic production deployment, verify the exact public/on-disk SHA, run SEO/GEO + IndexNow, with optional Lighthouse and live HubSpot E2E. |
 
-Relevant pushes to `master` **do automatically deploy Staging2** through `staging2-sync.yml` and then run canonical acceptance. They never deploy production. Production promotion is controlled separately by `release/production` and the immutable `release/production-candidate.txt` manifest.
+Both environment-mutating paths share the `nuvanx-environment-mutation` concurrency group, so Staging2 cannot advance while Production is resolving and promoting its accepted payload.
+
+Relevant pushes to `master` can automatically deploy **Staging2 only** through `staging.yml`. They never deploy production.
+
+Production can be launched manually. The `release/production` branch remains an explicit release-control path, but only changes to `release/production-candidate.txt` trigger `production.yml`. That file is an authorization signal, not the payload source: Production resolves the SHA actually deployed on Staging2 and requires successful exact-SHA acceptance evidence before mutation.
+
+The repository hygiene gate inside `staging.yml` rejects any future `.github/workflows` state other than `production.yml` plus `staging.yml`.
 
 ## Canonical validation
 
@@ -61,7 +59,7 @@ Then run the canonical entrypoint from the repository root with `EXPECTED_SHA` s
 - `tools/deploy/flush-prod-cache.sh`
 - `tools/wp-cli/`
 
-Mutating scripts require their explicit confirmation guard. Production deployment is never inferred from `master` or a staging deployment.
+Mutating scripts require their explicit confirmation guard. Production deployment is never inferred from a `master` push or from an unvalidated staging state.
 
 ## Dependency policy
 

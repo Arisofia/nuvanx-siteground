@@ -165,13 +165,8 @@ function nvx_theme_scripts(): void {
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 
-	// Performance: only load home-specific CSS on home page to reduce render-blocking requests
 	if ( nvx_theme_is_home_page() ) {
-		wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
-	}
-
-	if ( nvx_theme_is_home_page() ) {
-		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
+		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
 		wp_enqueue_script(
 			'nvx-home-video',
 			$uri . '/assets/js/nvx-home-video.js',
@@ -239,54 +234,6 @@ function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	}
 }
 add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
-
-/** Render the blog index shortcode. */
-function nvx_theme_blog_index_markup(): string {
-	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
-		? nvx_quarantined_comparison_post_ids()
-		: array();
-
-	if ( ! is_array( $excluded_post_ids ) ) {
-		$excluded_post_ids = array();
-	}
-
-	$query = new WP_Query(
-		array(
-			'post_type'           => 'post',
-			'post_status'         => 'publish',
-			'posts_per_page'      => 12,
-			'ignore_sticky_posts' => true,
-			'post__not_in'        => $excluded_post_ids,
-			'paged'               => max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) ),
-		)
-	);
-
-	if ( ! $query->have_posts() ) {
-		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artículos.', 'nuvanx-medical' ) . '</p>';
-	}
-
-	$output = '<div class="nvx-brand-grid">';
-	while ( $query->have_posts() ) {
-		$query->the_post();
-		$title = get_the_title();
-		$aria  = sprintf(
-			/* translators: %s: post title */
-			__( 'Leer más sobre %s', 'nuvanx-medical' ),
-			$title
-		);
-		$output .= '<article class="nvx-brand-card nvx-card nvx-card--blog nvx-card--blog-text">';
-		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
-		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( $title ) . '</a></h2>';
-		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
-		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-brand-btn nvx-brand-btn--secondary" aria-label="' . esc_attr( $aria ) . '">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
-		$output .= '</article>';
-	}
-	$output .= '</div>';
-	wp_reset_postdata();
-
-	return $output;
-}
-add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
 /**
  * Theme Bootstrap Sequence

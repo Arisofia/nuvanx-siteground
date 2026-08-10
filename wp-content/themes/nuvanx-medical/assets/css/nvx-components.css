@@ -117,7 +117,7 @@ a[href*="whatsapp"] {
   display: inline-flex;
   align-items: center;
   gap: var(--nvx-space-1);
-  color: var(--nvx-accent-muted);
+  color: var(--nvx-ink);
   text-decoration: none;
   transition: color 160ms ease, transform 160ms ease;
 }

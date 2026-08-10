@@ -18,6 +18,7 @@ const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
 const allowedOriginSshAliases = new Set([
   'nvx-staging2',
   'nvx-staging2-pr',
+  'nvx-staging-pr',
   'nvx-staging-origin',
 ]);
 const sshBin = '/usr/bin/ssh';

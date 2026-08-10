@@ -143,7 +143,7 @@ jobs:
           ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G
 
       - name: Scan committed history for secrets
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -204,7 +204,7 @@ jobs:
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
           test -s "$HOME/.ssh/known_hosts"
           cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging
+          Host nvx-staging2
             HostName $HOST
             User $USER
             Port $SSH_PORT
@@ -221,7 +221,7 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           connected=0
           for attempt in 1 2 3 4 5; do
-            if ssh -n nvx-staging "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then connected=1; break; fi
+            if ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then connected=1; break; fi
             [[ "$attempt" -eq 5 ]] || sleep $((attempt * 10))
           done
           test "$connected" = 1
@@ -231,7 +231,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           test "$STAGING_ROOT" != "$PROD_ROOT"
           cd "$STAGING_ROOT"
@@ -263,7 +263,7 @@ jobs:
           ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}"
           [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
           echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
-          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           umask 077
           mkdir -p "$ROLLBACK_DIR"
@@ -283,26 +283,26 @@ jobs:
           set -euo pipefail
           REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
-          ssh nvx-staging "mkdir -p '$REMOTE_RELEASE/theme'"
-          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging:$REMOTE_RELEASE/deploy-to-staging2.sh"
-          rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
-          rsync -az tools/wp-cli/hygiene-content-fix.php "nvx-staging:$REMOTE_RELEASE/hygiene-content-fix.php"
+          ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
+          rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging2:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
+          rsync -az tools/wp-cli/hygiene-content-fix.php "nvx-staging2:$REMOTE_RELEASE/hygiene-content-fix.php"
 
       - name: Deploy theme, required MU plugins and content hygiene
         shell: bash
         run: |
           set -euo pipefail
           echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
-          ssh nvx-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
-          ssh nvx-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
-          ssh nvx-staging "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+          ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
+          ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
+          ssh nvx-staging2 "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
 
       - name: Purge caches and verify exact Staging2 identity
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$STAGING_ROOT"
           wp cache flush
@@ -343,7 +343,7 @@ jobs:
         run: |
           set -euo pipefail
           PAGES_FILE="$RUNNER_TEMP/staging2-published-pages.json"
-          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE' > "$PAGES_FILE"
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE' > "$PAGES_FILE"
           set -Eeuo pipefail
           cd "$STAGING_ROOT"
           wp eval '$pages=get_posts(array("post_type"=>"page","post_status"=>"publish","posts_per_page"=>-1,"orderby"=>"ID","order"=>"ASC")); $payload=array_map(static function($p){return array("id"=>(int)$p->ID,"slug"=>(string)$p->post_name,"template"=>(string)get_page_template_slug($p->ID));},$pages); echo wp_json_encode($payload);'
@@ -378,7 +378,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          ssh nvx-staging2 "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$PROD_ROOT"
           test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
@@ -407,7 +407,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
           test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
@@ -436,8 +436,8 @@ jobs:
         run: |
           set +e
           if [[ -f "$HOME/.ssh/config" ]]; then
-            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging "rm -rf '$REMOTE_RELEASE'" || true
-            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
+            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
+            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
           fi
           rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
@@ -520,7 +520,7 @@ jobs:
           printf '%s\n' "$KEY" > "$HOME/.ssh/staging_pr_key"; chmod 600 "$HOME/.ssh/staging_pr_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
           cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging-pr
+          Host nvx-staging2-pr
             HostName $HOST
             User $USER
             Port $SSH_PORT
@@ -533,7 +533,7 @@ jobs:
             ConnectionAttempts 5
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"
+          ssh -n nvx-staging2-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"
 
       - name: Snapshot and deploy PR candidate with trusted tooling
         shell: bash
@@ -542,7 +542,7 @@ jobs:
           ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/pr-${PR_NUMBER}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${PR_SHA}"
           REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/pr-${PR_NUMBER}-${PR_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"; echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
-          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          ssh nvx-staging2-pr "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           test "$STAGING_ROOT" != "$PROD_ROOT"
           cd "$STAGING_ROOT"
@@ -555,14 +555,14 @@ jobs:
           if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"; else : > "$ROLLBACK_DIR/previous-sha.txt"; fi
           REMOTE
           echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
-          ssh nvx-staging-pr "mkdir -p '$REMOTE_RELEASE/theme'"
-          rsync -az --delete --exclude='.git' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-staging-pr:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-staging2.sh tools/deploy/deploy-required-mu-plugins.sh tools/wp-cli/hygiene-content-fix.php "nvx-staging-pr:$REMOTE_RELEASE/"
+          ssh nvx-staging2-pr "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete --exclude='.git' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-staging2-pr:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh tools/deploy/deploy-required-mu-plugins.sh tools/wp-cli/hygiene-content-fix.php "nvx-staging2-pr:$REMOTE_RELEASE/"
           echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
-          ssh nvx-staging-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$PR_SHA' --confirm"
-          ssh nvx-staging-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
-          ssh nvx-staging-pr "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
-          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' PR_SHA='$PR_SHA' bash -se" <<'REMOTE'
+          ssh nvx-staging2-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$PR_SHA' --confirm"
+          ssh nvx-staging2-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
+          ssh nvx-staging2-pr "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+          ssh nvx-staging2-pr "STAGING_ROOT='$STAGING_ROOT' PR_SHA='$PR_SHA' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$STAGING_ROOT"
           wp cache flush
@@ -589,10 +589,10 @@ jobs:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_HOST: staging2.nuvanx.com
           EXPECTED_SHA: ${{ env.PR_SHA }}
-          ORIGIN_SSH_ALIAS: nvx-staging-pr
+          ORIGIN_SSH_ALIAS: nvx-staging2-pr
         run: |
           set -euo pipefail
-          ssh nvx-staging-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_SHA'"
+          ssh nvx-staging2-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_SHA'"
           pass=0; for attempt in {1..12}; do if node scripts/staging2/verify-staging-boundary.mjs; then pass=1; break; fi; sleep 10; done; test "$pass" = 1
           cd scripts/staging2
           npm ci --ignore-scripts
@@ -607,7 +607,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging-pr "cd '$PROD_ROOT' && test \"\$(wp config get DB_NAME)\" = 'db0ecrycwv2tgb' && test \"\$(wp option get home)\" = 'https://nuvanx.com' && test \"\$(wp option get blog_public)\" = '1'"
+          ssh nvx-staging2-pr "cd '$PROD_ROOT' && test \"\$(wp config get DB_NAME)\" = 'db0ecrycwv2tgb' && test \"\$(wp option get home)\" = 'https://nuvanx.com' && test \"\$(wp option get blog_public)\" = '1'"
 
       - name: Upload PR-only evidence
         if: always()
@@ -626,7 +626,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging-pr "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          ssh nvx-staging2-pr "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
           rm -rf "$STAGING_ROOT/wp-content/themes/nuvanx-medical"; tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT"
@@ -642,7 +642,7 @@ jobs:
         run: |
           set +e
           if [[ -f "$HOME/.ssh/config" ]]; then
-            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging-pr "rm -rf '$REMOTE_RELEASE'" || true
-            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging-pr "rm -rf '$ROLLBACK_DIR'" || true; fi
+            [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging2-pr "rm -rf '$REMOTE_RELEASE'" || true
+            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2-pr "rm -rf '$ROLLBACK_DIR'" || true; fi
           fi
           rm -f "$HOME/.ssh/staging_pr_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

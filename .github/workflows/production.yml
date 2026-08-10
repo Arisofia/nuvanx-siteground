@@ -59,10 +59,10 @@ jobs:
     outputs:
       candidate_sha: ${{ steps.candidate.outputs.sha }}
     steps:
-      - name: Check out hardened master tooling
+      - name: Check out hardened release tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: release/production
           fetch-depth: 0
           persist-credentials: false
 

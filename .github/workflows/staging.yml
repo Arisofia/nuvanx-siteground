@@ -9,6 +9,8 @@ on:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/**'
       - 'tools/**'
+      - '.github/workflows/staging.yml'
+      - '.github/workflows/production.yml'
   pull_request:
     branches: [master]
     paths:

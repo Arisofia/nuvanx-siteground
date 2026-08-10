@@ -10,17 +10,20 @@ Mutating deploy scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 - Production: `https://nuvanx.com`
 - Live theme marker: `wp-content/themes/nuvanx-medical/.nvx-deploy-sha`
 
-Branch names and tags select source. They are not proof of what is live.
+Branch names and tags select source or release-control intent. They are not proof of what is live; the environment marker and validation evidence are authoritative.
 
 ## Persistent workflow model
 
-The repository keeps reusable deployment gates rather than push-triggered one-shot callers:
+The active deployment path is:
 
-1. `.github/workflows/deploy-staging2.yml` — `workflow_call`, exact-SHA Staging2 deployment with rollback snapshot and isolation checks.
-2. `.github/workflows/staging2-acceptance.yml` — `workflow_call`, exact-SHA Block C acceptance.
-3. `.github/workflows/deploy.yml` — `workflow_call`, production readiness gate. Its production mutation job remains disabled with `if: false` until explicit authorization.
+1. `.github/workflows/staging2-sync.yml` — on relevant pushes to `master`, normalizes Staging2, calls the exact-SHA deploy and then canonical acceptance.
+2. `.github/workflows/deploy-staging2.yml` — reusable exact-SHA Staging2 deployment with rollback snapshot, isolation checks and Block A boundary verification.
+3. `.github/workflows/staging2-acceptance.yml` — reusable exact-SHA Block C acceptance over the trusted live published-page inventory.
+4. `.github/workflows/production-release.yml` — release-control entrypoint triggered only by pushes to `release/production`; reads `release/production-candidate.txt`.
+5. `.github/workflows/deploy.yml` — reusable Block B production gate and atomic deploy; the mutation job runs only when a trusted caller supplies `authorize_production: true`.
+6. `.github/workflows/production-seo-geo-audit.yml` and `.github/workflows/indexnow-submit.yml` — post-release production validation/discovery workflows.
 
-A normal push to `master` does **not** deploy either environment. An authorized release orchestration must explicitly call these reusable workflows and pass the exact candidate SHA.
+A relevant push to `master` can mutate **Staging2 only**. It never authorizes production. Production promotion requires the separate `release/production` control path and an exact accepted candidate SHA.
 
 ## Staging2 deployment
 
@@ -48,9 +51,11 @@ It does not copy the production database or replace the entire WordPress tree.
 The permanent acceptance workflow validates the origin boundary from SiteGround, classifies external SiteGround AntiBot/network failures separately, validates templates, installs the scoped Playwright dependencies, and executes:
 
 ```text
-scripts/staging2/block-c-52x3.mjs
+scripts/staging2/block-c-entrypoint.mjs
 scripts/staging2/valoracion-placement.mjs
 ```
+
+The canonical baseline requires at least 52 published pages. The runtime inventory is dynamic: every trusted published WordPress page is tested at three viewports, so additional pages are included automatically. The legacy internal filename `block-c-52x3.mjs` remains an implementation detail and is not a fixed-size acceptance contract.
 
 The exact-SHA evidence artifact is named:
 
@@ -58,14 +63,14 @@ The exact-SHA evidence artifact is named:
 staging2-block-c-<sha>
 ```
 
-For local/manual execution, install dependencies in `scripts/staging2/`, then execute the scripts from the repository root so their artifact paths remain canonical:
+For local/manual execution, install dependencies in `scripts/staging2/`, then execute the resilient entrypoint from the repository root so retries and artifact paths remain canonical:
 
 ```bash
 cd scripts/staging2
 npm ci --ignore-scripts
 npx playwright install chromium
 cd ../..
-EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/block-c-52x3.mjs
+EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/block-c-entrypoint.mjs
 EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
 ```
 
@@ -75,10 +80,12 @@ EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/sta
 
 - candidate is an exact full SHA contained in `master`;
 - a successful, non-expired Block C artifact exists for that exact SHA;
-- Staging2 disk marker equals the candidate;
+- Staging2 theme payload is byte-equivalent to the accepted candidate theme tree;
 - production identity and hardened deploy tooling pass read-only guards.
 
-The production mutation job is intentionally disabled in the permanent workflow. Promotion requires an explicit authorization path; it must never occur merely because `master` changed.
+Its production mutation job is conditional on `authorize_production`. The trusted `.github/workflows/production-release.yml` caller supplies `authorize_production: true` only after resolving the exact SHA from the `release/production` candidate manifest. A change to `master` alone cannot trigger production mutation.
+
+The authorized production job checks out hardened tooling from `master`, checks out the exact candidate payload separately, performs strict SSH/preflight checks, uploads the accepted theme, executes the guarded directory cutover, verifies the public production boundary and confirms the exact SHA on disk.
 
 Host-level emergency deployment, when explicitly authorized:
 
@@ -102,7 +109,7 @@ NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
 
 ## Repository hygiene
 
-Operational evidence belongs in GitHub Actions artifacts or Git history, not as permanent root-level audit dumps. `vendor/`, `composer.phar`, `.vscode/`, `audit/`, one-shot workflows and self-mutating workflows are prohibited by `.github/workflows/workflow-hygiene.yml`.
+Operational evidence belongs in GitHub Actions artifacts or Git history, not as permanent root-level audit dumps. `vendor/`, `composer.phar`, `.vscode/`, generated audit output, one-shot workflows and self-mutating workflows are prohibited by `.github/workflows/workflow-hygiene.yml`. The same workflow also runs Gitleaks against full Git history on `master` and manual security validation.
 
 ## Release record
 

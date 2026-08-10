@@ -17,25 +17,31 @@ Git history is the archive for retired audits, diagnostics and incident-era impl
 
 | Workflow | Purpose |
 |---|---|
-| `ci-quality.yml` | Manual PHP syntax, custom lint, secret-history, PHPCS and PHPStan checks |
-| `security-gate.yml` | Manual Gitleaks security gate |
-| `deploy-staging2.yml` | Reusable exact-SHA Staging2 deployment (`workflow_call`) |
-| `staging2-acceptance.yml` | Reusable canonical Block C acceptance (`workflow_call`) |
-| `deploy.yml` | Reusable production readiness gate; production mutation remains explicitly disabled until authorized |
-| `workflow-hygiene.yml` | Repository hygiene and anti-self-mutation gate on PRs and `master` |
-| `google-attribution-runtime-audit.yml` | Manually verifiable run of the Playwright e2e validation for HubSpot GCLID plumbing |
+| `audit-production-performance.yml` | Manual Lighthouse performance audit against production. |
+| `ci-quality.yml` | Manual strict PHP syntax, custom CSS/PHP lints, PHPCS and PHPStan gate. |
+| `deploy-staging2.yml` | Reusable exact-SHA Staging2 deployment with isolation, rollback and Block A checks. |
+| `deploy.yml` | Reusable production Block B gate and atomic deployment, executed only with explicit authorization. |
+| `h1-hubspot-e2e.yml` | Manual real-submit production QA for the HubSpot valuation funnel. |
+| `indexnow-submit.yml` | Post-release IndexNow submission for production URLs. |
+| `production-release.yml` | Release-control caller on `release/production`; resolves the immutable candidate manifest and authorizes `deploy.yml`. |
+| `production-seo-geo-audit.yml` | Post-release production SEO/GEO origin audit. |
+| `staging2-acceptance.yml` | Reusable Block C acceptance over the live published-page inventory at three viewports plus valoración placement. |
+| `staging2-pr-preview.yml` | Labeled same-repository PR preview with guarded Staging2 deployment, acceptance and rollback. |
+| `staging2-sync.yml` | Automatically syncs relevant `master` changes to Staging2 and runs Block C. |
+| `workflow-hygiene.yml` | Repository hygiene plus Gitleaks full-history security scanning. |
 
-A push to `master` does **not** automatically deploy Staging2 or production. Release orchestration must explicitly call the reusable deployment workflows with an exact accepted SHA.
+Relevant pushes to `master` **do automatically deploy Staging2** through `staging2-sync.yml` and then run canonical acceptance. They never deploy production. Production promotion is controlled separately by `release/production` and the immutable `release/production-candidate.txt` manifest.
 
 ## Canonical validation
 
-Staging browser acceptance is owned by:
+The canonical browser acceptance entrypoint is:
 
-- `scripts/staging2/block-c-52x3.mjs`
+- `scripts/staging2/block-c-entrypoint.mjs`
 - `scripts/staging2/valoracion-placement.mjs`
 - `scripts/staging2/verify-staging-boundary.mjs`
-- `scripts/staging2/google-attribution-audit.mjs`
 - `scripts/validate-page-templates.mjs`
+
+Block C keeps a minimum canonical baseline of 52 published pages, but the runtime inventory is dynamic. Every published WordPress page returned by the trusted inventory is validated at desktop, tablet and mobile; additional published pages therefore increase the total test count automatically. The internal `block-c-52x3.mjs` filename is retained for compatibility and does not define the runtime page count.
 
 Install browser dependencies only in the scoped package:
 
@@ -45,7 +51,7 @@ npm ci --ignore-scripts
 npx playwright install chromium
 ```
 
-Then run the canonical harness from the repository root with `EXPECTED_SHA` set to the deployed SHA.
+Then run the canonical entrypoint from the repository root with `EXPECTED_SHA` set to the deployed SHA.
 
 ## Operational tooling
 
@@ -55,7 +61,7 @@ Then run the canonical harness from the repository root with `EXPECTED_SHA` set 
 - `tools/deploy/flush-prod-cache.sh`
 - `tools/wp-cli/`
 
-Mutating scripts require their explicit confirmation guard. Production deployment is never inferred from branch name alone.
+Mutating scripts require their explicit confirmation guard. Production deployment is never inferred from `master` or a staging deployment.
 
 ## Dependency policy
 

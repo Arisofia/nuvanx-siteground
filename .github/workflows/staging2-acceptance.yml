@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   acceptance:
-    name: Block C · 52 pages × 3 viewports
+    name: Block C · published pages × 3 viewports
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:

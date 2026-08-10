@@ -112,13 +112,20 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 60
-            ConnectionAttempts 5
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging-gate "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
+          connected=0
+          for attempt in 1 2 3 4 5; do
+            if ssh -n nvx-staging-gate "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"; then
+              connected=1; break
+            fi
+            [[ "$attempt" -eq 5 ]] || { echo "Staging gate SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+          done
+          test "$connected" = 1 || { echo 'STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround staging gate after 5 attempts.' >&2; exit 255; }
 
           staging_sha="$(ssh nvx-staging-gate "tr -d '\\r\\n' < '$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Staging2 deploy marker: $staging_sha" >&2; exit 1; }
@@ -224,13 +231,20 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 60
-            ConnectionAttempts 5
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+          prod_connected=0
+          for attempt in 1 2 3 4 5; do
+            if ssh -n nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
+              prod_connected=1; break
+            fi
+            [[ "$attempt" -eq 5 ]] || { echo "Production SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+          done
+          test "$prod_connected" = 1 || { echo 'PRODUCTION_SSH=FAIL_TRANSPORT: could not reach SiteGround production after 5 attempts.' >&2; exit 255; }
 
       - name: Verify production preflight
         shell: bash
@@ -360,13 +374,20 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 60
-            ConnectionAttempts 5
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"
+          audit_connected=0
+          for attempt in 1 2 3 4 5; do
+            if ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"; then
+              audit_connected=1; break
+            fi
+            [[ "$attempt" -eq 5 ]] || { echo "Production audit SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+          done
+          test "$audit_connected" = 1 || { echo 'PRODUCTION_AUDIT_SSH=FAIL_TRANSPORT' >&2; exit 255; }
 
       - name: Verify one document title across production sitemap
         shell: bash

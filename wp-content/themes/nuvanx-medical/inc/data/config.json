@@ -1,11 +1,6 @@
 {
   "contact": {
-    "email": "info@nuvanx.com",
-    "whatsapp": {
-      "primary": "34669319836",
-      "chamberi": "34669319836",
-      "goya": "34647505107"
-    }
+    "email": "info@nuvanx.com"
   },
   "medical_staff": {
     "directors": [
@@ -27,4 +22,3 @@
     ]
   }
 }
-

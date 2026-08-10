@@ -51,7 +51,8 @@ function nvx_config_get( string $key, $default = '' ) {
  * Get WhatsApp number for a specific clinic or the primary clinic.
  *
  * Clinic phone data is owned by nvx_get_clinics_config(); this helper only
- * normalizes that canonical value for wa.me links.
+ * normalizes that canonical value for wa.me links. Unknown clinic keys retain
+ * the historical fallback to the primary Chamberí contact.
  *
  * @param string $clinic Clinic identifier ('primary', 'chamberi', 'goya').
  * @return string WhatsApp number in international digits-only format.
@@ -61,10 +62,15 @@ function nvx_whatsapp_number( string $clinic = 'primary' ): string {
 		return '';
 	}
 
-	$key     = 'primary' === $clinic ? 'chamberi' : $clinic;
-	$clinics = nvx_get_clinics_config();
-	$phone   = isset( $clinics[ $key ]['phone_href'] ) ? (string) $clinics[ $key ]['phone_href'] : '';
+	$primary_key = 'chamberi';
+	$key         = 'primary' === $clinic ? $primary_key : $clinic;
+	$clinics     = nvx_get_clinics_config();
 
+	if ( ! isset( $clinics[ $key ]['phone_href'] ) ) {
+		$key = $primary_key;
+	}
+
+	$phone = isset( $clinics[ $key ]['phone_href'] ) ? (string) $clinics[ $key ]['phone_href'] : '';
 	return preg_replace( '/\D+/', '', $phone ) ?? '';
 }
 

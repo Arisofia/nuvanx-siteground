@@ -4,41 +4,84 @@ Mutating deploy scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
 ## Identity and invariants
 
-- Canonical branch: `master`
+- Canonical source branch: `master`
 - Deployment identity: full lowercase 40-character Git SHA
 - Staging2: `https://staging2.nuvanx.com`
 - Production: `https://nuvanx.com`
 - Live theme marker: `wp-content/themes/nuvanx-medical/.nvx-deploy-sha`
+- Persistent GitHub Actions workflows: exactly **two**
+- Cross-environment mutation lock: `nuvanx-environment-mutation`
 
-Branch names and tags select source or release-control intent. They are not proof of what is live; the environment marker and validation evidence are authoritative.
+Branch names, tags and release-control files express intent. They are not proof of what is live. The environment marker plus successful validation evidence are authoritative.
 
-## Persistent workflow model
+## Canonical workflow model
 
-The active deployment path is:
+Only these workflows are persistent:
 
-1. `.github/workflows/staging2-sync.yml` — on relevant pushes to `master`, normalizes Staging2, calls the exact-SHA deploy and then canonical acceptance.
-2. `.github/workflows/deploy-staging2.yml` — reusable exact-SHA Staging2 deployment with rollback snapshot, isolation checks and Block A boundary verification.
-3. `.github/workflows/staging2-acceptance.yml` — reusable exact-SHA Block C acceptance over the trusted live published-page inventory.
-4. `.github/workflows/production-release.yml` — release-control entrypoint triggered only by pushes to `release/production`; reads `release/production-candidate.txt`.
-5. `.github/workflows/deploy.yml` — reusable Block B production gate and atomic deploy; the mutation job runs only when a trusted caller supplies `authorize_production: true`.
-6. `.github/workflows/production-seo-geo-audit.yml` and `.github/workflows/indexnow-submit.yml` — post-release production validation/discovery workflows.
+1. `.github/workflows/staging.yml`
+2. `.github/workflows/production.yml`
 
-A relevant push to `master` can mutate **Staging2 only**. It never authorizes production. Production promotion requires the separate `release/production` control path and an exact accepted candidate SHA.
+The same two workflow blobs are kept on `master` and `release/production`. Repository hygiene inside `staging.yml` rejects any future third workflow.
 
-## Staging2 deployment
+### Staging
 
-The reusable Staging2 workflow validates that the requested SHA is contained in `origin/master`, snapshots the current staging state, uploads an isolated release, runs the guarded deployment scripts, applies content hygiene, purges caches and verifies the deployed marker and environment identity.
+`staging.yml` owns the complete Staging2 lifecycle in one workflow:
 
-Scope:
+- static repository, PHP, JavaScript and design-system gates;
+- exact-SHA Staging2 deployment from `master`;
+- strict environment-isolation checks;
+- rollback snapshot of theme, required MU plugins and Staging2 database;
+- required MU-plugin and content-hygiene deployment;
+- cache purge and exact `.nvx-deploy-sha` verification;
+- public Staging2 boundary validation;
+- WordPress template validation;
+- canonical Block C browser acceptance and valoración-placement validation;
+- read-only proof that production remained unchanged;
+- automatic full Staging2 rollback after a failed mutation;
+- same-repository, label-gated PR preview using trusted `master` tooling.
+
+A relevant push to `master` can mutate **Staging2 only**. It never authorizes production.
+
+The production-eligible Staging2 evidence artifact is:
 
 ```text
-wp-content/themes/nuvanx-medical/
-wp-content/mu-plugins/   # required NUVANX MU plugins only
+staging2-block-c-<sha>
 ```
 
-It does not copy the production database or replace the entire WordPress tree.
+The runtime acceptance inventory is dynamic and validates every trusted published WordPress page at the configured viewports. The internal `block-c-52x3.mjs` filename is an implementation detail, not a fixed-size contract.
 
-### Required Staging2 secrets
+### Production
+
+`production.yml` owns the complete production lifecycle in one workflow:
+
+- read-only Staging2 and production identity gate;
+- resolution of the SHA **actually deployed on Staging2** from `.nvx-deploy-sha`;
+- verification that the live Staging2 SHA is contained in `origin/master`;
+- verification of a successful, non-expired exact-SHA `staging2-block-c-<sha>` artifact from `master`;
+- exact candidate materialization from Git history;
+- strict production SSH/preflight checks;
+- guarded atomic production cutover through `tools/deploy/deploy-to-prod.sh`;
+- exact public and on-disk production SHA verification;
+- SEO/GEO, document-title and IndexNow post-release validation;
+- optional Lighthouse matrix and optional live HubSpot E2E for explicit manual runs.
+
+Staging and production use the same `nuvanx-environment-mutation` concurrency group. A Staging2 mutation therefore cannot advance the live staging payload while Production is resolving, validating and promoting it.
+
+## Production authorization
+
+Production can be started manually from the `Production` workflow. The `release/production` branch also remains a release-control path, but its push trigger is scoped to:
+
+```text
+release/production-candidate.txt
+```
+
+That file is an **authorization signal only**. Its stored SHA is not used as the production payload source. On every release, `production.yml` resolves the current live Staging2 deploy marker and requires exact successful acceptance evidence for that live SHA before any production mutation.
+
+This removes the stale-manifest race that can occur when Staging2 advances after a release candidate file was written.
+
+## Staging2 secrets
+
+Required:
 
 - `STAGING2_SSH_HOST`
 - `STAGING2_SSH_PORT`
@@ -46,24 +89,19 @@ It does not copy the production database or replace the entire WordPress tree.
 - `STAGING2_SSH_PRIVATE_KEY`
 - `STAGING2_SSH_KNOWN_HOSTS`
 
-## Canonical Staging2 acceptance
+## Production secrets
 
-The permanent acceptance workflow validates the origin boundary from SiteGround, classifies external SiteGround AntiBot/network failures separately, validates templates, installs the scoped Playwright dependencies, and executes:
+Required for production mutation and production-origin audits:
 
-```text
-scripts/staging2/block-c-entrypoint.mjs
-scripts/staging2/valoracion-placement.mjs
-```
+- `PROD_SSH_HOST`
+- `PROD_SSH_PORT`
+- `PROD_SSH_USER`
+- `PROD_SSH_PRIVATE_KEY`
+- `PROD_SSH_KNOWN_HOSTS`
 
-The canonical baseline requires at least 52 published pages. The runtime inventory is dynamic: every trusted published WordPress page is tested at three viewports, so additional pages are included automatically. The legacy internal filename `block-c-52x3.mjs` remains an implementation detail and is not a fixed-size acceptance contract.
+## Local Staging2 acceptance
 
-The exact-SHA evidence artifact is named:
-
-```text
-staging2-block-c-<sha>
-```
-
-For local/manual execution, install dependencies in `scripts/staging2/`, then execute the resilient entrypoint from the repository root so retries and artifact paths remain canonical:
+Install the scoped dependencies, then execute the resilient entrypoint from the repository root:
 
 ```bash
 cd scripts/staging2
@@ -74,43 +112,21 @@ EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/sta
 EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
 ```
 
-## Production readiness and deployment
-
-`.github/workflows/deploy.yml` verifies:
-
-- candidate is an exact full SHA contained in `master`;
-- a successful, non-expired Block C artifact exists for that exact SHA;
-- Staging2 theme payload is byte-equivalent to the accepted candidate theme tree;
-- production identity and hardened deploy tooling pass read-only guards.
-
-Its production mutation job is conditional on `authorize_production`. The trusted `.github/workflows/production-release.yml` caller supplies `authorize_production: true` only after resolving the exact SHA from the `release/production` candidate manifest. A change to `master` alone cannot trigger production mutation.
-
-The authorized production job checks out hardened tooling from `master`, checks out the exact candidate payload separately, performs strict SSH/preflight checks, uploads the accepted theme, executes the guarded directory cutover, verifies the public production boundary and confirms the exact SHA on disk.
-
-Host-level emergency deployment, when explicitly authorized:
-
-```bash
-export WP_PROD=/home/customer/www/nuvanx.com/public_html
-export WP_STG2=/home/customer/www/staging2.nuvanx.com/public_html
-
-NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
-  --prod-root "$WP_PROD" \
-  --staging-root "$WP_STG2" \
-  --confirm
-```
-
-Production cache flush:
-
-```bash
-NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
-  --wp-root /home/customer/www/nuvanx.com/public_html \
-  --confirm
-```
-
 ## Repository hygiene
 
-Operational evidence belongs in GitHub Actions artifacts or Git history, not as permanent root-level audit dumps. `vendor/`, `composer.phar`, `.vscode/`, generated audit output, one-shot workflows and self-mutating workflows are prohibited by `.github/workflows/workflow-hygiene.yml`. The same workflow also runs Gitleaks against full Git history on `master` and manual security validation.
+Repository hygiene is part of `staging.yml`; it is no longer a separate workflow. It rejects transient one-shot workflows, workflow self-mutation, tracked generated/local debris, empty/editor-residue files and any `.github/workflows` state other than `production.yml` plus `staging.yml`. Gitleaks runs on the applicable trusted Staging workflow paths.
+
+Operational evidence belongs in GitHub Actions artifacts or Git history, not as permanent root-level audit dumps.
 
 ## Release record
 
-For every release retain the exact SHA, acceptance run/artifact, environment identity, backup/rollback target and production validation evidence. Never store secret values in repository documents or HTML.
+For every production release retain:
+
+- exact live-and-accepted Staging2 SHA;
+- exact Block C run/artifact;
+- environment identity evidence;
+- rollback/backup evidence;
+- production public-boundary evidence;
+- post-release audit evidence.
+
+Never store secret values in repository documents or HTML.

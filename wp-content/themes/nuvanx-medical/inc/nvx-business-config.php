@@ -2,7 +2,7 @@
 /**
  * NUVANX Business Configuration
  *
- * Central source of truth for clinics data, PII (phones, emails, registration numbers).
+ * Central source of truth for clinics data, phones, registration numbers and locations.
  *
  * @package nuvanx-medical
  */
@@ -47,7 +47,7 @@ function nvx_get_clinics_config(): array {
 	);
 
 	foreach ( $clinics as &$clinic ) {
-		$clinic['whatsapp_href'] = 'https://wa.me/' . ltrim( $clinic['phone_href'], '+' );
+		$clinic['whatsapp_href'] = nvx_whatsapp_url_from_phone( (string) $clinic['phone_href'] );
 	}
 	unset( $clinic );
 

@@ -45,7 +45,7 @@
 
 **Application Secrets:**
 - HubSpot Form ID and Portal ID stored in WordPress constants
-- WhatsApp numbers externalized to `inc/data/config.json`
+- Clinic contact/WhatsApp numbers centrally defined in `inc/nvx-business-config.php` and normalized by `inc/nvx-config-helpers.php`
 - Medical colegiado numbers externalized to `inc/data/config.json`
 
 **Local Development:**

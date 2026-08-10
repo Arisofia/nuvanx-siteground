@@ -1,0 +1,514 @@
+name: Production
+run-name: >-
+  Production · ${{ github.event_name == 'workflow_dispatch' && (inputs.deploy && 'release' || 'verification') || github.sha }}
+
+on:
+  push:
+    branches: [release/production]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Promote the exact currently accepted Staging2 SHA to production.
+        required: true
+        default: true
+        type: boolean
+      candidate_sha:
+        description: Optional exact SHA. When supplied it must equal the current Staging2 deploy marker.
+        required: false
+        type: string
+      run_post_audits:
+        description: Run SEO/GEO and IndexNow verification/submission.
+        required: true
+        default: true
+        type: boolean
+      run_performance:
+        description: Run the Lighthouse production matrix.
+        required: true
+        default: false
+        type: boolean
+      run_hubspot_e2e:
+        description: Run the live HubSpot E2E. This creates a real QA contact.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: nuvanx-environment-mutation
+  cancel-in-progress: false
+
+env:
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  PROD_PARENT: /home/customer/www/nuvanx.com
+  BASE_URL: https://nuvanx.com
+  EXPECTED_HOST: nuvanx.com
+  INDEXNOW_KEY: 53546cf8077aa596b76aac664739bbb4
+
+jobs:
+  release:
+    name: Promote exact accepted Staging2 SHA
+    if: ${{ github.event_name == 'push' || inputs.deploy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      candidate_sha: ${{ steps.candidate.outputs.sha }}
+    steps:
+      - name: Check out hardened master tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate production tooling and two-workflow invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n tools/deploy/deploy-to-prod.sh
+          node --check scripts/production/verify-production-boundary.mjs
+          bash -n scripts/production/seo-geo-origin-audit.sh
+          bash -n scripts/production/document-head-title-audit.sh
+          bash -n scripts/production/diagnose-title-emitters.sh
+          bash -n scripts/production/indexnow-submit-sitemap.sh
+          grep -Fq 'ROLLBACK_SNAPSHOT=PASS' tools/deploy/deploy-to-prod.sh
+          grep -Fq 'ROLLBACK_PRODUCTION=PASS' tools/deploy/deploy-to-prod.sh
+          grep -Fq '.nvx-deploy-sha' tools/deploy/deploy-to-prod.sh
+          ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
+          mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
+          [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly production.yml and staging.yml; found: %s\n' "${workflows[*]}" >&2; exit 1; }
+          echo 'PRODUCTION_TOOLING_STATIC=PASS workflows=2'
+
+      - name: Configure strict Staging2 SSH and resolve live candidate
+        id: candidate
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+          REQUESTED_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate_sha || '' }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_gate_key"; chmod 600 "$HOME/.ssh/staging_gate_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging-gate
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_gate_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging-gate "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"
+
+          staging_sha="$(ssh nvx-staging-gate "tr -d '\\r\\n' < '$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Staging2 deploy marker: $staging_sha" >&2; exit 1; }
+          if [[ -n "$REQUESTED_SHA" ]]; then
+            requested="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
+            [[ "$requested" =~ ^[0-9a-f]{40}$ ]] || { echo 'candidate_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
+            test "$requested" = "$staging_sha" || { echo "Requested SHA $requested is not the current Staging2 SHA $staging_sha" >&2; exit 1; }
+          fi
+
+          git fetch --no-tags origin master
+          git cat-file -e "${staging_sha}^{commit}"
+          git merge-base --is-ancestor "$staging_sha" origin/master || { echo "Current Staging2 SHA is not contained in origin/master: $staging_sha" >&2; exit 1; }
+          git cat-file -e "${staging_sha}:wp-content/themes/nuvanx-medical/functions.php"
+          theme_tree="$(git rev-parse "${staging_sha}:wp-content/themes/nuvanx-medical")"
+
+          ssh nvx-staging-gate "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_SHA='$staging_sha' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" != "$PROD_ROOT"
+          cd "$STAGING_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$STAGING_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
+          test ! -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
+          echo 'PRODUCTION_GATE_IDENTITIES=PASS'
+          REMOTE
+
+          echo "sha=$staging_sha" >> "$GITHUB_OUTPUT"
+          echo "CANDIDATE_SHA=$staging_sha" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$staging_sha" >> "$GITHUB_ENV"
+          echo "CANDIDATE_THEME_TREE=$theme_tree" >> "$GITHUB_ENV"
+          echo "PRODUCTION_CANDIDATE=$staging_sha"
+          echo "PRODUCTION_CANDIDATE_THEME_TREE=$theme_tree"
+
+      - name: Verify successful exact-SHA Staging acceptance evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact_name="staging2-block-c-${CANDIDATE_SHA}"
+          response="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
+          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | last')"
+          [[ "$artifact" != 'null' ]] || { echo "No non-expired Staging acceptance artifact for $CANDIDATE_SHA" >&2; exit 1; }
+          run_id="$(printf '%s' "$artifact" | jq -r '.workflow_run.id')"
+          [[ "$run_id" =~ ^[0-9]+$ ]]
+          run="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"
+          test "$(printf '%s' "$run" | jq -r '.conclusion')" = 'success'
+          test "$(printf '%s' "$run" | jq -r '.head_branch')" = 'master'
+          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name run_id=$run_id sha=$CANDIDATE_SHA"
+
+      - name: Materialize exact candidate from master history
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE_ROOT="$RUNNER_TEMP/production-candidate-$CANDIDATE_SHA"
+          git worktree add --detach "$CANDIDATE_ROOT" "$CANDIDATE_SHA"
+          test "$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)" = "$CANDIDATE_SHA"
+          find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
+
+      - name: Destroy Staging gate SSH identity
+        shell: bash
+        run: rm -f "$HOME/.ssh/staging_gate_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+
+      - name: Verify production preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
+          test ! -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
+          echo 'PRODUCTION_PREFLIGHT=PASS'
+          REMOTE
+
+      - name: Upload exact accepted payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$PROD_PARENT/.nvx-releases/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-prod "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-prod:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-prod.sh "nvx-prod:$REMOTE_RELEASE/deploy-to-prod.sh"
+
+      - name: Execute guarded atomic production cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "NVX_RUN_TOKEN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-prod.sh' --prod-root '$PROD_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
+
+      - name: Verify production public boundary and exact disk SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          pass=0
+          for attempt in {1..6}; do
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node scripts/production/verify-production-boundary.mjs; then pass=1; break; fi
+            sleep 10
+          done
+          test "$pass" = 1
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$CANDIDATE_SHA"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          echo "PRODUCTION_DEPLOYED_SHA=$CANDIDATE_SHA"
+          REMOTE
+
+      - name: Upload production boundary evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-boundary-${{ env.CANDIDATE_SHA }}-attempt-${{ github.run_attempt }}
+          path: scripts/production/artifacts/production-boundary.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Cleanup production release payload and identity
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${REMOTE_RELEASE:-}" && -f "$HOME/.ssh/config" ]]; then ssh nvx-prod "rm -rf '$REMOTE_RELEASE'" || true; fi
+          rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/staging_gate_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+      - name: Write release summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Production release PASS'
+            echo
+            echo "- Candidate source: current locked Staging2 deploy marker"
+            echo "- Exact SHA: \`$CANDIDATE_SHA\`"
+            echo "- Theme tree: \`$CANDIDATE_THEME_TREE\`"
+            echo '- Staging acceptance: exact-SHA successful artifact verified.'
+            echo '- Cross-environment concurrency: serialized; Staging cannot advance during this release.'
+            echo '- Atomic production cutover + rollback contract: PASS.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  post_audits:
+    name: Production SEO/GEO and IndexNow
+    needs: release
+    if: >-
+      always() &&
+      (github.event_name == 'push' || inputs.run_post_audits) &&
+      (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out canonical master audit tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure strict production audit SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh" scripts/production/artifacts; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_audit_key"; chmod 600 "$HOME/.ssh/prod_audit_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod-audit
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_audit_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ConnectionAttempts 5
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"
+
+      - name: Verify one document title across production sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod-audit "BASE_URL='$BASE_URL' bash -s" < scripts/production/document-head-title-audit.sh | tee scripts/production/artifacts/document-head-title-audit.log
+
+      - name: Run blocking SEO/GEO origin audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < scripts/production/seo-geo-origin-audit.sh | tee scripts/production/artifacts/seo-geo-origin-audit.log
+
+      - name: Diagnose title emitters after audit failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < scripts/production/diagnose-title-emitters.sh | tee scripts/production/artifacts/title-emitter-diagnostic.log
+          exit 0
+
+      - name: Submit production sitemap to IndexNow and verify key
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < scripts/production/indexnow-submit-sitemap.sh | tee scripts/production/artifacts/indexnow-submit.log
+          actual="$(curl -fsS --max-time 20 "$BASE_URL/$INDEXNOW_KEY.txt")"
+          test "$actual" = "$INDEXNOW_KEY"
+          echo 'INDEXNOW_KEY_PUBLIC=PASS'
+
+      - name: Upload production audit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-post-audits-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: scripts/production/artifacts/*.log
+          retention-days: 30
+          if-no-files-found: warn
+          compression-level: 6
+
+      - name: Destroy production audit SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_audit_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+  performance:
+    name: Lighthouse production matrix
+    needs: release
+    if: >-
+      always() &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.run_performance &&
+      (needs.release.result == 'success' || inputs.deploy == false)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Run Lighthouse production matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p perf-results
+          npm init -y >/dev/null 2>&1
+          npm install --ignore-scripts --no-audit --no-fund lighthouse@12.8.2 >/dev/null 2>&1
+          LH='./node_modules/.bin/lighthouse'
+          "$LH" --version | tee perf-results/lighthouse-version.txt
+          declare -A URLS=(
+            [home]='https://nuvanx.com/'
+            [endolift]='https://nuvanx.com/endolift-facial-papada-mandibula/'
+            [endolaser]='https://nuvanx.com/endolaser-corporal-grasa-localizada/'
+            [faciales]='https://nuvanx.com/medicina-estetica/'
+            [valoracion]='https://nuvanx.com/madrid/valoracion/'
+          )
+          printf 'page\tmode\tperformance\tfcp_ms\tlcp_ms\ttbt_ms\tcls\tspeed_index_ms\tttfb_ms\n' > perf-results/summary.tsv
+          for page in home endolift endolaser faciales valoracion; do
+            for mode in mobile desktop; do
+              out="perf-results/${page}-${mode}.json"; extra=(); [[ "$mode" != desktop ]] || extra+=(--preset=desktop)
+              success=0
+              for attempt in 1 2 3; do
+                if "$LH" "${URLS[$page]}" --output=json --output-path="$out" --only-categories=performance --quiet --chrome-flags='--headless --disable-dev-shm-usage' "${extra[@]}"; then success=1; break; fi
+                sleep $((attempt * 5))
+              done
+              if [[ "$success" = 1 ]]; then
+                jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score//0)*100|round),(.audits["first-contentful-paint"].numericValue//0|round),(.audits["largest-contentful-paint"].numericValue//0|round),(.audits["total-blocking-time"].numericValue//0|round),(.audits["cumulative-layout-shift"].numericValue//0),(.audits["speed-index"].numericValue//0|round),(.audits["server-response-time"].numericValue//0|round)]|@tsv' "$out" >> perf-results/summary.tsv
+              else
+                printf '%s\t%s\tFAILED\n' "$page" "$mode" >> perf-results/summary.tsv
+              fi
+            done
+          done
+          cat perf-results/summary.tsv
+
+      - name: Upload performance evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-performance-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: perf-results/
+          retention-days: 14
+
+  hubspot_e2e:
+    name: Live production HubSpot attribution E2E
+    needs: release
+    if: >-
+      always() &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.run_hubspot_e2e &&
+      (needs.release.result == 'success' || inputs.deploy == false)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Install Playwright and run live H1 E2E
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.release.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          ./node_modules/.bin/playwright install --with-deps chromium
+          cd ../..
+          mkdir -p scripts/staging2/h1-artifacts
+          node scripts/staging2/h1-hubspot-e2e.mjs 2>&1 | tee scripts/staging2/h1-artifacts/h1-e2e.log
+
+      - name: Upload H1 evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: h1-hubspot-e2e-evidence-${{ github.run_id }}
+          path: scripts/staging2/h1-artifacts/*.log
+          if-no-files-found: warn
+          retention-days: 7

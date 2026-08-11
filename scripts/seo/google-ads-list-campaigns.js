@@ -1,6 +1,14 @@
 const { GoogleAdsApi } = require('google-ads-api');
 const fs = require('fs');
 
+class LocalConfigError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = 'LocalConfigError';
+    this.code = code;
+  }
+}
+
 function parseJsonFile(filePath) {
   if (fs.existsSync(filePath)) {
     try {
@@ -58,7 +66,7 @@ async function main() {
 
   // Guard: reject JSON that is not a plain object (null, primitive, array)
   if (!json || typeof json !== 'object' || Array.isArray(json)) {
-    throw new Error('Google Ads credential JSON must be an object');
+    throw new LocalConfigError('invalid_credentials_json', 'Google Ads credential JSON must be an object');
   }
 
   const oauth = json.installed || json.web || json.credentials || json.oauth || json;
@@ -91,15 +99,13 @@ async function main() {
   const customerId = rawCustomerId.replace(/-/g, '');
   const loginCustomerId = rawLoginCustomerId.replace(/-/g, '');
 
-  const maskSuffix = (str) => (str && str.length > 4 ? `...${str.slice(-4)}` : '(none)');
-
   console.log('CREDENTIAL_DIAGNOSTICS:');
-  console.log(`- client_id_fingerprint=${maskSuffix(clientId)} (source: ${clientIdRes.source})`);
+  console.log(`- client_id_status=${clientId ? 'SET' : 'MISSING'} (source: ${clientIdRes.source})`);
   console.log(`- client_secret_status=${clientSecret ? 'SET' : 'MISSING'} (source: ${clientSecretRes.source})`);
-  console.log(`- developer_token_fingerprint=${maskSuffix(devToken)} (source: ${devTokenRes.source})`);
+  console.log(`- developer_token_status=${devToken ? 'SET' : 'MISSING'} (source: ${devTokenRes.source})`);
   console.log(`- refresh_token_status=${refreshToken ? 'SET' : 'MISSING'} (source: ${refreshTokenRes.source})`);
-  console.log(`- customer_id_fingerprint=${maskSuffix(customerId)} (source: ${customerIdRes.source})`);
-  console.log(`- login_customer_id_fingerprint=${maskSuffix(loginCustomerId)} (source: ${loginCustomerIdRes.source})`);
+  console.log(`- customer_id_status=${customerId ? 'SET' : 'MISSING'} (source: ${customerIdRes.source})`);
+  console.log(`- login_customer_id_status=${loginCustomerId ? 'SET' : 'MISSING'} (source: ${loginCustomerIdRes.source})`);
 
   if (!clientId || !clientSecret || !devToken || !refreshToken || !customerId) {
     const missing = [];
@@ -109,7 +115,7 @@ async function main() {
     if (!refreshToken) missing.push('refresh_token');
     if (!customerId) missing.push('customer_id');
 
-    throw new Error(`Missing required Google Ads credential parameters: ${missing.join(', ')}`);
+    throw new LocalConfigError('missing_credentials', `Missing required Google Ads credential parameters: ${missing.join(', ')}`);
   }
 
   const GoogleAds = new GoogleAdsApi({
@@ -145,10 +151,10 @@ main().catch((err) => {
     const value = String(msg || '').toLowerCase();
     if (/invalid[_ -]?grant/.test(value)) return 'invalid_grant';
     if (/invalid[_ -]?client/.test(value)) return 'invalid_client';
-    if (/developer token/.test(value)) return 'developer_token_error';
-    if (/permission[_ -]?denied|permission denied/.test(value)) return 'permission_denied';
+    if (/developer[_ -]?token/.test(value)) return 'developer_token_error';
+    if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/.test(value)) return 'quota_or_rate_limit';
+    if (/permission[_ -]?denied/.test(value)) return 'permission_denied';
     if (/unauthenticated|authentication/.test(value)) return 'authentication_error';
-    if (/quota|resource[_ -]?exhausted|rate limit/.test(value)) return 'quota_or_rate_limit';
     return 'google_ads_api_error';
   };
 
@@ -168,7 +174,7 @@ main().catch((err) => {
   };
 
   // CI logs are public-facing operational evidence. Never serialize free-form
-  // Google Ads error messages or request metadata; emit bounded classifications only.
+  // Google Ads API messages or request metadata; emit bounded enum-like diagnostics only.
   const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode'];
   const projectError = (e) => {
     const projected = {};
@@ -183,7 +189,13 @@ main().catch((err) => {
     return { message_class: classifyMessage(e) };
   };
 
-  const topLevelClass = classifyMessage(err?.message);
+  if (err instanceof LocalConfigError) {
+    console.error('Google Ads configuration error:', err.message);
+    console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.code);
+    process.exit(1);
+  }
+
+  const topLevelClass = classifyMessage(err?.message || err);
   console.error('Error listing campaigns:', topLevelClass);
   if (Array.isArray(err?.errors)) {
     const projectedErrors = err.errors.map((e) => projectError(e));

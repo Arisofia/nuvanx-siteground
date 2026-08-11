@@ -136,8 +136,34 @@ function nvx_aesthetic_treatment_current_key(): ?string {
 	if ( is_admin() || ! is_singular( 'page' ) ) {
 		return null;
 	}
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	return nvx_aesthetic_treatment_key_from_slug( $slug );
+
+	$post_id = get_queried_object_id();
+	$slug    = (string) get_post_field( 'post_name', $post_id );
+	$key     = nvx_aesthetic_treatment_key_from_slug( $slug );
+	if ( null !== $key ) {
+		return $key;
+	}
+
+	// Staging seed records can survive historical slug migrations. Resolve the
+	// canonical treatment from the explicit seed metadata before falling back to
+	// the inert CMS marker, so the versioned catalogue remains the only source of
+	// visible clinical content and a stale post_name cannot collapse the page to
+	// an empty marker plus shell title.
+	$catalog  = nvx_aesthetic_treatment_catalog();
+	$meta_key = get_post_meta( $post_id, '_nvx_aesthetic_treatment_key', true );
+	if ( is_string( $meta_key ) && isset( $catalog[ $meta_key ] ) ) {
+		return $meta_key;
+	}
+
+	$content = (string) get_post_field( 'post_content', $post_id );
+	if ( preg_match( '/data-nvx-treatment=["\']([a-z0-9_-]+)["\']/i', $content, $matches ) ) {
+		$marker_key = (string) $matches[1];
+		if ( isset( $catalog[ $marker_key ] ) ) {
+			return $marker_key;
+		}
+	}
+
+	return null;
 }
 
 /** @return array<string, array<int, array{q:string,a:string}>> */

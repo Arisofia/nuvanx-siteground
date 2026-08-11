@@ -83,11 +83,13 @@ function robotsContract(meta, header) {
 }
 
 function hasExplicitIndexFollow(value) {
-  const directives = String(value || '')
-    .toLowerCase()
-    .split(/[\s,]+/)
-    .filter(Boolean);
-  return directives.includes('index') && directives.includes('follow');
+  const directives = new Set(
+    String(value || '')
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .filter(Boolean)
+  );
+  return directives.has('index') && directives.has('follow');
 }
 
 function robotsIssues(value) {

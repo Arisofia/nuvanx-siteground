@@ -1,7 +1,7 @@
 {
     "home": {
         "title": "Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX",
-        "description": "Medicina estética láser en Madrid con equipo médico hospitalario. Endolift®, CO₂, EXION® BTL y well-aging en Chamberí y Salamanca–Goya."
+        "description": "Endolift® (desde 798 €), CO₂ fraccionado (desde 330 €) y EXION® BTL en Chamberí (CS20144) y Salamanca–Goya (CS20073). Equipo médico colegiado."
     },
     "madrid": {
         "title": "Medicina Estética Láser Madrid | Clínicas Chamberí y Salamanca–Goya | NUVANX",
@@ -25,7 +25,7 @@
     },
     "endolift": {
         "title": "Endolift® Facial Madrid | Precio y Resultados | NUVANX",
-        "description": "Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX."
+        "description": "Láser subdérmico para papada, mandíbula y cuello. Tarifa de referencia desde 798,60 €. Dr. Rivera Tejeda (ICOMEM 282864786). Valoración presencial requerida."
     },
     "endolaser": {
         "title": "Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX",
@@ -33,11 +33,11 @@
     },
     "co2": {
         "title": "Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX",
-        "description": "Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX."
+        "description": "Láser CO₂ fraccionado desde 330 € por zona. Recuperación 5–7 días. Para cicatrices de acné, poros dilatados y fotodaño solar en Madrid."
     },
     "exion": {
         "title": "EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX",
-        "description": "EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica."
+        "description": "EXION® BTL Face, Body y Fractional RF con microagujas en Madrid. Aplicador y sesiones según diagnóstico. Valoración previa en Chamberí o Goya."
     },
     "exilite": {
         "title": "IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX",
@@ -45,19 +45,19 @@
     },
     "equipo": {
         "title": "Equipo Médico NUVANX Madrid | Criterio Clínico",
-        "description": "Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento."
+        "description": "Dr. José Javier Rivera Tejeda (ICOMEM 282864786), Dra. Rivera Deras (FEA Hospital La Paz) y Dr. Quiñónez (PhD UAM, CIBERFES). Dirección médica en NUVANX."
     },
     "por_que_nuvanx": {
         "title": "Por qué NUVANX | Criterio Médico en Medicina Estética",
-        "description": "Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid."
+        "description": "NUVANX no realiza ningún tratamiento sin indicación médica previa. Centros sanitarios CS20144 y CS20073. Médicos colegiados con formación hospitalaria."
     },
     "inversion": {
         "title": "Inversión en medicina estética | NUVANX Madrid",
-        "description": "Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid."
+        "description": "Endolift® desde 798,60 €. Láser CO₂ desde 330 €. EXION® BTL: presupuesto tras valoración. Tarifas con IVA incluido en NUVANX Madrid."
     },
     "valoracion": {
         "title": "Pedir Valoración Médica Estética Madrid | NUVANX",
-        "description": "Valoración médica estética virtual o presencial en Madrid. 15–30 min para revisar tu caso, opciones de tratamiento y presupuesto individualizado."
+        "description": "Valoración médica presencial en Madrid. 15–30 minutos. Sin compromiso. Diagnóstico, plan y presupuesto documentado antes de tratar."
     },
     "soluciones": {
         "title": "Soluciones Médicas para Rostro y Cuerpo en Madrid | NUVANX",
@@ -85,7 +85,7 @@
     },
     "collagen_bio": {
         "title": "Bioestimuladores de Colágeno Madrid | Radiesse | NUVANX",
-        "description": "Bioestimuladores de colágeno en Madrid para flacidez y redensificación cutánea. Diagnóstico médico e infiltración precisa en NUVANX."
+        "description": "Radiesse® y otros bioestimuladores para flacidez y pérdida de volumen. Infiltración médica con anatomía estructural. Madrid, NUVANX."
     },
     "dark_circles_ha": {
         "title": "Ácido Hialurónico Ojeras Madrid | Surco Lagrimal | NUVANX",
@@ -173,6 +173,6 @@
     },
     "nosotros": {
         "title": "Sobre NUVANX | Medicina Estética Láser en Madrid",
-        "description": "NUVANX es un centro médico de medicina estética láser en Madrid con equipo hospitalario. Criterio clínico, centros sanitarios autorizados y protocolos médicos."
+        "description": "Centro médico fundado en 2020. Dos sedes en Madrid. Equipo: 3 médicos colegiados con formación hospitalaria. Registros CS20144 y CS20073."
     }
 }

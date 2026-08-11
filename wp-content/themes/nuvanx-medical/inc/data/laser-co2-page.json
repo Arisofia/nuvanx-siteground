@@ -60,7 +60,7 @@
     "pricing": {
         "kicker": "@nvx-t:Tarifas públicas",
         "title": "@nvx-t:PVP sesión Láser CO₂ (IVA incluido)",
-        "caption": "@nvx-t:Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.",
+        "caption": "@nvx-t:Tarifa clínica de referencia. Rango por sesión: 300 € – 600 €. Protocolo de 3 a 5 sesiones espaciadas de 8 a 12 semanas para cicatrices complejas. Profundidad y zonas pueden modular el plan.",
         "col_session": "@nvx-t:Sesión",
         "col_pvp": "@nvx-t:PVP",
         "row_facial": "@nvx-t:Láser CO₂ facial",

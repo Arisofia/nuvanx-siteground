@@ -156,6 +156,46 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
 }
 
 /**
+ * Renders the optional "orientative parameters and care" section for a Signature page.
+ *
+ * Emits the wrapper section only when at least one of the mapped fields is present.
+ *
+ * @param array<string, mixed> $page Catalog entry.
+ * @return string The rendered HTML section, or an empty string when no fields apply.
+ */
+function nvx_signature_phase_details_section( array $page ): string {
+	$fields = array(
+		'price_range'   => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
+		'sessions'      => __( 'Sesiones orientativas:', 'nuvanx-medical' ),
+		'timeline'      => __( 'Evolución:', 'nuvanx-medical' ),
+		'post_care'     => __( 'Cuidados recomendados:', 'nuvanx-medical' ),
+		'comparison'    => __( 'Comparativa de abordajes:', 'nuvanx-medical' ),
+		'scarring'      => __( 'Abordaje tisular:', 'nuvanx-medical' ),
+		'laxity_levels' => __( 'Niveles de laxitud aptos:', 'nuvanx-medical' ),
+		'first_visit'   => __( 'Primera consulta:', 'nuvanx-medical' ),
+		'financing'     => __( 'Financiación:', 'nuvanx-medical' ),
+		'anatomy_note'  => __( 'Nota anatómica:', 'nuvanx-medical' ),
+		'gynecomastia'  => __( 'Descarte de ginecomastia:', 'nuvanx-medical' ),
+	);
+
+
+	$items = '';
+	foreach ( $fields as $key => $label ) {
+		if ( ! empty( $page[ $key ] ) ) {
+			$items .= '<li><strong>' . esc_html( $label ) . '</strong> ' . esc_html( (string) $page[ $key ] ) . '</li>';
+		}
+	}
+
+	if ( '' === $items ) {
+		return '';
+	}
+
+	return '<section class="nvx-brand-section nvx-signature-details"><div class="nvx-brand-section__inner"><h2>'
+		. esc_html__( 'Parámetros orientativos y cuidados', 'nuvanx-medical' )
+		. '</h2><ul class="nvx-strategy-checklist">' . $items . '</ul></div></section>';
+}
+
+/**
  * Generates the governed landing page markup for a catalog entry.
  *
  * @param array $page Catalog entry containing the page content and related protocol.
@@ -176,7 +216,10 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<p><strong>' . esc_html__( 'Protocolo relacionado:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['protocol'] ) . '</p></div></section>';
 	$html      .= nvx_signature_phase_list( 'Tecnologías que pueden formar parte del plan', (array) $page['technology'] );
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
+	$html      .= nvx_signature_phase_details_section( $page );
+
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+
 	$html      .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos, expectativas y disponibilidad para cuidados. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
 	$html      .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;

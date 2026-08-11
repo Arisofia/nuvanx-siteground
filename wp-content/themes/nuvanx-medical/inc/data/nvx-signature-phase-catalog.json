@@ -112,7 +112,7 @@
     "slug": "grasa-localizada-abdomen-flancos-madrid",
     "title": "Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.",
     "kicker": "contour_upper",
-    "lead": "El cuerpo guarda reservas en sitios muy concretos, y para muchas personas el abdomen bajo y los \"michelines\" son los últimos en irse, hagas lo que hagas. No es falta de disciplina — es cómo funciona tu cuerpo.",
+    "lead": "El cuerpo guarda reservas en sitios muy concretos, y para muchas personas el abdomen bajo y los \"michelines\" son los últimos en irse, hagas lo que hagas. No es falta de disciplina — es cómo funciona tu cuerpo. Timeline: cambios visibles semanas 4-6, consolidación meses 3-6.",
     "intro": "Aquí hay algo que casi nadie te va a explicar en otra clínica: no toda la grasa del abdomen es tratable. La que se pellizca, sí. La que está detrás del músculo (la que da tripa dura, no blanda), no — ni con láser, ni con nada estético. Si es esa, te lo decimos, en vez de cobrarte por algo que no va a funcionar.",
     "assessment": [
       "Abdomen superior e inferior.",
@@ -132,14 +132,20 @@
     ],
     "seo_title": "Grasa localizada abdomen y flancos Madrid | NUVANX",
     "seo_desc": "Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "1.200 € – 1.800 € (Endoláser abdominal)",
+    "timeline": "Cambios visibles semanas 4-6; consolidación meses 3-6",
+    "post_care": "Faja compresiva 2-4 semanas; drenajes linfáticos recomendados",
+    "comparison": "Endoláser (mínimamente invasivo) vs Criolipólisis (no invasiva) vs Cirugía",
+    "first_visit": "Valoración médica presencial",
+    "financing": "Facilidades de pago disponibles"
   },
   "brazos": {
     "phase": 2,
     "slug": "flacidez-grasa-localizada-brazos-madrid",
     "title": "Para que la manga caiga bien — sin que la piel quede colgando después.",
     "kicker": "contour_upper",
-    "lead": "Estudio del brazo completo y su relación con axila anterior y torso para separar grasa localizada, laxitud y calidad del tejido.",
+    "lead": "Estudio del brazo completo y su relación con axila anterior y torso para separar grasa localizada, laxitud y calidad del tejido. Tratamiento \"alas de murciélago\" y cara interna.",
     "intro": "Lo que se conoce como \"alas de murciélago\" puede ser piel floja, puede ser grasa, o (lo más normal) las dos cosas juntas. Y aquí está la trampa: si solo quitas la grasa y no trabajas la piel, puede quedar peor que antes. Por eso miramos las dos cosas.",
     "assessment": [
       "Distribución de grasa y espesor del tejido.",
@@ -150,6 +156,7 @@
     "technology": [
       "Endoláser corporal cuando predomina grasa localizada susceptible de tratamiento.",
       "Endolift corporal o EXION® Body cuando la calidad cutánea tiene una indicación específica.",
+      "Bioestimuladores (Radiesse/Sculptra) para redensificar piel fina del tríceps",
       "Plan combinado solo cuando cada modalidad responde a un componente distinto."
     ],
     "limits": [
@@ -159,14 +166,20 @@
     ],
     "seo_title": "Flacidez y grasa localizada brazos Madrid | NUVANX",
     "seo_desc": "Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "900 € – 1.300 € (Endoláser brazos)",
+    "timeline": "Firmeza 12-24 meses",
+    "sessions": "1 sesión Endoláser o 3-4 sesiones EXION®",
+    "post_care": "Manguitos compresivos 2 semanas; reposo ejercicios fuerza brazos",
+    "surgery_referral": "Colgamiento excesivo requiere braquioplastia quirúrgica",
+    "first_visit": "Valoración médica presencial"
   },
   "espalda": {
     "phase": 2,
     "slug": "grasa-espalda-zona-sujetador-madrid",
     "title": "El pliegue que marca la ropa, aunque tu peso esté bien.",
     "kicker": "contour_upper",
-    "lead": "Valoración de espalda superior, zona del sujetador, flancos y brazos como una continuidad anatómica, diferenciando pliegues por grasa, laxitud y ajuste de la prenda.",
+    "lead": "Valoración de espalda superior, zona del sujetador, flancos y brazos como una continuidad anatómica, diferenciando pliegues por grasa, laxitud y ajuste de la prenda. Grasa fibrosa dorsal.",
     "intro": "Ese pliegue bajo el sujetador no siempre es solo grasa — a veces es que la piel de ahí ya no sujeta como antes. Miramos cuál de las dos cosas es la tuya antes de proponerte nada.",
     "assessment": [
       "Espalda superior y zona del sujetador.",
@@ -186,14 +199,20 @@
     ],
     "seo_title": "Grasa espalda y zona del sujetador Madrid | NUVANX",
     "seo_desc": "Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "900 € – 1.500 € (Endoláser espalda)",
+    "anatomy_note": "Grasa dorsal más fibrosa y compacta por presión ropa interior/sujetador",
+    "scarring": "Cánula subdérmica con puntos de entrada milimétricos en pliegues naturales",
+    "post_care": "Sujetadores deportivos sin aros; prenda compresiva",
+    "comparison": "Criolipólisis (sin agujas) vs Endoláser (grasa fibrosa)",
+    "first_visit": "Valoración médica presencial"
   },
   "muslos": {
     "phase": 2,
     "slug": "flacidez-muslos-internos-subgluteo-madrid",
     "title": "La piel más delicada del cuerpo merece el abordaje más cuidadoso.",
     "kicker": "contour_upper",
-    "lead": "Diagnóstico de muslo interno, cara externa, región subglútea y transición con rodilla para diferenciar grasa localizada, laxitud y celulitis estructural.",
+    "lead": "Diagnóstico de muslo interno, cara externa, región subglútea y transición con rodilla para diferenciar grasa localizada, laxitud y celulitis estructural. \"Banana roll\" específico.",
     "intro": "Ese pliegue bajo el glúteo no está ahí por accidente — sostiene el propio glúteo. Si se reduce sin cuidado, el glúteo cae. Por eso aquí se trata con mucha delicadeza, nunca a lo bruto.",
     "assessment": [
       "Muslo interno y externo.",
@@ -204,6 +223,7 @@
     "technology": [
       "Endoláser corporal cuando predomina grasa localizada focal.",
       "EXION® Body u otra modalidad cuando existe indicación de calidad cutánea.",
+      "Bioestimuladores (Radiesse/Sculptra) e hilos tensores PDO para enriquecer respuestas",
       "Derivación o no intervención cuando el problema no corresponde a la oferta médico-estética."
     ],
     "limits": [
@@ -213,14 +233,20 @@
     ],
     "seo_title": "Flacidez muslos internos y subglúteo Madrid | NUVANX",
     "seo_desc": "Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "1.000 € – 1.600 € (Endoláser muslos)",
+    "laxity_levels": "Leve (EXION), Moderada (Endoláser+EXION), Severa (derivar a lifting crural)",
+    "timeline": "Resultados 12-18 meses",
+    "sessions": "3-6 sesiones EXION® o 1 sesión Endoláser",
+    "post_care": "Evitar roce muslos días iniciales; prenda compresiva; protección solar",
+    "first_visit": "Valoración médica presencial"
   },
   "rodillas": {
     "phase": 2,
     "slug": "tratamiento-rodillas-grasa-flacidez-madrid",
     "title": "Una zona pequeña que cambia toda la línea de la pierna.",
     "kicker": "contour_upper",
-    "lead": "Valoración de la cara interna y superior de la rodilla dentro de la continuidad del muslo y la pierna, con atención a grasa localizada, laxitud y anatomía funcional.",
+    "lead": "Valoración de la cara interna y superior de la rodilla dentro de la continuidad del muslo y la pierna, con atención a grasa localizada, laxitud y anatomía funcional. Diferenciación almohadilla grasa vs piel arrugada.",
     "intro": "El volumen encima de la rodilla casi nunca depende de tu peso — es más una cuestión de genética. Y como la piel de ahí se mueve constantemente al doblar la pierna, con los años tiende a aflojarse. Por eso no basta con quitar grasa: hay que tensar también.",
     "assessment": [
       "Distribución focal de grasa alrededor de la rodilla.",
@@ -230,6 +256,7 @@
     ],
     "technology": [
       "Modalidad láser o térmica solo cuando la anatomía permite una indicación segura.",
+      "Micro-intralipoterapia o Radiesse para tersura del pliegue arrugado",
       "Plan combinado con muslo interno únicamente por continuidad clínica.",
       "Derivación cuando el volumen corresponde a edema, articulación u otra causa."
     ],
@@ -240,14 +267,19 @@
     ],
     "seo_title": "Grasa localizada y flacidez rodillas Madrid | NUVANX",
     "seo_desc": "Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "900 € – 1.300 € (Endoláser rodillas)",
+    "anatomy_diff": "Almohadilla grasa cara interna vs piel arrugada suprapatelar",
+    "sessions": "1 sesión Endoláser o 3 sesiones EXION®",
+    "post_care": "Evitar deporte impacto 48h; medias compresión leve",
+    "first_visit": "Valoración médica presencial"
   },
   "male-contour": {
     "phase": 2,
     "slug": "contorno-corporal-masculino-madrid",
     "title": "Pensado para el cuerpo de un hombre, no adaptado del de una mujer.",
     "kicker": "contour_upper",
-    "lead": "Plan médico para abdomen, cintura, pecho, espalda o perfil masculino según distribución de grasa, calidad cutánea, proporción y objetivos individuales.",
+    "lead": "Plan médico para abdomen, cintura, pecho, espalda o perfil masculino según distribución de grasa, calidad cutánea, proporción y objetivos individuales. Definición abdominal y perfil masculino.",
     "intro": "La grasa se acumula distinto en un hombre — más densa, más resistente, en zonas distintas. Y en la cara, perder el ángulo de la mandíbula cambia toda la expresión. No cogemos un tratamiento pensado para mujer y lo \"adaptamos\" — el punto de partida es otro desde el principio.",
     "assessment": [
       "Abdomen, cintura y espalda.",
@@ -267,6 +299,12 @@
     ],
     "seo_title": "Contorno corporal masculino Madrid | NUVANX",
     "seo_desc": "Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.",
-    "protocol": "contour_mixed"
+    "protocol": "contour_mixed",
+    "price_range": "Desde 1.200 €",
+    "abdominal_definition": "Endoláser + EXION® ayudan a definir six-pack y línea de oblicuos",
+    "gynecomastia": "Diferencia ginecomastia (glándula) vs pseudoginecomastia (grasa); abordaje sin cirugía abierta",
+    "male_fat": "Grasa masculina más fibrosa y densa; parámetros térmicos específicos",
+    "post_care": "Tiempo vuelta gimnasio 3-4 semanas; faja compresiva masculina",
+    "advantage": "Alternativa mínimamente invasiva sin quirófano ni cicatrices de liposucción"
   }
 }

@@ -98,14 +98,9 @@ function nvx_endolaser_hero_copy_markup(): string {
  *
  * @return string The escaped HTML markup for the editorial body.
  */
-function nvx_endolaser_editorial_body_markup(): string {
-	require_once __DIR__ . '/nvx-catalog-json.php';
-	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
-
-	$html = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
-
-	// A. Intro + dual mechanism.
-	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );
+/** Render mechanism section for Endolaser page. */
+function nvx_endolaser_mechanism_section( array $data ): string {
+	$html  = nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['mechanism']['kicker'] ?? '' ), 'nvx-endolaser-mech-title', esc_html( $data['mechanism']['title'] ?? '' ) );
 	foreach ( $data['mechanism']['body'] ?? array() as $paragraph ) {
 		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $paragraph ) . '</p>';
@@ -119,9 +114,12 @@ function nvx_endolaser_editorial_body_markup(): string {
 		++$eff_idx;
 	}
 	$html .= '</div></div></section>';
+	return $html;
+}
 
-	// B. Zonas.
-	$html .= nvx_page_brand_section_open_markup( 'nvx-feature-zones', 'nvx-feature-zones-title' );
+/** Render zones section for Endolaser page. */
+function nvx_endolaser_zones_section( array $data ): string {
+	$html  = nvx_page_brand_section_open_markup( 'nvx-feature-zones', 'nvx-feature-zones-title' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['zones']['kicker'] ?? '' ), 'nvx-feature-zones-title', esc_html( $data['zones']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['zones']['body'] ?? '' ) . '</p>';
 	$html .= '<ul class="nvx-feature-zone-list">';
@@ -132,6 +130,37 @@ function nvx_endolaser_editorial_body_markup(): string {
 		$html .= '</li>';
 	}
 	$html .= '</ul></div></section>';
+	return $html;
+}
+
+/** Render downtime section for Endolaser page. */
+function nvx_endolaser_downtime_section( array $data ): string {
+	if ( empty( $data['downtime']['phases'] ) || ! is_array( $data['downtime']['phases'] ) ) {
+		return '';
+	}
+	$html  = nvx_page_brand_section_open_markup( 'nvx-endolaser-downtime', 'nvx-endolaser-down-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['downtime']['kicker'] ?? '' ), 'nvx-endolaser-down-title', esc_html( $data['downtime']['title'] ?? '' ) );
+	$html .= '<div class="nvx-endolift-timeline">';
+	foreach ( $data['downtime']['phases'] as $phase ) {
+		$html .= '<div class="nvx-endolift-phase"><span class="nvx-endolift-phase__num">' . esc_html( $phase['n'] ?? '' ) . '</span>';
+		$html .= '<h3 class="nvx-endolift-phase__title">' . esc_html( $phase['title'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body">' . esc_html( $phase['body'] ?? '' ) . '</p></div>';
+	}
+	$html .= '</div>';
+	if ( ! empty( $data['downtime']['note'] ) ) {
+		$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['downtime']['note'] ) . '</em></p>';
+	}
+	$html .= '</div></section>';
+	return $html;
+}
+
+function nvx_endolaser_editorial_body_markup(): string {
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
+
+	$html  = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
+	$html .= nvx_endolaser_mechanism_section( $data );
+	$html .= nvx_endolaser_zones_section( $data );
 
 	// C. Exclusión.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-exclusion', 'nvx-endolaser-excl-title', 'nvx-endolift-diagnosis__grid' );
@@ -149,7 +178,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	}
 	$html .= '</ul></aside></div></section>';
 
-	// D. Planificación / inversión (no precio fijo inventado).
+	// D. Planificación / inversión.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-planning', 'nvx-endolaser-plan-title', '', array( 'id' => 'planificacion-endolaser' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['planning']['kicker'] ?? '' ), 'nvx-endolaser-plan-title', esc_html( $data['planning']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['planning']['body'] ?? '' ) . '</p>';
@@ -161,12 +190,44 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['planning']['note'] ?? '' ) . '</em></p>';
 	$html .= '</div></section>';
 
+	$html .= nvx_endolaser_downtime_section( $data );
+
+
+
+	// E. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolaser_corporal).
+	$faqs = array();
+	if ( function_exists( 'nvx_schema_faq_catalog' ) ) {
+		$catalog = nvx_schema_faq_catalog();
+		if ( ! empty( $catalog['endolaser_corporal'] ) ) {
+			$faqs = $catalog['endolaser_corporal'];
+		}
+	}
+	if ( empty( $faqs ) && ! empty( $data['faq']['items'] ) && is_array( $data['faq']['items'] ) ) {
+		$faqs = $data['faq']['items'];
+	}
+
+	if ( ! empty( $faqs ) ) {
+		$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-faq', 'nvx-endolaser-faq-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['faq']['kicker'] ?? 'Base de conocimiento' ), 'nvx-endolaser-faq-title', esc_html( $data['faq']['title'] ?? 'Preguntas clínicas frecuentes' ) );
+		$html .= '<div class="nvx-faq nvx-endolaser-faq-list">';
+		foreach ( $faqs as $faq ) {
+			if ( ! empty( $faq['q'] ) && ! empty( $faq['a'] ) ) {
+				$html .= '<details class="nvx-brand-faq-item">';
+				$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
+				$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+				$html .= '</details>';
+			}
+		}
+		$html .= '</div></div></section>';
+	}
+
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$html .= '</div>';
 
 	return $html;
 }
+
 
 /**
  * Rebuild Endoláser page content.

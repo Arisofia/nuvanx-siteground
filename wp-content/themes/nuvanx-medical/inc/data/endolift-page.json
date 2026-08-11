@@ -85,7 +85,7 @@
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",
         "title": "@nvx-t:Valoración y presupuesto Endolift® en NUVANX Madrid",
-        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Cada tratamiento incluye:",
+        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 798 € (ojeras), 1.064,80 € (papada o marcación mandibular cada una). El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en más del 90% de los casos, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:",
         "items": [
             "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
             "@nvx-t:Honorarios médicos de la intervención",
@@ -97,6 +97,39 @@
     },
     "faq": {
         "kicker": "@nvx-t:Base de conocimiento",
-        "title": "@nvx-t:Preguntas clínicas frecuentes"
+        "title": "@nvx-t:Preguntas clínicas frecuentes",
+        "items": [
+            {
+                "q": "@nvx-t:¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?",
+                "a": "@nvx-t:La tarifa de referencia parte desde 798 € (ojeras). Papada y marcación mandibular: 1.064,80 € cada una. El presupuesto definitivo se documenta tras valoración anatómica presencial."
+
+
+            },
+            {
+                "q": "@nvx-t:¿Endolift® es para cualquier papada o flacidez?",
+                "a": "@nvx-t:No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser."
+            },
+            {
+                "q": "@nvx-t:¿Cuántas sesiones de Endolift® se necesitan?",
+                "a": "@nvx-t:El procedimiento se realiza en 1 sola sesión en más del 90% de los casos. Para casos complejos que requieren retoques o combinaciones con otras tecnologías, se planifica un protocolo complementario tras la valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el efecto del Endolift®?",
+                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con un pico de colágeno nuevo que se alcanza entre los 3 y 6 meses."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
+                "a": "@nvx-t:24-48 horas para reincorporación a la actividad laboral y social. 3-7 días de edema/enrojecimiento leve. Protocolo de mentonera compresiva (72 horas continuas + 14 noches). Dolor controlado con analgésicos orales estándar."
+            },
+            {
+                "q": "@nvx-t:¿Cuáles son las contraindicaciones del Endolift®?",
+                "a": "@nvx-t:Embarazo, lactancia, infecciones activas cutáneas, tratamiento anticoagulante activo, historia de queloides o hilos tensores colocados en los últimos 6 meses. Afecciones autoinmunes cutáneas en fase activa requieren evaluación médica específica."
+            },
+            {
+                "q": "@nvx-t:¿Es doloroso el tratamiento?",
+                "a": "@nvx-t:Se realiza con anestesia local tumescente personalizada para garantizar máxima comodidad. El paciente percibe únicamente una leve sensación de calor o presión en la zona tratada."
+            }
+        ]
     }
+
 }

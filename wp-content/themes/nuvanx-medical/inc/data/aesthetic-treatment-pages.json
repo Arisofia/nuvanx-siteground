@@ -6,7 +6,19 @@
         "seo_title": "Ácido hialurónico en labios Madrid | NUVANX",
         "description": "Valoración médica para hidratación, perfilado o corrección de asimetrías labiales con ácido hialurónico, según anatomía, movimiento y objetivos.",
         "kicker": "Medicina estética facial · Madrid",
-        "lead": "El tratamiento labial no parte de un volumen predeterminado. Estudiamos proporción, soporte, hidratación, simetría y movimiento para decidir si existe una indicación y qué grado de corrección es razonable.",
+        "lead": "El tratamiento labial no parte de un volumen predeterminado. Estudiamos proporción, soporte, hidratación, simetría y movimiento para decidir si existe una indicación y qué grado de corrección es razonable. Precio desde 290 € por vial/sesión.",
+        "brands": ["Juvederm Volift/Kyss", "Belotero Lips Contour/Shape", "Restylane Kysse"],
+        "duration": "6-12 meses (primer tratamiento); 9-15 meses (mantenimientos)",
+        "session_time": "30 minutos",
+        "anesthesia": "Tópica o troncular (bloqueo local odontológico) disponible",
+        "techniques": ["Perfilado del Arco de Cupido", "Redefinición de columnas del filtrum", "Eversión del bermellón", "Corrección de asimetrías", "Código de barras (smoker lines)", "Hidratación sin volumen (efecto Gloss)"],
+        "protocol": {
+            "sessions": "1 sesión. Revisión a los 15 días para valorar integración y simetría.",
+            "downtime": "Inflamación y sensibilidad 24–48h. Pequeños hematomas ocasionales. Resultado evaluable a partir de 2 semanas.",
+            "duration_result": "6–12 meses según técnica, producto y metabolismo individual.",
+            "price_range": "Desde 398€",
+            "products_used": ["Ácido hialurónico reticulado — densidad adaptada a la zona y objetivo"]
+        },
         "diagnosis": "La valoración diferencia pérdida de definición, deshidratación, asimetría, cambios relacionados con la edad y expectativas que no pueden resolverse de forma segura con un inyectable. También revisa tratamientos previos, antecedentes médicos y la dinámica de la sonrisa.",
         "mechanism": "Cuando está indicado, se emplea un gel de ácido hialurónico seleccionado por sus propiedades de integración y comportamiento en una zona móvil. La técnica, el plano y la cantidad se individualizan para evitar sobrecorrección y preservar la expresión.",
         "indications": [
@@ -52,6 +64,14 @@
             {
                 "q": "¿Cuándo se aprecia el resultado real?",
                 "a": "La forma inicial está condicionada por la inflamación. La valoración definitiva se realiza cuando el edema ha disminuido y el producto se ha integrado."
+            },
+            {
+                "q": "¿Cuánto cuesta el ácido hialurónico en labios en Madrid?",
+                "a": "En NUVANX el precio parte de 398€ según la técnica y el objetivo: hidratación, perfilado o corrección de asimetría. La sesión incluye valoración médica previa y revisión posterior."
+            },
+            {
+                "q": "¿Cuánto dura el ácido hialurónico en labios?",
+                "a": "Entre 6 y 12 meses según el tipo de producto, la técnica y el metabolismo individual. Factores como la actividad muscular intensa o el tabaquismo pueden acortar la duración."
             }
         ],
         "schema": {
@@ -84,6 +104,13 @@
         "description": "Rinomodelación con ácido hialurónico en Madrid: corrección no quirúrgica de irregularidades del perfil nasal. Valoración anatómica y vascular previa en Chamberí y Salamanca–Goya.",
         "kicker": "Armonización del perfil · Madrid",
         "lead": "La rinomodelación puede camuflar determinadas irregularidades añadiendo soporte en puntos concretos. No reduce el tamaño de la nariz, no corrige problemas respiratorios y no sustituye una rinoplastia cuando la indicación es quirúrgica.",
+        "protocol": {
+            "sessions": "1 sesión. Revisión opcional a los 30 días.",
+            "downtime": "Edema leve 24–72h. Resultado apreciable de forma inmediata, definitivo a las 2 semanas.",
+            "duration_result": "12–18 meses aproximadamente.",
+            "price_range": "Desde 598€",
+            "products_used": ["Ácido hialurónico de alta densidad y alta cohesividad"]
+        },
         "diagnosis": "La exploración analiza dorso, radix, punta, proyección, piel, antecedentes de cirugía o rellenos y relación con mentón y tercio medio. Una nariz con alteración funcional, deformidad importante o expectativa de reducción debe derivarse a valoración quirúrgica.",
         "mechanism": "En los casos seleccionados se utiliza ácido hialurónico para modificar ópticamente líneas y ángulos mediante pequeños depósitos en planos definidos. Esta página no equipara la hidroxiapatita cálcica con el ácido hialurónico: son materiales diferentes y no comparten el mismo mecanismo de reversión.",
         "indications": [
@@ -129,6 +156,14 @@
             {
                 "q": "¿Puede corregir una desviación o un problema respiratorio?",
                 "a": "No corrige el tabique ni la función respiratoria. Las alteraciones funcionales o estructurales relevantes deben valorarse por cirugía u otorrinolaringología."
+            },
+            {
+                "q": "¿Cuánto cuesta la rinomodelación en Madrid?",
+                "a": "En NUVANX la rinomodelación sin cirugía tiene un precio desde 598€. Se realiza en una sola sesión con revisión opcional a los 30 días."
+            },
+            {
+                "q": "¿Cuánto dura la rinomodelación con ácido hialurónico?",
+                "a": "En la mayoría de casos entre 12 y 18 meses. La densidad del producto y la zona tratada condicionan la duración; se evalúa en cada revisión."
             }
         ],
         "schema": {
@@ -142,6 +177,15 @@
             "preparation": "Historia clínica y análisis anatómico y vascular, incluyendo cirugía, traumatismos, rellenos previos, medicación, función respiratoria y expectativas.",
             "howPerformed": "Aplicación médica conservadora de ácido hialurónico en puntos y planos seleccionados para camuflar irregularidades sin modificar estructuras nasales.",
             "followup": "Observación inmediata, instrucciones de alarma y revisión tras la fase inflamatoria.",
+            "price_range": "Desde 598€",
+
+            "revision_included": "Revisión médica 2-3 semanas para simetría y micro-retoque sin coste",
+            "session_time": "15-30 minutos",
+            "anesthesia": "Tópica o crema anestesiosa con lidocaína/prilocaína",
+            "duration": "12-18 meses (zona sin movilidad muscular activa)",
+            "brands": ["Juvederm Voluma", "Restylane Lyft", "Stylage XL"],
+            "hybrid_option": "Hilos Tensores PDO nasales para soporte mecánico adicional",
+            "safety_protocol": "Aspiración previa a cada bolo, inyección lenta, hialuronidasa disponible en cabina",
             "indications": [
                 "Irregularidad leve del dorso nasal",
                 "Armonización seleccionada del perfil nasal"
@@ -159,6 +203,13 @@
         "description": "Diagnóstico médico del surco lagrimal para diferenciar hundimiento, bolsas, edema y pigmentación antes de valorar ácido hialurónico u otras alternativas.",
         "kicker": "Región periocular · Madrid",
         "lead": "“Ojera” no es un diagnóstico único. El hundimiento estructural, la pigmentación, la transparencia vascular, las bolsas, los festones y el edema requieren abordajes distintos; rellenar sin diferenciarlos puede empeorar el aspecto.",
+        "protocol": {
+            "sessions": "1 sesión. Revisión a los 21 días.",
+            "downtime": "Edema periorbitario habitual 48–72h. Microhematomas posibles. Valoración final a las 3 semanas.",
+            "duration_result": "12–18 meses. La piel de la zona es delgada; el metabolismo es más lento que en labios.",
+            "price_range": "Desde 548€",
+            "products_used": ["Ácido hialurónico de baja densidad adaptado a plano suborbicular"]
+        },
         "diagnosis": "La valoración revisa soporte del tercio medio, transición párpado–mejilla, bolsas grasas, laxitud, edema, calidad cutánea y antecedentes de rellenos o cirugía. El ácido hialurónico solo se considera cuando predomina un déficit estructural y no existen factores que desaconsejen su uso.",
         "mechanism": "Cuando existe indicación, un ácido hialurónico con características adecuadas puede suavizar la transición entre párpado inferior y mejilla. No elimina pigmentación, vasos visibles, bolsas prominentes ni edema crónico.",
         "indications": [
@@ -217,6 +268,12 @@
             "preparation": "Diagnóstico diferencial de hundimiento, bolsas, edema, pigmentación y componente vascular, con revisión de antecedentes y tratamientos previos.",
             "howPerformed": "Inyección médica conservadora de ácido hialurónico en pacientes seleccionados, con producto, plano y cantidad adaptados a la anatomía periocular.",
             "followup": "Seguimiento de edema, integración, simetría y signos de complicación.",
+            "price_range": "Desde 548€",
+            "session_time": "20-30 minutos",
+            "technique": "Cánula microfina 25G/27G punta roma para minimizar hematomas",
+            "duration": "12-15 meses (zona baja actividad metabólica)",
+            "brands": ["Redensity II (Teosyal)", "Gels reticulados baja higroscopicidad"],
+            "alternatives": ["Carboxiterapia 5-10 sesiones (moradas)", "IPL/Peeling fítico (pigmentarias)"],
             "indications": [
                 "Hundimiento estructural del surco lagrimal",
                 "Transición párpado-mejilla marcada"
@@ -234,6 +291,13 @@
         "description": "Valoración médica de bioestimulación con ácido poli-L-láctico o hidroxiapatita cálcica según calidad cutánea, anatomía y objetivo terapéutico.",
         "kicker": "Medicina regenerativa estética · Madrid",
         "lead": "Los bioestimuladores no son una categoría uniforme. El ácido poli-L-láctico y la hidroxiapatita cálcica tienen composiciones, comportamiento tisular, técnicas y perfiles de manejo diferentes. La indicación comienza por la calidad cutánea y el soporte, no por una marca.",
+        "protocol": {
+            "sessions": "Protocolo inicial de 3 sesiones separadas 4 semanas. Mantenimiento anual posterior.",
+            "downtime": "Eritema y edema leve 24–48h. Sin impedimento para actividad habitual.",
+            "duration_result": "Efecto progresivo: primeras mejoras visibles a las 6–8 semanas. Resultado maduro a los 3–4 meses.",
+            "price_range": "Desde 248€/sesión",
+            "products_used": ["Polinucleótidos (PDRN/PN)", "Hidroxiapatita cálcica"]
+        },
         "diagnosis": "La valoración estudia laxitud, espesor, distribución de volumen, calidad dérmica, zonas de movilidad, antecedentes de rellenos y capacidad de seguimiento. No toda flacidez responde a un inyectable y una pérdida estructural importante puede requerir otras técnicas.",
         "mechanism": "El ácido poli-L-láctico (PLLA) y la hidroxiapatita cálcica (CaHA) pueden inducir una respuesta de remodelación tisular progresiva, pero no son ácido hialurónico. La CaHA puede aportar además un efecto de soporte inmediato según formulación y plano; ninguno se describe como reversible con hialuronidasa.",
         "indications": [
@@ -279,6 +343,14 @@
             {
                 "q": "¿Cuántas sesiones necesito?",
                 "a": "No debe fijarse un número sin diagnóstico. El producto, la zona, la calidad cutánea, la respuesta y los objetivos determinan el plan y su revisión."
+            },
+            {
+                "q": "¿Cuántas sesiones de bioestimuladores son necesarias?",
+                "a": "El protocolo inicial estándar es de 3 sesiones separadas 4 semanas, seguido de mantenimiento anual. El número exacto depende del punto de partida y el objetivo."
+            },
+            {
+                "q": "¿Cuánto cuestan los bioestimuladores en NUVANX Madrid?",
+                "a": "El precio de sesión de bioestimulador parte de 248€ según zona y producto. Se requiere valoración médica previa para establecer el protocolo."
             }
         ],
         "schema": {
@@ -292,6 +364,15 @@
             "preparation": "Valoración de calidad cutánea, laxitud, soporte, volumen, tratamientos previos, medicación y capacidad de seguimiento.",
             "howPerformed": "Aplicación médica de ácido poli-L-láctico o hidroxiapatita cálcica mediante técnica, dilución, plano y secuencia individualizados.",
             "followup": "Seguimiento progresivo de la respuesta tisular y vigilancia de inflamación, nódulos u otras complicaciones.",
+            "price_range": "Desde 348€/sesión",
+            "session_time": "30 minutos aprox.",
+            "duration": "12-18 meses según producto y metabolismo",
+            "protocol": "1-3 sesiones espaciadas 4-6 semanas; mantenimiento a 12 meses",
+            "brands": ["Radiesse", "Sculptra", "Ultracol", "Ellansé"],
+            "complementary_procedures": ["PRP (Plasma Rico en Plaquetas)", "Exosomas dérmicos"],
+
+            "post_care": "Regla de masaje 5x5x5 para Sculptra; evitar sol 48h; ejercicio intenso 24h",
+            "guidance": "Ecografía de alta frecuencia opcional para guiado en zonas de riesgo",
             "indications": [
                 "Pérdida de calidad y densidad cutánea",
                 "Laxitud cutánea leve o moderada seleccionada"
@@ -310,6 +391,13 @@
         "description": "Valoración médica de neuromoduladores para el abordaje de arrugas de expresión en tercio superior facial, evaluando dinámica muscular y simetría.",
         "kicker": "Medicina estética facial · Madrid",
         "lead": "El uso de neuromoduladores no persigue congelar la expresión ni estandarizar rostros. Analizamos la dinámica muscular del tercio superior para adaptar dosis y puntos de aplicación preservando la naturalidad.",
+        "protocol": {
+            "sessions": "1 sesión. Revisión a los 15 días para valorar distribución y ajustar si es necesario.",
+            "downtime": "Sin downtime. Posibles microhematomas puntiformes en el punto de inyección.",
+            "duration_result": "3–5 meses. Duración puede aumentar con tratamientos repetidos.",
+            "price_range": "Desde 198€ (zona)",
+            "products_used": ["Toxina botulínica tipo A — dosis adaptada a masa muscular y objetivo"]
+        },
         "diagnosis": "La exploración evalúa las arrugas dinámicas en frente, entrecejo y patas de gallo, diferenciándolas de arrugas estáticas profundas o laxitud cutánea. También analiza la posición de las cejas, la simetría facial y los antecedentes médicos antes de proponer tratamiento.",
         "mechanism": "Cuando existe indicación, se administran dosis microdosificadas de neuromodulador en puntos musculares específicos para relajar temporalmente la contracción excesiva sin anular la movilidad ni alterar la mirada.",
         "indications": [
@@ -355,6 +443,14 @@
             {
                 "q": "¿Qué cuidados debo seguir las primeras horas?",
                 "a": "Se aconseja no frotar la zona tratada, evitar tumbarse o realizar ejercicio físico intenso durante las primeras 4 horas tras la aplicación."
+            },
+            {
+                "q": "¿Cuánto cuesta el botox en NUVANX Madrid?",
+                "a": "En NUVANX el precio del neuromodulador parte de 198€ por zona. El precio final depende del número de zonas y la dosis clínica indicada, que varía según masa muscular y objetivo."
+            },
+            {
+                "q": "¿Con qué frecuencia se repite el neuromodulador?",
+                "a": "Habitualmente cada 4 a 6 meses. La duración tiende a aumentar con tratamientos repetidos. No se recomienda planificar el siguiente antes de observar el comportamiento individual."
             }
         ],
         "schema": {

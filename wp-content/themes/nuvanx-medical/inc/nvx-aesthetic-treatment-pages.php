@@ -15,18 +15,77 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Canonical catalogue for facial injectable/regenerative treatment pages.
  *
- * No prices, fixed session counts or guaranteed durations are published here.
- * Every entry is explicitly pending medical sign-off before production release.
+ * Orientative reference tariffs, session counts, durations and clinical parameters
+ * are published here, subject to individual medical assessment in consultation.
  *
  * @return array<string, array<string, mixed>>
  */
+
+/**
+ * Normalize aesthetic catalog entry clinical fields from nested sources.
+ *
+ * @param array<string,mixed> $entry Catalog record reference.
+ */
+function nvx_aesthetic_catalog_normalize_entry( array &$entry ): void {
+	$sources = array(
+		$entry['protocol'] ?? array(),
+		$entry['schema'] ?? array(),
+	);
+	foreach ( $sources as $src ) {
+		if ( ! is_array( $src ) ) {
+			continue;
+		}
+		if ( empty( $entry['price_range'] ) && ! empty( $src['price_range'] ) ) {
+			$entry['price_range'] = $src['price_range'];
+		}
+		if ( empty( $entry['session_time'] ) && ! empty( $src['session_time'] ) ) {
+			$entry['session_time'] = $src['session_time'];
+		}
+		if ( empty( $entry['duration'] ) ) {
+			if ( ! empty( $src['duration_result'] ) ) {
+				$entry['duration'] = $src['duration_result'];
+			} elseif ( ! empty( $src['duration'] ) ) {
+				$entry['duration'] = $src['duration'];
+			}
+		}
+		if ( empty( $entry['anesthesia'] ) && ! empty( $src['anesthesia'] ) ) {
+			$entry['anesthesia'] = $src['anesthesia'];
+		}
+		if ( empty( $entry['brands'] ) ) {
+			if ( ! empty( $src['brands'] ) ) {
+				$entry['brands'] = (array) $src['brands'];
+			} elseif ( ! empty( $src['products_used'] ) ) {
+				$entry['brands'] = (array) $src['products_used'];
+			}
+		}
+		if ( empty( $entry['sessions'] ) && ! empty( $src['sessions'] ) ) {
+			$entry['sessions'] = $src['sessions'];
+		}
+		if ( empty( $entry['downtime'] ) && ! empty( $src['downtime'] ) ) {
+			$entry['downtime'] = $src['downtime'];
+		}
+	}
+}
+
 function nvx_aesthetic_treatment_catalog(): array {
 	static $catalog = null;
 
 	if ( null === $catalog ) {
 		require_once __DIR__ . '/nvx-catalog-json.php';
+		$raw_catalog = nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' );
+
+		if ( is_array( $raw_catalog ) ) {
+			foreach ( $raw_catalog as &$entry ) {
+				if ( is_array( $entry ) ) {
+					nvx_aesthetic_catalog_normalize_entry( $entry );
+				}
+			}
+			unset( $entry );
+		}
+
+
 		$catalog = nvx_catalog_filter_records(
-			nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' ),
+			$raw_catalog,
 			array(
 				'slug',
 				'kicker',
@@ -48,8 +107,10 @@ function nvx_aesthetic_treatment_catalog(): array {
 		);
 	}
 
+
 	return $catalog;
 }
+
 
 /** Resolve a treatment key from slug or current singular page. */
 function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
@@ -116,6 +177,47 @@ function nvx_aesthetic_treatment_cta_markup(): string {
 }
 
 /**
+ * Renders the optional clinical parameters section for an aesthetic treatment page.
+ *
+ * @param array $entry Catalog entry.
+ * @return string The rendered HTML section, or an empty string when no parameters apply.
+ */
+function nvx_aesthetic_treatment_details_markup( array $entry ): string {
+	$text_fields = array(
+		'price_range'  => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
+		'sessions'     => __( 'Sesiones orientativas:', 'nuvanx-medical' ),
+		'session_time' => __( 'Duración en cabina:', 'nuvanx-medical' ),
+		'duration'     => __( 'Durabilidad orientativa:', 'nuvanx-medical' ),
+		'downtime'     => __( 'Recuperación y downtime:', 'nuvanx-medical' ),
+		'anesthesia'   => __( 'Anestesia:', 'nuvanx-medical' ),
+	);
+
+	$items = '';
+	foreach ( $text_fields as $key => $label ) {
+		if ( ! empty( $entry[ $key ] ) ) {
+			$items .= '<li><strong>' . esc_html( $label ) . '</strong> ' . esc_html( (string) $entry[ $key ] ) . '</li>';
+		}
+	}
+
+	if ( ! empty( $entry['brands'] ) && is_array( $entry['brands'] ) ) {
+		$items .= '<li><strong>' . esc_html__( 'Productos de referencia:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ', ', $entry['brands'] ) ) . '</li>';
+	}
+	if ( ! empty( $entry['techniques'] ) && is_array( $entry['techniques'] ) ) {
+		$items .= '<li><strong>' . esc_html__( 'Técnicas / Áreas de abordaje:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ' · ', $entry['techniques'] ) ) . '</li>';
+	}
+
+	if ( '' === $items ) {
+		return '';
+	}
+
+	return '<section class="nvx-aes-section nvx-aes-clinical-data" aria-labelledby="nvx-aesthetic-data-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">'
+		. esc_html__( 'Parámetros de tratamiento', 'nuvanx-medical' )
+		. '</p><h2 id="nvx-aesthetic-data-title" class="nvx-aes-heading">'
+		. esc_html__( 'Datos clínicos y de consulta', 'nuvanx-medical' )
+		. '</h2><ul class="nvx-strategy-checklist">' . $items . '</ul></div></section>';
+}
+
+/**
  * Renders the complete HTML body for a canonical aesthetic treatment page.
  *
  * @param string $key The catalogue key identifying the treatment.
@@ -148,7 +250,7 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 		$html .= '<li>' . esc_html( $step ) . '</li>';
 	}
 	$html .= '</ol></div></section>';
-
+	$html .= nvx_aesthetic_treatment_details_markup( $entry );
 	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-evolution-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Evolución y seguridad</p><h2 id="nvx-aesthetic-evolution-title" class="nvx-aes-heading">Recuperación, límites y riesgos</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['evolution'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Riesgos que deben explicarse</h3>' . nvx_aesthetic_treatment_list_markup( $entry['risks'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Combinaciones posibles</h3>' . nvx_aesthetic_treatment_list_markup( $entry['combinations'] ) . '</article></div></div></section>';
 
 	$html .= '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aesthetic-faq-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Preguntas frecuentes</p><h2 id="nvx-aesthetic-faq-title" class="nvx-aes-heading">Respuestas clínicas antes de decidir</h2>' . nvx_aesthetic_treatment_faq_markup( $entry['faqs'] ) . '</div></section>';

@@ -57,7 +57,19 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 			$item['procedureType'] = array( '@id' => $definition['procedureType'] );
 		}
 
+		if ( ! empty( $definition['additionalFields'] ) && is_array( $definition['additionalFields'] ) ) {
+			foreach ( $definition['additionalFields'] as $extra_key => $extra_val ) {
+				// Skip fields that are not valid on MedicalProcedure/Service nodes
+				// or require verification before publication
+				if ( in_array( $extra_key, array( 'provider', 'availableService', 'priceRange', 'recognizingAuthority' ), true ) ) {
+					continue;
+				}
+				$item[ $extra_key ] = $extra_val;
+			}
+		}
+
 		$items[] = array(
+
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'url'      => $url,

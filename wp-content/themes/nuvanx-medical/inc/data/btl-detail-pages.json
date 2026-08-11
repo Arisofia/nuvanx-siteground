@@ -15,13 +15,24 @@
         "schema_name": "EXION® Face en Madrid",
         "schema_type": "Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)",
         "schema_desc": "Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.",
+        "clinical_data": {
+            "technology": "Radiofrecuencia monopolar 0,9 MHz con AI-Skin™",
+            "energy_depth": "3,5 mm profundidad efectiva en dermis",
+            "collagen_stimulation": "Aumento histológico de colágeno demostrado a 12 semanas",
+            "sessions": "4 sesiones protocolo estándar, separadas 2–4 semanas",
+            "downtime": "Sin downtime. Eritema transitorio 1–2 horas tras la sesión.",
+            "price_range": "Desde 395€/sesión",
+            "duration_result": "Mejora progresiva visible a partir de la 2ª sesión. Resultado maduro 8–12 semanas.",
+            "contraindications": ["Marcapasos o dispositivos electrónicos implantados", "Embarazo", "Implantes metálicos en zona de tratamiento", "Activos cutáneos graves no estabilizados"]
+        },
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica",
+            "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica con IA",
             "body": [
                 "@nvx-claim-key:exion_face_mech_intro",
                 "@nvx-claim-key:exion_face_ha_224"
             ],
             "items": [
+
                 {
                     "title": "@nvx-t:Radiofrecuencia monopolar (~40–42 °C en dermis)",
                     "body": "@nvx-t:Busca hipertermia controlada y reversible: activación de vías de estrés adaptativo (p. ej. HSPs), señalización de síntesis de matriz y aporte energético celular. Objetivo: remodelado de colágeno de calidad, no cicatricial. El rango térmico es orientativo de protocolo, no una temperatura universal en cada paciente."
@@ -29,6 +40,10 @@
                 {
                     "title": "@nvx-t:Ultrasonido dirigido (TUS)",
                     "body": "@nvx-t:Mecanoestimulación no invasiva que complementa la RF: favorece cascadas de señalización en fibroblastos y síntesis de matriz (ácido hialurónico, colágeno, elastina) sin el perfil de cavitación de ultrasonidos de alto poder. Se usa como estímulo, no como trauma controlado."
+                },
+                {
+                    "title": "@nvx-t:Inteligencia Artificial en tiempo real",
+                    "body": "@nvx-t:El sistema de IA monitoriza la impedancia cutánea y ajusta automáticamente la entrega de energía para evitar puntos calientes, garantizar seguridad y maximizar el confort durante el procedimiento."
                 }
             ]
         },
@@ -131,16 +146,26 @@
         "schema_name": "EXION® Body en Madrid",
         "schema_type": "Protocolo médico corporal con EXION® Body",
         "schema_desc": "Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.",
+        "clinical_data": {
+            "technology": "Radiofrecuencia monopolar 0,9 MHz + ultrasonido terapéutico sincronizado",
+            "action": "Retensado dérmico y mejora de firmeza en flacidez leve-moderada de contorno corporal",
+            "sessions": "4–6 sesiones protocolo estándar, separadas 2–4 semanas",
+            "downtime": "Sin downtime. Calor residual en zona tratada 1–2 horas.",
+            "price_range": "Desde 445€/sesión",
+            "duration_result": "Mejoras visibles a partir de la 3ª sesión. Mantenimiento recomendado a los 6 meses.",
+            "differentiation": "EXION Body no elimina grasa: actúa sobre la dermis. Para grasa localizada, el Endoláser corporal tiene indicación diferente."
+        },
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Body",
+            "title": "@nvx-t:Cómo funciona EXION® Body con datos técnicos BTL",
             "body": [
                 "@nvx-t:El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.",
                 "@nvx-claim-key:exion_body_btl_22"
             ],
             "items": [
                 {
-                    "title": "@nvx-t:Refrigeración activa en superficie",
-                    "body": "@nvx-claim-key:exion_body_cooling"
+                    "title": "@nvx-t:Refrigeración activa en superficie (Active Cooling)",
+                    "body": "@nvx-claim-key:exion_body_cooling",
+                    "extra": "@nvx-t:El enfriamiento integrado permite alcanzar temperaturas lipolíticas profundas sin riesgo de quemadura epidérmica, garantizando seguridad y confort."
                 },
                 {
                     "title": "@nvx-t:RF monopolar profunda (~40–45 °C en tejido objetivo)",
@@ -257,14 +282,24 @@
         "schema_name": "EXION® Fractional RF en Madrid",
         "schema_type": "Protocolo de radiofrecuencia fraccionada EXION®",
         "schema_desc": "Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.",
+        "clinical_data": {
+            "technology": "Radiofrecuencia fraccionada con microagujas — profundidad ajustable 0,5–4 mm",
+            "target": "Tejido dérmico: cicatrices de acné, poros, textura, arrugas finas",
+            "sessions": "3 sesiones para protocolo de rejuvenecimiento. 1–3 sesiones para cicatrices según profundidad.",
+            "downtime": "24–72h de eritema. Descamación fina 3–5 días en profundidades medias.",
+            "price_range": "Desde 595€/sesión cara completa",
+            "vs_co2": "El Láser CO₂ actúa en la epidermis y la dermis superficial con mayor agresividad. EXION Fractional actúa en dermis con menor tiempo de recuperación.",
+            "contraindications": ["Keloides o cicatrices hipertróficas activas", "Isotretinoína en los últimos 6 meses", "Activos cutáneos en zona de tratamiento"]
+        },
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Fractional RF",
+            "title": "@nvx-t:Cómo funciona EXION® Fractional RF y su control de profundidad",
             "body": [
                 "@nvx-t:Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.",
-                "@nvx-t:Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.",
+                "@nvx-t:Profundidad de acción ajustable (0,5–4 mm en zona facial; hasta 8 mm en cuerpo combinando inserción mecánica y gradiente térmico por RF monopolar). El algoritmo de IA (AI-driven RF) mide la impedancia en tiempo real para personalizar la energía en cada microdisparo.",
                 "@nvx-t:Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista."
             ]
         },
+
         "indications": [
             {
                 "title": "@nvx-t:Textura y poro",
@@ -305,6 +340,26 @@
             {
                 "q": "@nvx-t:¿Anestesia?",
                 "a": "@nvx-t:Según energía y zona: tópica o protocolo de confort definido en valoración."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto cuesta EXION® Fractional en Madrid?",
+                "a": "@nvx-t:El precio de EXION® Fractional en NUVANX parte de 595€ por sesión cara completa. El número de sesiones depende del objetivo: 3 para rejuvenecimiento, 1–3 para cicatrices. Se define en valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto tiempo de recuperación tiene EXION® Fractional?",
+                "a": "@nvx-t:El downtime habitual es de 24–72 horas de eritema. En profundidades medias puede haber descamación fina durante 3–5 días. Es inferior al de tratamientos con láser CO₂."
+            },
+            {
+                "q": "@nvx-t:¿EXION® Fractional deja cicatriz?",
+                "a": "@nvx-t:No. Las microagujas crean microcanales que se cierran en horas. El mecanismo de acción está diseñado para estimular reparación sin daño permanente. Está contraindicado en cicatrices queloides activas."
+            },
+            {
+                "q": "@nvx-t:¿Cuántas sesiones son necesarias con EXION® Fractional?",
+                "a": "@nvx-t:El protocolo estándar para rejuvenecimiento es de 3 sesiones separadas 4–6 semanas. Para cicatrices de acné el número varía entre 1 y 3 según profundidad, y se decide en valoración."
+            },
+            {
+                "q": "@nvx-t:¿Se puede combinar EXION® Fractional con otros tratamientos?",
+                "a": "@nvx-t:Sí, con criterio médico. Se combina frecuentemente con IPL para fotodaño previo al fraccionado. No se combina en la misma sesión con Láser CO₂. El orden y los tiempos los determina el médico en el plan."
             }
         ]
     },
@@ -323,12 +378,40 @@
         "schema_name": "EMFUSION® en Madrid",
         "schema_type": "Protocolo de infusión cutánea EMFUSION®",
         "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
+        "clinical_data": {
+            "technology": "Corrientes de alta frecuencia electromagnética + bioestimulación dérmica",
+            "target": "Calidad cutánea global: luminosidad, hidratación, tono uniforme",
+            "sessions": "4 sesiones protocolo inicial, separadas 1 semana",
+            "downtime": "Sin downtime. No produce eritema ni descamación.",
+            "price_range": "Desde 345€/sesión",
+            "duration_result": "Mejora progresiva de luminosidad y textura a partir de la 2ª sesión.",
+            "differentiation": "EMFUSION no sustituye a un facial cosmético: trabaja en planos más profundos. El resultado no es inmediato ni superficial."
+        },
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EMFUSION® (DYNAMiQ™)",
+            "title": "@nvx-t:Cómo funciona EMFUSION® (DYNAMiQ™) en 4 fases",
             "body": [
                 "@nvx-t:Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.",
                 "@nvx-t:El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.",
-                "@nvx-t:Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas."
+                "@nvx-t:Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas.",
+                "@nvx-t:Protocolo estructurado en 4 fases: Refinar (Refine) → Activar (Activate) → Fusionar (Fuse) → Sellar (Seal). Este enfoque aporta claridad, valor percibido y rigor al protocolo."
+            ],
+            "items": [
+                {
+                    "title": "@nvx-t:Fase 1: Refinar (Refine)",
+                    "body": "@nvx-t:Limpieza profunda y preparación de la superficie cutánea para maximizar la absorción de activos."
+                },
+                {
+                    "title": "@nvx-t:Fase 2: Activar (Activate)",
+                    "body": "@nvx-t:Estimulación de la dermis para optimizar la respuesta celular a los principios activos."
+                },
+                {
+                    "title": "@nvx-t:Fase 3: Fusionar (Fuse)",
+                    "body": "@nvx-t:Infusión transdérmica de activos médicos (ceramidas, ectoína) a través de microcanales temporales."
+                },
+                {
+                    "title": "@nvx-t:Fase 4: Sellar (Seal)",
+                    "body": "@nvx-t:Consolidación de la barrera cutánea y optimización de la homeostasis del calcio epidérmico."
+                }
             ]
         },
         "indications": [
@@ -371,6 +454,18 @@
             {
                 "q": "@nvx-t:¿Duele?",
                 "a": "@nvx-t:Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto cuesta EMFUSION® en Madrid?",
+                "a": "@nvx-t:El precio de sesión de EMFUSION® en NUVANX parte de 345€. El protocolo inicial son 4 sesiones semanales. Se define el número exacto en valoración médica previa."
+            },
+            {
+                "q": "@nvx-t:¿Para qué tipo de piel es EMFUSION®?",
+                "a": "@nvx-t:EMFUSION® no tiene restricción por fototipo. Está indicado para mejorar luminosidad, textura e hidratación en pieles maduras, sensibles o con tono irregular. La indicación específica se confirma en valoración."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el efecto de EMFUSION®?",
+                "a": "@nvx-t:El resultado es progresivo y se mantiene 3–6 meses tras el protocolo inicial. Se recomienda ciclo de mantenimiento 1–2 veces por año según calidad de piel."
             }
         ]
     }

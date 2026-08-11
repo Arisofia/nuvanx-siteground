@@ -128,6 +128,9 @@ function nvx_quarantined_comparison_post_slugs(): array {
 /**
  * Resolve quarantined post IDs without assuming fixed database IDs.
  *
+ * Uses a single WP_Query with post_name__in instead of N individual
+ * get_page_by_path() calls — reduces DB round-trips from 5 to 1.
+ *
  * @return int[]
  */
 function nvx_quarantined_comparison_post_ids(): array {
@@ -136,16 +139,30 @@ function nvx_quarantined_comparison_post_ids(): array {
 		return $ids;
 	}
 
-	$ids = array();
-	foreach ( nvx_quarantined_comparison_post_slugs() as $slug ) {
-		$post = get_page_by_path( $slug, OBJECT, 'post' );
-		if ( $post instanceof WP_Post ) {
-			$ids[] = (int) $post->ID;
-		}
+	$slugs = nvx_quarantined_comparison_post_slugs();
+	if ( empty( $slugs ) ) {
+		return $ids = array();
 	}
 
-	return array_values( array_unique( $ids ) );
+	$query = new WP_Query(
+		array(
+			'post_type'              => 'post',
+			'post_status'            => 'any',
+			'post_name__in'          => $slugs,
+			'posts_per_page'         => count( $slugs ),
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'ignore_sticky_posts'    => true,
+			'suppress_filters'       => true,
+		)
+	);
+
+	return $ids = array_values( array_map( 'intval', (array) $query->posts ) );
 }
+
+
 
 /**
  * Keep pending comparison content out of public post collections.

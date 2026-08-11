@@ -28,6 +28,7 @@ const shortContentRoutes = new Set([
   '/mas-informacion-sobre-las-cookies/',
 ]);
 
+
 // Every published WordPress page must remain addressable with HTTP 200.
 // Editorial readiness is governed by robots/sitemap policy, not by turning
 // published CMS records into frontend 404 responses.

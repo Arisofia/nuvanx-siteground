@@ -605,14 +605,104 @@ function nvx_schema_find_organization( $graph ) {
  *
  * @return array<string, array<int, array{q:string,a:string}>>
  */
-function nvx_schema_faq_catalog() {
-	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
-	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
+/** Parse a single page JSON file for FAQ items. */
+function nvx_schema_faq_load_single_page( string $file ): array {
+	$json  = nvx_catalog_json_resolved( $file );
+	$items = array();
+	if ( ! empty( $json['faq']['items'] ) && is_array( $json['faq']['items'] ) ) {
+		foreach ( $json['faq']['items'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+	}
+	return $items;
+}
 
-	// Only keys that render the same Q/A in visible HTML (Endolift module).
-	// Do not add EXION here until the EXION page prints the same pairs.
-	return array(
-		'endolift_facial' => array(
+/** Parse a mapped catalog JSON file for FAQ items. */
+function nvx_schema_faq_load_map_catalog( string $file ): array {
+	return nvx_schema_faq_load_map_catalog_impl( $file, null );
+}
+
+/** Parse a mapped catalog JSON file for FAQ items with claim resolver. */
+function nvx_schema_faq_load_map_catalog_with_resolver( string $file, callable $resolver ): array {
+	return nvx_schema_faq_load_map_catalog_impl( $file, $resolver );
+}
+
+/** Implementation for FAQ catalog loading from mapped JSON files. */
+function nvx_schema_faq_load_map_catalog_impl( string $file, ?callable $resolver ): array {
+	if ( null === $resolver ) {
+		$json = nvx_catalog_json_resolved( $file );
+	} else {
+		$json = nvx_catalog_json_resolved( $file, $resolver, array(), array(), basename( $file, '.json' ) );
+	}
+	$catalog = array();
+	if ( ! is_array( $json ) ) {
+		return $catalog;
+	}
+	foreach ( $json as $key => $entry ) {
+		if ( ! is_array( $entry ) || empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
+			continue;
+		}
+		$items = array();
+		foreach ( $entry['faqs'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+		if ( ! empty( $items ) ) {
+			$catalog[ $key ] = $items;
+			// Only add explicit 'key' alias if present in JSON
+			if ( ! empty( $entry['key'] ) ) {
+				$catalog[ $entry['key'] ] = $items;
+			}
+		}
+	}
+	return $catalog;
+}
+
+function nvx_schema_faq_catalog() {
+	static $catalogs = array();
+	$locale          = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+	if ( isset( $catalogs[ $locale ] ) ) {
+		return $catalogs[ $locale ];
+	}
+
+	$catalog = array();
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$catalog['endolift_facial']    = nvx_schema_faq_load_single_page( 'endolift-page.json' );
+		$catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
+		// Use claim resolver for BTL detail pages to ensure claim keys are resolved
+		if ( function_exists( 'nvx_btl_claim' ) ) {
+			$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog_with_resolver( 'btl-detail-pages.json', 'nvx_btl_claim' ) );
+		} else {
+			$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'btl-detail-pages.json' ) );
+		}
+		$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
+	}
+
+	// Replace hardcoded Endolift prices with dynamic tariff constants in FAQ answers
+	if ( ! empty( $catalog['endolift_facial'] ) && function_exists( 'nvx_endolift_price_from_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' ) ) {
+		$from   = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_from_eur() ) : number_format_i18n( nvx_endolift_price_from_eur(), 2 );
+		$papada = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_papada_eur() ) : number_format_i18n( nvx_endolift_price_papada_eur(), 2 );
+		foreach ( $catalog['endolift_facial'] as &$faq ) {
+			$faq['a'] = str_replace( '798 €', $from . ' €', $faq['a'] );
+			$faq['a'] = str_replace( '1.064,80 €', $papada . ' €', $faq['a'] );
+		}
+		unset( $faq );
+	}
+
+
+	if ( empty( $catalog['endolift_facial'] ) ) {
+		$from                       = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+		$papada                     = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
+		$catalog['endolift_facial'] = array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
 				'a' => 'PVP con IVA incluido desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' € cada una. Full Face y combos en la tabla de tarifas de la página. El presupuesto se cierra tras valoración anatómica presencial.',
@@ -633,8 +723,24 @@ function nvx_schema_faq_catalog() {
 				'q' => '¿Es doloroso?',
 				'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
 			),
-		),
-	);
+		);
+	}
+
+	if ( empty( $catalog['endolaser_corporal'] ) ) {
+		$catalog['endolaser_corporal'] = array(
+			array(
+				'q' => '¿Cuántas sesiones de Endoláser corporal se necesitan?',
+				'a' => 'El procedimiento se realiza en 1 sesión única. Los resultados se observan progresivamente a partir de las 3 semanas, con efecto máximo a los 4-6 meses según la zona tratada y respuesta individual.',
+			),
+			array(
+				'q' => '¿Es necesaria prenda de compresión?',
+				'a' => 'Sí, se utiliza faja compresiva o malla elastodrenante durante 1-2 semanas post-tratamiento para optimizar la retracción tisular y el drenaje linfático.',
+			),
+		);
+	}
+
+	$catalogs[ $locale ] = $catalog;
+	return $catalog;
 }
 
 /**
@@ -653,7 +759,15 @@ function nvx_schema_faq_node( $page_id ) {
 		$faq_id    = home_url( '/#faq' );
 		$faq_url   = home_url( '/' );
 	} else {
-		$key     = nvx_schema_resolve_treatment_key( $page_id );
+		$key = nvx_schema_resolve_treatment_key( $page_id );
+		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
+			$key = nvx_btl_detail_current_key( '' );
+		}
+		// Aesthetic treatment pages emit their own FAQPage node (with the same
+		// @id) via nvx_aesthetic_treatment_extend_yoast_graph(); resolving them
+		// here too would build a duplicate the deduplicator has to strip. Leave
+		// them to the dedicated module, which also owns their MedicalProcedure.
+
 		$catalog = nvx_schema_faq_catalog();
 		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
 			$questions = $catalog[ $key ];
@@ -661,6 +775,8 @@ function nvx_schema_faq_node( $page_id ) {
 	}
 
 	$entities = array();
+
+
 	foreach ( $questions as $q ) {
 		if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
 			$entities[] = array(

@@ -7,17 +7,17 @@
     {
         "id": "precio-endolift",
         "q": "¿Cuánto cuesta el Endolift® facial en NUVANX?",
-        "a": "El presupuesto depende de la zona, la indicación y el plan médico. Se define después de la valoración; si el proceso comienza de forma virtual, la indicación se confirma presencialmente cuando la exploración física sea necesaria."
+        "a": "La tarifa de referencia para el Endolift® facial en NUVANX parte de 798,60 €. El presupuesto definitivo incluye IVA y se documenta por escrito en la valoración. Zona, profundidad y plan pueden modificar el total."
     },
     {
         "id": "duracion-endolift",
         "q": "¿Cuánto duran los resultados del Endolift®?",
-        "a": "La evolución depende de la indicación, la zona tratada, la calidad de piel y los hábitos. En consulta se explican los límites y el seguimiento esperable para tu caso; no existe una duración universal."
+        "a": "En la mayoría de pacientes, los resultados son visibles a los 2–3 meses (cuando madura el nuevo colágeno) y se mantienen 18–36 meses dependiendo de la zona, la edad y los hábitos. No existe una duración garantizada."
     },
     {
         "id": "sesiones-co2",
         "q": "¿Cuántas sesiones necesita el láser CO₂ fraccionado?",
-        "a": "El número de sesiones depende de la indicación, el fototipo, la profundidad y la respuesta clínica. El plan y el presupuesto se definen después de la valoración."
+        "a": "Para cicatrices de acné moderadas se planifican habitualmente 2–3 sesiones con intervalo de 8–12 semanas. Para fotodaño y textura, 1–2 pueden ser suficientes. El médico lo define tras valorar fototipo y profundidad."
     },
     {
         "id": "tecnologia-medica",

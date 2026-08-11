@@ -18,8 +18,6 @@ const viewports = [
   { key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 },
 ];
 
-export const VIEWPORT_COUNT = viewports.length;
-
 const outputDir = path.resolve('scripts/staging2/block-c-artifacts');
 const screenshotDir = path.join(outputDir, 'screenshots');
 await fs.rm(outputDir, { recursive: true, force: true });
@@ -132,6 +130,7 @@ const { normalized: publishedPages, unique } = await fetchPublishedPages();
 const manifest = await loadPublishedPagesManifest();
 assertCanonicalPublishedPaths(unique, manifest, 'WordPress REST inventory');
 const routes = publishedPages.map((page) => page.path);
+
 await fs.writeFile(
   path.join(outputDir, 'published-pages.json'),
   `${JSON.stringify(publishedPages, null, 2)}\n`,

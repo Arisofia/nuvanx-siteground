@@ -239,10 +239,45 @@ jobs:
           [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
           echo 'STAGING_SSH=PASS'
 
+      - name: Create full rollback snapshot before any runtime mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}"
+          [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
+          echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" != "$PROD_ROOT"
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          cd "$STAGING_ROOT"
+          umask 077
+          mkdir -p "$ROLLBACK_DIR"
+          test -s "$STAGING_ROOT/wp-config.php"
+          cp -p "$STAGING_ROOT/wp-config.php" "$ROLLBACK_DIR/wp-config.php"
+          tar -czf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d "$STAGING_ROOT/wp-content/mu-plugins" ]]; then tar -czf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT" wp-content/mu-plugins; fi
+          wp db export "$ROLLBACK_DIR/staging-db.sql" --quiet
+          test -s "$ROLLBACK_DIR/wp-config.php"; test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
+          if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"; else : > "$ROLLBACK_DIR/previous-sha.txt"; fi
+          echo "ROLLBACK_SNAPSHOT=PASS path=$ROLLBACK_DIR"
+          REMOTE
+          echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
+
       - name: Verify environment isolation and normalize runtime
         shell: bash
         run: |
           set -euo pipefail
+          echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
           ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           test "$STAGING_ROOT" != "$PROD_ROOT"
@@ -255,6 +290,7 @@ jobs:
           test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
           if ! wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'; then
             wp config set WP_DEBUG_DISPLAY false --raw
+            php -l wp-config.php >/dev/null
           fi
           wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
           wp plugin is-installed sg-cachepress
@@ -267,27 +303,6 @@ jobs:
           test "$(wp option get blog_public)" = '1'
           echo 'ENVIRONMENT_ISOLATION=PASS'
           REMOTE
-
-      - name: Create full rollback snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}"
-          [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
-          echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
-          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          umask 077
-          mkdir -p "$ROLLBACK_DIR"
-          tar -czf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT" wp-content/themes/nuvanx-medical
-          if [[ -d "$STAGING_ROOT/wp-content/mu-plugins" ]]; then tar -czf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT" wp-content/mu-plugins; fi
-          cd "$STAGING_ROOT"
-          wp db export "$ROLLBACK_DIR/staging-db.sql" --quiet
-          test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
-          if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"; else : > "$ROLLBACK_DIR/previous-sha.txt"; fi
-          echo "ROLLBACK_SNAPSHOT=PASS path=$ROLLBACK_DIR"
-          REMOTE
-          echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
 
       - name: Upload immutable payload
         shell: bash
@@ -305,7 +320,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
           ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
           ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
           ssh nvx-staging2 "cd '$STAGING_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
@@ -455,7 +469,9 @@ jobs:
           ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
-          test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
+          test -s "$ROLLBACK_DIR/wp-config.php"; test -s "$ROLLBACK_DIR/theme.tgz"; test -s "$ROLLBACK_DIR/staging-db.sql"
+          cp -p "$ROLLBACK_DIR/wp-config.php" "$STAGING_ROOT/wp-config.php"
+          php -l "$STAGING_ROOT/wp-config.php" >/dev/null
           rm -rf "$STAGING_ROOT/wp-content/themes/nuvanx-medical"
           tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT"
           if [[ -f "$ROLLBACK_DIR/mu-plugins.tgz" ]]; then rm -rf "$STAGING_ROOT/wp-content/mu-plugins"; tar -xzf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT"; fi

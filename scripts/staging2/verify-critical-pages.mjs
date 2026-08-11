@@ -1,6 +1,18 @@
 import { chromium } from 'playwright';
+import { crossHostNavigationUrls } from './navigation-boundary.mjs';
 
-const baseUrl = 'https://nuvanx.com';
+const baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
+const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
+let base;
+try {
+  base = new URL(baseUrl);
+} catch {
+  throw new Error(`BASE_URL must be an absolute URL; received=${JSON.stringify(baseUrl)}`);
+}
+if (base.protocol !== 'https:' || base.hostname !== expectedHost || base.username || base.password) {
+  throw new Error(`Refusing unexpected staging target: base=${base.origin} expected_host=${expectedHost}`);
+}
+
 const criticalUrls = [
   '/',
   '/madrid/valoracion/',
@@ -15,7 +27,7 @@ const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] }
 const results = [];
 
 for (const path of criticalUrls) {
-  const url = baseUrl + path;
+  const url = new URL(path, base).href;
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
     ignoreHTTPSErrors: true,
@@ -25,6 +37,7 @@ for (const path of criticalUrls) {
   try {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const status = response?.status() || 0;
+    const crossHostUrls = crossHostNavigationUrls(response, page.url(), expectedHost);
     
     // Check for critical elements
     const hasHeader = await page.locator('header, .nvx-header, .nvx-site-header').count() > 0;
@@ -33,6 +46,7 @@ for (const path of criticalUrls) {
     
     const issues = [];
     if (status !== 200) issues.push(`HTTP ${status}`);
+    if (crossHostUrls.length > 0) issues.push(`Navigation left ${expectedHost}: ${crossHostUrls.join(', ')}`);
     if (!hasHeader) issues.push('Missing header');
     if (!hasContent) issues.push('Missing content area');
     if (!hasFooter) issues.push('Missing footer');

@@ -1,10 +1,9 @@
 <?php
 /**
- * Strategy-led authority, investment and protocol-review pages.
+ * Strategy-led authority and investment pages.
  *
  * Public copy stays within the clinical claims register: the authority and
- * investment pages explain the decision process, while working protocol names
- * exist only on staging2 and remain noindex until medical and legal approval.
+ * investment pages explain the decision process.
  *
  * @package nuvanx-medical
  */
@@ -27,16 +26,6 @@ function nvx_strategy_page_catalog(): array {
 			'slug'          => 'inversion-medicina-estetica',
 			'title'         => 'Inversión en medicina estética',
 			'review_status' => 'approved_for_publication',
-		),
-		'liposculpt_air' => array(
-			'slug'          => 'liposculpt-air',
-			'title'         => 'LipoSculpt-Air™',
-			'review_status' => 'pending_medical_legal',
-		),
-		'v_lift_awake'   => array(
-			'slug'          => 'v-lift-awake',
-			'title'         => 'V-Lift Awake™',
-			'review_status' => 'pending_medical_legal',
 		),
 	);
 }
@@ -74,47 +63,6 @@ function nvx_strategy_published_url( string $key ): string {
 	}
 
 	return (string) get_permalink( $page );
-}
-
-/**
- * Pending working-name pages are excluded from robots and sitemaps everywhere.
- *
- * @return int[]
- */
-function nvx_strategy_pending_page_ids(): array {
-	$ids = array();
-	foreach ( nvx_strategy_page_catalog() as $page ) {
-		if ( 'approved_for_publication' === $page['review_status'] ) {
-			continue;
-		}
-
-		$stored = get_page_by_path( $page['slug'] );
-		if ( $stored ) {
-			$ids[] = (int) $stored->ID;
-		}
-	}
-
-	return array_values( array_unique( $ids ) );
-}
-
-/**
- * Keep prototype names visibly in a review state; they are not a treatment offer.
- */
-function nvx_strategy_protocol_review_markup( string $key ): string {
-	$catalog = nvx_strategy_page_catalog();
-	$page    = $catalog[ $key ] ?? null;
-	if ( ! is_array( $page ) ) {
-		return '';
-	}
-
-	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review nvx-shell">'
-		. '<section class="nvx-brand-hero"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy"><p class="nvx-eyebrow">NUVANX · revisión clínica y jurídica</p>'
-		. '<h1 class="nvx-brand-hero__title">' . esc_html( $page['title'] ) . '</h1>'
-		. '<p class="nvx-brand-hero__lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></div></div></section>'
-		. '<section class="nvx-brand-section" aria-labelledby="rev-antes"><h2 id="rev-antes">Antes de cualquier publicación</h2>'
-		. '<p>La Dirección Médica debe documentar técnica, indicación, contraindicaciones, seguridad, seguimiento y profesional responsable. La denominación también requiere validación jurídica y registral.</p>'
-		. '<p>Hasta entonces, esta página permanece fuera de navegación pública, buscadores y campañas.</p></section>'
-		. '</article>';
 }
 
 /**
@@ -362,7 +310,7 @@ function nvx_strategy_page_markup( string $key ): string {
 		return nvx_strategy_investment_markup();
 	}
 
-	return nvx_strategy_protocol_review_markup( $key );
+	return '';
 }
 
 add_filter(
@@ -396,8 +344,8 @@ function nvx_strategy_page_content_filter( string $content ): string {
 add_filter( 'the_content', 'nvx_strategy_page_content_filter', NVX_HOOK_PRIO_STRATEGY_PAGES );
 
 /**
- * Create reviewable pages only in staging2. Production requires a deliberate
- * editorial publication step, and the two working-name routes never seed there.
+ * Create strategy pages only in staging2. Production requires a deliberate
+ * editorial publication step.
  */
 function nvx_strategy_seed_staging2_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {

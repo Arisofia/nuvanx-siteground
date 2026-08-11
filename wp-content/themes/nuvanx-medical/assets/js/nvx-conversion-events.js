@@ -337,6 +337,20 @@
 		}
 	}
 
+	/** Return one UUID that remains stable for every retry of a submission. */
+	function createSubmissionId() {
+		if (typeof window.crypto?.randomUUID === 'function') return window.crypto.randomUUID();
+		if (typeof window.crypto?.getRandomValues === 'function') {
+			var bytes = new Uint8Array(16);
+			window.crypto.getRandomValues(bytes);
+			bytes[6] = (bytes[6] & 0x0f) | 0x40;
+			bytes[8] = (bytes[8] & 0x3f) | 0x80;
+			var hex = Array.from(bytes).map(function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
+			return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+		}
+		return '';
+	}
+
 	function getFieldValue(fields, propertyName) {
 		var names = fieldCandidates(propertyName);
 		for (var index = 0; index < fields.length; index += 1) {
@@ -377,6 +391,7 @@
 		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return null;
 
 		return {
+			submission_id: createSubmissionId() || null,
 			email_hash: emailHash,
 			gclid: clickValues.gclid || null,
 			gbraid: clickValues.gbraid || null,
@@ -438,7 +453,6 @@
 	var legacyPendingSubmission = null;
 	var legacyEmailClearTimer = null;
 	var legacyRetryTimer = null;
-	var legacyCaptureSequence = 0;
 	var legacyNativeGclidInputs = new WeakSet();
 
 	/** Clear only the currently expected legacy submission when a caller supplies one. */
@@ -541,7 +555,7 @@
 	function refreshLegacyForms() {
 		if (!hasMarketingConsent()) clearLegacyPendingSubmission();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
-			return root && root.isConnected;
+			return root?.isConnected;
 		});
 		legacyFormRoots.forEach(function (root) {
 			populateLegacyClickFields(root);
@@ -570,10 +584,9 @@
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
 
-		legacyCaptureSequence += 1;
 		var pending = {
-			captureId: legacyCaptureSequence,
 			root: root,
+			submissionId: createSubmissionId(),
 			emailHash: '',
 			retryCount: 0,
 			successSeen: false,
@@ -611,8 +624,9 @@
 	}
 
 	/**
-	 * Sends only a root-confirmed legacy submission. Unscoped postMessage callbacks may
-	 * assist an already-confirmed retry but can never establish submission identity.
+	 * Sends a canonical legacy submission. The direct hook confirms its exact root.
+	 * A trusted postMessage may confirm the pending submission only when exactly one
+	 * connected canonical root exists and it is the same root captured before submit.
 	 */
 	async function transmitLegacySuccess(formLike, formId) {
 		var pending = legacyPendingSubmission;
@@ -622,7 +636,11 @@
 			if (!root || root !== pending.root) return;
 			pending.successSeen = true;
 		} else if (!pending.successSeen) {
-			return;
+			legacyFormRoots = legacyFormRoots.filter(function (root) {
+				return root?.isConnected;
+			});
+			if (legacyFormRoots.length !== 1 || legacyFormRoots[0] !== pending.root) return;
+			pending.successSeen = true;
 		}
 		if (!hasMarketingConsent()) {
 			clearLegacyPendingSubmission(pending);
@@ -637,6 +655,7 @@
 		try {
 			if (legacyPendingSubmission !== pending || !hasMarketingConsent()) return;
 			var terminal = await transmitAudit({
+				submission_id: pending.submissionId || null,
 				email_hash: pending.emailHash,
 				gclid: clickValues.gclid || null,
 				gbraid: clickValues.gbraid || null,
@@ -669,10 +688,10 @@
 			populateLegacyClickFields(formLike, formId);
 		},
 		onBeforeFormSubmit: function (formLike, formId) {
-			captureLegacyEmail(formLike, formId);
+			return captureLegacyEmail(formLike, formId);
 		},
 		onFormSubmitted: function (formLike, formId) {
-			transmitLegacySuccess(formLike, formId);
+			return transmitLegacySuccess(formLike, formId);
 		},
 	});
 

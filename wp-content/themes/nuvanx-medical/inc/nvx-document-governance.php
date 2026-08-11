@@ -188,6 +188,7 @@ function nvx_document_governance_enqueue_assets(): void {
 		'mobileNavId'      => 'nvx-mobile-nav',
 		'hubspotScriptId'  => 'nvx-hubspot-forms-runtime',
 		'hubspotPageMount' => true,
+		'debug'            => defined( 'WP_DEBUG' ) && WP_DEBUG === true,
 	);
 
 	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );

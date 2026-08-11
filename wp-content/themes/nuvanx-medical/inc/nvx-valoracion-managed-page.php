@@ -6,6 +6,9 @@
  * hierarchy and the canonical HubSpot mount so staging and production do not
  * depend on historical database HTML.
  *
+ * SEO title/description are owned exclusively by nvx-seo-metadata.php. HubSpot
+ * script loading is owned exclusively by nvx-runtime-governance.js.
+ *
  * @package nuvanx-medical
  */
 
@@ -120,34 +123,6 @@ function nvx_render_managed_valoracion_page( $content ): string {
 add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );
 
 /**
- * Keep the SERP description aligned with the lower-friction valuation journey.
- *
- * @param string $description Existing Yoast description.
- */
-function nvx_valoracion_managed_metadesc( $description ): string {
-	if ( ! function_exists( 'nvx_is_valoracion_page_request' ) || ! nvx_is_valoracion_page_request() ) {
-		return (string) $description;
-	}
-
-	return 'Valoración médica estética virtual o presencial en Madrid. 15–30 min para revisar tu caso, opciones de tratamiento y presupuesto individualizado.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_valoracion_managed_metadesc', 40 );
-
-/**
- * Optimize SERP title for the valuation landing page (primary conversion page).
- *
- * @param string $title Existing Yoast title.
- */
-function nvx_valoracion_managed_title( $title ): string {
-	if ( ! function_exists( 'nvx_is_valoracion_page_request' ) || ! nvx_is_valoracion_page_request() ) {
-		return (string) $title;
-	}
-
-	return 'Valoración Médica Estética Madrid | Diagnóstico y Presupuesto NUVANX';
-}
-add_filter( 'wpseo_title', 'nvx_valoracion_managed_title', 40 );
-
-/**
  * Register valoración page as page owner to prevent shell hero duplication.
  *
  * When the shell evaluates $has_managed_editorial in nvx-page-shell.php,
@@ -167,17 +142,4 @@ add_filter(
 		return $owner;
 	},
 	10
-);
-
-/**
- * Preload HubSpot script and optimize priority on valuation page to improve LCP.
- */
-add_action(
-	'wp_head',
-	function () {
-		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-			echo '<link rel="preload" href="https://js.hsforms.net/forms/embed/v2.js" as="script" fetchpriority="high" />' . "\n";
-		}
-	},
-	5
 );

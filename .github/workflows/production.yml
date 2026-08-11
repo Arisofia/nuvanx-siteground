@@ -15,7 +15,7 @@ on:
         default: true
         type: boolean
       candidate_sha:
-        description: Optional exact SHA. When supplied it must equal the current Staging2 deploy marker.
+        description: Exact SHA when supplied. Required for verification-only HubSpot E2E; for deploy it must equal the current Staging2 marker.
         required: false
         type: string
       run_post_audits:
@@ -98,11 +98,22 @@ jobs:
           USER: ${{ secrets.STAGING2_SSH_USER }}
           KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
           KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
-          REQUESTED_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate_sha || '' }}
+          DISPATCH_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate_sha || '' }}
         run: |
           set -euo pipefail
           : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
           SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            test -s release/production-candidate.txt || { echo 'release/production-candidate.txt must contain the authorized SHA.' >&2; exit 1; }
+            REQUESTED_SHA="$(tr -d '[:space:]' < release/production-candidate.txt)"
+          else
+            REQUESTED_SHA="$(printf '%s' "$DISPATCH_SHA" | tr -d '[:space:]')"
+          fi
+          if [[ -n "$REQUESTED_SHA" ]]; then
+            [[ "$REQUESTED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Authorized candidate SHA must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          fi
+
           mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/staging_gate_key"; chmod 600 "$HOME/.ssh/staging_gate_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
@@ -123,6 +134,7 @@ jobs:
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
+
           connected=0
           retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
@@ -137,12 +149,24 @@ jobs:
           done
           [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround staging gate after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
 
-          staging_sha="$(ssh nvx-staging-gate "tr -d '\\r\\n' < '$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
-          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Staging2 deploy marker: $staging_sha" >&2; exit 1; }
-          if [[ -n "$REQUESTED_SHA" ]]; then
-            requested="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
-            [[ "$requested" =~ ^[0-9a-f]{40}$ ]] || { echo 'candidate_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
-            test "$requested" = "$staging_sha" || { echo "Requested SHA $requested is not the current Staging2 SHA $staging_sha" >&2; exit 1; }
+          marker="$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
+          ssh -n nvx-staging-gate "test -f '$marker'" || { echo "STAGING_MARKER=MISSING path=$marker" >&2; exit 1; }
+          staging_sha=''
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+            if candidate_value="$(ssh -n nvx-staging-gate "tr -d '\\r\\n' < '$marker'")" && [[ "$candidate_value" =~ ^[0-9a-f]{40}$ ]]; then
+              staging_sha="$candidate_value"; break
+            fi
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Staging marker read $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
+          done
+          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'STAGING_MARKER=UNREADABLE after retries' >&2; exit 1; }
+          if [[ -n "$REQUESTED_SHA" && "$REQUESTED_SHA" != "$staging_sha" ]]; then
+            echo "Authorized SHA $REQUESTED_SHA is not the current Staging2 SHA $staging_sha" >&2
+            exit 1
           fi
 
           git fetch --no-tags origin "$STAGING_ACCEPTANCE_BRANCH"
@@ -190,30 +214,31 @@ jobs:
           set -euo pipefail
           command -v unzip >/dev/null || { echo 'Required unzip command is unavailable on the runner.' >&2; exit 1; }
           artifact_name="staging2-block-c-${CANDIDATE_SHA}"
-          response="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
+          api_headers=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json')
+          response="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
           mapfile -t candidates < <(printf '%s' "$response" | jq -rc --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | reverse | .[] | [.id, .workflow_run.id, .created_at] | @tsv')
-          (( ${#candidates[@]} > 0 )) || { echo "No non-expired Staging acceptance artifacts for $CANDIDATE_SHA. If this was a manual Staging run, rerun it with run_acceptance=true." >&2; exit 1; }
+          (( ${#candidates[@]} > 0 )) || { echo "No non-expired Staging acceptance artifacts for $CANDIDATE_SHA. Rerun Staging with run_acceptance=true." >&2; exit 1; }
 
           accepted=0
           accepted_run_id=''
+          accepted_attempt=''
           accepted_artifact_id=''
           accepted_event=''
           accepted_head_sha=''
 
           for candidate in "${candidates[@]}"; do
             IFS=$'\t' read -r artifact_id run_id created_at <<< "$candidate"
-            if [[ ! "$artifact_id" =~ ^[0-9]+$ || ! "$run_id" =~ ^[0-9]+$ ]]; then
+            if [[ ! "$artifact_id" =~ ^[0-9]{1,20}$ || ! "$run_id" =~ ^[0-9]{1,20}$ ]]; then
               echo "Skipping malformed artifact candidate: artifact_id=$artifact_id run_id=$run_id created_at=$created_at" >&2
               continue
             fi
-            if ! run="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
+
+            # Cheap source-run checks happen before downloading the potentially large ZIP.
+            if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
               echo "Skipping artifact $artifact_id: unable to fetch source run $run_id" >&2
               continue
             fi
-
-            IFS=$'\t' read -r status conclusion head_branch run_head_sha workflow_path run_event < <(printf '%s' "$run" | jq -r '[.status,.conclusion,.head_branch,.head_sha,.path,.event] | @tsv')
-            if [[ "$status" != completed ]]; then echo "Skipping artifact $artifact_id run $run_id: status=$status expected=completed" >&2; continue; fi
-            if [[ "$conclusion" != success ]]; then echo "Skipping artifact $artifact_id run $run_id: conclusion=$conclusion expected=success" >&2; continue; fi
+            IFS=$'\t' read -r head_branch run_head_sha workflow_path run_event < <(printf '%s' "$run" | jq -r '[.head_branch // "",.head_sha // "",.path // "",.event // ""] | @tsv')
             if [[ "$head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: head_branch=$head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
             workflow_prefix="${workflow_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
             workflow_suffix="${workflow_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
@@ -221,60 +246,106 @@ jobs:
               echo "Skipping artifact $artifact_id run $run_id: path=$workflow_path expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH or $STAGING_ACCEPTANCE_WORKFLOW_PATH@<ref>" >&2
               continue
             fi
-            if [[ ! "$run_head_sha" =~ ^[0-9a-f]{40}$ ]]; then echo "Skipping artifact $artifact_id run $run_id: invalid head_sha=$run_head_sha" >&2; continue; fi
+            [[ "$run_head_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Skipping artifact $artifact_id run $run_id: invalid head_sha=$run_head_sha" >&2; continue; }
+            [[ "$run_event" == push || "$run_event" == workflow_dispatch ]] || { echo "Skipping artifact $artifact_id run $run_id: unsupported event=$run_event" >&2; continue; }
+            if [[ "$run_event" == push && "$run_head_sha" != "$CANDIDATE_SHA" ]]; then
+              echo "Skipping artifact $artifact_id run $run_id: push head_sha=$run_head_sha candidate=$CANDIDATE_SHA" >&2
+              continue
+            fi
+            if [[ "$run_event" == workflow_dispatch ]]; then
+              git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null || { echo "Skipping artifact $artifact_id run $run_id: dispatch head unavailable: $run_head_sha" >&2; continue; }
+              git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH" || { echo "Skipping artifact $artifact_id run $run_id: dispatch head outside current $STAGING_ACCEPTANCE_BRANCH" >&2; continue; }
+              git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha" || { echo "Skipping artifact $artifact_id run $run_id: candidate not contained in dispatch head" >&2; continue; }
+            fi
 
-            case "$run_event" in
+            artifact_zip="$RUNNER_TEMP/staging-acceptance-${artifact_id}.zip"
+            rm -f "$artifact_zip"
+            if ! curl -LfsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 180 --max-filesize 157286400 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip"; then
+              echo "Skipping artifact $artifact_id run $run_id: download failed after retries" >&2
+              rm -f "$artifact_zip"
+              continue
+            fi
+            if ! unzip -tqq "$artifact_zip" >/dev/null 2>&1; then
+              echo "Skipping artifact $artifact_id run $run_id: downloaded ZIP is corrupt or truncated" >&2
+              rm -f "$artifact_zip"
+              continue
+            fi
+            manifest_path="$(unzip -Z1 "$artifact_zip" | grep -E '(^|/)acceptance-manifest\.json$' | head -n1 || true)"
+            if [[ -z "$manifest_path" ]]; then
+              echo "Skipping artifact $artifact_id run $run_id: schema-v1 immutable acceptance manifest is missing; rerun Staging" >&2
+              rm -f "$artifact_zip"
+              continue
+            fi
+            manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
+            rm -f "$artifact_zip"
+
+            # Producer contract: staging.yml writes every field with jq --arg, so
+            # run_id/run_attempt intentionally remain JSON strings in schema 1.
+            if ! manifest_fields="$(printf '%s' "$manifest" | jq -er '
+              select(type == "object" and .schema == 1) |
+              [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
+              select(all(.[]; type == "string" and length > 0)) |
+              @tsv
+            ')"; then
+              echo "Skipping artifact $artifact_id run $run_id: invalid or unsupported acceptance manifest schema/fields" >&2
+              continue
+            fi
+            IFS=$'\t' read -r manifest_candidate manifest_run_id manifest_run_attempt manifest_event manifest_head_sha manifest_head_branch manifest_workflow <<< "$manifest_fields"
+            [[ "$manifest_candidate" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest candidate=$manifest_candidate expected=$CANDIDATE_SHA" >&2; continue; }
+            [[ "$manifest_run_id" == "$run_id" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest run_id=$manifest_run_id" >&2; continue; }
+            [[ "$manifest_run_attempt" =~ ^[0-9]{1,6}$ ]] || { echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; }
+            manifest_run_attempt=$((10#$manifest_run_attempt))
+            (( manifest_run_attempt >= 1 )) || { echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; }
+            [[ "$manifest_event" == push || "$manifest_event" == workflow_dispatch ]] || { echo "Skipping artifact $artifact_id run $run_id: unsupported manifest event=$manifest_event" >&2; continue; }
+            [[ "$manifest_event" == "$run_event" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest event=$manifest_event source event=$run_event" >&2; continue; }
+            [[ "$manifest_head_sha" == "$run_head_sha" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest head_sha=$manifest_head_sha source=$run_head_sha" >&2; continue; }
+            [[ "$manifest_head_branch" == "$STAGING_ACCEPTANCE_BRANCH" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest head_branch=$manifest_head_branch" >&2; continue; }
+            [[ "$manifest_workflow" == "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest workflow_path=$manifest_workflow" >&2; continue; }
+
+            if ! exact_run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/attempts/${manifest_run_attempt}")"; then
+              echo "Skipping artifact $artifact_id run $run_id: unable to fetch exact attempt $manifest_run_attempt" >&2
+              continue
+            fi
+            IFS=$'\t' read -r exact_status exact_conclusion exact_branch exact_head_sha exact_path exact_event exact_attempt < <(printf '%s' "$exact_run" | jq -r '[.status // "",.conclusion // "",.head_branch // "",.head_sha // "",.path // "",.event // "",(.run_attempt // "" | tostring)] | @tsv')
+            [[ "$exact_status" == completed ]] || { echo "Skipping artifact $artifact_id run $run_id attempt $manifest_run_attempt: status=${exact_status:-null} expected=completed" >&2; continue; }
+            [[ "$exact_conclusion" == success ]] || { echo "Skipping artifact $artifact_id run $run_id attempt $manifest_run_attempt: conclusion=${exact_conclusion:-null} expected=success" >&2; continue; }
+            [[ "$exact_attempt" == "$manifest_run_attempt" ]] || { echo "Skipping artifact $artifact_id run $run_id: exact API attempt=$exact_attempt manifest=$manifest_run_attempt" >&2; continue; }
+            [[ "$exact_branch" == "$manifest_head_branch" && "$exact_head_sha" == "$manifest_head_sha" && "$exact_event" == "$manifest_event" ]] || { echo "Skipping artifact $artifact_id run $run_id: exact-attempt identity differs from manifest" >&2; continue; }
+            exact_prefix="${exact_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
+            exact_suffix="${exact_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
+            if [[ "$exact_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$exact_suffix" && "${exact_suffix:0:1}" != '@' ) || "$exact_suffix" == '@' ]]; then
+              echo "Skipping artifact $artifact_id run $run_id: exact-attempt workflow path=$exact_path" >&2
+              continue
+            fi
+
+            # A later rerun does not invalidate immutable evidence from this exact
+            # successful attempt. The release gate separately requires the live
+            # Staging marker/environment to still equal CANDIDATE_SHA, so a later
+            # mutation or rollback cannot be promoted from stale evidence.
+            case "$manifest_event" in
               push)
-                if [[ "$run_head_sha" != "$CANDIDATE_SHA" ]]; then
-                  echo "Skipping artifact $artifact_id run $run_id: push head_sha=$run_head_sha candidate=$CANDIDATE_SHA" >&2
-                  continue
-                fi
+                [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: push manifest head is not candidate" >&2; continue; }
                 ;;
               workflow_dispatch)
-                if ! git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null; then echo "Skipping artifact $artifact_id run $run_id: dispatch head is unavailable locally: $run_head_sha" >&2; continue; fi
-                if ! git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH"; then echo "Skipping artifact $artifact_id run $run_id: dispatch head $run_head_sha is outside current $STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
-                if ! git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha"; then echo "Skipping artifact $artifact_id run $run_id: candidate $CANDIDATE_SHA was not contained in dispatch head $run_head_sha" >&2; continue; fi
-
-                artifact_zip="$RUNNER_TEMP/staging-acceptance-${artifact_id}.zip"
-                rm -f "$artifact_zip"
-                if ! curl -LfsS --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip"; then
-                  echo "Skipping artifact $artifact_id run $run_id: unable to download immutable acceptance artifact" >&2
-                  continue
-                fi
-                manifest_path="$(unzip -Z1 "$artifact_zip" 2>/dev/null | grep -E '(^|/)acceptance-manifest\.json$' | head -n1 || true)"
-                if [[ -z "$manifest_path" ]]; then
-                  echo "Skipping artifact $artifact_id run $run_id: manual historical evidence has no immutable acceptance manifest; rerun Staging with run_acceptance=true" >&2
-                  continue
-                fi
-                manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
-                if ! printf '%s' "$manifest" | jq -e . >/dev/null 2>&1; then
-                  echo "Skipping artifact $artifact_id run $run_id: invalid acceptance manifest JSON" >&2
-                  continue
-                fi
-                IFS=$'\t' read -r manifest_candidate manifest_run_id manifest_event manifest_head_sha manifest_head_branch manifest_workflow < <(printf '%s' "$manifest" | jq -r '[.candidate_sha,.run_id,.event,.head_sha,.head_branch,.workflow_path] | @tsv')
-                if [[ "$manifest_candidate" != "$CANDIDATE_SHA" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest candidate=$manifest_candidate expected=$CANDIDATE_SHA" >&2; continue; fi
-                if [[ "$manifest_run_id" != "$run_id" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest run_id=$manifest_run_id" >&2; continue; fi
-                if [[ "$manifest_event" != workflow_dispatch ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest event=$manifest_event" >&2; continue; fi
-                if [[ "$manifest_head_sha" != "$run_head_sha" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest head_sha=$manifest_head_sha expected=$run_head_sha" >&2; continue; fi
-                if [[ "$manifest_head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest head_branch=$manifest_head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
-                if [[ "$manifest_workflow" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest workflow_path=$manifest_workflow expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH" >&2; continue; fi
+                git merge-base --is-ancestor "$CANDIDATE_SHA" "$manifest_head_sha" || { echo "Skipping artifact $artifact_id run $run_id: candidate absent from dispatch attempt head" >&2; continue; }
                 ;;
               *)
-                echo "Skipping artifact $artifact_id run $run_id: unsupported event=$run_event" >&2
+                echo "Skipping artifact $artifact_id run $run_id: unsupported event=$manifest_event" >&2
                 continue
                 ;;
             esac
 
             accepted=1
             accepted_run_id="$run_id"
+            accepted_attempt="$manifest_run_attempt"
             accepted_artifact_id="$artifact_id"
-            accepted_event="$run_event"
-            accepted_head_sha="$run_head_sha"
+            accepted_event="$manifest_event"
+            accepted_head_sha="$manifest_head_sha"
             break
           done
 
-          [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging run provides valid exact-candidate acceptance evidence for $CANDIDATE_SHA." >&2; exit 1; }
-          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name artifact_id=$accepted_artifact_id run_id=$accepted_run_id sha=$CANDIDATE_SHA event=$accepted_event run_head_sha=$accepted_head_sha conclusion=success"
+          [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging attempt provides valid exact-candidate acceptance evidence for $CANDIDATE_SHA." >&2; exit 1; }
+          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name artifact_id=$accepted_artifact_id run_id=$accepted_run_id attempt=$accepted_attempt sha=$CANDIDATE_SHA event=$accepted_event run_head_sha=$accepted_head_sha conclusion=success"
 
       - name: Materialize exact candidate from master history
         shell: bash
@@ -417,7 +488,7 @@ jobs:
             echo "- Candidate source: current locked Staging2 deploy marker"
             echo "- Exact SHA: \`$CANDIDATE_SHA\`"
             echo "- Theme tree: \`$CANDIDATE_THEME_TREE\`"
-            echo '- Staging acceptance: exact-SHA successful artifact verified.'
+            echo '- Staging acceptance: exact-SHA successful-attempt artifact verified.'
             echo '- Cross-environment concurrency: serialized; Staging cannot advance during this release.'
             echo '- Atomic production cutover + rollback contract: PASS.'
           } >> "$GITHUB_STEP_SUMMARY"
@@ -634,11 +705,12 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Resolve authoritative production SHA
+      - name: Resolve independent expected production SHA
         id: expected_sha
         shell: bash
         env:
           RELEASE_SHA: ${{ needs.release.outputs.candidate_sha }}
+          REQUESTED_SHA: ${{ inputs.candidate_sha }}
           HOST: ${{ secrets.PROD_SSH_HOST }}
           PORT: ${{ secrets.PROD_SSH_PORT }}
           USER: ${{ secrets.PROD_SSH_USER }}
@@ -652,45 +724,63 @@ jobs:
           set -euo pipefail
           expected_sha="$(printf '%s' "$RELEASE_SHA" | tr -d '[:space:]')"
           if [[ -z "$expected_sha" ]]; then
-            : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-            SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-            mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-            trap 'rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"' EXIT
-            printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
-            printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-            test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-            printf '%s\n' \
-              'Host nvx-prod-h1' \
-              "  HostName $HOST" \
-              "  User $USER" \
-              "  Port $SSH_PORT" \
-              "  IdentityFile $HOME/.ssh/prod_h1_key" \
-              '  IdentitiesOnly yes' \
-              '  BatchMode yes' \
-              '  StrictHostKeyChecking yes' \
-              "  UserKnownHostsFile $HOME/.ssh/known_hosts" \
-              '  ConnectTimeout 15' \
-              '  ConnectionAttempts 1' \
-              '  ServerAliveInterval 15' \
-              '  ServerAliveCountMax 2' \
-              > "$HOME/.ssh/config"
-            chmod 600 "$HOME/.ssh/config"
-            connected=0
-            retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-            for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-              if ssh -n nvx-prod-h1 "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'"; then
-                connected=1; break
-              fi
-              if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-                echo "Production H1 SHA probe $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-                sleep "$retry_delay"
-                retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-              fi
-            done
-            [[ "$connected" = 1 ]] || { echo 'H1_PRODUCTION_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-            expected_sha="$(ssh -n nvx-prod-h1 "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+            expected_sha="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
+            [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Verification-only HubSpot E2E requires candidate_sha as an independent full lowercase 40-character SHA.' >&2; exit 1; }
           fi
           [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid authoritative production SHA: $expected_sha" >&2; exit 1; }
+
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          trap 'rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"' EXIT
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
+          printf '%s\n' \
+            'Host nvx-prod-h1' \
+            "  HostName $HOST" \
+            "  User $USER" \
+            "  Port $SSH_PORT" \
+            "  IdentityFile $HOME/.ssh/prod_h1_key" \
+            '  IdentitiesOnly yes' \
+            '  BatchMode yes' \
+            '  StrictHostKeyChecking yes' \
+            "  UserKnownHostsFile $HOME/.ssh/known_hosts" \
+            '  ConnectTimeout 15' \
+            '  ConnectionAttempts 1' \
+            '  ServerAliveInterval 15' \
+            '  ServerAliveCountMax 2' \
+            > "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+
+          connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+            if ssh -n nvx-prod-h1 "test -d '$PROD_ROOT'"; then connected=1; break; fi
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Production H1 SSH transport $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
+          done
+          [[ "$connected" = 1 ]] || { echo 'H1_PRODUCTION_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+
+          marker="$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
+          ssh -n nvx-prod-h1 "test -f '$marker'" || { echo "H1_PRODUCTION_MARKER=MISSING path=$marker" >&2; exit 1; }
+          live_sha=''
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+            if marker_value="$(ssh -n nvx-prod-h1 "tr -d '\\r\\n' < '$marker'")" && [[ "$marker_value" =~ ^[0-9a-f]{40}$ ]]; then
+              live_sha="$marker_value"; break
+            fi
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Production H1 marker read $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
+          done
+          [[ "$live_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'H1_PRODUCTION_MARKER=UNREADABLE after retries' >&2; exit 1; }
+          [[ "$live_sha" == "$expected_sha" ]] || { echo "H1 production disk SHA mismatch: live=$live_sha expected=$expected_sha" >&2; exit 1; }
           echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
           echo "H1_EXPECTED_SHA=$expected_sha"
 

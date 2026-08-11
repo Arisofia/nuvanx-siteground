@@ -1066,8 +1066,8 @@ function nvx_clinics_hub_page_markup(): string {
 
 	$html .= '<nav class="nvx-brand-section nvx-clinics-nav" aria-label="' . esc_attr__( 'Sedes NUVANX', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-brand-section__inner nvx-cta-pair">';
-	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $chamberi_url ) . '">' . esc_html__( 'Chamberí', 'nuvanx-medical' ) . '</a>';
-	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $goya_url ) . '">' . esc_html__( 'Salamanca–Goya', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="#clinica-chamberi">' . esc_html__( 'Chamberí', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="#clinica-goya">' . esc_html__( 'Salamanca–Goya', 'nuvanx-medical' ) . '</a>';
 	$html .= '</div></nav>';
 
 	// Chamberí.

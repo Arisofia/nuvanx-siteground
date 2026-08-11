@@ -65,6 +65,11 @@ function nvx_cta_pair_markup( string $extra_class = '' ): string {
 	$class      = trim( 'nvx-cta-cluster ' . $extra_class );
 	$valoracion = nvx_cta_valoracion_url();
 
+	// Already on the valoración form page: primary CTA targets the form anchor.
+	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
+		$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
+	}
+
 	return '<div class="' . esc_attr( $class ) . '">
 		<a href="' . esc_url( $valoracion ) . '" class="nvx-brand-btn nvx-brand-btn--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">
 			<span>Solicitar valoración médica</span>

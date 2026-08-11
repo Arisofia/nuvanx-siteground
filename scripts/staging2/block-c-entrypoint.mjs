@@ -15,7 +15,10 @@ const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', impo
 
 async function prepareTrustedPagesPreload() {
   const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
-  if (!pagesFile) return null;
+  if (!pagesFile) {
+    console.log('BLOCK_C_INVENTORY_SOURCE=public-rest (no WORDPRESS_PAGES_FILE provided)');
+    return null;
+  }
 
   const pages = JSON.parse(await fs.readFile(pagesFile, 'utf8'));
   if (!Array.isArray(pages)) throw new TypeError('Trusted WordPress page inventory must be an array');
@@ -157,7 +160,15 @@ async function failedResultsAreTransient() {
 }
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-  const code = await runAttempt(attempt);
+  let code;
+  try {
+    code = await runAttempt(attempt);
+  } catch (error) {
+    console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt} reason=${error.message}`);
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=PRELOAD_ERROR reason=${error.message}`);
+    process.exit(1);
+  }
+
   if (code === 0) {
     console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
     process.exit(0);

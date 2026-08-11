@@ -64,15 +64,39 @@
         ]
     },
     "planning": {
-        "kicker": "@nvx-t:Planificación",
-        "title": "@nvx-t:Inversión y planificación por zonas",
-        "body": "@nvx-t:La superficie anatómica, el número de zonas, el tiempo de procedimiento ambulatorio y el material (incl. anestesia) varían caso a caso. Por eso el presupuesto se personaliza en consulta: no publicamos un “precio único corporal” que no reflejaría el mapa real.",
+        "kicker": "@nvx-t:Inversión y planificación",
+        "title": "@nvx-t:Precios orientativos por zona y seguimiento",
+        "body": "@nvx-t:Presupuesto orientativo por zona: Abdomen/Flancos 1.200 € – 1.800 €; Rodillas/Brazos 900 € – 1.300 €. Se realiza medición ecográfica previa del tejido adiposo para cuantificar el grosor del panículo. Procedimiento en 1 sesión única con resultados progresivos a las 3 semanas (máximo a los 4-6 meses). Incluye pauta de compresión post-procedimiento (1-2 semanas) y revisiones médicas a las 4 semanas, 3 meses y 6 meses.",
         "items": [
             "@nvx-t:Valoración de zonas, flacidez y estabilidad de peso",
+            "@nvx-t:Medición ecográfica pre-tratamiento del tejido adiposo",
             "@nvx-t:Estimación de extensión de la cuadrícula láser y duración ambulatoria",
             "@nvx-t:Presupuesto documentado antes del procedimiento",
-            "@nvx-t:Seguimiento clínico según protocolo de la zona tratada"
+            "@nvx-t:Seguimiento clínico según protocolo de la zona tratada",
+            "@nvx-t:Pauta de compresión post-procedimiento (1-2 semanas)"
         ],
         "note": "@nvx-t:Para papada y óvalo facial con protocolo facial dedicado, consulta la página de Endolift® facial (tarifas PVP faciales publicadas allí)."
+    },
+    "faq": {
+        "kicker": "@nvx-t:Base de conocimiento",
+        "title": "@nvx-t:Preguntas clínicas frecuentes",
+        "items": [
+            {
+                "q": "@nvx-t:¿Cuántas sesiones de Endoláser corporal se necesitan?",
+                "a": "@nvx-t:El procedimiento se realiza en 1 sesión única. Los resultados se observan progresivamente a partir de las 3 semanas, con efecto máximo a los 4-6 meses según la zona tratada y respuesta individual."
+            },
+            {
+                "q": "@nvx-t:¿Es necesaria prenda de compresión?",
+                "a": "@nvx-t:Sí, se utiliza faja compresiva o malla elastodrenante durante 1-2 semanas post-tratamiento para optimizar la retracción tisular y el drenaje linfático."
+            },
+            {
+                "q": "@nvx-t:¿Cómo se miden los resultados?",
+                "a": "@nvx-t:Se realiza medición ecográfica previa del grosor del panículo adiposo para cuantificar el tejido antes del procedimiento. Las revisiones médicas a 4 semanas, 3 meses y 6 meses evalúan la reducción objetiva."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
+                "a": "@nvx-t:Reincorporación laboral en 24-48 horas. Se recomienda abstención de deporte de impacto durante 7-10 días para permitir la adaptación tisular completa."
+            }
+        ]
     }
 }

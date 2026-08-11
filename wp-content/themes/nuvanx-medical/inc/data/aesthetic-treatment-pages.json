@@ -6,7 +6,12 @@
         "seo_title": "Ácido hialurónico en labios Madrid | NUVANX",
         "description": "Valoración médica para hidratación, perfilado o corrección de asimetrías labiales con ácido hialurónico, según anatomía, movimiento y objetivos.",
         "kicker": "Medicina estética facial · Madrid",
-        "lead": "El tratamiento labial no parte de un volumen predeterminado. Estudiamos proporción, soporte, hidratación, simetría y movimiento para decidir si existe una indicación y qué grado de corrección es razonable.",
+        "lead": "El tratamiento labial no parte de un volumen predeterminado. Estudiamos proporción, soporte, hidratación, simetría y movimiento para decidir si existe una indicación y qué grado de corrección es razonable. Precio desde 290 € por vial/sesión.",
+        "brands": ["Juvederm Volift/Kyss", "Belotero Lips Contour/Shape", "Restylane Kysse"],
+        "duration": "6-12 meses (primer tratamiento); 9-15 meses (mantenimientos)",
+        "session_time": "30 minutos",
+        "anesthesia": "Tópica o troncular (bloqueo local odontológico) disponible",
+        "techniques": ["Perfilado del Arco de Cupido", "Redefinición de columnas del filtrum", "Eversión del bermellón", "Corrección de asimetrías", "Código de barras (smoker lines)", "Hidratación sin volumen (efecto Gloss)"],
         "diagnosis": "La valoración diferencia pérdida de definición, deshidratación, asimetría, cambios relacionados con la edad y expectativas que no pueden resolverse de forma segura con un inyectable. También revisa tratamientos previos, antecedentes médicos y la dinámica de la sonrisa.",
         "mechanism": "Cuando está indicado, se emplea un gel de ácido hialurónico seleccionado por sus propiedades de integración y comportamiento en una zona móvil. La técnica, el plano y la cantidad se individualizan para evitar sobrecorrección y preservar la expresión.",
         "indications": [
@@ -142,6 +147,14 @@
             "preparation": "Historia clínica y análisis anatómico y vascular, incluyendo cirugía, traumatismos, rellenos previos, medicación, función respiratoria y expectativas.",
             "howPerformed": "Aplicación médica conservadora de ácido hialurónico en puntos y planos seleccionados para camuflar irregularidades sin modificar estructuras nasales.",
             "followup": "Observación inmediata, instrucciones de alarma y revisión tras la fase inflamatoria.",
+            "price_range": "Desde 399 € / sesión",
+            "revision_included": "Revisión médica 2-3 semanas para simetría y micro-retoque sin coste",
+            "session_time": "15-30 minutos",
+            "anesthesia": "Tópica o crema anestesiosa con lidocaína/prilocaína",
+            "duration": "12-18 meses (zona sin movilidad muscular activa)",
+            "brands": ["Juvederm Voluma", "Restylane Lyft", "Stylage XL"],
+            "hybrid_option": "Hilos Tensores PDO nasales para soporte mecánico adicional",
+            "safety_protocol": "Aspiración previa a cada bolo, inyección lenta, hialuronidasa disponible en cabina",
             "indications": [
                 "Irregularidad leve del dorso nasal",
                 "Armonización seleccionada del perfil nasal"
@@ -217,6 +230,12 @@
             "preparation": "Diagnóstico diferencial de hundimiento, bolsas, edema, pigmentación y componente vascular, con revisión de antecedentes y tratamientos previos.",
             "howPerformed": "Inyección médica conservadora de ácido hialurónico en pacientes seleccionados, con producto, plano y cantidad adaptados a la anatomía periocular.",
             "followup": "Seguimiento de edema, integración, simetría y signos de complicación.",
+            "price_range": "Relleno surco lagrimal 349 € - 390 € / vial; Carboxiterapia/Peelings desde 50 € / sesión",
+            "session_time": "20-30 minutos",
+            "technique": "Cánula microfina 25G/27G punta roma para minimizar hematomas",
+            "duration": "12-15 meses (zona baja actividad metabólica)",
+            "brands": ["Redensity II (Teosyal)", "Gels reticulados baja higroscopicidad"],
+            "alternatives": ["Carboxiterapia 5-10 sesiones (moradas)", "IPL/Peeling fítico (pigmentarias)"],
             "indications": [
                 "Hundimiento estructural del surco lagrimal",
                 "Transición párpado-mejilla marcada"
@@ -292,6 +311,13 @@
             "preparation": "Valoración de calidad cutánea, laxitud, soporte, volumen, tratamientos previos, medicación y capacidad de seguimiento.",
             "howPerformed": "Aplicación médica de ácido poli-L-láctico o hidroxiapatita cálcica mediante técnica, dilución, plano y secuencia individualizados.",
             "followup": "Seguimiento progresivo de la respuesta tisular y vigilancia de inflamación, nódulos u otras complicaciones.",
+            "price_range": "Desde 450 € / vial o sesión",
+            "session_time": "30 minutos aprox.",
+            "duration": "12-18 meses según producto y metabolismo",
+            "protocol": "1-3 sesiones espaciadas 4-6 semanas; mantenimiento a 12 meses",
+            "brands": ["Radiesse", "Sculptra", "PCL líquida", "Ultracol", "Exosomas", "PRP"],
+            "post_care": "Regla de masaje 5x5x5 para Sculptra; evitar sol 48h; ejercicio intenso 24h",
+            "guidance": "Ecografía de alta frecuencia opcional para guiado en zonas de riesgo",
             "indications": [
                 "Pérdida de calidad y densidad cutánea",
                 "Laxitud cutánea leve o moderada seleccionada"

@@ -52,6 +52,9 @@ function loadManifest() {
   if (manifest.length === 0) {
     throw new Error('Canonical published-page manifest must not be empty');
   }
+  if (manifest.length < 40) {
+    throw new Error(`Canonical published-page manifest has only ${manifest.length} entries; minimum 40 required to prevent accidental truncation`);
+  }
 
   const ids = manifest.map((page) => Number(page.id));
   if (new Set(ids).size !== manifest.length || ids.some((id) => !Number.isInteger(id) || id <= 0)) {

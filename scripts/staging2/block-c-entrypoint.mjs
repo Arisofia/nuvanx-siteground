@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -15,8 +16,13 @@ async function prepareTrustedPagesPreload() {
   if (!pagesFile) return null;
 
   const pages = JSON.parse(await fs.readFile(pagesFile, 'utf8'));
-  if (!Array.isArray(pages) || pages.length < 52) {
-    throw new Error(`Trusted WordPress page inventory must contain at least 52 pages; got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const manifestPath = join(__dirname, 'published-pages-manifest.json');
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
+  if (!Array.isArray(pages) || pages.length < minimumPageCount) {
+    throw new Error(`Trusted WordPress page inventory must contain at least ${minimumPageCount} pages; got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
   }
 
   const normalizedPages = pages.map((page) => ({
@@ -117,8 +123,15 @@ async function failedResultsAreTransient() {
     return false;
   }
 
-  if (!Array.isArray(results) || results.length < 156) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'}`);
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const manifestPath = join(__dirname, 'published-pages-manifest.json');
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
+  const expectedResultsCount = minimumPageCount * 3; // 3 viewports per page
+
+  if (!Array.isArray(results) || results.length < expectedResultsCount) {
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);
     return false;
   }
 

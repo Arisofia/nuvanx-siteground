@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -72,7 +74,7 @@ async function fetchPublishedPagesViaBrowser(endpoint) {
   }
 }
 
-function validateAndNormalizePages(pages) {
+async function validateAndNormalizePages(pages) {
   if (!Array.isArray(pages)) throw new TypeError('WordPress REST pages response is not an array');
   const normalized = pages.map((page) => ({
     id: Number(page.id),
@@ -82,11 +84,16 @@ function validateAndNormalizePages(pages) {
     path: normalizePath(page.link),
   }));
   const unique = new Set(normalized.map((page) => page.path));
-  if (normalized.length < 52) {
-    throw new Error(`Block C requires at least 52 published pages; WordPress REST returned ${normalized.length}`);
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const manifestPath = join(__dirname, 'published-pages-manifest.json');
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
+  if (normalized.length < minimumPageCount) {
+    throw new Error(`Block C requires at least ${minimumPageCount} published pages; WordPress REST returned ${normalized.length}`);
   }
-  if (unique.size < 52) {
-    throw new Error(`Block C requires at least 52 unique published paths; REST returned ${unique.size}`);
+  if (unique.size < minimumPageCount) {
+    throw new Error(`Block C requires at least ${minimumPageCount} unique published paths; REST returned ${unique.size}`);
   }
   for (const page of normalized) {
     if (new URL(page.url).hostname !== expectedHost) {
@@ -111,7 +118,7 @@ async function fetchPublishedPages() {
         console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
         try {
           const pages = await fetchPublishedPagesViaBrowser(endpoint);
-          return validateAndNormalizePages(pages);
+          return await validateAndNormalizePages(pages);
         } catch (browserErr) {
           lastError = new Error(`SiteGround Antibot challenged WordPress REST (browser fallback failed: ${browserErr.message})`);
         }
@@ -119,7 +126,7 @@ async function fetchPublishedPages() {
         lastError = new Error(`WordPress REST returned HTTP ${response.status}`);
       } else {
         const pages = await response.json();
-        return validateAndNormalizePages(pages);
+        return await validateAndNormalizePages(pages);
       }
     } catch (error) {
       lastError = error;

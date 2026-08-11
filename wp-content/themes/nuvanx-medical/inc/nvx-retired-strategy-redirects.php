@@ -14,6 +14,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Get WordPress page IDs for retired strategy slugs.
+ *
+ * @return int[]
+ */
+function nvx_retired_strategy_page_ids(): array {
+	$ids = array();
+	$slugs = array( 'liposculpt-air', 'v-lift-awake' );
+
+	foreach ( $slugs as $slug ) {
+		$page = get_page_by_path( $slug );
+		if ( $page ) {
+			$ids[] = (int) $page->ID;
+		}
+	}
+
+	return $ids;
+}
+
+/**
  * Redirect retired strategy slugs to their approved public clinical hubs.
  */
 function nvx_redirect_retired_strategy_slugs(): void {
@@ -23,6 +42,7 @@ function nvx_redirect_retired_strategy_slugs(): void {
 
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
 	$path = strtolower( trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) );
+	$query = isset( $_SERVER['QUERY_STRING'] ) ? $_SERVER['QUERY_STRING'] : '';
 
 	$targets = array(
 		'liposculpt-air' => '/remodelacion-corporal-laser-madrid/',
@@ -33,7 +53,12 @@ function nvx_redirect_retired_strategy_slugs(): void {
 		return;
 	}
 
-	wp_safe_redirect( home_url( $targets[ $path ] ), 301, 'NUVANX' );
+	$redirect_url = home_url( $targets[ $path ] );
+	if ( $query ) {
+		$redirect_url = add_query_arg( $query, $redirect_url );
+	}
+
+	wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
 	exit;
 }
 add_action( 'template_redirect', 'nvx_redirect_retired_strategy_slugs', 0 );

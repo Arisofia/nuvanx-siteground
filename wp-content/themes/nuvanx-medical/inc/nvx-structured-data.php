@@ -630,7 +630,7 @@ function nvx_schema_faq_load_map_catalog( string $file ): array {
 		return $catalog;
 	}
 	foreach ( $json as $key => $entry ) {
-		if ( empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
+		if ( ! is_array( $entry ) || empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
 			continue;
 		}
 		$items = array();

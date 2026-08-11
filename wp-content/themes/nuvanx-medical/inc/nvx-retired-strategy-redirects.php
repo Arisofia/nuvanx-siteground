@@ -24,8 +24,8 @@ function nvx_retired_strategy_page_ids(): array {
 		return $ids;
 	}
 
-	$ids = array();
-	$slugs = array( 'liposculpt-air', 'v-lift-awake' );
+	$ids   = array();
+	$slugs = array( 'liposculpt-air', 'tratamiento-retirado', 'v-lift-awake' );
 
 	foreach ( $slugs as $slug ) {
 		$page = get_page_by_path( $slug );

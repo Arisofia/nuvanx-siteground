@@ -71,6 +71,5 @@ Mutating scripts require their explicit confirmation guard. Production deploymen
 
 - Architecture: `docs/architecture.md`
 - Deployment/runbook: `docs/operations/deployment.md`
-- Global document governance: `docs/global-document-governance.md`
+- Global document governance: `docs/operations/global-document-governance.md`
 - Security policy: `SECURITY.md`
-- Historical security evidence: `docs/security/`

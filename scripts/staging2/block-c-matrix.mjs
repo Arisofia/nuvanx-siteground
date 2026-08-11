@@ -18,6 +18,8 @@ const viewports = [
   { key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 },
 ];
 
+export const VIEWPORT_COUNT = viewports.length;
+
 const outputDir = path.resolve('scripts/staging2/block-c-artifacts');
 const screenshotDir = path.join(outputDir, 'screenshots');
 await fs.rm(outputDir, { recursive: true, force: true });
@@ -85,14 +87,12 @@ async function validateAndNormalizePages(pages) {
     throw new Error(`WordPress REST returned duplicate published paths: pages=${normalized.length} unique=${unique.size}`);
   }
 
-  const manifest = await loadPublishedPagesManifest();
-  assertCanonicalPublishedPaths(unique, manifest, 'WordPress REST inventory');
   for (const page of normalized) {
     if (new URL(page.url).hostname !== expectedHost) {
       throw new Error(`Published page ${page.id} points outside staging2: ${page.url}`);
     }
   }
-  return normalized;
+  return { normalized, unique };
 }
 
 async function fetchPublishedPages() {
@@ -125,10 +125,12 @@ async function fetchPublishedPages() {
     }
     await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
   }
-  throw lastError || new Error('Unable to fetch published WordPress pages');
+  throw lastError || new Error('Failed to fetch published pages after 4 attempts');
 }
 
-const publishedPages = await fetchPublishedPages();
+const { normalized: publishedPages, unique } = await fetchPublishedPages();
+const manifest = await loadPublishedPagesManifest();
+assertCanonicalPublishedPaths(unique, manifest, 'WordPress REST inventory');
 const routes = publishedPages.map((page) => page.path);
 await fs.writeFile(
   path.join(outputDir, 'published-pages.json'),

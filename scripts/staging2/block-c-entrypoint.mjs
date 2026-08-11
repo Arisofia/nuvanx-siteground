@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest } from './published-pages-contract.mjs';
+import { VIEWPORT_COUNT } from './block-c-matrix.mjs';
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -124,7 +125,7 @@ async function failedResultsAreTransient() {
   }
 
   const manifest = await loadPublishedPagesManifest();
-  const expectedResultsCount = manifest.length * 3;
+  const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
 
   if (!Array.isArray(results) || results.length < expectedResultsCount) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);

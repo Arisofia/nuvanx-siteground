@@ -66,14 +66,14 @@
     "planning": {
         "kicker": "@nvx-t:Inversión y planificación",
         "title": "@nvx-t:Precios orientativos por zona y seguimiento",
-        "body": "@nvx-t:Presupuesto orientativo por zona: Abdomen/Flancos 1.200 € – 1.800 €; Rodillas/Brazos 900 € – 1.300 €. Se realiza medición ecográfica previa del tejido adiposo para cuantificar el grosor del panículo. Procedimiento en 1 sesión única con resultados progresivos a las 3 semanas (máximo a los 4-6 meses). Incluye pauta de compresión post-procedimiento (1-2 semanas) y revisiones médicas a las 4 semanas, 3 meses y 6 meses.",
+        "body": "@nvx-t:Presupuesto orientativo por zona: Abdomen/Flancos 1.200 € – 1.800 €; Rodillas/Brazos 900 € – 1.300 €. Se realiza medición ecográfica previa del tejido adiposo para cuantificar el grosor del panículo. Procedimiento en 1 sesión única con resultados progresivos a las 3 semanas (máximo a los 4-6 meses). Incluye pauta de compresión post-procedimiento (1-4 semanas según zona) y revisiones médicas a las 4 semanas, 3 meses y 6 meses.",
         "items": [
             "@nvx-t:Valoración de zonas, flacidez y estabilidad de peso",
             "@nvx-t:Medición ecográfica pre-tratamiento del tejido adiposo",
             "@nvx-t:Estimación de extensión de la cuadrícula láser y duración ambulatoria",
             "@nvx-t:Presupuesto documentado antes del procedimiento",
             "@nvx-t:Seguimiento clínico según protocolo de la zona tratada",
-            "@nvx-t:Pauta de compresión post-procedimiento (1-2 semanas)"
+            "@nvx-t:Pauta de compresión post-procedimiento (1-4 semanas según zona)"
         ],
         "note": "@nvx-t:Para papada y óvalo facial con protocolo facial dedicado, consulta la página de Endolift® facial (tarifas PVP faciales publicadas allí)."
     },
@@ -87,7 +87,7 @@
             },
             {
                 "q": "@nvx-t:¿Es necesaria prenda de compresión?",
-                "a": "@nvx-t:Sí, se utiliza faja compresiva o malla elastodrenante durante 1-2 semanas post-tratamiento para optimizar la retracción tisular y el drenaje linfático."
+                "a": "@nvx-t:Sí, se utiliza faja compresiva o prenda elastodrenante durante 2-4 semanas en abdomen y flancos (1-2 semanas en zonas de menor extensión como brazos o rodillas) para optimizar la retracción tisular y el drenaje linfático."
             },
             {
                 "q": "@nvx-t:¿Cómo se miden los resultados?",

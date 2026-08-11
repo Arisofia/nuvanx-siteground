@@ -72,15 +72,17 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
+	// Price should be in an Offer node, not directly on MedicalProcedure/Service
 	if ( ! empty( $entry['price_range'] ) ) {
-		$node['priceRange'] = (string) $entry['price_range'];
+		$node['offers'] = array(
+			'@type'         => 'Offer',
+			'price'         => $entry['price_range'],
+			'priceCurrency' => 'EUR',
+			'availability'  => 'https://schema.org/InStock',
+		);
 	}
-	if ( ! empty( $entry['session_time'] ) ) {
-		$time_str = (string) $entry['session_time'];
-		if ( preg_match_all( '/(\d+)/', $time_str, $matches ) && 1 === count( $matches[1] ) ) {
-			$node['duration'] = 'PT' . $matches[1][0] . 'M';
-		}
-	}
+	// Duration should be expressed as a duration value or omitted (not valid on MedicalProcedure/Service)
+	// ISO 8601 duration format could be used but is not standard for MedicalProcedure
 
 
 

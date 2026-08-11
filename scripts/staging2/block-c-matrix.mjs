@@ -681,10 +681,7 @@ for (const viewport of viewports) {
           if (geometry.videoRect && (geometry.videoRect.width < 100 || geometry.videoRect.height < 100)) issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
         }
         if (consoleErrors.length > 0) issues.push(`${consoleErrors.length} browser console error(s)`);
-        // Legal pages may have external widgets with transient network errors; tolerate up to 2.
-        if (networkErrors.length > 0 && !(legalPages.has(route) && networkErrors.length <= 2)) {
-          issues.push(`${networkErrors.length} same-origin network error(s)`);
-        }
+        if (networkErrors.length > 0) issues.push(`${networkErrors.length} same-origin network error(s)`);
       }
 
       const shotName = `${String(index + 1).padStart(2, '0')}-${safeName(route)}--${viewport.key}.jpg`;

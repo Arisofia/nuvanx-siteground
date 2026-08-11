@@ -396,6 +396,8 @@
 	function releaseAuditClaim() {
 		auditClaimed = false;
 		var pending = legacyPendingSubmission;
+		// Claim contention does not consume transport retry budget. The retryCount < 3
+		// guard keeps these short rechecks bounded by the same transport-failure budget.
 		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer && pending.retryCount < 3) {
 			scheduleLegacyRetry(pending, false);
 		}
@@ -526,7 +528,11 @@
 				}
 				var wrote = setLegacyField(root, propertyName, value, input);
 				modified = wrote || modified;
-				if (wrote && consent && propertyName === 'hs_google_click_id' && value && input) legacyNativeGclidInputs.add(input);
+				// Ownership follows the adapter applying the consented attribution value,
+				// not whether the DOM changed; HubSpot may already hold the same GCLID.
+				if (consent && propertyName === 'hs_google_click_id' && value && input) {
+					legacyNativeGclidInputs.add(input);
+				}
 			});
 		});
 		return modified;
@@ -544,7 +550,8 @@
 
 	/**
 	 * Captures the newest canonical legacy submission and hashes its email immediately.
-	 * A newer submission replaces any older pending retry state, even from another root.
+	 * A newer canonical submission attempt invalidates any older pending retry state,
+	 * even when the new attempt has a missing or invalid email field.
 	 */
 	async function captureLegacyEmail(formLike, formId) {
 		populateLegacyClickFields(formLike, formId);
@@ -554,12 +561,15 @@
 		}
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return;
+
+		// Pair pending state strictly with the newest canonical submit attempt. This
+		// prevents a later invalid capture from reusing an earlier submission hash.
+		clearLegacyPendingSubmission();
 		var emailInput = legacyFieldInput(root, 'email');
 		if (!emailInput) return;
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
 
-		clearLegacyPendingSubmission();
 		legacyCaptureSequence += 1;
 		var pending = {
 			captureId: legacyCaptureSequence,

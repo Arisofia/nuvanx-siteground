@@ -465,8 +465,8 @@
 		return null;
 	}
 
-	function setLegacyField(root, propertyName, value, resolvedInput) {
-		var input = resolvedInput || legacyFieldInput(root, propertyName);
+	function setLegacyField(root, propertyName, value, inputArg) {
+		var input = inputArg || legacyFieldInput(root, propertyName);
 		if (!input) return false;
 		var nextValue = String(value || '');
 		try {
@@ -645,7 +645,7 @@
 				data = {};
 			}
 		}
-		if (typeof data !== 'object') data = {};
+		if (typeof data !== 'object' || data === null) data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
 		transmitLegacySuccess();

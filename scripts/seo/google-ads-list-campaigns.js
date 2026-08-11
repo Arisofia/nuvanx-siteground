@@ -178,13 +178,13 @@ main().catch((err) => {
   const sanitizeScalar = (raw) => String(raw).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
 
   const projectErrorCode = (raw) => {
-    if (raw === undefined || raw === null) return undefined;
-    if (typeof raw !== 'object' || Array.isArray(raw)) {
+    if (raw === undefined || raw === null || Array.isArray(raw)) return undefined;
+    if (typeof raw !== 'object') {
       const scalar = sanitizeScalar(raw);
       return scalar === '' ? undefined : scalar;
     }
 
-    const projected = {};
+    const projected = Object.create(null);
     for (const [key, value] of Object.entries(raw).slice(0, 8)) {
       if (!/^[A-Za-z][\w-]{0,63}$/.test(key)) continue;
       if (['string', 'number', 'boolean'].includes(typeof value)) {
@@ -193,7 +193,7 @@ main().catch((err) => {
       } else if (value && typeof value === 'object' && !Array.isArray(value)) {
         // Project one additional level of primitive enum-like leaves only; never
         // serialize arbitrary nested request metadata into CI logs.
-        const nested = {};
+        const nested = Object.create(null);
         for (const [nestedKey, nestedValue] of Object.entries(value).slice(0, 8)) {
           if (!/^[A-Za-z][\w-]{0,63}$/.test(nestedKey)) continue;
           if (['string', 'number', 'boolean'].includes(typeof nestedValue)) {
@@ -233,11 +233,13 @@ main().catch((err) => {
   }
 
   const isApiError = err instanceof errors.GoogleAdsFailure;
-  const runtimeClass = String(err?.constructor?.name || 'runtime_error')
-    .replace(/[^A-Za-z0-9_.:-]/g, '_')
-    .slice(0, 64) || 'runtime_error';
-  const runtimeCode = ['string', 'number'].includes(typeof err?.code)
-    ? sanitizeScalar(err.code).slice(0, 64)
+  const rawRuntimeClass = String(err?.constructor?.name || '');
+  const runtimeClass = /^[A-Za-z][A-Za-z0-9_$]{0,63}$/.test(rawRuntimeClass)
+    ? rawRuntimeClass
+    : 'runtime_error';
+  const rawRuntimeCode = ['string', 'number'].includes(typeof err?.code) ? String(err.code) : '';
+  const runtimeCode = (/^[A-Z][A-Z0-9_]{0,31}$/.test(rawRuntimeCode) || /^\d{1,3}$/.test(rawRuntimeCode))
+    ? rawRuntimeCode
     : '';
   const runtimeDiagnostic = runtimeCode ? `${runtimeClass}:${runtimeCode}` : runtimeClass;
   const topLevelClass = isApiError ? classifyMessage(err?.message || err) : runtimeDiagnostic;

@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 
 const manifestUrl = new URL('./published-pages-manifest.json', import.meta.url);
 
+export const MIN_MANIFEST_ENTRIES = 40;
+
 function normalizePath(value) {
   const path = String(value || '').split(/[?#]/, 1)[0] || '/';
   return path.endsWith('/') ? path : `${path}/`;

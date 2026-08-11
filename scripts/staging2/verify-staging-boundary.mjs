@@ -82,13 +82,21 @@ function robotsContract(meta, header) {
   return [meta, header].filter(Boolean).join(',');
 }
 
+function hasExplicitIndexFollow(value) {
+  const directives = String(value || '')
+    .toLowerCase()
+    .split(/[\s,]+/)
+    .filter(Boolean);
+  return directives.includes('index') && directives.includes('follow');
+}
+
 function robotsIssues(value) {
   const normalized = String(value || '').toLowerCase();
   const issues = [];
   if (!normalized.includes('noindex') || !normalized.includes('nofollow')) {
     issues.push(`Expected robots noindex,nofollow; got "${value || '(missing)'}"`);
   }
-  if (/(^|[^a-z])index\s*,?\s*follow([^a-z]|$)/i.test(normalized)) {
+  if (hasExplicitIndexFollow(normalized)) {
     issues.push(`Staging exposes index,follow robots content: "${value}"`);
   }
   return issues;
@@ -112,8 +120,8 @@ function sshAliasConfigured(alias) {
 }
 
 function verifyViaSiteGroundOrigin(route) {
-  // Keep the remote shell as ordinary JS strings. A template literal would
-  // interpret shell ${...} parameter expansions as JavaScript interpolation.
+  // Keep shell parameter expansions in ordinary strings. String.raw is used only
+  // for entries whose backslash-heavy payload contains no JavaScript ${...} interpolation.
   const remoteScript = [
     'set -Eeuo pipefail',
     'base_url="https://$EXPECTED_HOST"',
@@ -129,7 +137,7 @@ function verifyViaSiteGroundOrigin(route) {
     '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
     'extract_meta_content() {',
-    '  php -r \'$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\\\\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\\\\bname\\\\s*=\\\\s*(?:\\\\x22([^\\\\x22]+)\\\\x22|\\\\x27([^\\\\x27]+)\\\\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\\\\bcontent\\\\s*=\\\\s*(?:\\\\x22([^\\\\x22]*)\\\\x22|\\\\x27([^\\\\x27]*)\\\\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }\' "$body" "$1"',
+    String.raw`  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\\bname\\s*=\\s*(?:\\x22([^\\x22]+)\\x22|\\x27([^\\x27]+)\\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\\bcontent\\s*=\\s*(?:\\x22([^\\x22]*)\\x22|\\x27([^\\x27]*)\\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
     '}',
     'deploy_sha="$(extract_meta_content nvx-deploy-sha)"',
     'test "$deploy_sha" = "$EXPECTED_SHA"',
@@ -139,7 +147,7 @@ function verifyViaSiteGroundOrigin(route) {
     'printf \'%s\' "$combined" | grep -Eiq \'noindex\'',
     'printf \'%s\' "$combined" | grep -Eiq \'nofollow\'',
     'if printf \'%s\' "$combined" | grep -Eiq \'(^|[^a-z])index[[:space:]]*,?[[:space:]]*follow([^a-z]|$)\'; then echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE reason=index-follow" >&2; exit 1; fi',
-    'robots_b64="$(printf \'%s\' "$combined" | base64 | tr -d \'\\n\')"',
+    String.raw`robots_b64="$(printf '%s' "$combined" | base64 | tr -d '\n')"`,
     'echo "ORIGIN_BOUNDARY=PASS route=$ROUTE status=$code final=$effective sha=$deploy_sha robots_b64=$robots_b64"',
     '',
   ].join('\n');

@@ -15,7 +15,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sel = (name) => `input[name="${name}"],input[name="0-1/${name}"]`;
 
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) {
+if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   throw new Error(`EXPECTED_SHA must be a full lowercase 40-hex commit SHA; received=${JSON.stringify(expectedSha)}`);
 }
 
@@ -67,7 +67,7 @@ try {
   const metaCount = await metaLocator.count().catch(() => 0);
   const sha = metaCount > 0 ? (await metaLocator.getAttribute('content', { timeout: 2000 }).catch(() => '')) || '' : '';
   console.log(`PRODUCTION_SHA=${sha || '(none)'}`);
-  if (expectedSha && sha !== expectedSha) {
+  if (sha !== expectedSha) {
     throw new Error(`Production SHA mismatch: current=${sha || '(none)'}, expected=${expectedSha}`);
   }
 

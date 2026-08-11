@@ -25,8 +25,53 @@ function nvx_aesthetic_treatment_catalog(): array {
 
 	if ( null === $catalog ) {
 		require_once __DIR__ . '/nvx-catalog-json.php';
+		$raw_catalog = nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' );
+
+		if ( is_array( $raw_catalog ) ) {
+			foreach ( $raw_catalog as $key => &$entry ) {
+				if ( ! is_array( $entry ) ) {
+					continue;
+				}
+				$sources = array(
+					$entry['protocol'] ?? array(),
+					$entry['schema'] ?? array(),
+				);
+				foreach ( $sources as $src ) {
+					if ( ! is_array( $src ) ) {
+						continue;
+					}
+					if ( empty( $entry['price_range'] ) && ! empty( $src['price_range'] ) ) {
+						$entry['price_range'] = $src['price_range'];
+					}
+					if ( empty( $entry['session_time'] ) && ! empty( $src['session_time'] ) ) {
+						$entry['session_time'] = $src['session_time'];
+					}
+					if ( empty( $entry['duration'] ) && ! empty( $src['duration_result'] ) ) {
+						$entry['duration'] = $src['duration_result'];
+					} elseif ( empty( $entry['duration'] ) && ! empty( $src['duration'] ) ) {
+						$entry['duration'] = $src['duration'];
+					}
+					if ( empty( $entry['anesthesia'] ) && ! empty( $src['anesthesia'] ) ) {
+						$entry['anesthesia'] = $src['anesthesia'];
+					}
+					if ( empty( $entry['brands'] ) && ! empty( $src['brands'] ) ) {
+						$entry['brands'] = (array) $src['brands'];
+					} elseif ( empty( $entry['brands'] ) && ! empty( $src['products_used'] ) ) {
+						$entry['brands'] = (array) $src['products_used'];
+					}
+					if ( empty( $entry['sessions'] ) && ! empty( $src['sessions'] ) ) {
+						$entry['sessions'] = $src['sessions'];
+					}
+					if ( empty( $entry['downtime'] ) && ! empty( $src['downtime'] ) ) {
+						$entry['downtime'] = $src['downtime'];
+					}
+				}
+			}
+			unset( $entry );
+		}
+
 		$catalog = nvx_catalog_filter_records(
-			nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' ),
+			$raw_catalog,
 			array(
 				'slug',
 				'kicker',
@@ -44,14 +89,16 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'faqs',
 				'schema',
 				'protocol',
+				'sessions',
+				'downtime',
 			),
 			'aesthetic-treatment-pages.json'
 		);
-
 	}
 
 	return $catalog;
 }
+
 
 /** Resolve a treatment key from slug or current singular page. */
 function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
@@ -151,16 +198,22 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	}
 	$html .= '</ol></div></section>';
 
-	if ( ! empty( $entry['price_range'] ) || ! empty( $entry['session_time'] ) || ! empty( $entry['duration'] ) || ! empty( $entry['anesthesia'] ) || ! empty( $entry['brands'] ) || ! empty( $entry['techniques'] ) ) {
+	if ( ! empty( $entry['price_range'] ) || ! empty( $entry['session_time'] ) || ! empty( $entry['duration'] ) || ! empty( $entry['anesthesia'] ) || ! empty( $entry['brands'] ) || ! empty( $entry['techniques'] ) || ! empty( $entry['sessions'] ) || ! empty( $entry['downtime'] ) ) {
 		$html .= '<section class="nvx-aes-section nvx-aes-clinical-data" aria-labelledby="nvx-aesthetic-data-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Parámetros de tratamiento</p><h2 id="nvx-aesthetic-data-title" class="nvx-aes-heading">Datos clínicos y de consulta</h2><ul class="nvx-strategy-checklist">';
 		if ( ! empty( $entry['price_range'] ) ) {
 			$html .= '<li><strong>Tarifa orientativa:</strong> ' . esc_html( (string) $entry['price_range'] ) . '</li>';
+		}
+		if ( ! empty( $entry['sessions'] ) ) {
+			$html .= '<li><strong>Sesiones orientativas:</strong> ' . esc_html( (string) $entry['sessions'] ) . '</li>';
 		}
 		if ( ! empty( $entry['session_time'] ) ) {
 			$html .= '<li><strong>Duración en cabina:</strong> ' . esc_html( (string) $entry['session_time'] ) . '</li>';
 		}
 		if ( ! empty( $entry['duration'] ) ) {
 			$html .= '<li><strong>Durabilidad orientativa:</strong> ' . esc_html( (string) $entry['duration'] ) . '</li>';
+		}
+		if ( ! empty( $entry['downtime'] ) ) {
+			$html .= '<li><strong>Recuperación y downtime:</strong> ' . esc_html( (string) $entry['downtime'] ) . '</li>';
 		}
 		if ( ! empty( $entry['anesthesia'] ) ) {
 			$html .= '<li><strong>Anestesia:</strong> ' . esc_html( (string) $entry['anesthesia'] ) . '</li>';
@@ -173,6 +226,7 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 		}
 		$html .= '</ul></div></section>';
 	}
+
 
 	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-evolution-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Evolución y seguridad</p><h2 id="nvx-aesthetic-evolution-title" class="nvx-aes-heading">Recuperación, límites y riesgos</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['evolution'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Riesgos que deben explicarse</h3>' . nvx_aesthetic_treatment_list_markup( $entry['risks'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Combinaciones posibles</h3>' . nvx_aesthetic_treatment_list_markup( $entry['combinations'] ) . '</article></div></div></section>';
 

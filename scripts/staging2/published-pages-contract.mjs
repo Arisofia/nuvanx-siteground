@@ -16,7 +16,13 @@ export async function loadPublishedPagesManifest() {
     throw new Error(`Canonical published-page manifest has only ${manifest.length} entries; minimum 40 required to prevent accidental truncation`);
   }
 
-  const paths = manifest.map((page) => normalizePath(page?.path));
+  for (const page of manifest) {
+    if (!page || typeof page.path !== 'string' || page.path.trim() === '') {
+      throw new Error('Canonical published-page manifest contains entry with missing or empty path');
+    }
+  }
+
+  const paths = manifest.map((page) => normalizePath(page.path));
   if (paths.some((path) => !path.startsWith('/')) || new Set(paths).size !== paths.length) {
     throw new Error('Canonical published-page manifest contains invalid or duplicate paths');
   }

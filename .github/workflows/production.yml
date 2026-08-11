@@ -654,21 +654,21 @@ jobs:
             printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
             printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
             test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-            cat > "$HOME/.ssh/config" <<EOF
-            Host nvx-prod-h1
-              HostName $HOST
-              User $USER
-              Port $SSH_PORT
-              IdentityFile $HOME/.ssh/prod_h1_key
-              IdentitiesOnly yes
-              BatchMode yes
-              StrictHostKeyChecking yes
-              UserKnownHostsFile $HOME/.ssh/known_hosts
-              ConnectTimeout 15
-              ConnectionAttempts 1
-              ServerAliveInterval 15
-              ServerAliveCountMax 2
-            EOF
+            printf '%s\n' \
+              'Host nvx-prod-h1' \
+              "  HostName $HOST" \
+              "  User $USER" \
+              "  Port $SSH_PORT" \
+              "  IdentityFile $HOME/.ssh/prod_h1_key" \
+              '  IdentitiesOnly yes' \
+              '  BatchMode yes' \
+              '  StrictHostKeyChecking yes' \
+              "  UserKnownHostsFile $HOME/.ssh/known_hosts" \
+              '  ConnectTimeout 15' \
+              '  ConnectionAttempts 1' \
+              '  ServerAliveInterval 15' \
+              '  ServerAliveCountMax 2' \
+              > "$HOME/.ssh/config"
             chmod 600 "$HOME/.ssh/config"
             connected=0
             retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"

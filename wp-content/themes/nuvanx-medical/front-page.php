@@ -125,7 +125,7 @@ ob_start();
 				?>
 				<img
 					src="<?php echo esc_url( $evidence_image ); ?>"
-					alt="Valoración médica personalizada en NUVANX Madrid"
+					alt="Consulta médica personalizada en NUVANX Madrid"
 					class="nvx-home-evidence__image"
 					width="<?php echo esc_attr( (string) $evidence_w ); ?>"
 					height="<?php echo esc_attr( (string) $evidence_h ); ?>"
@@ -134,19 +134,9 @@ ob_start();
 				>
 			</div>
 			<div class="nvx-home-evidence__text-col">
-				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">La evolución necesita contexto, no promesas rápidas.</h2>
-				<p class="nvx-home-evidence__desc">Un resultado sólo tiene sentido si se entiende de dónde partimos. Por eso documentamos nuestros casos con criterio médico: sin filtros, en la misma postura y bajo la misma luz.</p>
-				<?php
-				$_nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-				$_nvx_casos_public = $_nvx_casos_id > 0
-				&& ( ! function_exists( 'nvx_noindex_page_ids' )
-					|| ! in_array( $_nvx_casos_id, nvx_noindex_page_ids(), true ) );
-				if ( $_nvx_casos_public ) :
-					?>
-				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Explorar casos clínicos', 'nuvanx-medical' ); ?></a>
-				<?php else : ?>
+				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">El seguimiento clínico forma parte del protocolo, no es un extra.</h2>
+				<p class="nvx-home-evidence__desc">Las revisiones se programan en semanas 4 y 8 para los protocolos de láser intersticial, y según la respuesta individual en los de radiofrecuencia y CO₂. La responsabilidad médica no termina al salir de consulta.</p>
 				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
-			<?php endif; ?>
 			</div>
 		</div>
 	</section>

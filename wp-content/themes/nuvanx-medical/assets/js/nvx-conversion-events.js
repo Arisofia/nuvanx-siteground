@@ -186,6 +186,7 @@
 	var eligiblePath = normalizedPath === '/madrid/valoracion';
 	var sent = false;
 	var inFlight = false;
+	var auditClaimed = false;
 	var clickValues = collectClickValues();
 	var FIELD_MAP = {
 		gclid: ['nvx_google_click_id', 'hs_google_click_id'],
@@ -266,13 +267,11 @@
 			var value = consent ? clickValues[param] : '';
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
-				// Privacy fail-closed: clear mapped nvx_ variables, but do not overwrite native HubSpot fields when consent is denied
 				if (!consent && propertyName.indexOf('nvx_') !== 0) return;
-				
 				fieldCandidates(propertyName).forEach(function (fieldName) {
 					if (!availableNames.has(fieldName)) return;
 					try {
-						form.setFieldValue(fieldName, value); // HubSpot v4 expects scalar for text inputs
+						form.setFieldValue(fieldName, value);
 						modified = true;
 					} catch (_error) {}
 				});
@@ -352,12 +351,8 @@
 	async function buildAuditPayload(event) {
 		var fields = null;
 		var detail = event && event.detail ? event.detail : {};
-		
-		if (Array.isArray(detail.data)) {
-			fields = detail.data;
-		} else if (Array.isArray(detail.submissionValues)) {
-			fields = detail.submissionValues;
-		}
+		if (Array.isArray(detail.data)) fields = detail.data;
+		else if (Array.isArray(detail.submissionValues)) fields = detail.submissionValues;
 
 		if (!fields) {
 			if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
@@ -378,7 +373,6 @@
 
 		var email = normalizeEmail(getFieldValue(fields, 'email'));
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return null;
-
 		var emailHash = await sha256(email);
 		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return null;
 
@@ -393,12 +387,29 @@
 		};
 	}
 
+	function claimAudit() {
+		if (sent || inFlight || auditClaimed || !hasMarketingConsent()) return false;
+		auditClaimed = true;
+		return true;
+	}
+
+	function releaseAuditClaim() {
+		auditClaimed = false;
+		var pending = legacyPendingSubmission;
+		// Claim contention does not consume transport retry budget. The retryCount < 3
+		// guard keeps these short rechecks bounded by the same transport-failure budget.
+		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer && pending.retryCount < 3) {
+			scheduleLegacyRetry(pending, false);
+		}
+	}
+
 	/**
 	 * Submits an attribution audit after marketing consent is confirmed.
 	 * @param {Object} payload - The attribution audit data to transmit.
+	 * @return {Promise<boolean>} Whether the request reached a terminal accepted/client-error state.
 	 */
 	async function transmitAudit(payload) {
-		if (sent || inFlight || !payload || !hasMarketingConsent()) return;
+		if (sent || inFlight || !payload || !hasMarketingConsent()) return false;
 		inFlight = true;
 		try {
 			var response = await window.fetch(ENDPOINT, {
@@ -411,38 +422,35 @@
 				body: JSON.stringify(payload),
 				keepalive: true,
 			});
-			// Treat client errors (4xx) as terminal to prevent silent retry loops
 			if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
 				sent = true;
+				return true;
 			}
+			return false;
 		} catch (_error) {
-			// Attribution audit failure must never interfere with the patient form flow.
+			return false;
 		} finally {
 			inFlight = false;
 		}
 	}
 
 	var legacyFormRoots = [];
-	var legacyEmailForAudit = '';
+	var legacyPendingSubmission = null;
 	var legacyEmailClearTimer = null;
+	var legacyRetryTimer = null;
+	var legacyCaptureSequence = 0;
 	var legacyNativeGclidInputs = new WeakSet();
 
-	/**
-	 * Clears the temporarily captured email address used for legacy attribution audits.
-	 */
-	function clearLegacyEmail() {
-		legacyEmailForAudit = '';
-		if (legacyEmailClearTimer) {
-			window.clearTimeout(legacyEmailClearTimer);
-			legacyEmailClearTimer = null;
-		}
+	/** Clear only the currently expected legacy submission when a caller supplies one. */
+	function clearLegacyPendingSubmission(expectedPending) {
+		if (expectedPending && legacyPendingSubmission !== expectedPending) return;
+		legacyPendingSubmission = null;
+		if (legacyEmailClearTimer) window.clearTimeout(legacyEmailClearTimer);
+		if (legacyRetryTimer) window.clearTimeout(legacyRetryTimer);
+		legacyEmailClearTimer = null;
+		legacyRetryTimer = null;
 	}
 
-	/**
-	 * Resolves a form-like value to its underlying DOM element.
-	 * @param {*} formLike - A DOM element, jQuery object, or array-like value containing a DOM element.
-	 * @return {Element|null} The resolved DOM element, or `null` when the value cannot be resolved.
-	 */
 	function legacyFormRoot(formLike) {
 		var root = formLike;
 		try {
@@ -453,26 +461,33 @@
 		} catch (_error) {
 			return null;
 		}
-		return root && typeof root.querySelector === 'function' ? root : null;
+		return root?.nodeType === 1 && typeof root.querySelector === 'function' ? root : null;
 	}
 
-	/**
-	 * Sets a legacy form field and dispatches input and change events.
-	 * @param {Element} root - The form container to search.
-	 * @param {string} propertyName - The field's name attribute.
-	 * @param {string} value - The value to assign.
-	 * @return {boolean} `true` if the field was updated, `false` otherwise.
-	 */
-	function setLegacyField(root, propertyName, value) {
-		if (!root) return false;
-		var input = root.querySelector('[name="' + propertyName + '"]');
+	function legacyFieldInput(root, propertyName) {
+		if (!root) return null;
+		for (const name of fieldCandidates(propertyName)) {
+			const input = root.querySelector('[name="' + name + '"]');
+			if (input) return input;
+		}
+		return null;
+	}
+
+	function setLegacyField(root, propertyName, value, inputArg) {
+		var input = inputArg || legacyFieldInput(root, propertyName);
 		if (!input) return false;
+		var nextValue = String(value || '');
 		try {
+			if (String(input.value || '') === nextValue) {
+				if (nextValue) input.setAttribute('value', nextValue);
+				else input.removeAttribute('value');
+				return false;
+			}
 			var prototype = Object.getPrototypeOf(input);
 			var descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, 'value') : null;
-			if (descriptor && typeof descriptor.set === 'function') descriptor.set.call(input, value);
-			else input.value = value;
-			if (value) input.setAttribute('value', value);
+			if (descriptor && typeof descriptor.set === 'function') descriptor.set.call(input, nextValue);
+			else input.value = nextValue;
+			if (nextValue) input.setAttribute('value', nextValue);
 			else input.removeAttribute('value');
 			input.dispatchEvent(new Event('input', { bubbles: true }));
 			input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -482,30 +497,15 @@
 		}
 	}
 
-	/**
-	 * Resolves a form-like value to the canonical form root, rejecting non-canonical forms.
-	 * @param {*} formLike - A legacy form reference or form-like value used to locate the form root.
-	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; when present it must match FORM_ID.
-	 * @return {Element|null} The canonical form root, or `null` when it cannot be resolved or is not canonical.
-	 */
 	function canonicalLegacyRoot(formLike, formId) {
 		if (formId !== undefined && String(formId || '').toLowerCase() !== FORM_ID) return null;
 		var root = legacyFormRoot(formLike);
 		if (!root) return null;
-		// Fall back to the frame's own data-form-id when the hook did not provide one.
-		if (formId === undefined) {
-			var frame = typeof root.closest === 'function' ? root.closest('[data-form-id]') : null;
-			if (frame && String(frame.getAttribute('data-form-id') || '').toLowerCase() !== FORM_ID) return null;
-		}
+		var frame = typeof root.closest === 'function' ? root.closest('[data-form-id]') : null;
+		if (frame && String(frame.getAttribute('data-form-id') || '').toLowerCase() !== FORM_ID) return null;
 		return root;
 	}
 
-	/**
-	 * Populates a legacy HubSpot form with Google click attribution fields when marketing consent is available.
-	 * @param {*} formLike - A legacy form reference or form-like value used to locate the form root.
-	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; gates population to the canonical form.
-	 * @return {boolean} `true` if any field was modified, `false` otherwise.
-	 */
 	function populateLegacyClickFields(formLike, formId) {
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return false;
@@ -517,27 +517,29 @@
 			var value = consent ? clickValues[param] : '';
 			if (!value && consent) return;
 			FIELD_MAP[param].forEach(function (propertyName) {
-				var input = root.querySelector('[name="' + propertyName + '"]');
+				var input = legacyFieldInput(root, propertyName);
 				if (!consent && propertyName.indexOf('nvx_') !== 0) {
-					// Fail-closed: clear the native field only if this adapter wrote the GCLID into it.
 					if (propertyName === 'hs_google_click_id' && input && legacyNativeGclidInputs.has(input)) {
-						modified = setLegacyField(root, propertyName, '') || modified;
-						legacyNativeGclidInputs.delete(input);
+						var cleared = setLegacyField(root, propertyName, '', input);
+						modified = cleared || modified;
+						if (cleared || String(input.value || '') === '') legacyNativeGclidInputs.delete(input);
 					}
 					return;
 				}
-				modified = setLegacyField(root, propertyName, value) || modified;
-				if (consent && propertyName === 'hs_google_click_id' && value && input) legacyNativeGclidInputs.add(input);
+				var wrote = setLegacyField(root, propertyName, value, input);
+				modified = wrote || modified;
+				// Ownership follows the adapter applying the consented attribution value,
+				// not whether the DOM changed; HubSpot may already hold the same GCLID.
+				if (consent && propertyName === 'hs_google_click_id' && value && input) {
+					legacyNativeGclidInputs.add(input);
+				}
 			});
 		});
 		return modified;
 	}
 
-	/**
-	 * Refreshes registered legacy forms with current attribution data and consent state.
-	 */
 	function refreshLegacyForms() {
-		if (!hasMarketingConsent()) clearLegacyEmail();
+		if (!hasMarketingConsent()) clearLegacyPendingSubmission();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
 			return root && root.isConnected;
 		});
@@ -547,49 +549,109 @@
 	}
 
 	/**
-	 * Captures a valid email address from a legacy form for consent-gated attribution auditing.
-	 * @param {Object} formLike - A legacy form element or form-like value used to locate the email field.
-	 * @param {string} [formId] - Optional HubSpot form id reported by the frame; gates capture to the canonical form.
+	 * Captures the newest canonical legacy submission and hashes its email immediately.
+	 * A newer canonical submission attempt invalidates any older pending retry state,
+	 * even when the new attempt has a missing or invalid email field.
 	 */
-	function captureLegacyEmail(formLike, formId) {
-		clearLegacyEmail();
+	async function captureLegacyEmail(formLike, formId) {
 		populateLegacyClickFields(formLike, formId);
-		if (!hasMarketingConsent()) return;
+		if (!hasMarketingConsent()) {
+			clearLegacyPendingSubmission();
+			return;
+		}
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return;
-		var emailInput = root.querySelector('[name="email"]');
+
+		// Pair pending state strictly with the newest canonical submit attempt. This
+		// prevents a later invalid capture from reusing an earlier submission hash.
+		clearLegacyPendingSubmission();
+		var emailInput = legacyFieldInput(root, 'email');
 		if (!emailInput) return;
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
-		legacyEmailForAudit = email;
-		legacyEmailClearTimer = window.setTimeout(clearLegacyEmail, 30000);
-	}
 
-	/**
-	 * Transmits attribution data after a legacy form submission when valid consent and email data are available.
-	 */
-	async function transmitLegacySuccess() {
-		var email = legacyEmailForAudit;
-		clearLegacyEmail();
-		if (!email || !hasMarketingConsent() || sent || inFlight) return;
+		legacyCaptureSequence += 1;
+		var pending = {
+			captureId: legacyCaptureSequence,
+			root: root,
+			emailHash: '',
+			retryCount: 0,
+			successSeen: false,
+		};
+		legacyPendingSubmission = pending;
+		legacyEmailClearTimer = window.setTimeout(function () {
+			clearLegacyPendingSubmission(pending);
+		}, 30000);
+
 		var emailHash = await sha256(email);
-		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return;
-		transmitAudit({
-			email_hash: emailHash,
-			gclid: clickValues.gclid || null,
-			gbraid: clickValues.gbraid || null,
-			wbraid: clickValues.wbraid || null,
-			gclsrc: clickValues.gclsrc || null,
-			form_id: FORM_ID,
-			landing_url: canonicalLandingUrl(),
-		});
+		email = '';
+		if (legacyPendingSubmission !== pending) return;
+		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) {
+			clearLegacyPendingSubmission(pending);
+			return;
+		}
+		pending.emailHash = emailHash;
+		if (pending.successSeen) transmitLegacySuccess(pending.root, FORM_ID);
+	}
+
+	/** Schedule a bounded retry for the same pending submission. */
+	function scheduleLegacyRetry(pendingArg, consumeBudget) {
+		var pending = pendingArg || legacyPendingSubmission;
+		if (!pending || legacyPendingSubmission !== pending || legacyRetryTimer || sent) return;
+		if (!pending.successSeen || !pending.emailHash) return;
+		var shouldConsume = consumeBudget !== false;
+		if (shouldConsume && pending.retryCount >= 3) return;
+		if (shouldConsume) pending.retryCount += 1;
+		var delay = shouldConsume ? pending.retryCount * 1000 : 250;
+		legacyRetryTimer = window.setTimeout(function () {
+			legacyRetryTimer = null;
+			if (legacyPendingSubmission !== pending) return;
+			transmitLegacySuccess(pending.root, FORM_ID);
+		}, delay);
 	}
 
 	/**
-	 * Validates whether an origin belongs to an approved HubSpot domain.
-	 * @param {string} origin - The origin URL to validate.
-	 * @return {boolean} `true` if the origin uses HTTPS without an explicit port and matches an approved HubSpot domain, `false` otherwise.
+	 * Sends only a root-confirmed legacy submission. Unscoped postMessage callbacks may
+	 * assist an already-confirmed retry but can never establish submission identity.
 	 */
+	async function transmitLegacySuccess(formLike, formId) {
+		var pending = legacyPendingSubmission;
+		if (!pending) return;
+		if (formLike !== undefined) {
+			var root = canonicalLegacyRoot(formLike, formId);
+			if (!root || root !== pending.root) return;
+			pending.successSeen = true;
+		} else if (!pending.successSeen) {
+			return;
+		}
+		if (!hasMarketingConsent()) {
+			clearLegacyPendingSubmission(pending);
+			return;
+		}
+		if (sent) {
+			clearLegacyPendingSubmission(pending);
+			return;
+		}
+		if (!pending.emailHash) return;
+		if (!claimAudit()) return;
+		try {
+			if (legacyPendingSubmission !== pending || !hasMarketingConsent()) return;
+			var terminal = await transmitAudit({
+				email_hash: pending.emailHash,
+				gclid: clickValues.gclid || null,
+				gbraid: clickValues.gbraid || null,
+				wbraid: clickValues.wbraid || null,
+				gclsrc: clickValues.gclsrc || null,
+				form_id: FORM_ID,
+				landing_url: canonicalLandingUrl(),
+			});
+			if (terminal || sent) clearLegacyPendingSubmission(pending);
+			else scheduleLegacyRetry(pending, true);
+		} finally {
+			releaseAuditClaim();
+		}
+	}
+
 	function isTrustedHubSpotOrigin(origin) {
 		if (!origin || origin === 'null') return false;
 		try {
@@ -609,6 +671,9 @@
 		onBeforeFormSubmit: function (formLike, formId) {
 			captureLegacyEmail(formLike, formId);
 		},
+		onFormSubmitted: function (formLike, formId) {
+			transmitLegacySuccess(formLike, formId);
+		},
 	});
 
 	document.addEventListener('wp_listen_for_consent_change', refreshLegacyForms);
@@ -619,24 +684,27 @@
 		var data = event.data || {};
 		if (typeof data === 'string') {
 			try {
-				data = JSON.parse(data);
+				data = JSON.parse(data) || {};
 			} catch (_error) {
 				data = {};
 			}
 		}
+		if (typeof data !== 'object' || data === null) data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
-		if (String(data.id || '').toLowerCase() !== String(FORM_ID || '').toLowerCase()) return;
+		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
 		transmitLegacySuccess();
 	});
 
 	window.addEventListener('hs-form-event:on-submission:success', async function (event) {
-		if (sent || inFlight || !hasMarketingConsent()) return;
 		var detail = event && event.detail ? event.detail : {};
 		if (String(detail.formId || '').toLowerCase() !== FORM_ID) return;
-
-		// Privacy fail-closed: no email access or hashing occurs without marketing consent.
-		var payload = await buildAuditPayload(event);
-		if (!payload || !hasMarketingConsent()) return;
-		transmitAudit(payload); // Dispatched without awaiting to reduce window before navigation
+		if (!claimAudit()) return;
+		try {
+			var payload = await buildAuditPayload(event);
+			if (!payload || !hasMarketingConsent()) return;
+			await transmitAudit(payload);
+		} finally {
+			releaseAuditClaim();
+		}
 	});
 }());

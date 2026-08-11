@@ -325,7 +325,7 @@ async function collectGeometry(page) {
 
     function collectImageIssues() {
       const brokenImages = Array.from(document.images)
-        .filter((img) => isVisible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.src))
+        .filter((img) => isVisible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.getAttribute('src')))
         .slice(0, 12)
         .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)');
 

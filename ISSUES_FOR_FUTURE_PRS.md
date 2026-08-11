@@ -6,37 +6,45 @@ Documented issues from bot analysis that should be addressed in separate PRs.
 
 **SSH Connectivity: VERIFIED** ✅
 
-- SSH retry loops with backoff implemented in production.yml (3 SSH connection points)
-- SSH retry loops with backoff implemented in staging.yml (matching production pattern)
-- Successfully tested: Staging workflow completed in 7m48s with SSH connections
-- Run ID 31446989846: SSH connection succeeded on first attempt (retry path not triggered)
-- Configuration: ConnectTimeout 15, ConnectionAttempts 1 with 5 external retries with 15s×attempt backoff
-- Note: Retry path was not exercised in test run because initial SSH connection succeeded
+- SSH retry loops with backoff are implemented in the canonical Production and Staging workflows.
+- Run ID `31446989846`: the first SSH connection succeeded and Staging completed successfully.
+- Configuration: `ConnectTimeout 15`, `ConnectionAttempts 1`, up to 5 external attempts with linear 15s/30s/45s/60s backoff.
+- The successful run did not exercise recovery after a failed connection attempt, so it verifies connectivity and the end-to-end path, not retry recovery itself.
 
-**Staging Acceptance: CLEAN VERIFICATION** ✅
+**Staging Acceptance Contract: HARDENED** ✅
 
-- Run ID 31446989846: 159/159 PASS, 0 FIX, 0 BLOCKED
-- Block C acceptance artifact: `staging2-block-c-2757a2ee99e43cd142a574953a2c6dd24936af5f`
-- Production acceptance requires an exact candidate-named artifact that exists and is not expired.
-- The source Staging run must have `status=completed`, `conclusion=success`, `head_branch=master`, and canonical workflow path `.github/workflows/staging.yml` (optionally followed by GitHub's `@<ref>` suffix).
+- Last clean acceptance run before this hardening: `31446989846`, with 159/159 PASS, 0 FIX, 0 BLOCKED.
+- Its artifact was `staging2-block-c-2757a2ee99e43cd142a574953a2c6dd24936af5f`.
+- Production requires an exact candidate-named artifact that exists and is not expired.
+- The source Staging run must have `status=completed`, `conclusion=success`, `head_branch=master`, and canonical workflow path `.github/workflows/staging.yml` (optionally followed only by GitHub's `@<ref>` suffix).
 - The live Staging `.nvx-deploy-sha`, artifact candidate SHA, and Production candidate SHA must match exactly.
-- For push-triggered Staging evidence, `run.head_sha` must also equal the candidate SHA.
-- For a supported manual `workflow_dispatch` of an older master-contained SHA, GitHub records the dispatch ref tip as `run.head_sha`; in that case the candidate must be contained in that dispatch head and both commits must remain in the accepted master lineage.
-- Failed Staging runs are never production-eligible, even if they uploaded diagnostic artifacts.
+- Push-triggered evidence additionally requires `run.head_sha == candidate_sha`.
+- A supported historical `workflow_dispatch` may have `run.head_sha` equal to the dispatch ref tip rather than `inputs.sha`; in that case the candidate must be an ancestor of that dispatch head and both must remain in the accepted master lineage.
+- Successful Staging acceptance now writes an immutable `acceptance-manifest.json` inside the production-eligible artifact. For historical manual dispatches, Production downloads the artifact and verifies manifest `candidate_sha`, `run_id`, `event`, `head_sha`, `head_branch`, and canonical workflow path before promotion.
+- Failed Staging runs no longer publish the production-eligible artifact name. They publish a separate diagnostic artifact and remain ineligible for Production.
+- Production iterates matching legacy artifacts and accepts the first source run that satisfies the complete contract, so a newer failed historical artifact cannot shadow older valid evidence.
 
-**SiteGround IP Blocking: MITIGATED VIA RETRY PATTERN** ⚠️
+**Latest Canonical Staging Result: ROLLED BACK** ⚠️
 
-- SiteGround connectivity from GitHub-hosted runners has shown intermittent SSH failures.
+- Run ID `31448386076`, candidate `d069f660a4ee9b650516bc086e5187f36c395700`.
+- SSH, environment isolation, rollback snapshot, deploy, public boundary, and template validation passed.
+- Block C result: 159 total, 154 PASS, 2 FIX, 3 BLOCKED; classified `REAL_FAILURE`.
+- Failures included SiteGround Antibot/network transport interruptions and a repeat `ERR_ABORTED` image request on `/equipo-medico/` for `dr-jose-javier-rivera-nuvanx-madrid.webp`.
+- Rollback completed successfully. This run is not production-eligible.
+
+**SiteGround Connectivity: MITIGATED VIA BOUNDED RETRY** ⚠️
+
+- GitHub-hosted runner → SiteGround SSH has shown intermittent failures but is demonstrably functional.
 - Self-hosted runner is not viable in the tested SiteGround environment due to the observed `File size limit exceeded` failure and shared-hosting constraints.
-- Current solution: bounded SSH retries with backoff mitigate intermittent transport failures while preserving GitHub-hosted runners.
+- Current architecture keeps GitHub-hosted runners, strict host-key verification, and bounded external retries.
 
 ## Critical Issues
 
 ### 1. CSS Deferral Without Fallback - High Priority
 
 **File:** `wp-content/themes/nuvanx-medical/functions.php:164-178`
-**Issue:** Stylesheets enqueued with `media='print'` and only made visible via JavaScript onload handling.
-**Impact:** Site can render without those styles if JavaScript/onload does not execute.
+**Issue:** Stylesheets are enqueued with `media='print'` and made active through JavaScript/onload behavior without a non-JavaScript fallback.
+**Impact:** The site can render without those styles if JavaScript/onload does not execute.
 **Fix:** Add a non-JavaScript fallback or change the deferral strategy.
 
 ### 2. Accessibility: Valoración Fallback ARIA/H1 - High Priority

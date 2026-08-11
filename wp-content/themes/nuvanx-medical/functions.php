@@ -157,25 +157,16 @@ function nvx_theme_scripts(): void {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';
 
-	// Critical CSS for LCP: inline tokens and base styles
+	// Structural CSS is deliberately render-blocking. These styles own the global
+	// layout/header/footer contract and must remain available when JavaScript or an
+	// onload handler is blocked. Performance work must not make page structure JS-dependent.
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), nvx_asset_version( 'assets/css/nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-base.css' ) );
-	
-	// Defer non-critical CSS to improve LCP
-	wp_enqueue_style( 'nvx-layout', $css . 'nvx-site-layout.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-site-layout.css' ), 'print' );
-	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-components.css' ), 'print' );
-	wp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ), 'print' );
-	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-header.css' ), 'print' );
-	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-footer.css' ), 'print' );
-
-	// Add onload to switch media from print to all for deferred styles
-	add_filter( 'style_loader_tag', function( $tag, $handle ) {
-		$deferred_handles = array( 'nvx-layout', 'nvx-components', 'nvx-patterns', 'nvx-header', 'nvx-footer' );
-		if ( in_array( $handle, $deferred_handles, true ) ) {
-			return str_replace( "media='print'", "media='print' onload=\"this.media='all'\"", $tag );
-		}
-		return $tag;
-	}, 10, 2 );
+	wp_enqueue_style( 'nvx-layout', $css . 'nvx-site-layout.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-site-layout.css' ) );
+	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-components.css' ) );
+	wp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ) );
+	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
+	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );

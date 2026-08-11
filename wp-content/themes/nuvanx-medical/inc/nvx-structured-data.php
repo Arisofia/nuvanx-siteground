@@ -642,10 +642,55 @@ function nvx_schema_faq_catalog() {
 				}
 			}
 		}
+
+
+		$btl_json = nvx_catalog_json_resolved( 'btl-detail-pages.json' );
+		if ( is_array( $btl_json ) ) {
+			foreach ( $btl_json as $bkey => $bentry ) {
+				if ( ! empty( $bentry['faqs'] ) && is_array( $bentry['faqs'] ) ) {
+					$items = array();
+					foreach ( $bentry['faqs'] as $item ) {
+						if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+							$items[] = array(
+								'q' => (string) $item['q'],
+								'a' => (string) $item['a'],
+							);
+						}
+					}
+					if ( ! empty( $items ) ) {
+						$catalog[ $bkey ]                        = $items;
+						$catalog[ str_replace( '-', '_', $bkey ) ] = $items;
+						if ( ! empty( $bentry['key'] ) ) {
+							$catalog[ $bentry['key'] ] = $items;
+						}
+					}
+				}
+			}
+		}
+
+		$aesthetic_json = nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' );
+		if ( is_array( $aesthetic_json ) ) {
+			foreach ( $aesthetic_json as $akey => $aentry ) {
+				if ( ! empty( $aentry['faqs'] ) && is_array( $aentry['faqs'] ) ) {
+					$items = array();
+					foreach ( $aentry['faqs'] as $item ) {
+						if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+							$items[] = array(
+								'q' => (string) $item['q'],
+								'a' => (string) $item['a'],
+							);
+						}
+					}
+					if ( ! empty( $items ) ) {
+						$catalog[ $akey ]                        = $items;
+						$catalog[ str_replace( '_', '-', $akey ) ] = $items;
+					}
+				}
+			}
+		}
 	}
 
 	if ( empty( $catalog['endolift_facial'] ) ) {
-
 		$from                       = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 		$papada                     = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 		$catalog['endolift_facial'] = array(
@@ -685,13 +730,9 @@ function nvx_schema_faq_catalog() {
 		);
 	}
 
-
-
 	$catalogs[ $locale ] = $catalog;
 	return $catalog;
 }
-
-
 
 /**
  * Return an FAQPage node that exactly mirrors visible page content.
@@ -709,7 +750,15 @@ function nvx_schema_faq_node( $page_id ) {
 		$faq_id    = home_url( '/#faq' );
 		$faq_url   = home_url( '/' );
 	} else {
-		$key     = nvx_schema_resolve_treatment_key( $page_id );
+		$key = nvx_schema_resolve_treatment_key( $page_id );
+		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
+			$key = nvx_btl_detail_current_key( '' );
+		}
+		if ( null === $key && function_exists( 'nvx_aesthetic_treatment_key_from_slug' ) ) {
+			$slug = (string) get_post_field( 'post_name', $page_id );
+			$key  = nvx_aesthetic_treatment_key_from_slug( $slug );
+		}
+
 		$catalog = nvx_schema_faq_catalog();
 		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
 			$questions = $catalog[ $key ];
@@ -717,6 +766,8 @@ function nvx_schema_faq_node( $page_id ) {
 	}
 
 	$entities = array();
+
+
 	foreach ( $questions as $q ) {
 		if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
 			$entities[] = array(

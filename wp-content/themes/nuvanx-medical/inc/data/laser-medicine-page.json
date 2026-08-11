@@ -3,17 +3,17 @@
         {
             "icon": "spectrum",
             "title": "@nvx-t:1. Fototermólisis selectiva",
-            "body": "@nvx-t:No aplicamos calor de forma indiscriminada. Seleccionamos longitudes de onda específicas para interactuar únicamente con los cromóforos diana de la piel (agua, melanina o colágeno), protegiendo el tejido sano circundante y optimizando los tiempos de recuperación."
+            "body": "@nvx-t:Cada longitud de onda interactúa con un cromóforo diana específico: agua (1470 nm en tejido subcutáneo), melanina (755 nm / IPL) o colágeno (CO₂ 10 600 nm). La selección precisa del espectro permite actuar sobre el tejido objetivo limitando el daño térmico en el tejido circundante sano."
         },
         {
             "icon": "dose",
             "title": "@nvx-t:2. Dosificación personalizada",
-            "body": "@nvx-t:Huimos de los parámetros automáticos de fábrica. Ajustamos de forma milimétrica la fluencia, el ancho de pulso y la entrega de energía térmica según el grosor dermoepidérmico, el fototipo de piel y la capacidad regenerativa de cada paciente."
+            "body": "@nvx-t:La fluencia, el ancho de pulso y la energía se ajustan en consulta según el grosor dermoepidérmico, el fototipo (escala Fitzpatrick I–VI) y la profundidad del objetivo. Un parámetro correcto para un fototipo II puede provocar hiperpigmentación postinflamatoria en un fototipo V."
         },
         {
             "icon": "nature",
             "title": "@nvx-t:3. Resultados sin volumen",
-            "body": "@nvx-t:Nuestro objetivo no es rellenar o alterar las facciones de manera artificial. Utilizamos la energía física para inducir una respuesta biológica natural: la neocolagénesis y el incremento de ácido hialurónico endógeno."
+            "body": "@nvx-t:La energía térmica controlada induce neocolagénesis (síntesis de colágeno tipos I y III) y estimula la producción endógena de ácido hialurónico en la dermis. El resultado es progresivo: el pico de maduración tisular se alcanza entre los 90 y 120 días tras la sesión, no de forma inmediata."
         }
     ],
     "platforms": [

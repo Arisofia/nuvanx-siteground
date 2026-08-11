@@ -140,7 +140,7 @@ function nvx_quarantined_comparison_post_ids(): array {
 	}
 
 	$slugs = nvx_quarantined_comparison_post_slugs();
-	if ( array() === $slugs ) {
+	if ( empty( $slugs ) ) {
 		$ids = array();
 		return $ids;
 	}
@@ -148,7 +148,7 @@ function nvx_quarantined_comparison_post_ids(): array {
 	$query = new WP_Query(
 		array(
 			'post_type'              => 'post',
-			'post_status'            => array( 'publish', 'draft', 'pending', 'private' ),
+			'post_status'            => 'any',
 			'post_name__in'          => $slugs,
 			'posts_per_page'         => count( $slugs ),
 			'fields'                 => 'ids',

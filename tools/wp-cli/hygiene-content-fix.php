@@ -1,6 +1,9 @@
 <?php
 /**
- * WP-CLI script to permanently fix legacy hygiene content in DB and JSON catalogs.
+ * WP-CLI script to fix legacy hygiene content in the CMS database.
+ *
+ * Versioned theme catalogs are audit-only here: a deployment must never rewrite
+ * tracked release files after the immutable SHA has been materialized.
  *
  * Usage: wp eval-file tools/wp-cli/hygiene-content-fix.php
  */
@@ -13,10 +16,6 @@ WP_CLI::line( 'Starting content hygiene fix...' );
 
 /**
  * Returns the literal replacement map for hygiene content.
- *
- * Defined as a function (not a script-scope variable) so it resolves reliably
- * under `wp eval-file`, which executes this file inside a function scope where
- * `global` would not see script-level variables.
  *
  * @return array<string, string> Literal search => replace pairs.
  */
@@ -74,7 +73,7 @@ function nvx_apply_hygiene_replacements( $content ) {
 kses_remove_filters();
 
 try {
-	// 1. Process Database (wp_posts)
+	// 1. Process CMS database content only.
 	WP_CLI::line( 'Processing wp_posts...' );
 	global $wpdb;
 	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('post', 'page')" );
@@ -87,7 +86,7 @@ try {
 		}
 
 		$needs_update = false;
-		
+
 		$new_content = nvx_apply_hygiene_replacements( $post->post_content );
 		if ( $new_content !== $post->post_content ) {
 			$post->post_content = $new_content;
@@ -113,14 +112,16 @@ try {
 	}
 	WP_CLI::success( "Updated {$db_updated_count} posts in database." );
 
-	// 2. Fix H1 in Legal Documents
+	// 2. Fix H1 in legacy legal CMS documents.
 	WP_CLI::line( 'Fixing H1 in legal documents...' );
-	$legal_posts = get_posts( array(
-		'post_name__in' => array( 'politica-privacidad', 'aviso-legal' ),
-		'post_type'     => 'page',
-		'post_status'   => 'any',
-		'numberposts'   => -1,
-	) );
+	$legal_posts = get_posts(
+		array(
+			'post_name__in' => array( 'politica-privacidad', 'aviso-legal' ),
+			'post_type'     => 'page',
+			'post_status'   => 'any',
+			'numberposts'   => -1,
+		)
+	);
 	foreach ( $legal_posts as $post ) {
 		if ( false === stripos( $post->post_content, '<h1' ) ) {
 			$new_content = preg_replace( '/<h2\b/iu', '<h1', $post->post_content, 1 );
@@ -137,15 +138,16 @@ try {
 	kses_init_filters();
 }
 
-// 3. Process JSON Catalogs
-WP_CLI::line( 'Processing JSON catalogs...' );
-$theme_dir = get_template_directory();
-$json_dir  = $theme_dir . '/inc/data';
+// 3. Audit versioned JSON catalogs without modifying them. Any hygiene drift in
+// tracked release data must be fixed in GitHub so the deployed tree remains the
+// exact content represented by .nvx-deploy-sha.
+WP_CLI::line( 'Auditing versioned JSON catalogs (read-only)...' );
+$theme_dir  = get_template_directory();
+$json_dir   = $theme_dir . '/inc/data';
 $json_files = glob( $json_dir . '/*.json' );
 if ( false === $json_files ) {
 	$json_files = array();
 }
-$json_updated_count = 0;
 
 /**
  * Applies hygiene content replacements recursively to strings in nested data.
@@ -174,37 +176,38 @@ function nvx_recursive_hygiene( $data ) {
 	return $data;
 }
 
+$catalog_drift = array();
 foreach ( $json_files as $file ) {
 	$content = file_get_contents( $file );
 	if ( false === $content ) {
-		WP_CLI::warning( "Could not read {$file}" );
+		$catalog_drift[] = basename( $file ) . ': unreadable';
 		continue;
 	}
 
-	// Decode to objects (not associative arrays) so empty objects stay as `{}`
-	// on re-encode instead of silently becoming `[]`, which would change the
-	// deployed file contract (e.g. routes.json "/madrid/": {}).
 	$data = json_decode( $content, false );
 	if ( json_last_error() !== JSON_ERROR_NONE ) {
-		WP_CLI::warning( "Invalid JSON in {$file}" );
+		$catalog_drift[] = basename( $file ) . ': invalid JSON';
 		continue;
 	}
 
 	$new_data    = nvx_recursive_hygiene( $data );
-	$new_content = wp_json_encode( $new_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-	if ( false === $new_content ) {
-		WP_CLI::warning( "Could not encode {$file}" );
+	$old_payload = wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	$new_payload = wp_json_encode( $new_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	if ( false === $old_payload || false === $new_payload ) {
+		$catalog_drift[] = basename( $file ) . ': JSON encoding failed';
 		continue;
 	}
-
-	// Compare only the hygiene-relevant payload, not formatting, so files are
-	// rewritten only when actual text changed (avoids reformat-only churn).
-	$old_content_normalized = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-	if ( $new_content !== $old_content_normalized ) {
-		file_put_contents( $file, $new_content );
-		$json_updated_count++;
+	if ( $new_payload !== $old_payload ) {
+		$catalog_drift[] = basename( $file ) . ': hygiene text drift';
 	}
 }
-WP_CLI::success( "Updated {$json_updated_count} JSON files." );
 
+if ( ! empty( $catalog_drift ) ) {
+	foreach ( $catalog_drift as $issue ) {
+		WP_CLI::warning( $issue );
+	}
+	WP_CLI::error( 'Versioned catalog hygiene drift detected. Fix the tracked files in GitHub; server-side catalog mutation is forbidden.' );
+}
+
+WP_CLI::success( 'Versioned JSON catalogs are clean and unchanged.' );
 WP_CLI::success( 'Hygiene content fix completed.' );

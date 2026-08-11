@@ -300,18 +300,26 @@
 
     let promise = null;
 
+    function reportHubSpotError(scope, error, hookName) {
+      if (config.debug !== true || !window.console || typeof window.console.warn !== 'function') return;
+      const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+      if (hookName) window.console.warn('NUVANX ' + scope, hookName, errorName);
+      else window.console.warn('NUVANX ' + scope, errorName);
+    }
+
+    /** Invoke an optional attribution hook without allowing sync or async failures to escape into HubSpot. */
     function invokeLegacyAttributionHook(hookName, form, formId) {
       try {
         const hooks = window.NUVANXGoogleAttributionLegacy;
-        if (hooks && typeof hooks[hookName] === 'function') hooks[hookName](form, formId);
-      } catch (error) {
-        const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
-        if (config.debug === true && window.console && typeof window.console.warn === 'function') {
-          window.console.warn('NUVANX attribution hook failed', hookName, errorName);
+        if (!hooks || typeof hooks[hookName] !== 'function') return;
+        const result = hooks[hookName](form, formId);
+        if (result && typeof result.then === 'function') {
+          result.catch(function (error) {
+            reportHubSpotError('attribution hook failed', error, hookName);
+          });
         }
-        document.dispatchEvent(new CustomEvent('nvx:attribution-hook-error', {
-          detail: { hook: hookName, error_name: errorName }
-        }));
+      } catch (error) {
+        reportHubSpotError('attribution hook failed', error, hookName);
       }
     }
 
@@ -361,16 +369,7 @@
           } catch (error) {
             delete frame.dataset.hsInitialized;
             if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
-            const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
-            if (config.debug === true && window.console && typeof window.console.warn === 'function') {
-              window.console.warn('NUVANX HubSpot form initialization failed', errorName);
-            }
-            document.dispatchEvent(new CustomEvent('nvx:hubspot-init-error', {
-              detail: {
-                error_name: errorName,
-                form_id: String(frame.dataset.formId || '').slice(0, 64)
-              }
-            }));
+            reportHubSpotError('HubSpot form initialization failed', error);
           }
         });
       }
@@ -422,9 +421,10 @@
         document.head.appendChild(script);
       });
 
-      promise.catch(function () {
+      promise.catch(function (error) {
         // Allow a later retry. The modal retains its full-page fallback link.
         promise = null;
+        reportHubSpotError('HubSpot form runtime failed to load', error);
       });
       return promise;
     }

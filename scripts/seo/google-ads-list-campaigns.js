@@ -141,34 +141,38 @@ async function main() {
 }
 
 main().catch((err) => {
-  const sanitizeMessage = (msg) => {
-    if (typeof msg !== 'string') return msg;
-    return msg
-      .replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]')
-      .replace(/\b(?:customers|customerClients|loginCustomers)\/[0-9-]+\b/gi, '[REDACTED_RESOURCE]');
+  const classifyMessage = (msg) => {
+    const value = String(msg || '').toLowerCase();
+    if (/invalid[_ -]?grant/.test(value)) return 'invalid_grant';
+    if (/invalid[_ -]?client/.test(value)) return 'invalid_client';
+    if (/developer token/.test(value)) return 'developer_token_error';
+    if (/permission[_ -]?denied|permission denied/.test(value)) return 'permission_denied';
+    if (/unauthenticated|authentication/.test(value)) return 'authentication_error';
+    if (/quota|resource[_ -]?exhausted|rate limit/.test(value)) return 'quota_or_rate_limit';
+    return 'google_ads_api_error';
   };
 
-  // CI logs are public-facing operational evidence. Keep diagnostics to fields
-  // that identify the failure class without echoing request payload metadata.
-  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode', 'message'];
+  // CI logs are public-facing operational evidence. Never serialize free-form
+  // Google Ads error messages or request metadata; emit bounded classifications only.
+  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode'];
   const projectError = (e) => {
-    if (!e || typeof e !== 'object') {
-      return sanitizeMessage(e);
-    }
     const projected = {};
-    for (const field of DIAGNOSTIC_FIELDS) {
-      if (e[field] !== undefined) {
-        projected[field] = sanitizeMessage(String(e[field]));
+    if (e && typeof e === 'object') {
+      for (const field of DIAGNOSTIC_FIELDS) {
+        if (e[field] !== undefined) projected[field] = String(e[field]).slice(0, 120);
       }
+      projected.message_class = classifyMessage(e.message);
+      return projected;
     }
-    return projected;
+    return { message_class: classifyMessage(e) };
   };
 
-  console.error('Error listing campaigns:', sanitizeMessage(err?.message ? err.message : String(err)));
+  const topLevelClass = classifyMessage(err?.message);
+  console.error('Error listing campaigns:', topLevelClass);
   if (Array.isArray(err?.errors)) {
-    const sanitizedErrors = err.errors.map((e) => projectError(e));
-    console.error('Details:', JSON.stringify(sanitizedErrors, null, 2));
+    const projectedErrors = err.errors.map((e) => projectError(e));
+    console.error('Details:', JSON.stringify(projectedErrors, null, 2));
   }
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', sanitizeMessage(err?.message ? err.message : 'unknown error'));
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', topLevelClass);
   process.exit(1);
 });

@@ -54,8 +54,12 @@ function nvx_redirect_retired_strategy_slugs(): void {
 	}
 
 	$redirect_url = home_url( $targets[ $path ] );
-	if ( $query ) {
-		$redirect_url = add_query_arg( $query, $redirect_url );
+	if ( '' !== $query ) {
+		$query_args = array();
+		wp_parse_str( wp_unslash( $query ), $query_args );
+		if ( ! empty( $query_args ) ) {
+			$redirect_url = add_query_arg( $query_args, $redirect_url );
+		}
 	}
 
 	wp_safe_redirect( $redirect_url, 301, 'NUVANX' );

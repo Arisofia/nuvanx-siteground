@@ -50,7 +50,9 @@ function nvx_retired_strategy_page_ids(): array {
 		}
 	}
 
-	return array_unique( $ids );
+	$ids = array_values( array_unique( $ids ) );
+
+	return $ids;
 }
 
 /**

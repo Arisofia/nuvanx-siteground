@@ -141,34 +141,24 @@ async function main() {
 }
 
 main().catch((err) => {
-  const sanitizeMessage = (msg) => (typeof msg === 'string' ? msg.replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]') : msg);
-
-  // Recursively sanitize every textual value while preserving nested diagnostic
-  // fields (details, trigger, location) that help troubleshoot API rejections.
-  const sanitizeValue = (value) => {
-    if (typeof value === 'string') {
-      return sanitizeMessage(value);
-    }
-    if (Array.isArray(value)) {
-      return value.map(sanitizeValue);
-    }
-    if (value && typeof value === 'object') {
-      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeValue(v)]));
-    }
-    return value;
+  const sanitizeMessage = (msg) => {
+    if (typeof msg !== 'string') return msg;
+    return msg
+      .replace(/(GOCSPX-[A-Za-z0-9_-]+|1\/\/[A-Za-z0-9_-]+)/g, '[REDACTED]')
+      .replace(/\b(?:customers|customerClients|loginCustomers)\/[0-9-]+\b/gi, '[REDACTED_RESOURCE]');
   };
 
-  // Only surface a bounded allow-list of diagnostic fields; dumping arbitrary
-  // nested content risks printing credential/request metadata to CI logs.
-  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode', 'message', 'details', 'trigger', 'location'];
+  // CI logs are public-facing operational evidence. Keep diagnostics to fields
+  // that identify the failure class without echoing request payload metadata.
+  const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode', 'message'];
   const projectError = (e) => {
     if (!e || typeof e !== 'object') {
-      return sanitizeValue(e);
+      return sanitizeMessage(e);
     }
     const projected = {};
     for (const field of DIAGNOSTIC_FIELDS) {
       if (e[field] !== undefined) {
-        projected[field] = sanitizeValue(e[field]);
+        projected[field] = sanitizeMessage(String(e[field]));
       }
     }
     return projected;

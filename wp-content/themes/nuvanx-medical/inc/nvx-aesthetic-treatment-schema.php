@@ -77,11 +77,11 @@ function nvx_aesthetic_schema_procedure_node(
 	}
 	if ( ! empty( $entry['session_time'] ) ) {
 		$time_str = (string) $entry['session_time'];
-		if ( preg_match_all( '/(\d+)/', $time_str, $matches ) && ! empty( $matches[1] ) ) {
-			$minutes          = end( $matches[1] );
-			$node['duration'] = 'PT' . $minutes . 'M';
+		if ( preg_match_all( '/(\d+)/', $time_str, $matches ) && 1 === count( $matches[1] ) ) {
+			$node['duration'] = 'PT' . $matches[1][0] . 'M';
 		}
 	}
+
 
 
 

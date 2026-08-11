@@ -253,6 +253,7 @@ require_once get_template_directory() . '/inc/nvx-page-render-helpers.php';
 require_once get_template_directory() . '/inc/nvx-document-governance.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-page-hygiene.php';
+require_once get_template_directory() . '/inc/nvx-retired-strategy-redirects.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
 
 // 2. Data & SEO Governance

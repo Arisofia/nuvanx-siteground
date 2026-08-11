@@ -395,6 +395,10 @@
 
 	function releaseAuditClaim() {
 		auditClaimed = false;
+		var pending = legacyPendingSubmission;
+		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer) {
+			scheduleLegacyRetry(pending, false);
+		}
 	}
 
 	/**
@@ -432,9 +436,12 @@
 	var legacyPendingSubmission = null;
 	var legacyEmailClearTimer = null;
 	var legacyRetryTimer = null;
+	var legacyCaptureSequence = 0;
 	var legacyNativeGclidInputs = new WeakSet();
 
-	function clearLegacyPendingSubmission() {
+	/** Clear only the currently expected legacy submission when a caller supplies one. */
+	function clearLegacyPendingSubmission(expectedPending) {
+		if (expectedPending && legacyPendingSubmission !== expectedPending) return;
 		legacyPendingSubmission = null;
 		if (legacyEmailClearTimer) window.clearTimeout(legacyEmailClearTimer);
 		if (legacyRetryTimer) window.clearTimeout(legacyRetryTimer);
@@ -535,7 +542,11 @@
 		});
 	}
 
-	function captureLegacyEmail(formLike, formId) {
+	/**
+	 * Captures the newest canonical legacy submission and hashes its email immediately.
+	 * A newer submission replaces any older pending retry state, even from another root.
+	 */
+	async function captureLegacyEmail(formLike, formId) {
 		populateLegacyClickFields(formLike, formId);
 		if (!hasMarketingConsent()) {
 			clearLegacyPendingSubmission();
@@ -543,56 +554,80 @@
 		}
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return;
-		if (legacyPendingSubmission && legacyPendingSubmission.root !== root) return;
 		var emailInput = legacyFieldInput(root, 'email');
 		if (!emailInput) return;
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
-		if (legacyEmailClearTimer) window.clearTimeout(legacyEmailClearTimer);
-		if (legacyRetryTimer) window.clearTimeout(legacyRetryTimer);
-		legacyRetryTimer = null;
-		legacyPendingSubmission = { root: root, email: email, retryCount: 0 };
-		legacyEmailClearTimer = window.setTimeout(clearLegacyPendingSubmission, 30000);
+
+		clearLegacyPendingSubmission();
+		legacyCaptureSequence += 1;
+		var pending = {
+			captureId: legacyCaptureSequence,
+			root: root,
+			emailHash: '',
+			retryCount: 0,
+			successSeen: false,
+		};
+		legacyPendingSubmission = pending;
+		legacyEmailClearTimer = window.setTimeout(function () {
+			clearLegacyPendingSubmission(pending);
+		}, 30000);
+
+		var emailHash = await sha256(email);
+		email = '';
+		if (legacyPendingSubmission !== pending) return;
+		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) {
+			clearLegacyPendingSubmission(pending);
+			return;
+		}
+		pending.emailHash = emailHash;
+		if (pending.successSeen) transmitLegacySuccess(pending.root, FORM_ID);
 	}
 
-	function scheduleLegacyRetry() {
-		if (!legacyPendingSubmission || legacyRetryTimer || sent) return;
-		if (legacyPendingSubmission.retryCount >= 3) return;
-		legacyPendingSubmission.retryCount += 1;
-		var delay = legacyPendingSubmission.retryCount * 1000;
+	/** Schedule a bounded retry for the same pending submission. */
+	function scheduleLegacyRetry(pendingArg, consumeBudget) {
+		var pending = pendingArg || legacyPendingSubmission;
+		if (!pending || legacyPendingSubmission !== pending || legacyRetryTimer || sent) return;
+		if (!pending.successSeen || !pending.emailHash) return;
+		var shouldConsume = consumeBudget !== false;
+		if (shouldConsume && pending.retryCount >= 3) return;
+		if (shouldConsume) pending.retryCount += 1;
+		var delay = shouldConsume ? pending.retryCount * 1000 : 250;
 		legacyRetryTimer = window.setTimeout(function () {
 			legacyRetryTimer = null;
-			transmitLegacySuccess();
+			if (legacyPendingSubmission !== pending) return;
+			transmitLegacySuccess(pending.root, FORM_ID);
 		}, delay);
 	}
 
+	/**
+	 * Sends only a root-confirmed legacy submission. Unscoped postMessage callbacks may
+	 * assist an already-confirmed retry but can never establish submission identity.
+	 */
 	async function transmitLegacySuccess(formLike, formId) {
 		var pending = legacyPendingSubmission;
 		if (!pending) return;
 		if (formLike !== undefined) {
 			var root = canonicalLegacyRoot(formLike, formId);
 			if (!root || root !== pending.root) return;
+			pending.successSeen = true;
+		} else if (!pending.successSeen) {
+			return;
 		}
 		if (!hasMarketingConsent()) {
-			clearLegacyPendingSubmission();
+			clearLegacyPendingSubmission(pending);
 			return;
 		}
 		if (sent) {
-			clearLegacyPendingSubmission();
+			clearLegacyPendingSubmission(pending);
 			return;
 		}
-		if (!claimAudit()) {
-			scheduleLegacyRetry();
-			return;
-		}
+		if (!pending.emailHash) return;
+		if (!claimAudit()) return;
 		try {
-			var emailHash = await sha256(pending.email);
-			if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) {
-				scheduleLegacyRetry();
-				return;
-			}
+			if (legacyPendingSubmission !== pending || !hasMarketingConsent()) return;
 			var terminal = await transmitAudit({
-				email_hash: emailHash,
+				email_hash: pending.emailHash,
 				gclid: clickValues.gclid || null,
 				gbraid: clickValues.gbraid || null,
 				wbraid: clickValues.wbraid || null,
@@ -600,8 +635,8 @@
 				form_id: FORM_ID,
 				landing_url: canonicalLandingUrl(),
 			});
-			if (terminal || sent) clearLegacyPendingSubmission();
-			else scheduleLegacyRetry();
+			if (terminal || sent) clearLegacyPendingSubmission(pending);
+			else scheduleLegacyRetry(pending, true);
 		} finally {
 			releaseAuditClaim();
 		}

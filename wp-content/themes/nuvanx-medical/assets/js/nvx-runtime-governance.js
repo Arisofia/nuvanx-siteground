@@ -358,9 +358,19 @@
                 invokeLegacyAttributionHook('onFormSubmitted', $form, frame.dataset.formId);
               }
             });
-          } catch (_err) {
+          } catch (error) {
             delete frame.dataset.hsInitialized;
             if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
+            const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+            if (config.debug === true && window.console && typeof window.console.warn === 'function') {
+              window.console.warn('NUVANX HubSpot form initialization failed', errorName);
+            }
+            document.dispatchEvent(new CustomEvent('nvx:hubspot-init-error', {
+              detail: {
+                error_name: errorName,
+                form_id: String(frame.dataset.formId || '').slice(0, 64)
+              }
+            }));
           }
         });
       }

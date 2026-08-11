@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { crossHostNavigationUrls } from './navigation-boundary.mjs';
 
 const baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
@@ -25,23 +26,6 @@ const criticalUrls = [
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 const results = [];
 
-function crossHostNavigationUrls(response, finalUrl) {
-  const urls = [finalUrl];
-  let request = response?.request();
-  while (request) {
-    urls.push(request.url());
-    request = request.redirectedFrom();
-  }
-
-  return [...new Set(urls)].filter((url) => {
-    try {
-      return new URL(url).hostname !== expectedHost;
-    } catch {
-      return true;
-    }
-  });
-}
-
 for (const path of criticalUrls) {
   const url = new URL(path, base).href;
   const context = await browser.newContext({
@@ -53,7 +37,7 @@ for (const path of criticalUrls) {
   try {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const status = response?.status() || 0;
-    const crossHostUrls = crossHostNavigationUrls(response, page.url());
+    const crossHostUrls = crossHostNavigationUrls(response, page.url(), expectedHost);
     
     // Check for critical elements
     const hasHeader = await page.locator('header, .nvx-header, .nvx-site-header').count() > 0;

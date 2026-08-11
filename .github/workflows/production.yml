@@ -180,15 +180,17 @@ jobs:
           set -euo pipefail
           artifact_name="staging2-block-c-${CANDIDATE_SHA}"
           response="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
-          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | last')"
-          [[ "$artifact" != 'null' ]] || { echo "No non-expired Staging acceptance artifact for $CANDIDATE_SHA" >&2; exit 1; }
+          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" --arg sha "$CANDIDATE_SHA" '[.artifacts[] | select(.name == $name and .expired == false and .workflow_run.head_branch == "master" and .workflow_run.head_sha == $sha)] | sort_by(.created_at) | last')"
+          [[ "$artifact" != 'null' ]] || { echo "No non-expired successful-candidate Staging artifact for $CANDIDATE_SHA" >&2; exit 1; }
           run_id="$(printf '%s' "$artifact" | jq -r '.workflow_run.id')"
           [[ "$run_id" =~ ^[0-9]+$ ]]
           run="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"
-          conclusion="$(printf '%s' "$run" | jq -r '.conclusion')"
-          test "$conclusion" = 'success' || { echo "Staging run conclusion is $conclusion, expected success" >&2; exit 1; }
+          test "$(printf '%s' "$run" | jq -r '.status')" = 'completed'
+          test "$(printf '%s' "$run" | jq -r '.conclusion')" = 'success'
           test "$(printf '%s' "$run" | jq -r '.head_branch')" = 'master'
-          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name run_id=$run_id sha=$CANDIDATE_SHA conclusion=$conclusion"
+          test "$(printf '%s' "$run" | jq -r '.head_sha')" = "$CANDIDATE_SHA"
+          test "$(printf '%s' "$run" | jq -r '.path')" = '.github/workflows/staging.yml'
+          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name run_id=$run_id sha=$CANDIDATE_SHA conclusion=success"
 
       - name: Materialize exact candidate from master history
         shell: bash
@@ -474,11 +476,17 @@ jobs:
                 if "$LH" "${URLS[$page]}" --output=json --output-path="$out" --only-categories=performance --quiet --chrome-flags='--headless --disable-dev-shm-usage' "${extra[@]}"; then success=1; break; fi
                 sleep $((attempt * 5))
               done
-              if [[ "$success" = 1 ]]; then
-                jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score//0)*100|round),(.audits["first-contentful-paint"].numericValue//0|round),(.audits["largest-contentful-paint"].numericValue//0|round),(.audits["total-blocking-time"].numericValue//0|round),(.audits["cumulative-layout-shift"].numericValue//0),(.audits["speed-index"].numericValue//0|round),(.audits["server-response-time"].numericValue//0|round)]|@tsv' "$out" >> perf-results/summary.tsv
-              else
-                printf '%s\t%s\tFAILED\t0\t0\t0\t0\t0\t0\n' "$page" "$mode" >> perf-results/summary.tsv
-              fi
+              [[ "$success" = 1 ]] || { echo "Lighthouse failed for $page/$mode after 3 attempts." >&2; exit 1; }
+              jq -e '
+                (.categories.performance.score | type == "number") and
+                (.audits["first-contentful-paint"].numericValue | type == "number") and
+                (.audits["largest-contentful-paint"].numericValue | type == "number") and
+                (.audits["total-blocking-time"].numericValue | type == "number") and
+                (.audits["cumulative-layout-shift"].numericValue | type == "number") and
+                (.audits["speed-index"].numericValue | type == "number") and
+                (.audits["server-response-time"].numericValue | type == "number")
+              ' "$out" >/dev/null || { echo "Invalid Lighthouse JSON for $page/$mode." >&2; exit 1; }
+              jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score)*100|round),(.audits["first-contentful-paint"].numericValue|round),(.audits["largest-contentful-paint"].numericValue|round),(.audits["total-blocking-time"].numericValue|round),(.audits["cumulative-layout-shift"].numericValue),(.audits["speed-index"].numericValue|round),(.audits["server-response-time"].numericValue|round)]|@tsv' "$out" >> perf-results/summary.tsv
             done
           done
           cat perf-results/summary.tsv

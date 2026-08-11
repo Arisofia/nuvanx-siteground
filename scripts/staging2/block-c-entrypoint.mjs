@@ -29,6 +29,9 @@ async function prepareTrustedPagesPreload() {
   }));
 
   for (const page of normalizedPages) {
+    if (!page.link) {
+      throw new Error(`Trusted WordPress page ${page.id} has empty link field`);
+    }
     const url = new URL(page.link);
     if (url.hostname !== new URL(baseUrl).hostname) {
       throw new Error(`Trusted WordPress page ${page.id} points outside staging: ${page.link}`);
@@ -117,14 +120,15 @@ function isTransientFailure(result) {
 
 async function failedResultsAreTransient() {
   let results;
+  let manifest;
   try {
     results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+    manifest = await loadPublishedPagesManifest();
   } catch (error) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=UNAVAILABLE reason=${error.message}`);
     return false;
   }
 
-  const manifest = await loadPublishedPagesManifest();
   const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
 
   if (!Array.isArray(results) || results.length < expectedResultsCount) {

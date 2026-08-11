@@ -402,11 +402,43 @@ jobs:
           echo 'PRODUCTION_UNCHANGED=PASS'
           REMOTE
 
+      - name: Write immutable Staging acceptance manifest
+        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/staging2/artifacts
+          jq -n \
+            --arg candidate_sha "$CANDIDATE_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg event "$GITHUB_EVENT_NAME" \
+            --arg head_sha "$GITHUB_SHA" \
+            --arg head_branch "$GITHUB_REF_NAME" \
+            --arg workflow_path '.github/workflows/staging.yml' \
+            '{schema:1,candidate_sha:$candidate_sha,run_id:$run_id,run_attempt:$run_attempt,event:$event,head_sha:$head_sha,head_branch:$head_branch,workflow_path:$workflow_path}' \
+            > scripts/staging2/artifacts/acceptance-manifest.json
+          jq -e --arg sha "$CANDIDATE_SHA" --arg run "$GITHUB_RUN_ID" '.schema == 1 and .candidate_sha == $sha and .run_id == $run' scripts/staging2/artifacts/acceptance-manifest.json >/dev/null
+          echo "STAGING_ACCEPTANCE_MANIFEST=PASS sha=$CANDIDATE_SHA run_id=$GITHUB_RUN_ID"
+
       - name: Upload production-eligible acceptance evidence
-        if: ${{ always() && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-block-c-${{ env.CANDIDATE_SHA }}
+          path: |
+            scripts/staging2/artifacts/
+            scripts/staging2/block-c-artifacts/
+            scripts/staging2/valoracion-artifacts/
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 6
+
+      - name: Upload failed Staging diagnostic evidence
+        if: ${{ failure() && env.RUN_ACCEPTANCE == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging2-block-c-diagnostic-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
           path: |
             scripts/staging2/artifacts/
             scripts/staging2/block-c-artifacts/

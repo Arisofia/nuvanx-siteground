@@ -657,8 +657,21 @@ function nvx_schema_faq_catalog() {
 				'q' => '¿Endolift® es para cualquier papada o flacidez?',
 				'a' => 'No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser.',
 			),
+			array(
+				'q' => '¿Cuál es la durabilidad real de los resultados del Endolift®?',
+				'a' => 'Al inducir colágeno profundo, no se comporta como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento, sol, tabaquismo y genética. El seguimiento personaliza expectativas.',
+			),
+			array(
+				'q' => '¿El Endolift® sustituye al ácido hialurónico?',
+				'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
+			),
+			array(
+				'q' => '¿Es doloroso?',
+				'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
+			),
 		);
 	}
+
 
 	$catalogs[ $locale ] = $catalog;
 	return $catalog;

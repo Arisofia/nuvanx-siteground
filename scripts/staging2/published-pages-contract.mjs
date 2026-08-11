@@ -14,8 +14,8 @@ export async function loadPublishedPagesManifest() {
   if (!Array.isArray(manifest) || manifest.length === 0) {
     throw new Error('Canonical published-page manifest must be a non-empty array');
   }
-  if (manifest.length < 40) {
-    throw new Error(`Canonical published-page manifest has only ${manifest.length} entries; minimum 40 required to prevent accidental truncation`);
+  if (manifest.length < MIN_MANIFEST_ENTRIES) {
+    throw new Error(`Canonical published-page manifest has only ${manifest.length} entries; minimum ${MIN_MANIFEST_ENTRIES} required to prevent accidental truncation`);
   }
 
   for (const page of manifest) {

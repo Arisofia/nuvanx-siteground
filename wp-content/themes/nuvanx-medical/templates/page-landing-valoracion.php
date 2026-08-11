@@ -42,6 +42,7 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'VALORACIÓN MÉDICA · NUVANX MADRID', 'nuvanx-medical' ); ?></p>
+				<h1 id="nvx-valoracion-hero-title" class="nvx-brand-hero__title"><?php esc_html_e( 'Valoración médica estética personalizada en Madrid', 'nuvanx-medical' ); ?></h1>
 				<p class="nvx-brand-hero__lead">
 					<?php esc_html_e( 'Da el siguiente paso con una valoración médica personalizada. Diagnosticamos tu caso, explicamos las opciones y diseñamos un plan individualizado. Sin compromiso, sin presión.', 'nuvanx-medical' ); ?>
 				</p>

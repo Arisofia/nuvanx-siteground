@@ -624,45 +624,27 @@ function nvx_schema_faq_load_single_page( string $file ): array {
 
 /** Parse a mapped catalog JSON file for FAQ items. */
 function nvx_schema_faq_load_map_catalog( string $file ): array {
-	$json    = nvx_catalog_json_resolved( $file );
+	return nvx_schema_faq_load_map_catalog_impl( $file, null );
+}
+
+/** Parse a mapped catalog JSON file for FAQ items with claim resolver. */
+function nvx_schema_faq_load_map_catalog_with_resolver( string $file, callable $resolver ): array {
+	return nvx_schema_faq_load_map_catalog_impl( $file, $resolver );
+}
+
+/** Implementation for FAQ catalog loading from mapped JSON files. */
+function nvx_schema_faq_load_map_catalog_impl( string $file, ?callable $resolver ): array {
+	if ( null === $resolver ) {
+		$json = nvx_catalog_json_resolved( $file );
+	} else {
+		$json = nvx_catalog_json_resolved( $file, $resolver, array(), array(), basename( $file, '.json' ) );
+	}
 	$catalog = array();
 	if ( ! is_array( $json ) ) {
 		return $catalog;
 	}
 	foreach ( $json as $key => $entry ) {
 		if ( ! is_array( $entry ) || empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
-			continue;
-		}
-		$items = array();
-		foreach ( $entry['faqs'] as $item ) {
-			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
-				$items[] = array(
-					'q' => (string) $item['q'],
-					'a' => (string) $item['a'],
-				);
-			}
-		}
-		if ( ! empty( $items ) ) {
-			$catalog[ $key ]                        = $items;
-			$catalog[ str_replace( '-', '_', $key ) ] = $items;
-			$catalog[ str_replace( '_', '-', $key ) ] = $items;
-			if ( ! empty( $entry['key'] ) ) {
-				$catalog[ $entry['key'] ] = $items;
-			}
-		}
-	}
-	return $catalog;
-}
-
-/** Parse a mapped catalog JSON file for FAQ items with claim resolver. */
-function nvx_schema_faq_load_map_catalog_with_resolver( string $file, callable $resolver ): array {
-	$json    = nvx_catalog_json_resolved( $file, $resolver, array(), array(), basename( $file, '.json' ) );
-	$catalog = array();
-	if ( ! is_array( $json ) ) {
-		return $catalog;
-	}
-	foreach ( $json as $key => $entry ) {
-		if ( empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
 			continue;
 		}
 		$items = array();

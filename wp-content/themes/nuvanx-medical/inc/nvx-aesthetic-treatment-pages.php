@@ -165,6 +165,47 @@ function nvx_aesthetic_treatment_cta_markup(): string {
 }
 
 /**
+ * Renders the optional clinical parameters section for an aesthetic treatment page.
+ *
+ * @param array $entry Catalog entry.
+ * @return string The rendered HTML section, or an empty string when no parameters apply.
+ */
+function nvx_aesthetic_treatment_details_markup( array $entry ): string {
+	$text_fields = array(
+		'price_range'  => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
+		'sessions'     => __( 'Sesiones orientativas:', 'nuvanx-medical' ),
+		'session_time' => __( 'Duración en cabina:', 'nuvanx-medical' ),
+		'duration'     => __( 'Durabilidad orientativa:', 'nuvanx-medical' ),
+		'downtime'     => __( 'Recuperación y downtime:', 'nuvanx-medical' ),
+		'anesthesia'   => __( 'Anestesia:', 'nuvanx-medical' ),
+	);
+
+	$items = '';
+	foreach ( $text_fields as $key => $label ) {
+		if ( ! empty( $entry[ $key ] ) ) {
+			$items .= '<li><strong>' . esc_html( $label ) . '</strong> ' . esc_html( (string) $entry[ $key ] ) . '</li>';
+		}
+	}
+
+	if ( ! empty( $entry['brands'] ) && is_array( $entry['brands'] ) ) {
+		$items .= '<li><strong>' . esc_html__( 'Productos de referencia:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ', ', $entry['brands'] ) ) . '</li>';
+	}
+	if ( ! empty( $entry['techniques'] ) && is_array( $entry['techniques'] ) ) {
+		$items .= '<li><strong>' . esc_html__( 'Técnicas / Áreas de abordaje:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ' · ', $entry['techniques'] ) ) . '</li>';
+	}
+
+	if ( '' === $items ) {
+		return '';
+	}
+
+	return '<section class="nvx-aes-section nvx-aes-clinical-data" aria-labelledby="nvx-aesthetic-data-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">'
+		. esc_html__( 'Parámetros de tratamiento', 'nuvanx-medical' )
+		. '</p><h2 id="nvx-aesthetic-data-title" class="nvx-aes-heading">'
+		. esc_html__( 'Datos clínicos y de consulta', 'nuvanx-medical' )
+		. '</h2><ul class="nvx-strategy-checklist">' . $items . '</ul></div></section>';
+}
+
+/**
  * Renders the complete HTML body for a canonical aesthetic treatment page.
  *
  * @param string $key The catalogue key identifying the treatment.
@@ -197,39 +238,8 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 		$html .= '<li>' . esc_html( $step ) . '</li>';
 	}
 	$html .= '</ol></div></section>';
-
-	if ( ! empty( $entry['price_range'] ) || ! empty( $entry['session_time'] ) || ! empty( $entry['duration'] ) || ! empty( $entry['anesthesia'] ) || ! empty( $entry['brands'] ) || ! empty( $entry['techniques'] ) || ! empty( $entry['sessions'] ) || ! empty( $entry['downtime'] ) ) {
-		$html .= '<section class="nvx-aes-section nvx-aes-clinical-data" aria-labelledby="nvx-aesthetic-data-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Parámetros de tratamiento</p><h2 id="nvx-aesthetic-data-title" class="nvx-aes-heading">Datos clínicos y de consulta</h2><ul class="nvx-strategy-checklist">';
-		if ( ! empty( $entry['price_range'] ) ) {
-			$html .= '<li><strong>Tarifa orientativa:</strong> ' . esc_html( (string) $entry['price_range'] ) . '</li>';
-		}
-		if ( ! empty( $entry['sessions'] ) ) {
-			$html .= '<li><strong>Sesiones orientativas:</strong> ' . esc_html( (string) $entry['sessions'] ) . '</li>';
-		}
-		if ( ! empty( $entry['session_time'] ) ) {
-			$html .= '<li><strong>Duración en cabina:</strong> ' . esc_html( (string) $entry['session_time'] ) . '</li>';
-		}
-		if ( ! empty( $entry['duration'] ) ) {
-			$html .= '<li><strong>Durabilidad orientativa:</strong> ' . esc_html( (string) $entry['duration'] ) . '</li>';
-		}
-		if ( ! empty( $entry['downtime'] ) ) {
-			$html .= '<li><strong>Recuperación y downtime:</strong> ' . esc_html( (string) $entry['downtime'] ) . '</li>';
-		}
-		if ( ! empty( $entry['anesthesia'] ) ) {
-			$html .= '<li><strong>Anestesia:</strong> ' . esc_html( (string) $entry['anesthesia'] ) . '</li>';
-		}
-		if ( ! empty( $entry['brands'] ) && is_array( $entry['brands'] ) ) {
-			$html .= '<li><strong>Productos de referencia:</strong> ' . esc_html( implode( ', ', $entry['brands'] ) ) . '</li>';
-		}
-		if ( ! empty( $entry['techniques'] ) && is_array( $entry['techniques'] ) ) {
-			$html .= '<li><strong>Técnicas / Áreas de abordaje:</strong> ' . esc_html( implode( ' · ', $entry['techniques'] ) ) . '</li>';
-		}
-		$html .= '</ul></div></section>';
-	}
-
-
+	$html .= nvx_aesthetic_treatment_details_markup( $entry );
 	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-evolution-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Evolución y seguridad</p><h2 id="nvx-aesthetic-evolution-title" class="nvx-aes-heading">Recuperación, límites y riesgos</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['evolution'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Riesgos que deben explicarse</h3>' . nvx_aesthetic_treatment_list_markup( $entry['risks'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Combinaciones posibles</h3>' . nvx_aesthetic_treatment_list_markup( $entry['combinations'] ) . '</article></div></div></section>';
-
 
 	$html .= '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aesthetic-faq-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Preguntas frecuentes</p><h2 id="nvx-aesthetic-faq-title" class="nvx-aes-heading">Respuestas clínicas antes de decidir</h2>' . nvx_aesthetic_treatment_faq_markup( $entry['faqs'] ) . '</div></section>';
 

@@ -160,7 +160,7 @@ main().catch((err) => {
 
     const projected = {};
     for (const [key, value] of Object.entries(raw).slice(0, 8)) {
-      if (!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(key)) continue;
+      if (!/^[A-Za-z]\w{0,63}$/.test(key)) continue;
       if (!['string', 'number', 'boolean'].includes(typeof value)) continue;
       projected[key] = String(value).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
     }

@@ -304,9 +304,13 @@
       try {
         const hooks = window.NUVANXGoogleAttributionLegacy;
         if (hooks && typeof hooks[hookName] === 'function') hooks[hookName](form, formId);
-      } catch (_error) {
+      } catch (error) {
+        const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+        if (config.debug === true && window.console && typeof window.console.warn === 'function') {
+          window.console.warn('NUVANX attribution hook failed', hookName, errorName);
+        }
         document.dispatchEvent(new CustomEvent('nvx:attribution-hook-error', {
-          detail: { hook: hookName }
+          detail: { hook: hookName, error_name: errorName }
         }));
       }
     }

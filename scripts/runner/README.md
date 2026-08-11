@@ -5,13 +5,12 @@ This guide documents how to register a self-hosted GitHub Actions runner on Site
 
 ## Important: Token Generation
 
-**The runner registration token is ONLY available in GitHub Web UI.** It cannot be obtained via:
-- Git commands
-- GitHub CLI (gh)
-- API calls without browser authentication
-- Local files or environment variables
+The runner registration token can be obtained via:
+- GitHub Web UI (Settings → Actions → Runners → New self-hosted runner)
+- GitHub CLI API: `gh api --method POST repos/{owner}/{repo}/actions/runners/registration-token --jq '.token'`
+- GitHub REST API: `POST /repos/{owner}/{repo}/actions/runners/registration-token`
 
-The token (`APTR...`) is generated when you create a new self-hosted runner in GitHub Web UI and is shown only once during that session.
+The token expires after 1 hour. The API method is preferred for automation as it doesn't require browser interaction.
 
 ## Setup Steps
 

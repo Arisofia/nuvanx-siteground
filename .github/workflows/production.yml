@@ -54,7 +54,7 @@ jobs:
   release:
     name: Promote exact accepted Staging2 SHA
     if: ${{ github.event_name == 'push' || inputs.deploy }}
-    runs-on: [self-hosted, siteground]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     outputs:
       candidate_sha: ${{ steps.candidate.outputs.sha }}

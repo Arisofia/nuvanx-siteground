@@ -753,10 +753,10 @@ function nvx_schema_faq_node( $page_id ) {
 		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
 			$key = nvx_btl_detail_current_key( '' );
 		}
-		if ( null === $key && function_exists( 'nvx_aesthetic_treatment_key_from_slug' ) ) {
-			$slug = (string) get_post_field( 'post_name', $page_id );
-			$key  = nvx_aesthetic_treatment_key_from_slug( $slug );
-		}
+		// Aesthetic treatment pages emit their own FAQPage node (with the same
+		// @id) via nvx_aesthetic_treatment_extend_yoast_graph(); resolving them
+		// here too would build a duplicate the deduplicator has to strip. Leave
+		// them to the dedicated module, which also owns their MedicalProcedure.
 
 		$catalog = nvx_schema_faq_catalog();
 		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {

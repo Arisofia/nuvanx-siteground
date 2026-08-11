@@ -339,17 +339,15 @@
 
 	/** Return one UUID that remains stable for every retry of a submission. */
 	function createSubmissionId() {
-		try {
-			if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
-			if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-				var bytes = new Uint8Array(16);
-				window.crypto.getRandomValues(bytes);
-				bytes[6] = (bytes[6] & 0x0f) | 0x40;
-				bytes[8] = (bytes[8] & 0x3f) | 0x80;
-				var hex = Array.from(bytes).map(function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
-				return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
-			}
-		} catch (_error) {}
+		if (typeof window.crypto?.randomUUID === 'function') return window.crypto.randomUUID();
+		if (typeof window.crypto?.getRandomValues === 'function') {
+			var bytes = new Uint8Array(16);
+			window.crypto.getRandomValues(bytes);
+			bytes[6] = (bytes[6] & 0x0f) | 0x40;
+			bytes[8] = (bytes[8] & 0x3f) | 0x80;
+			var hex = Array.from(bytes).map(function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
+			return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+		}
 		return '';
 	}
 
@@ -557,7 +555,7 @@
 	function refreshLegacyForms() {
 		if (!hasMarketingConsent()) clearLegacyPendingSubmission();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
-			return root && root.isConnected;
+			return root?.isConnected;
 		});
 		legacyFormRoots.forEach(function (root) {
 			populateLegacyClickFields(root);
@@ -639,7 +637,7 @@
 			pending.successSeen = true;
 		} else if (!pending.successSeen) {
 			legacyFormRoots = legacyFormRoots.filter(function (root) {
-				return root && root.isConnected;
+				return root?.isConnected;
 			});
 			if (legacyFormRoots.length !== 1 || legacyFormRoots[0] !== pending.root) return;
 			pending.successSeen = true;

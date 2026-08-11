@@ -229,7 +229,8 @@ const report = {
   transientBaseDelayMs,
   requestTimeoutMs,
   originFallbackAlias: originSshAlias,
-  originFallbackAvailable: null,
+  originFallbackProbed: false,
+  originFallbackAvailable: false,
   routes: [],
   failures: [],
 };
@@ -237,6 +238,7 @@ const report = {
 function getOriginFallbackAvailable() {
   if (originFallbackAvailable !== null) return originFallbackAvailable;
   originFallbackAvailable = sshAliasConfigured(originSshAlias);
+  report.originFallbackProbed = true;
   report.originFallbackAvailable = originFallbackAvailable;
   return originFallbackAvailable;
 }
@@ -273,7 +275,9 @@ for (const route of routes) {
         result.originDeploySha = shaMatch ? shaMatch[1] : '';
         result.robots = robotsMatch ? Buffer.from(robotsMatch[1], 'base64').toString('utf8').trim() : '';
         result.robotsSource = 'origin';
-        result.pass = true;
+        result.issues.push(...robotsIssues(result.robots));
+        result.pass = result.issues.length === 0;
+        if (!result.pass) report.failures.push({ route, issues: result.issues });
         report.routes.push(result);
         continue;
       }
@@ -295,7 +299,6 @@ for (const route of routes) {
 }
 
 report.pass = report.failures.length === 0;
-if (report.originFallbackAvailable === null) report.originFallbackAvailable = 'not-probed';
 await fs.writeFile(path.join(outputDir, 'staging2-boundary.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
 if (!report.pass) {

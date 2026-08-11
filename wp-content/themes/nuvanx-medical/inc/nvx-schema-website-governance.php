@@ -11,7 +11,87 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
+}
+
+/**
+ * Determine whether an array uses sequential integer keys.
+ *
+ * @param array $value Array to inspect.
+ * @return bool
+ */
+function nvx_schema_is_list( array $value ): bool {
+	return array() === $value || array_keys( $value ) === range( 0, count( $value ) - 1 );
+}
+
+/**
+ * Deep-merge associative schema objects while replacing scalar and list values.
+ *
+ * @param array $base     Existing schema value.
+ * @param array $override Later schema value.
+ * @return array
+ */
+function nvx_schema_deep_merge( array $base, array $override ): array {
+	foreach ( $override as $key => $value ) {
+		if (
+			isset( $base[ $key ] ) &&
+			is_array( $base[ $key ] ) &&
+			is_array( $value ) &&
+			! nvx_schema_is_list( $base[ $key ] ) &&
+			! nvx_schema_is_list( $value )
+		) {
+			$base[ $key ] = nvx_schema_deep_merge( $base[ $key ], $value );
+			continue;
+		}
+
+		$base[ $key ] = $value;
+	}
+
+	return $base;
+}
+
+/**
+ * Normalize one action object or a list of action objects to a list.
+ *
+ * @param array $actions Action value.
+ * @return array<int,array>
+ */
+function nvx_schema_action_list( array $actions ): array {
+	return nvx_schema_is_list( $actions ) ? $actions : array( $actions );
+}
+
+/**
+ * Preserve distinct WebSite actions and merge contributions to the same type.
+ *
+ * @param array $base     Existing action value.
+ * @param array $override Later action value.
+ * @return array<int,array>
+ */
+function nvx_schema_merge_actions( array $base, array $override ): array {
+	$merged = nvx_schema_action_list( $base );
+
+	foreach ( nvx_schema_action_list( $override ) as $action ) {
+		if ( ! is_array( $action ) ) {
+			continue;
+		}
+
+		$action_type = $action['@type'] ?? null;
+		$match_key   = null;
+		foreach ( $merged as $key => $existing ) {
+			if ( is_array( $existing ) && null !== $action_type && ( $existing['@type'] ?? null ) === $action_type ) {
+				$match_key = $key;
+				break;
+			}
+		}
+
+		if ( null === $match_key ) {
+			$merged[] = $action;
+		} else {
+			$merged[ $match_key ] = nvx_schema_deep_merge( $merged[ $match_key ], $action );
+		}
+	}
+
+	return array_values( $merged );
 }
 
 /**
@@ -21,40 +101,43 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function nvx_schema_merge_canonical_website_nodes( $graph ) {
-    if ( ! is_array( $graph ) || is_admin() || is_feed() || ! is_front_page() ) {
-        return $graph;
-    }
+	if ( ! is_array( $graph ) || is_admin() || is_feed() || ! is_front_page() ) {
+		return $graph;
+	}
 
-    $website_id = home_url( '/#website' );
-    $first_key  = null;
-    $merged     = array();
+	$website_id = home_url( '/#website' );
+	$first_key  = null;
+	$merged     = array();
 
-    foreach ( $graph as $key => $node ) {
-        if ( ! is_array( $node ) || ( $node['@id'] ?? '' ) !== $website_id ) {
-            continue;
-        }
+	foreach ( $graph as $key => $node ) {
+		if ( ! is_array( $node ) || ( $node['@id'] ?? '' ) !== $website_id ) {
+			continue;
+		}
 
-        $types = isset( $node['@type'] ) ? (array) $node['@type'] : array();
-        if ( ! in_array( 'WebSite', $types, true ) ) {
-            continue;
-        }
+		$types = isset( $node['@type'] ) ? (array) $node['@type'] : array();
+		if ( ! in_array( 'WebSite', $types, true ) ) {
+			continue;
+		}
 
-        if ( null === $first_key ) {
-            $first_key = $key;
-            $merged    = $node;
-            continue;
-        }
+		if ( null === $first_key ) {
+			$first_key = $key;
+			$merged    = $node;
+			continue;
+		}
 
-        // Later NUVANX additions may override scalar editorial fields while fields
-        // present only in Yoast's original node remain intact.
-        $merged = array_replace( $merged, $node );
-        unset( $graph[ $key ] );
-    }
+		$base_actions     = isset( $merged['potentialAction'] ) && is_array( $merged['potentialAction'] ) ? $merged['potentialAction'] : array();
+		$override_actions = isset( $node['potentialAction'] ) && is_array( $node['potentialAction'] ) ? $node['potentialAction'] : array();
+		$merged           = nvx_schema_deep_merge( $merged, $node );
+		if ( $base_actions && $override_actions ) {
+			$merged['potentialAction'] = nvx_schema_merge_actions( $base_actions, $override_actions );
+		}
+		unset( $graph[ $key ] );
+	}
 
-    if ( null !== $first_key ) {
-        $graph[ $first_key ] = $merged;
-    }
+	if ( null !== $first_key ) {
+		$graph[ $first_key ] = $merged;
+	}
 
-    return array_values( $graph );
+	return array_values( $graph );
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_merge_canonical_website_nodes', 21, 1 );

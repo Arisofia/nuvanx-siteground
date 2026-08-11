@@ -22,7 +22,7 @@ function nvx_redirect_retired_strategy_slugs(): void {
 	}
 
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-	$path = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
+	$path = strtolower( trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) );
 
 	$targets = array(
 		'liposculpt-air' => '/remodelacion-corporal-laser-madrid/',

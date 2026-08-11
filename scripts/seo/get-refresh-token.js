@@ -43,7 +43,7 @@ rl.question('2. Pega el código de autorización: ', async (code) => {
     console.log(refreshToken);
     console.log('\nGuárdalo inmediatamente en el gestor de secretos correspondiente; no lo pegues en issues, PRs ni logs compartidos.\n');
   } catch (error) {
-    console.error('Error obteniendo el token:', error && error.name ? error.name : 'OAuthError');
+    console.error('Error obteniendo el token:', error?.name || 'OAuthError');
     process.exitCode = 1;
   } finally {
     rl.close();

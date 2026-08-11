@@ -344,6 +344,12 @@
                   const hooks = window.NUVANXGoogleAttributionLegacy;
                   if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form, frame.dataset.formId);
                 } catch (_error) {}
+              },
+              onFormSubmitted: function ($form) {
+                try {
+                  const hooks = window.NUVANXGoogleAttributionLegacy;
+                  if (hooks && typeof hooks.onFormSubmitted === 'function') hooks.onFormSubmitted($form, frame.dataset.formId);
+                } catch (_error) {}
               }
             });
           } catch (_err) {

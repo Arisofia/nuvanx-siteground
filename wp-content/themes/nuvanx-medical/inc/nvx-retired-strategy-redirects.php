@@ -34,7 +34,23 @@ function nvx_retired_strategy_page_ids(): array {
 		}
 	}
 
-	return $ids;
+	// Also search for nested pages with matching post_name
+	$nested_query = new WP_Query(
+		array(
+			'post_type'      => 'page',
+			'post_name__in' => $slugs,
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+		)
+	);
+
+	if ( $nested_query->have_posts() ) {
+		foreach ( $nested_query->posts as $post_id ) {
+			$ids[] = (int) $post_id;
+		}
+	}
+
+	return array_unique( $ids );
 }
 
 /**
@@ -55,20 +71,35 @@ function nvx_redirect_retired_strategy_slugs(): void {
 		'v-lift-awake'         => '/endolift-facial-papada-mandibula/',
 	);
 
-	if ( ! isset( $targets[ $path ] ) ) {
-		return;
+	// Check path-based redirect (top-level pages)
+	if ( isset( $targets[ $path ] ) ) {
+		$redirect_url = home_url( $targets[ $path ] );
+		if ( '' !== $query ) {
+			$query_args = array();
+			wp_parse_str( $query, $query_args );
+			if ( ! empty( $query_args ) ) {
+				$redirect_url = add_query_arg( $query_args, $redirect_url );
+			}
+		}
+		wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
+		exit;
 	}
 
-	$redirect_url = home_url( $targets[ $path ] );
-	if ( '' !== $query ) {
-		$query_args = array();
-		wp_parse_str( $query, $query_args );
-		if ( ! empty( $query_args ) ) {
-			$redirect_url = add_query_arg( $query_args, $redirect_url );
+	// Check post_name-based redirect (nested pages, other post types)
+	if ( is_singular() ) {
+		$queried_object = get_queried_object();
+		if ( $queried_object && isset( $queried_object->post_name ) && isset( $targets[ $queried_object->post_name ] ) ) {
+			$redirect_url = home_url( $targets[ $queried_object->post_name ] );
+			if ( '' !== $query ) {
+				$query_args = array();
+				wp_parse_str( $query, $query_args );
+				if ( ! empty( $query_args ) ) {
+					$redirect_url = add_query_arg( $query_args, $redirect_url );
+				}
+			}
+			wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
+			exit;
 		}
 	}
-
-	wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
-	exit;
 }
 add_action( 'template_redirect', 'nvx_redirect_retired_strategy_slugs', 0 );

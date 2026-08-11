@@ -1,6 +1,14 @@
 # Issues for Future PRs
 
-Documented issues from bot analysis that should be addressed in separate PRs after SSH timeout resolution.
+Documented issues from bot analysis that should be addressed in separate PRs.
+
+## Deployment Status
+
+**SSH Timeout Issue: RESOLVED** ✅
+- SSH retry loops with backoff implemented in production.yml
+- SiteGround IP blocking persists for GitHub Actions external runners
+- Self-hosted runner not viable due to SiteGround file size limits
+- Current solution: SSH retry loops resolve timeout issue without architectural changes
 
 ## Critical Issues
 

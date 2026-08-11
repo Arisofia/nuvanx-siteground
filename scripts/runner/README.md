@@ -1,109 +1,52 @@
-# Self-Hosted GitHub Actions Runner Setup Guide
+# Self-Hosted GitHub Actions Runner - NOT APPLICABLE
 
-## Overview
-This guide documents how to register a self-hosted GitHub Actions runner on SiteGround to resolve SSH connection timeout issues. The runner executes directly on the SiteGround server, eliminating external SSH connections that are intermittently blocked by SiteGround's IP throttling.
+## Status: Self-Hosted Runner Not Viable on SiteGround
 
-## Important: Token Generation
+**SiteGround shared hosting has file size limits that prevent GitHub Actions self-hosted runner configuration.**
 
-The runner registration token can be obtained via:
-- GitHub Web UI (Settings → Actions → Runners → New self-hosted runner)
-- GitHub CLI API: `gh api --method POST repos/{owner}/{repo}/actions/runners/registration-token --jq '.token'`
-- GitHub REST API: `POST /repos/{owner}/{repo}/actions/runners/registration-token`
-
-The token expires after 1 hour. The API method is preferred for automation as it doesn't require browser interaction.
-
-## Setup Steps
-
-### Step 1: Generate Token in GitHub Web UI
-1. Go to GitHub → Arisofia/nuvanx-siteground → Settings → Actions → Runners
-2. Click "New self-hosted runner"
-3. Select:
-   - Operating system: Linux
-   - Architecture: x64
-4. GitHub will display configuration commands including:
-   ```
-   ./config.sh --url https://github.com/Arisofia/nuvanx-siteground --token APTR...
-   ```
-5. **Copy the token** (the `APTR...` part) - this is the only time you'll see it
-
-### Step 2: Install Runner on SiteGround
-Connect to SiteGround via SSH from your local terminal:
-```bash
-ssh nuvanx-prod   # or nuvanx-staging depending on where you want the runner
+Attempted installation resulted in:
+```
+./config.sh: line 81: File size limit exceeded
 ```
 
-Once connected:
-```bash
-# Create runner directory (outside webroot)
-mkdir -p ~/github-runner
-cd ~/github-runner
+## Current Solution: SSH Retry Loops
 
-# Download runner
-curl -o runner.tar.gz -L https://github.com/actions/runner/releases/download/v2.323.0/actions-runner-linux-x64-2.323.0.tar.gz
-tar xzf runner.tar.gz && rm runner.tar.gz
+The SSH timeout issue has been resolved using retry loops with backoff in the workflows:
+- `production.yml` - SSH retry loops with 15s×attempt backoff for all 3 SSH connection points
+- `staging.yml` - Existing SSH retry pattern (already had working retry logic)
 
-# Configure runner (paste the token you copied from GitHub Web UI)
-./config.sh \
-  --url https://github.com/Arisofia/nuvanx-siteground \
-  --token PASTE_YOUR_APTR_TOKEN_HERE \
-  --name siteground-nvx \
-  --labels siteground,nuvanx \
-  --unattended
-```
+This is the working solution without requiring self-hosted runner infrastructure.
 
-### Step 3: Setup Keep-Alive (SiteGround has no systemd)
-```bash
-# Create keep-alive script
-cat > ~/keep-runner.sh << 'EOF'
-#!/bin/bash
-RUNNER_DIR="$HOME/github-runner"
-PID_FILE="$RUNNER_DIR/.runner.pid"
+## Token Generation Info (For Reference)
 
-# If runner is already running, exit
-if [[ -f "$PID_FILE" ]]; then
-  pid=$(cat "$PID_FILE")
-  kill -0 "$pid" 2>/dev/null && exit 0
-fi
+GitHub Actions runner registration tokens can be obtained via:
+- GitHub Web UI: Settings → Actions → Runners → New self-hosted runner
+- GitHub CLI: `gh api --method POST repos/{owner}/{repo}/actions/runners/registration-token --jq '.token'`
+- REST API: `POST /repos/{owner}/{repo}/actions/runners/registration-token`
 
-# Start runner in background
-cd "$RUNNER_DIR"
-nohup ./run.sh >> "$RUNNER_DIR/runner.log" 2>&1 &
-echo $! > "$PID_FILE"
-EOF
+Tokens expire after 1 hour.
 
-chmod +x ~/keep-runner.sh
+## Why Self-Hosted Runner Was Considered
 
-# Add to crontab (check every 5 minutes)
-(crontab -l 2>/dev/null; echo "*/5 * * * * $HOME/keep-runner.sh") | crontab -
+GitHub Actions external runners are intermittently blocked by SiteGround's IP throttling, causing SSH connection timeouts. Self-hosted runner would eliminate external SSH connections by running directly on SiteGround.
 
-# Start runner immediately
-~/keep-runner.sh
-sleep 3 && tail -5 ~/github-runner/runner.log
-```
+## Why Self-Hosted Runner Is Not Viable Here
 
-### Step 4: Verify Registration
-1. Go back to GitHub → Settings → Actions → Runners
-2. You should see `siteground-nvx` in green (online)
-3. This confirms the runner is properly registered and running
+1. **SiteGround file size limits** prevent runner configuration
+2. **Shared hosting restrictions** on background processes
+3. **No systemd available** (requires cron-based workarounds)
+4. **Security concerns** with sensitive jobs running on production server
 
-## Workflow Configuration
-The workflows are already configured to use the self-hosted runner:
-- `staging.yml` → `deploy_staging` job uses `[self-hosted, siteground]`
-- `production.yml` → `release` and `post_audits` jobs use `[self-hosted, siteground]`
+## Alternative Approaches (Not Currently Implemented)
 
-Jobs that don't need SSH remain on `ubuntu-latest`:
-- Quality checks (linting, schema validation)
-- Performance tests (Lighthouse HTTP)
-- HubSpot E2E (API calls)
+If SiteGround environment limitations are resolved in the future:
+1. Dedicated server/VPS hosting (no file size limits)
+2. Cloud runner with VPN tunnel to SiteGround
+3. Alternative deployment method (SFTP/Webhook instead of SSH)
 
-## Troubleshooting
-- **Runner not showing in GitHub**: Check runner logs at `~/github-runner/runner.log`
-- **Runner keeps stopping**: Verify cron is active with `crontab -l`
-- **Connection issues**: This approach eliminates SSH, so network issues should be resolved
-- **Need to re-register**: Delete old runner from GitHub Web UI and repeat setup with new token
+## Current Architecture Remains Valid
 
-## Future Reference
-- Store this guide for future runner setups
-- Token generation always requires GitHub Web UI access
-- SiteGround shared hosting lacks systemd, hence the cron-based keep-alive
-- Runner should be outside webroot to avoid web access
+- Workflows use `ubuntu-latest` GitHub Actions runners
+- SSH retry loops handle intermittent SiteGround IP blocking
+- Exact-SHA promotion model preserved
+- Security boundaries maintained

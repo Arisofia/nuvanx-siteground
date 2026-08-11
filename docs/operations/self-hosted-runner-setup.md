@@ -1,112 +1,40 @@
-# Self-Hosted GitHub Actions Runner Setup for SiteGround
+# Self-Hosted GitHub Actions Runner on SiteGround — Archived
 
-## Problem
-SiteGround intermittently blocks GitHub Actions runner IPs, causing SSH connection timeouts. This is an architectural issue that cannot be solved with timeout parameters.
+## Status
 
-## Solution
-Deploy a self-hosted GitHub Actions runner directly on the SiteGround server. This eliminates the need for external SSH connections since the runner executes within the server environment.
+This setup is **not supported by the current NUVANX deployment architecture**.
 
-## Setup Instructions
+A self-hosted runner was tested on the current SiteGround shared-hosting environment and failed during configuration with:
 
-### Step 1: Obtain Runner Token
-1. Go to GitHub → Settings → Actions → Runners
-2. Click "New self-hosted runner"
-3. Select "Linux" architecture
-4. Copy the token (save it for step 2)
-
-### Step 2: Install Runner on SiteGround
-SSH into your SiteGround server and run:
-
-```bash
-# Create directory for runner
-mkdir -p ~/actions-runner && cd ~/actions-runner
-
-# Download runner
-curl -o actions-runner-linux-x64-2.323.0.tar.gz -L \
-  https://github.com/actions/runner/releases/download/v2.323.0/actions-runner-linux-x64-2.323.0.tar.gz
-
-# Extract runner
-tar xzf ./actions-runner-linux-x64-2.323.0.tar.gz
-
-# Configure runner
-./config.sh --url https://github.com/Arisofia/nuvanx-siteground \
-            --token YOUR_RUNNER_TOKEN \
-            --name siteground-production \
-            --labels siteground,production \
-            --unattended
-
-# Start runner as background process
-./run.sh &
+```text
+./config.sh: line 81: File size limit exceeded
 ```
 
-### Step 3: Make Runner Persistent
-Create a systemd service to keep the runner running:
+The previous instructions in this document referenced workflow files that no longer exist and would violate the repository invariant that exactly two canonical workflows are present.
 
-```bash
-# Create systemd service file
-sudo tee /etc/systemd/system/actions-runner.service > /dev/null <<EOF
-[Unit]
-Description=GitHub Actions Runner
-After=network.target
+## Current Supported Architecture
 
-[Service]
-Type=simple
-User=YOUR_SITEGROUND_USER
-WorkingDirectory=/home/YOUR_SITEGROUND_USER/actions-runner
-ExecStart=/home/YOUR_SITEGROUND_USER/actions-runner/run.sh
-Restart=always
-RestartSec=10
+Use only:
 
-[Install]
-WantedBy=multi-user.target
-EOF
+- `.github/workflows/staging.yml`
+- `.github/workflows/production.yml`
 
-# Enable and start service
-sudo systemctl daemon-reload
-sudo systemctl enable actions-runner
-sudo systemctl start actions-runner
-```
+Both use GitHub-hosted runners and strict SSH transport with bounded retries.
 
-### Step 4: Update Workflow Files
-The repository now includes self-hosted runner workflow files:
-- `.github/workflows/staging-selfhosted.yml` - Staging workflow for self-hosted runner
-- `.github/workflows/production-selfhosted.yml` - Production workflow for self-hosted runner
+Do **not** create or activate `staging-selfhosted.yml`, `production-selfhosted.yml`, `staging-ssh.yml`, or `production-ssh.yml` variants. Adding extra workflow files will fail the repository/workflow invariant enforced by CI and Production.
 
-Key changes from SSH-based workflows:
-- `runs-on: siteground` instead of `runs-on: ubuntu-latest`
-- No SSH configuration steps
-- Direct command execution instead of `ssh host "command"`
-- Eliminated all SSH retry logic (no longer needed)
+## Historical Context
 
-### Step 5: Switch to Self-Hosted Workflows
-1. Rename current workflows:
-   ```bash
-   mv .github/workflows/staging.yml .github/workflows/staging-ssh.yml
-   mv .github/workflows/production.yml .github/workflows/production-ssh.yml
-   ```
+The self-hosted approach was considered to remove dependence on GitHub-hosted runner → SiteGround SSH connectivity. It was not adopted because the tested hosting environment could not configure the runner and because running deployment jobs directly on the WordPress host would expand the security and operational blast radius.
 
-2. Activate self-hosted workflows:
-   ```bash
-   mv .github/workflows/staging-selfhosted.yml .github/workflows/staging.yml
-   mv .github/workflows/production-selfhosted.yml .github/workflows/production.yml
-   ```
+## Re-evaluation Criteria
 
-3. Commit and push changes
+Revisit a self-hosted runner only if all of the following change and are explicitly re-audited:
 
-## Benefits
-- **No SSH connectivity issues** - Runner is local to the server
-- **Faster deployments** - No SSH connection overhead
-- **More reliable** - Eliminates external network dependencies
-- **Cost-effective** - Uses existing server resources
+- hosting environment supports the runner binary and persistent execution;
+- process supervision is supported;
+- least-privilege separation between Staging and Production is available;
+- repository workflow invariants and concurrency controls are redesigned deliberately;
+- security review approves executing CI jobs on the hosting origin.
 
-## Maintenance
-- Monitor runner status in GitHub Actions settings
-- Update runner binary periodically (check for new releases)
-- Check runner logs if deployments fail
-- Ensure systemd service stays running
-
-## Rollback Plan
-If issues arise with self-hosted runner:
-1. Stop the runner: `sudo systemctl stop actions-runner`
-2. Revert to SSH-based workflows
-3. Use SSH workflows as fallback
+Until then, this file is historical documentation only and contains no activation procedure.

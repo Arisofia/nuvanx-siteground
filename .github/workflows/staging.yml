@@ -53,6 +53,9 @@ env:
   STAGING_PARENT: /home/customer/www/staging2.nuvanx.com
   PROD_ROOT: /home/customer/www/nuvanx.com/public_html
   STAGING_URL: https://staging2.nuvanx.com
+  SSH_RETRY_ATTEMPTS: 5
+  SSH_RETRY_BASE_DELAY_SECONDS: 15
+  SSH_TRANSPORT_EXIT_CODE: 255
   CI: true
 
 jobs:
@@ -73,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t transient < <(git ls-files | grep -E '(-(once|temp)\.(yml|yaml|sh|mjs)$)|(^|/)(tmp|temp)[_-]' || true)
+          mapfile -t transient < <(git ls-files | grep -E '(^|/)(tmp|temp)[_-]|(-(once|temp)\.(yml|yaml|sh|mjs)$)' || true)
           if (( ${#transient[@]} > 0 && ${#transient[0]} > 0 )); then
             printf 'Transient files are forbidden:\n%s\n' "${transient[*]}" >&2
             exit 1
@@ -204,7 +207,7 @@ jobs:
           mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"; chmod 600 "$HOME/.ssh/staging_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts" || { echo 'STAGING_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-staging2
             HostName $HOST
@@ -222,13 +225,18 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           connected=0
-          for attempt in 1 2 3 4 5; do
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
             if ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
               connected=1; break
             fi
-            [[ "$attempt" -eq 5 ]] || { echo "Staging SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Staging SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
           done
-          test "$connected" = 1 || { echo 'STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround after 5 attempts.' >&2; exit 255; }
+          [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
           echo 'STAGING_SSH=PASS'
 
       - name: Verify environment isolation and normalize runtime
@@ -394,11 +402,43 @@ jobs:
           echo 'PRODUCTION_UNCHANGED=PASS'
           REMOTE
 
+      - name: Write immutable Staging acceptance manifest
+        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/staging2/artifacts
+          jq -n \
+            --arg candidate_sha "$CANDIDATE_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg event "$GITHUB_EVENT_NAME" \
+            --arg head_sha "$GITHUB_SHA" \
+            --arg head_branch "$GITHUB_REF_NAME" \
+            --arg workflow_path '.github/workflows/staging.yml' \
+            '{schema:1,candidate_sha:$candidate_sha,run_id:$run_id,run_attempt:$run_attempt,event:$event,head_sha:$head_sha,head_branch:$head_branch,workflow_path:$workflow_path}' \
+            > scripts/staging2/artifacts/acceptance-manifest.json
+          jq -e --arg sha "$CANDIDATE_SHA" --arg run "$GITHUB_RUN_ID" '.schema == 1 and .candidate_sha == $sha and .run_id == $run' scripts/staging2/artifacts/acceptance-manifest.json >/dev/null
+          echo "STAGING_ACCEPTANCE_MANIFEST=PASS sha=$CANDIDATE_SHA run_id=$GITHUB_RUN_ID"
+
       - name: Upload production-eligible acceptance evidence
-        if: ${{ always() && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-block-c-${{ env.CANDIDATE_SHA }}
+          path: |
+            scripts/staging2/artifacts/
+            scripts/staging2/block-c-artifacts/
+            scripts/staging2/valoracion-artifacts/
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 6
+
+      - name: Upload failed Staging diagnostic evidence
+        if: ${{ failure() && env.RUN_ACCEPTANCE == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging2-block-c-diagnostic-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
           path: |
             scripts/staging2/artifacts/
             scripts/staging2/block-c-artifacts/
@@ -524,6 +564,7 @@ jobs:
           mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/staging_pr_key"; chmod 600 "$HOME/.ssh/staging_pr_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts" || { echo 'STAGING_PR_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-staging2-pr
             HostName $HOST
@@ -541,13 +582,18 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           pr_connected=0
-          for attempt in 1 2 3 4 5; do
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
             if ssh -n nvx-staging2-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"; then
               pr_connected=1; break
             fi
-            [[ "$attempt" -eq 5 ]] || { echo "Staging PR SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Staging PR SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
           done
-          test "$pr_connected" = 1 || { echo 'STAGING_PR_SSH=FAIL_TRANSPORT: could not reach SiteGround after 5 attempts.' >&2; exit 255; }
+          [[ "$pr_connected" = 1 ]] || { echo "STAGING_PR_SSH=FAIL_TRANSPORT: could not reach SiteGround after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
 
       - name: Snapshot and deploy PR candidate with trusted tooling
         shell: bash

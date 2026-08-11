@@ -476,11 +476,17 @@ jobs:
                 if "$LH" "${URLS[$page]}" --output=json --output-path="$out" --only-categories=performance --quiet --chrome-flags='--headless --disable-dev-shm-usage' "${extra[@]}"; then success=1; break; fi
                 sleep $((attempt * 5))
               done
-              if [[ "$success" = 1 ]]; then
-                jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score//0)*100|round),(.audits["first-contentful-paint"].numericValue//0|round),(.audits["largest-contentful-paint"].numericValue//0|round),(.audits["total-blocking-time"].numericValue//0|round),(.audits["cumulative-layout-shift"].numericValue//0),(.audits["speed-index"].numericValue//0|round),(.audits["server-response-time"].numericValue//0|round),(.audits["server-response-time"].numericValue//0|round)]|@tsv' "$out" >> perf-results/summary.tsv
-              else
-                printf '%s\t%s\tFAILED\t0\t0\t0\t0\t0\t0\n' "$page" "$mode" >> perf-results/summary.tsv
-              fi
+              [[ "$success" = 1 ]] || { echo "Lighthouse failed for $page/$mode after 3 attempts." >&2; exit 1; }
+              jq -e '
+                (.categories.performance.score | type == "number") and
+                (.audits["first-contentful-paint"].numericValue | type == "number") and
+                (.audits["largest-contentful-paint"].numericValue | type == "number") and
+                (.audits["total-blocking-time"].numericValue | type == "number") and
+                (.audits["cumulative-layout-shift"].numericValue | type == "number") and
+                (.audits["speed-index"].numericValue | type == "number") and
+                (.audits["server-response-time"].numericValue | type == "number")
+              ' "$out" >/dev/null || { echo "Invalid Lighthouse JSON for $page/$mode." >&2; exit 1; }
+              jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score)*100|round),(.audits["first-contentful-paint"].numericValue|round),(.audits["largest-contentful-paint"].numericValue|round),(.audits["total-blocking-time"].numericValue|round),(.audits["cumulative-layout-shift"].numericValue),(.audits["speed-index"].numericValue|round),(.audits["server-response-time"].numericValue|round)]|@tsv' "$out" >> perf-results/summary.tsv
             done
           done
           cat perf-results/summary.tsv

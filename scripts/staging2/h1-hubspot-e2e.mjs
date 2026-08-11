@@ -15,8 +15,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sel = (name) => `input[name="${name}"],input[name="0-1/${name}"]`;
 
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-if (expectedSha && !/^[0-9a-f]{40}$/i.test(expectedSha)) {
-  throw new Error(`EXPECTED_SHA must be a 40-hex commit SHA; received=${JSON.stringify(expectedSha)}`);
+if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) {
+  throw new Error(`EXPECTED_SHA must be a full lowercase 40-hex commit SHA; received=${JSON.stringify(expectedSha)}`);
 }
 
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });

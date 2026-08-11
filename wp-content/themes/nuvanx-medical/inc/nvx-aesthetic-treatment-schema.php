@@ -72,14 +72,22 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
-	// Price should be in an Offer node, not directly on MedicalProcedure/Service
+	// Extract numeric price from price_range string for schema.org Offer
 	if ( ! empty( $entry['price_range'] ) ) {
-		$node['offers'] = array(
-			'@type'         => 'Offer',
-			'price'         => $entry['price_range'],
-			'priceCurrency' => 'EUR',
-			'availability'  => 'https://schema.org/InStock',
-		);
+		$price_text = (string) $entry['price_range'];
+		$numeric_price = null;
+		if ( preg_match( '/(\d+(?:[.,]\d+)?)/', $price_text, $matches ) ) {
+			$numeric_price = (float) str_replace( ',', '.', $matches[1] );
+		}
+		if ( null !== $numeric_price && $numeric_price > 0 ) {
+			$node['offers'] = array(
+				'@type'         => 'Offer',
+				'price'         => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+				'priceCurrency' => 'EUR',
+				'availability'  => 'https://schema.org/InStock',
+				'description'   => $price_text,
+			);
+		}
 	}
 	// Duration should be expressed as a duration value or omitted (not valid on MedicalProcedure/Service)
 	// ISO 8601 duration format could be used but is not standard for MedicalProcedure

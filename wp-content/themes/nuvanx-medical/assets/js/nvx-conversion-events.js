@@ -452,14 +452,13 @@
 		} catch (_error) {
 			return null;
 		}
-		return root && root.nodeType === 1 && typeof root.querySelector === 'function' ? root : null;
+		return root?.nodeType === 1 && typeof root.querySelector === 'function' ? root : null;
 	}
 
 	function legacyFieldInput(root, propertyName) {
 		if (!root) return null;
-		var names = fieldCandidates(propertyName);
-		for (var index = 0; index < names.length; index += 1) {
-			var input = root.querySelector('[name="' + names[index] + '"]');
+		for (const name of fieldCandidates(propertyName)) {
+			const input = root.querySelector('[name="' + name + '"]');
 			if (input) return input;
 		}
 		return null;

@@ -97,10 +97,11 @@ function nvx_site_closing_cta_markup(): string {
 	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
-	$html .= '<p class="nvx-cta-banner__kicker">No tratamos una imagen aislada. Tratamos a una persona, con su historia y sus prioridades.</p>';
-	$html .= '<h2 class="nvx-cta-banner__title">Cada protocolo comienza con una valoración médica individual. Si no está indicado para ti, te lo diremos con la misma claridad.</h2>';
-	$html .= '<p class="nvx-cta-banner__sub">Presupuesto y plan documentado por escrito en la primera visita &bull; 2–5 días de recuperación en la mayoría de protocolos</p>';
+	$html .= '<p class="nvx-cta-banner__kicker">Tratamos personas, no imágenes aisladas</p>';
+	$html .= '<h2 class="nvx-cta-banner__title">Cada protocolo comienza con una valoración médica individual. Si no está indicado para ti, te lo diremos con claridad.</h2>';
+	$html .= '<p class="nvx-cta-banner__sub">Presupuesto y plan documentado por escrito tras la valoración médica &bull; Tiempos de recuperación informados según el protocolo</p>';
 	$html .= '</div>';
+
 	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',

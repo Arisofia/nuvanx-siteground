@@ -176,7 +176,27 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<p><strong>' . esc_html__( 'Protocolo relacionado:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['protocol'] ) . '</p></div></section>';
 	$html      .= nvx_signature_phase_list( 'Tecnologías que pueden formar parte del plan', (array) $page['technology'] );
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
+	if ( ! empty( $page['price_range'] ) || ! empty( $page['timeline'] ) || ! empty( $page['post_care'] ) || ! empty( $page['comparison'] ) || ! empty( $page['scarring'] ) ) {
+		$html .= '<section class="nvx-brand-section nvx-signature-details"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Parámetros orientativos y cuidados', 'nuvanx-medical' ) . '</h2><ul class="nvx-strategy-checklist">';
+		if ( ! empty( $page['price_range'] ) ) {
+			$html .= '<li><strong>' . esc_html__( 'Tarifa orientativa:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['price_range'] ) . '</li>';
+		}
+		if ( ! empty( $page['timeline'] ) ) {
+			$html .= '<li><strong>' . esc_html__( 'Evolución:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['timeline'] ) . '</li>';
+		}
+		if ( ! empty( $page['post_care'] ) ) {
+			$html .= '<li><strong>' . esc_html__( 'Cuidados recomendados:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['post_care'] ) . '</li>';
+		}
+		if ( ! empty( $page['comparison'] ) ) {
+			$html .= '<li><strong>' . esc_html__( 'Comparativa de abordajes:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['comparison'] ) . '</li>';
+		}
+		if ( ! empty( $page['scarring'] ) ) {
+			$html .= '<li><strong>' . esc_html__( 'Abordaje tisular:', 'nuvanx-medical' ) . '</strong> ' . esc_html( (string) $page['scarring'] ) . '</li>';
+		}
+		$html .= '</ul></div></section>';
+	}
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+
 	$html      .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos, expectativas y disponibilidad para cuidados. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
 	$html      .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;

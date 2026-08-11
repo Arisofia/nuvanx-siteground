@@ -53,7 +53,7 @@ function nvx_aesthetic_schema_procedure_node(
 	string $permalink,
 	string $organization_id
 ): array {
-	return array(
+	$node = array(
 		'@type'             => array( 'MedicalProcedure', 'Service' ),
 		'@id'               => $permalink . '#medical-procedure',
 		'name'              => $schema['name'],
@@ -71,7 +71,17 @@ function nvx_aesthetic_schema_procedure_node(
 		'relevantCondition' => nvx_aesthetic_schema_named_nodes( (array) $schema['conditions'], 'MedicalCondition' ),
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
+
+	if ( ! empty( $entry['price_range'] ) ) {
+		$node['priceRange'] = (string) $entry['price_range'];
+	}
+	if ( ! empty( $entry['session_time'] ) ) {
+		$node['duration'] = (string) $entry['session_time'];
+	}
+
+	return $node;
 }
+
 
 /**
  * Build FAQ Question nodes for a treatment key.

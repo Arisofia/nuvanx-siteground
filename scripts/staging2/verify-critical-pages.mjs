@@ -1,6 +1,17 @@
 import { chromium } from 'playwright';
 
-const baseUrl = 'https://nuvanx.com';
+const baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
+const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
+let base;
+try {
+  base = new URL(baseUrl);
+} catch {
+  throw new Error(`BASE_URL must be an absolute URL; received=${JSON.stringify(baseUrl)}`);
+}
+if (base.protocol !== 'https:' || base.hostname !== expectedHost || base.username || base.password) {
+  throw new Error(`Refusing unexpected staging target: base=${base.origin} expected_host=${expectedHost}`);
+}
+
 const criticalUrls = [
   '/',
   '/madrid/valoracion/',
@@ -15,7 +26,7 @@ const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] }
 const results = [];
 
 for (const path of criticalUrls) {
-  const url = baseUrl + path;
+  const url = new URL(path, base).href;
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
     ignoreHTTPSErrors: true,

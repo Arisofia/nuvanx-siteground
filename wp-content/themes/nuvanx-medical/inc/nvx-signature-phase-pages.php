@@ -135,22 +135,6 @@ function nvx_signature_phase_current_key(): ?string {
 }
 
 /**
- * Identifies the governed landing page by content (for filter context).
- *
- * @param string $content The post content.
- * @return string|null The matching catalog key, or null when not found.
- */
-function nvx_signature_phase_key_by_content( string $content ): ?string {
-	foreach ( nvx_signature_phase_catalog() as $key => $page ) {
-		$slug = $page['slug'] ?? '';
-		if ( '' !== $slug && false !== strpos( $content, $slug ) ) {
-			return $key;
-		}
-	}
-	return null;
-}
-
-/**
  * Builds an HTML section containing a titled list of items.
  *
  * @param string $title The section heading.

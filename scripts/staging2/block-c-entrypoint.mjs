@@ -2,22 +2,26 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
+
+const VIEWPORT_COUNT = VIEWPORTS.length;
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const attemptScript = fileURLToPath(new URL('./block-c-52x3.mjs', import.meta.url));
+const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
 const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
 
 async function prepareTrustedPagesPreload() {
   const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
-  if (!pagesFile) return null;
+  if (!pagesFile) {
+    console.log('BLOCK_C_INVENTORY_SOURCE=public-rest (no WORDPRESS_PAGES_FILE provided)');
+    return null;
+  }
 
   const pages = JSON.parse(await fs.readFile(pagesFile, 'utf8'));
-  if (!Array.isArray(pages) || pages.length < 52) {
-    throw new Error(`Trusted WordPress page inventory must contain at least 52 pages; got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
-  }
+  if (!Array.isArray(pages)) throw new TypeError('Trusted WordPress page inventory must be an array');
 
   const normalizedPages = pages.map((page) => ({
     id: Number(page.id),
@@ -29,11 +33,21 @@ async function prepareTrustedPagesPreload() {
   }));
 
   for (const page of normalizedPages) {
+    if (!page.link) {
+      throw new Error(`Trusted WordPress page ${page.id} has empty link field`);
+    }
     const url = new URL(page.link);
     if (url.hostname !== new URL(baseUrl).hostname) {
       throw new Error(`Trusted WordPress page ${page.id} points outside staging: ${page.link}`);
     }
   }
+
+  const manifest = await loadPublishedPagesManifest();
+  assertCanonicalPublishedPaths(
+    normalizedPages.map((page) => new URL(page.link).pathname),
+    manifest,
+    'Trusted WordPress page inventory'
+  );
 
   const payload = JSON.stringify(normalizedPages);
   const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
@@ -113,12 +127,22 @@ async function failedResultsAreTransient() {
   try {
     results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
   } catch (error) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=UNAVAILABLE reason=${error.message}`);
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=RESULTS_UNAVAILABLE reason=${error.message}`);
     return false;
   }
 
-  if (!Array.isArray(results) || results.length < 156) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'}`);
+  let manifest;
+  try {
+    manifest = await loadPublishedPagesManifest();
+  } catch (error) {
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=MANIFEST_INVALID reason=${error.message}`);
+    return false;
+  }
+
+  const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
+
+  if (!Array.isArray(results) || results.length < expectedResultsCount) {
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);
     return false;
   }
 
@@ -136,7 +160,15 @@ async function failedResultsAreTransient() {
 }
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-  const code = await runAttempt(attempt);
+  let code;
+  try {
+    code = await runAttempt(attempt);
+  } catch (error) {
+    console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt} reason=${error.message}`);
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=PRELOAD_ERROR reason=${error.message}`);
+    process.exit(1);
+  }
+
   if (code === 0) {
     console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
     process.exit(0);

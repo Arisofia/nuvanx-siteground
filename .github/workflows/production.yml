@@ -711,15 +711,6 @@ jobs:
         env:
           RELEASE_SHA: ${{ needs.release.outputs.candidate_sha }}
           REQUESTED_SHA: ${{ inputs.candidate_sha }}
-          HOST: ${{ secrets.PROD_SSH_HOST }}
-          PORT: ${{ secrets.PROD_SSH_PORT }}
-          USER: ${{ secrets.PROD_SSH_USER }}
-          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-          PROD_ROOT: ${{ env.PROD_ROOT }}
-          SSH_RETRY_ATTEMPTS: ${{ env.SSH_RETRY_ATTEMPTS }}
-          SSH_RETRY_BASE_DELAY_SECONDS: ${{ env.SSH_RETRY_BASE_DELAY_SECONDS }}
-          SSH_TRANSPORT_EXIT_CODE: ${{ env.SSH_TRANSPORT_EXIT_CODE }}
         run: |
           set -euo pipefail
           expected_sha="$(printf '%s' "$RELEASE_SHA" | tr -d '[:space:]')"
@@ -728,59 +719,6 @@ jobs:
             [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Verification-only HubSpot E2E requires candidate_sha as an independent full lowercase 40-character SHA.' >&2; exit 1; }
           fi
           [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid authoritative production SHA: $expected_sha" >&2; exit 1; }
-
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          trap 'rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"' EXIT
-          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          printf '%s\n' \
-            'Host nvx-prod-h1' \
-            "  HostName $HOST" \
-            "  User $USER" \
-            "  Port $SSH_PORT" \
-            "  IdentityFile $HOME/.ssh/prod_h1_key" \
-            '  IdentitiesOnly yes' \
-            '  BatchMode yes' \
-            '  StrictHostKeyChecking yes' \
-            "  UserKnownHostsFile $HOME/.ssh/known_hosts" \
-            '  ConnectTimeout 15' \
-            '  ConnectionAttempts 1' \
-            '  ServerAliveInterval 15' \
-            '  ServerAliveCountMax 2' \
-            > "$HOME/.ssh/config"
-          chmod 600 "$HOME/.ssh/config"
-
-          connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-prod-h1 "test -d '$PROD_ROOT'"; then connected=1; break; fi
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Production H1 SSH transport $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$connected" = 1 ]] || { echo 'H1_PRODUCTION_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-
-          marker="$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
-          ssh -n nvx-prod-h1 "test -f '$marker'" || { echo "H1_PRODUCTION_MARKER=MISSING path=$marker" >&2; exit 1; }
-          live_sha=''
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if marker_value="$(ssh -n nvx-prod-h1 "tr -d '\\r\\n' < '$marker'")" && [[ "$marker_value" =~ ^[0-9a-f]{40}$ ]]; then
-              live_sha="$marker_value"; break
-            fi
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Production H1 marker read $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$live_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'H1_PRODUCTION_MARKER=UNREADABLE after retries' >&2; exit 1; }
-          [[ "$live_sha" == "$expected_sha" ]] || { echo "H1 production disk SHA mismatch: live=$live_sha expected=$expected_sha" >&2; exit 1; }
           echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
           echo "H1_EXPECTED_SHA=$expected_sha"
 

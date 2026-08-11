@@ -199,6 +199,11 @@ function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
 	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids(), nvx_superseded_legal_page_ids() );
 
+	// Retired strategy pages: exclude from sitemaps since they only redirect.
+	if ( function_exists( 'nvx_retired_strategy_page_ids' ) ) {
+		$ids = array_merge( $ids, nvx_retired_strategy_page_ids() );
+	}
+
 	// Casos de pacientes: keep the published route reachable, but only index it
 	// after explicit editorial approval of real patient evidence.
 	$cases_id = function_exists( 'nvx_page_id_by_slug' )

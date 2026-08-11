@@ -110,19 +110,3 @@ function nvx_medical_colegiado( string $doctor_id ): string {
 	}
 	return '';
 }
-
-/**
- * Get doctor name by doctor ID.
- *
- * @param string $doctor_id Doctor identifier ('director', 'ivon', 'fabio').
- * @return string Doctor name or empty string if not found.
- */
-function nvx_medical_doctor_name( string $doctor_id ): string {
-	$staff = nvx_config_get( 'medical_staff.directors', array() );
-	foreach ( $staff as $doctor ) {
-		if ( isset( $doctor['id'] ) && $doctor['id'] === $doctor_id ) {
-			return $doctor['name'] ?? '';
-		}
-	}
-	return '';
-}

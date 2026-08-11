@@ -126,19 +126,6 @@ add_action(
 	1
 );
 
-/* Clinical governance · retired treatment slugs */
-add_action(
-	'template_redirect',
-	function (): void {
-		$retired_slugs = array( 'tratamiento-retirado' );
-
-		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
-			wp_safe_redirect( home_url( '/tratamientos/' ), 301 );
-			exit;
-		}
-	}
-);
-
 /* Security headers */
 add_action(
 	'send_headers',

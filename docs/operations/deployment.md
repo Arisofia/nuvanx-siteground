@@ -48,7 +48,7 @@ The production-eligible Staging2 evidence artifact is:
 staging2-block-c-<sha>
 ```
 
-The runtime acceptance inventory is dynamic and validates every trusted published WordPress page at the configured viewports. The internal `block-c-52x3.mjs` filename is an implementation detail, not a fixed-size contract.
+The runtime acceptance inventory is dynamic and validates every trusted published WordPress page at the configured viewports. Canonical manifest membership is enforced before the browser matrix runs.
 
 ### Production
 

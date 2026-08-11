@@ -17,6 +17,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { MIN_MANIFEST_ENTRIES } from './staging2/published-pages-contract.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,6 +52,9 @@ function loadManifest() {
   const manifest = parsePagesJson(readFileSync(MANIFEST_FILE, 'utf8'), MANIFEST_FILE);
   if (manifest.length === 0) {
     throw new Error('Canonical published-page manifest must not be empty');
+  }
+  if (manifest.length < MIN_MANIFEST_ENTRIES) {
+    throw new Error(`Canonical published-page manifest has only ${manifest.length} entries; minimum ${MIN_MANIFEST_ENTRIES} required to prevent accidental truncation`);
   }
 
   const ids = manifest.map((page) => Number(page.id));

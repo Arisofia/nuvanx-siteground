@@ -59,6 +59,8 @@ Nuvanx-System/
 # ============================================================
 
 artifacts/
+scripts/staging2/block-c-artifacts/
+scripts/staging2/valoracion-artifacts/
 audit/
 audit-*.txt
 playwright-report/

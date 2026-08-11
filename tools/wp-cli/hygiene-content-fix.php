@@ -135,10 +135,11 @@ try {
 	}
 
 	// 3. Repair staging-only aesthetic seed records deterministically. Historical
-	// staging databases can contain a seeded page whose title/route is correct but
-	// whose marker metadata was never written. In that state the theme sees an
-	// inert CMS page and Block C gets only the shell H1. Never apply this repair to
-	// production and never overwrite authored page content.
+	// staging databases can contain seeded pages from catalogue records that no
+	// longer satisfy the canonical catalogue contract. Those orphan seed pages
+	// must not remain published: they render only an inert marker plus shell title
+	// and therefore poison Block C. Valid seed pages keep their catalogue-driven
+	// content; authored pages are never touched. Never apply this repair to production.
 	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() && function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
 		WP_CLI::line( 'Repairing staging aesthetic seed metadata...' );
 		$published_pages = get_posts(
@@ -150,8 +151,41 @@ try {
 				'order'          => 'ASC',
 			)
 		);
+		$catalog = nvx_aesthetic_treatment_catalog();
 
-		foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
+		// Retire only machine-seeded pages whose marker no longer resolves to a
+		// valid canonical catalogue record. This catches stale staging records such
+		// as a treatment draft left published after its source record became invalid,
+		// without hiding real authored content or weakening the acceptance gate.
+		foreach ( $published_pages as $candidate ) {
+			$content = trim( (string) $candidate->post_content );
+			if ( false === strpos( $content, 'nvx-aesthetic-treatment-source' ) ) {
+				continue;
+			}
+
+			$seed_key = get_post_meta( $candidate->ID, '_nvx_aesthetic_treatment_key', true );
+			if ( ( ! is_string( $seed_key ) || '' === $seed_key ) && preg_match( '/data-nvx-treatment=["\']([a-z0-9_-]+)["\']/i', $content, $matches ) ) {
+				$seed_key = (string) $matches[1];
+			}
+
+			if ( is_string( $seed_key ) && '' !== $seed_key && isset( $catalog[ $seed_key ] ) ) {
+				continue;
+			}
+
+			$result = wp_update_post(
+				array(
+					'ID'          => $candidate->ID,
+					'post_status' => 'draft',
+				),
+				true
+			);
+			if ( is_wp_error( $result ) ) {
+				WP_CLI::error( "Could not retire orphan aesthetic seed page {$candidate->ID}: {$result->get_error_message()}" );
+			}
+			WP_CLI::line( "AESTHETIC_SEED_RETIRED id={$candidate->ID} key=" . ( is_string( $seed_key ) ? $seed_key : '' ) . " slug={$candidate->post_name}" );
+		}
+
+		foreach ( $catalog as $key => $entry ) {
 			$matched = null;
 			foreach ( $published_pages as $candidate ) {
 				$existing_key = get_post_meta( $candidate->ID, '_nvx_aesthetic_treatment_key', true );

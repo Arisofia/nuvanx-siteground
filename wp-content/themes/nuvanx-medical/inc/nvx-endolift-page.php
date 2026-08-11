@@ -278,7 +278,22 @@ function nvx_endolift_editorial_body_markup(): string {
 		}
 	}
 	if ( empty( $faqs ) && ! empty( $data['faq']['items'] ) && is_array( $data['faq']['items'] ) ) {
-		$faqs = $data['faq']['items'];
+		// Process JSON FAQs to replace hardcoded prices with dynamic tariff constants
+		$faqs = array();
+		foreach ( $data['faq']['items'] as $faq ) {
+			$answer = $faq['a'];
+			// Replace hardcoded prices with dynamic tariff values
+			if ( function_exists( 'nvx_endolift_price_from_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' ) ) {
+				$from   = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_from_eur() ) : number_format_i18n( nvx_endolift_price_from_eur(), 2 );
+				$papada = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_papada_eur() ) : number_format_i18n( nvx_endolift_price_papada_eur(), 2 );
+				$answer = str_replace( '798 €', $from . ' €', $answer );
+				$answer = str_replace( '1.064,80 €', $papada . ' €', $answer );
+			}
+			$faqs[] = array(
+				'q' => $faq['q'],
+				'a' => $answer,
+			);
+		}
 	}
 	if ( empty( $faqs ) ) {
 		$faqs = array(

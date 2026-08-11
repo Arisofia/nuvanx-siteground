@@ -687,6 +687,17 @@ function nvx_schema_faq_catalog() {
 		$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
 	}
 
+	// Replace hardcoded Endolift prices with dynamic tariff constants in FAQ answers
+	if ( ! empty( $catalog['endolift_facial'] ) && function_exists( 'nvx_endolift_price_from_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' ) ) {
+		$from   = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_from_eur() ) : number_format_i18n( nvx_endolift_price_from_eur(), 2 );
+		$papada = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_papada_eur() ) : number_format_i18n( nvx_endolift_price_papada_eur(), 2 );
+		foreach ( $catalog['endolift_facial'] as &$faq ) {
+			$faq['a'] = str_replace( '798 €', $from . ' €', $faq['a'] );
+			$faq['a'] = str_replace( '1.064,80 €', $papada . ' €', $faq['a'] );
+		}
+		unset( $faq );
+	}
+
 
 	if ( empty( $catalog['endolift_facial'] ) ) {
 		$from                       = nvx_format_price_eur( nvx_endolift_price_from_eur() );

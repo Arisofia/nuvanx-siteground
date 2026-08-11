@@ -152,6 +152,21 @@ main().catch((err) => {
     return 'google_ads_api_error';
   };
 
+  const projectErrorCode = (raw) => {
+    if (raw === undefined || raw === null) return undefined;
+    if (typeof raw !== 'object' || Array.isArray(raw)) {
+      return String(raw).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+    }
+
+    const projected = {};
+    for (const [key, value] of Object.entries(raw).slice(0, 8)) {
+      if (!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(key)) continue;
+      if (!['string', 'number', 'boolean'].includes(typeof value)) continue;
+      projected[key] = String(value).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+    }
+    return Object.keys(projected).length ? projected : undefined;
+  };
+
   // CI logs are public-facing operational evidence. Never serialize free-form
   // Google Ads error messages or request metadata; emit bounded classifications only.
   const DIAGNOSTIC_FIELDS = ['error_code', 'errorCode'];
@@ -159,7 +174,8 @@ main().catch((err) => {
     const projected = {};
     if (e && typeof e === 'object') {
       for (const field of DIAGNOSTIC_FIELDS) {
-        if (e[field] !== undefined) projected[field] = String(e[field]).slice(0, 120);
+        const code = projectErrorCode(e[field]);
+        if (code !== undefined) projected[field] = code;
       }
       projected.message_class = classifyMessage(e.message);
       return projected;

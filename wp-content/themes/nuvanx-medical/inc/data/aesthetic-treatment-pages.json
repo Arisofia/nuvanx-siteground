@@ -368,7 +368,9 @@
             "session_time": "30 minutos aprox.",
             "duration": "12-18 meses según producto y metabolismo",
             "protocol": "1-3 sesiones espaciadas 4-6 semanas; mantenimiento a 12 meses",
-            "brands": ["Radiesse", "Sculptra", "PCL líquida", "Ultracol", "Exosomas", "PRP"],
+            "brands": ["Radiesse", "Sculptra", "Ultracol", "Ellansé"],
+            "complementary_procedures": ["PRP (Plasma Rico en Plaquetas)", "Exosomas dérmicos"],
+
             "post_care": "Regla de masaje 5x5x5 para Sculptra; evitar sol 48h; ejercicio intenso 24h",
             "guidance": "Ecografía de alta frecuencia opcional para guiado en zonas de riesgo",
             "indications": [

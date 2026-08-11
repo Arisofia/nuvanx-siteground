@@ -1,57 +1,74 @@
-# Self-Hosted GitHub Actions Runner - NOT APPLICABLE
+# GitHub Actions Runner Strategy
 
-## Status: Self-Hosted Runner Not Viable on SiteGround
+## Status: Self-Hosted Runner Not Applicable on Current SiteGround Environment
 
-**SiteGround shared hosting has file size limits that prevent GitHub Actions self-hosted runner configuration.**
+A self-hosted GitHub Actions runner was tested on the current SiteGround shared-hosting environment and did not complete configuration.
 
-Attempted installation resulted in:
-```
+Observed failure:
+
+```text
 ./config.sh: line 81: File size limit exceeded
 ```
 
-## Current Solution: SSH Retry Loops
+The repository therefore uses GitHub-hosted runners (`ubuntu-latest`) and bounded SSH transport. Do not re-enable self-hosted workflow variants without a new infrastructure and security review.
 
-SSH connectivity has been validated using retry loops with backoff in the workflows:
-- `production.yml` - SSH retry loops with 15s×attempt backoff for all 3 SSH connection points
-- `staging.yml` - SSH retry loops with 15s×attempt backoff (matching production pattern)
-- Configuration: ConnectTimeout 15, ConnectionAttempts 1 with 5 external retries with 15s×attempt backoff
+## Current SSH Model
 
-**Verification Status:**
-- Run ID 31446989846 completed successfully (7m48s)
-- SSH connection succeeded on first attempt (retry path not triggered)
-- Retry path exists but was not exercised in test run
-- This solution mitigates intermittent SiteGround IP blocking when it occurs
+The canonical Staging and Production workflows use:
 
-## Token Generation Info (For Reference)
+- strict host-key verification;
+- `ConnectTimeout 15`;
+- `ConnectionAttempts 1`;
+- five externally controlled connection attempts;
+- linear 15s, 30s, 45s, 60s backoff between failed probes;
+- explicit transport-failure logging.
 
-GitHub Actions runner registration tokens can be obtained via:
-- GitHub Web UI: Settings → Actions → Runners → New self-hosted runner
-- GitHub CLI: `gh api --method POST repos/{owner}/{repo}/actions/runners/registration-token --jq '.token'`
-- REST API: `POST /repos/{owner}/{repo}/actions/runners/registration-token`
+Run `31446989846` completed successfully and proved GitHub-hosted runner → SiteGround SSH connectivity plus the end-to-end Staging path. Its first SSH connection succeeded, so that run did **not** exercise recovery after a failed connection attempt.
 
-Tokens expire after 1 hour.
+## Production Promotion Gates
 
-## Why Self-Hosted Runner Was Considered
+Exact SHA equality by itself is not sufficient for Production promotion.
 
-GitHub Actions external runners are intermittently blocked by SiteGround's IP throttling, causing SSH connection timeouts. Self-hosted runner would eliminate external SSH connections by running directly on SiteGround.
+Production first resolves the candidate from the live Staging `.nvx-deploy-sha` marker. It then requires a non-expired artifact named exactly:
 
-## Why Self-Hosted Runner Is Not Viable Here
+```text
+staging2-block-c-<candidate-sha>
+```
 
-1. **SiteGround file size limits** prevent runner configuration
-2. **Shared hosting restrictions** on background processes
-3. **No systemd available** (requires cron-based workarounds)
-4. **Security concerns** with sensitive jobs running on production server
+The source Staging run is fetched from the GitHub Actions API and must satisfy all of these conditions:
 
-## Alternative Approaches (Not Currently Implemented)
+- `status=completed`;
+- `conclusion=success`;
+- `head_branch=master`;
+- workflow path is `.github/workflows/staging.yml`, optionally followed only by GitHub's `@<ref>` suffix;
+- event is a supported canonical Staging event.
 
-If SiteGround environment limitations are resolved in the future:
-1. Dedicated server/VPS hosting (no file size limits)
-2. Cloud runner with VPN tunnel to SiteGround
-3. Alternative deployment method (SFTP/Webhook instead of SSH)
+For a push-triggered Staging run, `run.head_sha` must equal the candidate SHA exactly.
 
-## Current Architecture Remains Valid
+For a supported manual `workflow_dispatch` that deploys an older master-contained SHA, GitHub records the dispatch ref tip as `run.head_sha`, not necessarily the selected `inputs.sha`. In that case:
 
-- Workflows use `ubuntu-latest` GitHub Actions runners
-- SSH retry loops handle intermittent SiteGround IP blocking
-- Exact-SHA promotion model preserved
-- Security boundaries maintained
+- the live Staging marker and exact artifact name bind the selected candidate SHA;
+- the dispatch head must remain contained in current `master`;
+- the selected candidate SHA must be an ancestor of that dispatch head.
+
+Failed Staging runs are never production-eligible, even if they uploaded diagnostic evidence through `if: always()`.
+
+## Runner Registration Tokens
+
+For reference, repository self-hosted runner registration tokens can be generated through the GitHub UI, CLI, or REST API. They are short-lived and should never be pasted into chat, issues, PR comments, or workflow logs.
+
+Example CLI request:
+
+```bash
+gh api --method POST \
+  repos/Arisofia/nuvanx-siteground/actions/runners/registration-token \
+  --jq '.token'
+```
+
+## Canonical Architecture
+
+- Exactly two workflows are supported: `.github/workflows/staging.yml` and `.github/workflows/production.yml`.
+- Canonical jobs use GitHub-hosted runners.
+- SSH uses strict host-key verification and bounded retries.
+- Staging owns deploy, rollback, browser acceptance, and exact-SHA evidence.
+- Production promotes only a candidate with valid successful Staging evidence.

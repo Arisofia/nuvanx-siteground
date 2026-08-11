@@ -21,6 +21,52 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string, array<string, mixed>>
  */
 
+/**
+ * Normalize aesthetic catalog entry clinical fields from nested sources.
+ *
+ * @param array<string,mixed> $entry Catalog record reference.
+ */
+function nvx_aesthetic_catalog_normalize_entry( array &$entry ): void {
+	$sources = array(
+		$entry['protocol'] ?? array(),
+		$entry['schema'] ?? array(),
+	);
+	foreach ( $sources as $src ) {
+		if ( ! is_array( $src ) ) {
+			continue;
+		}
+		if ( empty( $entry['price_range'] ) && ! empty( $src['price_range'] ) ) {
+			$entry['price_range'] = $src['price_range'];
+		}
+		if ( empty( $entry['session_time'] ) && ! empty( $src['session_time'] ) ) {
+			$entry['session_time'] = $src['session_time'];
+		}
+		if ( empty( $entry['duration'] ) ) {
+			if ( ! empty( $src['duration_result'] ) ) {
+				$entry['duration'] = $src['duration_result'];
+			} elseif ( ! empty( $src['duration'] ) ) {
+				$entry['duration'] = $src['duration'];
+			}
+		}
+		if ( empty( $entry['anesthesia'] ) && ! empty( $src['anesthesia'] ) ) {
+			$entry['anesthesia'] = $src['anesthesia'];
+		}
+		if ( empty( $entry['brands'] ) ) {
+			if ( ! empty( $src['brands'] ) ) {
+				$entry['brands'] = (array) $src['brands'];
+			} elseif ( ! empty( $src['products_used'] ) ) {
+				$entry['brands'] = (array) $src['products_used'];
+			}
+		}
+		if ( empty( $entry['sessions'] ) && ! empty( $src['sessions'] ) ) {
+			$entry['sessions'] = $src['sessions'];
+		}
+		if ( empty( $entry['downtime'] ) && ! empty( $src['downtime'] ) ) {
+			$entry['downtime'] = $src['downtime'];
+		}
+	}
+}
+
 function nvx_aesthetic_treatment_catalog(): array {
 	static $catalog = null;
 
@@ -29,47 +75,14 @@ function nvx_aesthetic_treatment_catalog(): array {
 		$raw_catalog = nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' );
 
 		if ( is_array( $raw_catalog ) ) {
-			foreach ( $raw_catalog as $key => &$entry ) {
-				if ( ! is_array( $entry ) ) {
-					continue;
-				}
-				$sources = array(
-					$entry['protocol'] ?? array(),
-					$entry['schema'] ?? array(),
-				);
-				foreach ( $sources as $src ) {
-					if ( ! is_array( $src ) ) {
-						continue;
-					}
-					if ( empty( $entry['price_range'] ) && ! empty( $src['price_range'] ) ) {
-						$entry['price_range'] = $src['price_range'];
-					}
-					if ( empty( $entry['session_time'] ) && ! empty( $src['session_time'] ) ) {
-						$entry['session_time'] = $src['session_time'];
-					}
-					if ( empty( $entry['duration'] ) && ! empty( $src['duration_result'] ) ) {
-						$entry['duration'] = $src['duration_result'];
-					} elseif ( empty( $entry['duration'] ) && ! empty( $src['duration'] ) ) {
-						$entry['duration'] = $src['duration'];
-					}
-					if ( empty( $entry['anesthesia'] ) && ! empty( $src['anesthesia'] ) ) {
-						$entry['anesthesia'] = $src['anesthesia'];
-					}
-					if ( empty( $entry['brands'] ) && ! empty( $src['brands'] ) ) {
-						$entry['brands'] = (array) $src['brands'];
-					} elseif ( empty( $entry['brands'] ) && ! empty( $src['products_used'] ) ) {
-						$entry['brands'] = (array) $src['products_used'];
-					}
-					if ( empty( $entry['sessions'] ) && ! empty( $src['sessions'] ) ) {
-						$entry['sessions'] = $src['sessions'];
-					}
-					if ( empty( $entry['downtime'] ) && ! empty( $src['downtime'] ) ) {
-						$entry['downtime'] = $src['downtime'];
-					}
+			foreach ( $raw_catalog as &$entry ) {
+				if ( is_array( $entry ) ) {
+					nvx_aesthetic_catalog_normalize_entry( $entry );
 				}
 			}
 			unset( $entry );
 		}
+
 
 		$catalog = nvx_catalog_filter_records(
 			$raw_catalog,

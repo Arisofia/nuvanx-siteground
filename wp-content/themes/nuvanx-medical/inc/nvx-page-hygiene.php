@@ -141,11 +141,8 @@ function nvx_quarantined_comparison_post_ids(): array {
 
 	$slugs = nvx_quarantined_comparison_post_slugs();
 	if ( empty( $slugs ) ) {
-		$ids = array();
-		return $ids;
+		return $ids = array();
 	}
-
-	$ids = array();
 
 	$query = new WP_Query(
 		array(
@@ -162,9 +159,9 @@ function nvx_quarantined_comparison_post_ids(): array {
 		)
 	);
 
-	$ids = array_values( array_map( 'intval', (array) $query->posts ) );
-	return $ids;
+	return $ids = array_values( array_map( 'intval', (array) $query->posts ) );
 }
+
 
 
 /**

@@ -605,6 +605,55 @@ function nvx_schema_find_organization( $graph ) {
  *
  * @return array<string, array<int, array{q:string,a:string}>>
  */
+/** Parse a single page JSON file for FAQ items. */
+function nvx_schema_faq_load_single_page( string $file ): array {
+	$json  = nvx_catalog_json_resolved( $file );
+	$items = array();
+	if ( ! empty( $json['faq']['items'] ) && is_array( $json['faq']['items'] ) ) {
+		foreach ( $json['faq']['items'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+	}
+	return $items;
+}
+
+/** Parse a mapped catalog JSON file for FAQ items. */
+function nvx_schema_faq_load_map_catalog( string $file ): array {
+	$json    = nvx_catalog_json_resolved( $file );
+	$catalog = array();
+	if ( ! is_array( $json ) ) {
+		return $catalog;
+	}
+	foreach ( $json as $key => $entry ) {
+		if ( empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
+			continue;
+		}
+		$items = array();
+		foreach ( $entry['faqs'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+		if ( ! empty( $items ) ) {
+			$catalog[ $key ]                        = $items;
+			$catalog[ str_replace( '-', '_', $key ) ] = $items;
+			$catalog[ str_replace( '_', '-', $key ) ] = $items;
+			if ( ! empty( $entry['key'] ) ) {
+				$catalog[ $entry['key'] ] = $items;
+			}
+		}
+	}
+	return $catalog;
+}
+
 function nvx_schema_faq_catalog() {
 	static $catalogs = array();
 	$locale          = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
@@ -612,83 +661,14 @@ function nvx_schema_faq_catalog() {
 		return $catalogs[ $locale ];
 	}
 
-
-	$catalog = array(
-		'endolift_facial'    => array(),
-		'endolaser_corporal' => array(),
-	);
-
+	$catalog = array();
 	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
-		$endolift_json = nvx_catalog_json_resolved( 'endolift-page.json' );
-		if ( ! empty( $endolift_json['faq']['items'] ) && is_array( $endolift_json['faq']['items'] ) ) {
-			foreach ( $endolift_json['faq']['items'] as $item ) {
-				if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
-					$catalog['endolift_facial'][] = array(
-						'q' => (string) $item['q'],
-						'a' => (string) $item['a'],
-					);
-				}
-			}
-		}
-
-		$endolaser_json = nvx_catalog_json_resolved( 'endolaser-page.json' );
-		if ( ! empty( $endolaser_json['faq']['items'] ) && is_array( $endolaser_json['faq']['items'] ) ) {
-			foreach ( $endolaser_json['faq']['items'] as $item ) {
-				if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
-					$catalog['endolaser_corporal'][] = array(
-						'q' => (string) $item['q'],
-						'a' => (string) $item['a'],
-					);
-				}
-			}
-		}
-
-
-		$btl_json = nvx_catalog_json_resolved( 'btl-detail-pages.json' );
-		if ( is_array( $btl_json ) ) {
-			foreach ( $btl_json as $bkey => $bentry ) {
-				if ( ! empty( $bentry['faqs'] ) && is_array( $bentry['faqs'] ) ) {
-					$items = array();
-					foreach ( $bentry['faqs'] as $item ) {
-						if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
-							$items[] = array(
-								'q' => (string) $item['q'],
-								'a' => (string) $item['a'],
-							);
-						}
-					}
-					if ( ! empty( $items ) ) {
-						$catalog[ $bkey ]                        = $items;
-						$catalog[ str_replace( '-', '_', $bkey ) ] = $items;
-						if ( ! empty( $bentry['key'] ) ) {
-							$catalog[ $bentry['key'] ] = $items;
-						}
-					}
-				}
-			}
-		}
-
-		$aesthetic_json = nvx_catalog_json_resolved( 'aesthetic-treatment-pages.json' );
-		if ( is_array( $aesthetic_json ) ) {
-			foreach ( $aesthetic_json as $akey => $aentry ) {
-				if ( ! empty( $aentry['faqs'] ) && is_array( $aentry['faqs'] ) ) {
-					$items = array();
-					foreach ( $aentry['faqs'] as $item ) {
-						if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
-							$items[] = array(
-								'q' => (string) $item['q'],
-								'a' => (string) $item['a'],
-							);
-						}
-					}
-					if ( ! empty( $items ) ) {
-						$catalog[ $akey ]                        = $items;
-						$catalog[ str_replace( '_', '-', $akey ) ] = $items;
-					}
-				}
-			}
-		}
+		$catalog['endolift_facial']    = nvx_schema_faq_load_single_page( 'endolift-page.json' );
+		$catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
+		$catalog                       = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'btl-detail-pages.json' ) );
+		$catalog                       = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
 	}
+
 
 	if ( empty( $catalog['endolift_facial'] ) ) {
 		$from                       = nvx_format_price_eur( nvx_endolift_price_from_eur() );

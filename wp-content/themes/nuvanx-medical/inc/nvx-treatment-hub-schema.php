@@ -36,7 +36,7 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 	// Raw JSON intentionally preserves the previous non-translated schema labels.
 	$definitions = nvx_catalog_filter_records(
 		nvx_catalog_json_load( 'treatment-hub-schema.json' ),
-		array( 'path', 'types', 'key', 'name', 'description' ),
+		array( 'path', 'types', 'key', 'name', 'description', 'procedureType', 'additionalFields' ),
 		'treatment-hub-schema.json'
 	);
 
@@ -59,9 +59,8 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 
 		if ( ! empty( $definition['additionalFields'] ) && is_array( $definition['additionalFields'] ) ) {
 			foreach ( $definition['additionalFields'] as $extra_key => $extra_val ) {
-				// Skip fields that are not valid on MedicalProcedure/Service nodes
-				// or require verification before publication
-				if ( in_array( $extra_key, array( 'provider', 'availableService', 'priceRange', 'recognizingAuthority' ), true ) ) {
+				// Skip fields that are redundant (provider uses canonical @id) or invalid on MedicalProcedure/Service (priceRange, availableService)
+				if ( in_array( $extra_key, array( 'provider', 'availableService', 'priceRange' ), true ) ) {
 					continue;
 				}
 				$item[ $extra_key ] = $extra_val;

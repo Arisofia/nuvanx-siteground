@@ -85,8 +85,12 @@ function nvx_aesthetic_schema_procedure_node(
 		if ( preg_match_all( '/(\d[\d.]*(?:,\d+)?)/', $price_text, $matches ) ) {
 			$prices = array();
 			foreach ( $matches[1] as $match ) {
-				$normalized = str_replace( '.', '', $match );
-				$normalized = str_replace( ',', '.', $normalized );
+				if ( false !== strpos( $match, ',' ) ) {
+					$normalized = str_replace( '.', '', $match );
+					$normalized = str_replace( ',', '.', $normalized );
+				} else {
+					$normalized = preg_replace( '/\.(?=\d{3}(?!\d))/', '', $match );
+				}
 				$prices[] = (float) $normalized;
 			}
 

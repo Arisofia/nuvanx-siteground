@@ -7,7 +7,7 @@ const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const runAttempt = process.env.GITHUB_RUN_ATTEMPT || '1';
 const runId = `${process.env.GITHUB_RUN_ID || Date.now().toString()}-${runAttempt}`;
 const gclid = `NUVANX_QA_H1_${runId}`;
-const email = `nvxqa-h1-${runId}@example.com`;
+const email = `nvxqa-h1-${runId}@nuvanx.com`;
 const phone = '+34600000000';
 const target = `${base}/madrid/valoracion/?gclid=${encodeURIComponent(gclid)}`;
 const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
@@ -187,17 +187,22 @@ try {
   }
 
   let submitted = false;
+  let submissionStatus = 0;
   page.on('response', (response) => {
     try {
       const request = response.request();
       const targetUrl = response.url();
-      // Match both sync and async HubSpot v3 form-submission endpoints for this form
-      // to avoid false positives from HubSpot analytics/telemetry traffic.
+      // HubSpot currently uses both legacy integration endpoints and the
+      // forms-next public multipart endpoint for embedded v3 forms.
       const isSubmissionPost = request.method() === 'POST' &&
-        /\/submissions\/v3\/integration\/(async\/)?submit\//i.test(targetUrl) &&
+        (/\/submissions\/v3\/integration\/(async\/)?submit\//i.test(targetUrl) ||
+         /\/submissions\/v3\/public\/submit\/formsnext\/multipart\//i.test(targetUrl)) &&
         targetUrl.includes(formId);
-      if (isSubmissionPost && response.status() >= 200 && response.status() < 400) {
-        submitted = true;
+      if (isSubmissionPost) {
+        submissionStatus = response.status();
+        if (submissionStatus >= 200 && submissionStatus < 400) {
+          submitted = true;
+        }
       }
     } catch {}
   });
@@ -209,8 +214,9 @@ try {
     if (submitted) break;
     await sleep(250);
   }
+  console.log(`HUBSPOT_SUBMISSION_STATUS=${submissionStatus || '(none)'}`);
   console.log(`HUBSPOT_POST_SUCCESS=${submitted}`);
-  if (!submitted) throw new Error('No successful HubSpot submission POST observed after submit');
+  if (!submitted) throw new Error(`No successful HubSpot submission POST observed after submit; status=${submissionStatus || 0}`);
 
   console.log(`QA_EMAIL=${email}`);
   console.log(`QA_GCLID=${gclid}`);

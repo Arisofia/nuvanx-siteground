@@ -634,10 +634,66 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
+      - name: Resolve authoritative production SHA
+        id: expected_sha
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ needs.release.outputs.candidate_sha }}
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          expected_sha="$(printf '%s' "$RELEASE_SHA" | tr -d '[:space:]')"
+          if [[ -z "$expected_sha" ]]; then
+            : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+            SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+            mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+            printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
+            printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+            test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
+            cat > "$HOME/.ssh/config" <<EOF
+            Host nvx-prod-h1
+              HostName $HOST
+              User $USER
+              Port $SSH_PORT
+              IdentityFile $HOME/.ssh/prod_h1_key
+              IdentitiesOnly yes
+              BatchMode yes
+              StrictHostKeyChecking yes
+              UserKnownHostsFile $HOME/.ssh/known_hosts
+              ConnectTimeout 15
+              ConnectionAttempts 1
+              ServerAliveInterval 15
+              ServerAliveCountMax 2
+            EOF
+            chmod 600 "$HOME/.ssh/config"
+            connected=0
+            retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+            for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+              if ssh -n nvx-prod-h1 "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'"; then
+                connected=1; break
+              fi
+              if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+                echo "Production H1 SHA probe $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+                sleep "$retry_delay"
+                retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+              fi
+            done
+            [[ "$connected" = 1 ]] || { echo 'H1_PRODUCTION_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+            expected_sha="$(ssh -n nvx-prod-h1 "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+            rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+          fi
+          [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid authoritative production SHA: $expected_sha" >&2; exit 1; }
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+          echo "H1_EXPECTED_SHA=$expected_sha"
+
       - name: Install Playwright and run live H1 E2E
         shell: bash
         env:
-          EXPECTED_SHA: ${{ needs.release.outputs.candidate_sha }}
+          EXPECTED_SHA: ${{ steps.expected_sha.outputs.sha }}
         run: |
           set -euo pipefail
           cd scripts/staging2

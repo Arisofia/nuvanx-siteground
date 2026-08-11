@@ -4,13 +4,23 @@ Documented issues from bot analysis that should be addressed in separate PRs.
 
 ## Deployment Status
 
-**SSH Timeout Issue: RESOLVED AND VERIFIED** ✅
+**SSH Connectivity: VERIFIED** ✅
 - SSH retry loops with backoff implemented in production.yml (3 SSH connection points)
+- SSH retry loops with backoff implemented in staging.yml (matching production pattern)
 - Successfully tested: Staging workflow completed in 7m48s with SSH connections
+- Run ID 31446989846: SSH connection succeeded on first attempt (retry path not triggered)
+- Configuration: ConnectTimeout 15, ConnectionAttempts 1 with 5 external retries with 15s×attempt backoff
+- Note: Retry path was not exercised in test run because initial SSH connection succeeded
+
+**Staging Acceptance: CLEAN VERIFICATION** ✅
+- Run ID 31446989846: 159/159 PASS, 0 FIX, 0 BLOCKED
+- Block C acceptance artifact: staging2-block-c-2757a2ee99e43cd142a574953a2c6dd24936af5f
+- Production gate: Now requires conclusion == success exclusively (failure no longer accepted)
+
+**SiteGround IP Blocking: MITIGATED VIA RETRY PATTERN** ⚠️
 - SiteGround IP blocking persists for GitHub Actions external runners
 - Self-hosted runner not viable due to SiteGround file size limits
-- Current solution: SSH retry loops resolve timeout issue without architectural changes
-- Verification: Run ID 31446989846 completed successfully
+- Current solution: SSH retry loops with backoff mitigate intermittent blocking
 
 ## Critical Issues
 

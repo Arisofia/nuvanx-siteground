@@ -215,10 +215,10 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 60
-            ConnectionAttempts 5
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
           connected=0

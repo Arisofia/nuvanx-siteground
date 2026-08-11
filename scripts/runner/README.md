@@ -11,11 +11,16 @@ Attempted installation resulted in:
 
 ## Current Solution: SSH Retry Loops
 
-The SSH timeout issue has been resolved using retry loops with backoff in the workflows:
+SSH connectivity has been validated using retry loops with backoff in the workflows:
 - `production.yml` - SSH retry loops with 15s×attempt backoff for all 3 SSH connection points
-- `staging.yml` - Existing SSH retry pattern (already had working retry logic)
+- `staging.yml` - SSH retry loops with 15s×attempt backoff (matching production pattern)
+- Configuration: ConnectTimeout 15, ConnectionAttempts 1 with 5 external retries with 15s×attempt backoff
 
-This is the working solution without requiring self-hosted runner infrastructure.
+**Verification Status:**
+- Run ID 31446989846 completed successfully (7m48s)
+- SSH connection succeeded on first attempt (retry path not triggered)
+- Retry path exists but was not exercised in test run
+- This solution mitigates intermittent SiteGround IP blocking when it occurs
 
 ## Token Generation Info (For Reference)
 

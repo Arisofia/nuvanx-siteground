@@ -613,9 +613,6 @@ function nvx_schema_faq_catalog() {
 	}
 
 
-	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
-	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
-
 	$catalog = array(
 		'endolift_facial'    => array(),
 		'endolaser_corporal' => array(),
@@ -648,6 +645,9 @@ function nvx_schema_faq_catalog() {
 	}
 
 	if ( empty( $catalog['endolift_facial'] ) ) {
+
+		$from                       = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+		$papada                     = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 		$catalog['endolift_facial'] = array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
@@ -671,6 +671,20 @@ function nvx_schema_faq_catalog() {
 			),
 		);
 	}
+
+	if ( empty( $catalog['endolaser_corporal'] ) ) {
+		$catalog['endolaser_corporal'] = array(
+			array(
+				'q' => '¿Cuántas sesiones de Endoláser corporal se necesitan?',
+				'a' => 'El procedimiento se realiza en 1 sesión única. Los resultados se observan progresivamente a partir de las 3 semanas, con efecto máximo a los 4-6 meses según la zona tratada y respuesta individual.',
+			),
+			array(
+				'q' => '¿Es necesaria prenda de compresión?',
+				'a' => 'Sí, se utiliza faja compresiva o malla elastodrenante durante 1-2 semanas post-tratamiento para optimizar la retracción tisular y el drenaje linfático.',
+			),
+		);
+	}
+
 
 
 	$catalogs[ $locale ] = $catalog;

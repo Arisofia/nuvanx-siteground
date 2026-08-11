@@ -88,13 +88,11 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'combinations',
 				'faqs',
 				'schema',
-				'protocol',
-				'sessions',
-				'downtime',
 			),
 			'aesthetic-treatment-pages.json'
 		);
 	}
+
 
 	return $catalog;
 }

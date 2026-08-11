@@ -72,12 +72,17 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
-	// Extract numeric price from price_range string for schema.org Offer
+	// Extract numeric price from price_range string for schema.org Offer.
+	// Spanish tariffs use '.' as thousands separator and ',' as decimal
+	// (e.g. "1.200,50 €"), so strip thousands dots before casting to float
+	// to avoid publishing "1.200" as 1.2 in the schema.org Offer.
 	if ( ! empty( $entry['price_range'] ) ) {
 		$price_text = (string) $entry['price_range'];
 		$numeric_price = null;
-		if ( preg_match( '/(\d+(?:[.,]\d+)?)/', $price_text, $matches ) ) {
-			$numeric_price = (float) str_replace( ',', '.', $matches[1] );
+		if ( preg_match( '/(\d[\d.]*(?:,\d+)?)/', $price_text, $matches ) ) {
+			$normalized    = str_replace( '.', '', $matches[1] );
+			$normalized    = str_replace( ',', '.', $normalized );
+			$numeric_price = (float) $normalized;
 		}
 		if ( null !== $numeric_price && $numeric_price > 0 ) {
 			$node['offers'] = array(

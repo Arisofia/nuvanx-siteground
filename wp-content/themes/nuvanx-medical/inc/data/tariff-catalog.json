@@ -133,7 +133,7 @@
   "labios_ha": {
     "hidratacion": {
       "label": "AH labios — hidratación",
-      "pvp": 398.00,
+      "pvp": 290.00,
       "group": "facial"
     },
     "perfilado_leve": {
@@ -150,7 +150,7 @@
   "ojeras_ha": {
     "surco_lagrimal": {
       "label": "AH surco lagrimal / ojeras",
-      "pvp": 548.00,
+      "pvp": 448.00,
       "group": "facial"
     }
   },
@@ -208,7 +208,7 @@
     },
     "tres_tercios": {
       "label": "Neuromodulador — 3 tercios completos",
-      "pvp": 448.00,
+      "pvp": 348.00,
       "group": "facial",
       "sessions_recommended": 1
     }

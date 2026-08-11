@@ -102,6 +102,15 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'combinations',
 				'faqs',
 				'schema',
+				'protocol',
+				'brands',
+				'duration',
+				'session_time',
+				'anesthesia',
+				'techniques',
+				'price_range',
+				'sessions',
+				'downtime',
 			),
 			'aesthetic-treatment-pages.json'
 		);

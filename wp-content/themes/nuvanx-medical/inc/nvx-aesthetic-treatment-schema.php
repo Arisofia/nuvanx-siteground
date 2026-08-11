@@ -85,8 +85,12 @@ function nvx_aesthetic_schema_procedure_node(
 		if ( preg_match_all( '/(\d[\d.]*(?:,\d+)?)/', $price_text, $matches ) ) {
 			$prices = array();
 			foreach ( $matches[1] as $match ) {
-				$normalized = str_replace( '.', '', $match );
-				$normalized = str_replace( ',', '.', $normalized );
+				if ( false !== strpos( $match, ',' ) ) {
+					$normalized = str_replace( '.', '', $match );
+					$normalized = str_replace( ',', '.', $normalized );
+				} else {
+					$normalized = preg_replace( '/\.(?=\d{3}(?!\d))/', '', $match );
+				}
 				$prices[] = (float) $normalized;
 			}
 
@@ -105,14 +109,21 @@ function nvx_aesthetic_schema_procedure_node(
 				'description'   => $price_text,
 			);
 
-			// Use highPrice if we have a price range
+			// Use priceSpecification for ranges or starting prices ("Desde")
 			if ( null !== $high_price && $high_price > $numeric_price ) {
 				$offer['priceSpecification'] = array(
-					'@type'      => 'PriceSpecification',
-					'price'      => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+					'@type'         => 'PriceSpecification',
+					'price'         => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
 					'priceCurrency' => 'EUR',
-					'minPrice'   => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
-					'maxPrice'   => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $high_price ) : (string) $high_price,
+					'minPrice'      => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+					'maxPrice'      => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $high_price ) : (string) $high_price,
+				);
+			} elseif ( false !== stripos( $price_text, 'desde' ) ) {
+				$offer['priceSpecification'] = array(
+					'@type'         => 'PriceSpecification',
+					'price'         => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+					'priceCurrency' => 'EUR',
+					'minPrice'      => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
 				);
 			}
 

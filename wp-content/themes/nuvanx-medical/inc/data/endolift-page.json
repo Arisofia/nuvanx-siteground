@@ -78,7 +78,7 @@
             { "title": "@nvx-t:Días 1 a 3 (Inflamación):", "body": "@nvx-t:Es normal sentir la zona tratada inflamada, ligeramente acartonada y sensible al tacto. Pueden aparecer pequeños hematomas en los puntos de entrada de la fibra láser. No minimizamos el proceso: el disconfort existe, pero se controla con nuestra pauta analgésica oral estandarizada." },
             { "title": "@nvx-t:Semana 1 (Recuperación Social):", "body": "@nvx-t:La inflamación inicial cede considerablemente. A nivel social, puedes salir a cenar o retomar reuniones sin que sea evidente que te has sometido a un procedimiento médico, aunque tú seguirás notando la zona en proceso de curación." },
             { "title": "@nvx-t:Semanas 2 a 4 (Retracción Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna profunda. Las molestias físicas desaparecen casi por completo y empiezas a notar la piel visiblemente más firme y adherida al plano profundo." },
-            { "title": "@nvx-t:Meses 2 a 3 (Resultado Real):", "body": "@nvx-t:El pico máximo de neo-colagénesis se alcanza en este punto. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real." }
+            { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neo-colagénesis y la retracción tisular. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real." }
         ],
         "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía."
     },
@@ -115,7 +115,7 @@
             },
             {
                 "q": "@nvx-t:¿Cuánto dura el efecto del Endolift®?",
-                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con un pico de colágeno nuevo que se alcanza entre los 3 y 6 meses."
+                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con la consolidación máxima del nuevo colágeno entre los 3 y 6 meses."
             },
             {
                 "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
@@ -127,7 +127,7 @@
             },
             {
                 "q": "@nvx-t:¿Es doloroso el tratamiento?",
-                "a": "@nvx-t:Se realiza con anestesia local tumescente personalizada para garantizar máxima comodidad. El paciente percibe únicamente una leve sensación de calor o presión en la zona tratada."
+                "a": "@nvx-t:Se realiza bajo anestesia local infiltrativa/tumescente para controlar las molestias durante la intervención. Durante el procedimiento es habitual percibir calor o presión profunda; en los días posteriores puede haber sensibilidad, inflamación o molestia similar a agujetas, que se maneja con la pauta analgésica prescrita."
             }
         ]
     }

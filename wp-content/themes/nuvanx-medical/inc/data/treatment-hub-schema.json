@@ -226,7 +226,7 @@
         "procedureType": "https://schema.org/PercutaneousProcedure",
         "description": "Relleno con ácido hialurónico para volumen y contorno facial según diagnóstico. Ácido hialurónico Chamberí, Goya y Salamanca Madrid.",
         "additionalFields": {
-            "priceRange": "Desde 398€",
+            "priceRange": "Desde 290€",
             "provider": {
                 "@type": "MedicalOrganization",
                 "name": "NUVANX",

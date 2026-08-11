@@ -684,7 +684,19 @@ function nvx_schema_faq_catalog() {
 		} else {
 			$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'btl-detail-pages.json' ) );
 		}
-		$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
+		$aesthetic_faqs = nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' );
+		$alias_map      = array(
+			'rhinomodeling_ha' => 'rinomodelacion',
+			'tear_trough_ha'   => 'dark_circles_ha',
+			'biostimulators'   => 'collagen_bio',
+			'neuromodulators'  => 'neuromodulador',
+		);
+		foreach ( $alias_map as $json_key => $schema_key ) {
+			if ( ! empty( $aesthetic_faqs[ $json_key ] ) ) {
+				$aesthetic_faqs[ $schema_key ] = $aesthetic_faqs[ $json_key ];
+			}
+		}
+		$catalog = array_merge( $catalog, $aesthetic_faqs );
 	}
 
 	// Replace hardcoded Endolift prices with dynamic tariff constants in FAQ answers
@@ -693,6 +705,7 @@ function nvx_schema_faq_catalog() {
 		$papada = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( nvx_endolift_price_papada_eur() ) : number_format_i18n( nvx_endolift_price_papada_eur(), 2 );
 		foreach ( $catalog['endolift_facial'] as &$faq ) {
 			$faq['a'] = str_replace( '798 €', $from . ' €', $faq['a'] );
+			$faq['a'] = str_replace( '798,60 €', $from . ' €', $faq['a'] );
 			$faq['a'] = str_replace( '1.064,80 €', $papada . ' €', $faq['a'] );
 		}
 		unset( $faq );
@@ -763,10 +776,9 @@ function nvx_schema_faq_node( $page_id ) {
 		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
 			$key = nvx_btl_detail_current_key( '' );
 		}
-		// Aesthetic treatment pages emit their own FAQPage node (with the same
-		// @id) via nvx_aesthetic_treatment_extend_yoast_graph(); resolving them
-		// here too would build a duplicate the deduplicator has to strip. Leave
-		// them to the dedicated module, which also owns their MedicalProcedure.
+		// Aesthetic treatment pages (rhinomodeling_ha, tear_trough_ha, biostimulators,
+		// neuromodulators, lips_ha) have their keys mapped in nvx_schema_faq_catalog()
+		// so nvx_schema_faq_node() centrally handles FAQPage emission for all treatments.
 
 		$catalog = nvx_schema_faq_catalog();
 		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {

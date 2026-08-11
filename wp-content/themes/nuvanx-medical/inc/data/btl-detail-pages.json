@@ -153,7 +153,7 @@
             "downtime": "Sin downtime. Calor residual en zona tratada 1–2 horas.",
             "price_range": "Desde 445€/sesión",
             "duration_result": "Mejoras visibles a partir de la 3ª sesión. Mantenimiento recomendado a los 6 meses.",
-            "differentiation": "EXION Body no elimina grasa: actúa sobre la dermis. Para grasa localizada, el Endoláser corporal tiene indicación diferente."
+            "differentiation": "EXION Body combina apoptosis de adipocitos y tensado dérmico en una sola plataforma no invasiva. Para depósitos de grasa de mayor espesor o fibrosis, el Endoláser corporal actúa como láser subdérmico intervencionista."
         },
         "mechanism": {
             "title": "@nvx-t:Cómo funciona EXION® Body con datos técnicos BTL",
@@ -351,7 +351,7 @@
             },
             {
                 "q": "@nvx-t:¿EXION® Fractional deja cicatriz?",
-                "a": "@nvx-t:No. Las microagujas crean microcanales que se cierran en horas. El mecanismo de acción está diseñado para estimular reparación sin daño permanente. Está contraindicado en cicatrices queloides activas."
+                "a": "@nvx-t:El riesgo de cicatriz residual es mínimo al utilizar microagujas de penetración controlada cuyos microcanales reepitelizan en pocas horas. Sin embargo, el cumplimiento de los cuidados post-tratamiento y la fotoprotección son fundamentales, y está contraindicado en presencia de cicatrización queloide activa o infecciones locales."
             },
             {
                 "q": "@nvx-t:¿Cuántas sesiones son necesarias con EXION® Fractional?",
@@ -379,7 +379,7 @@
         "schema_type": "Protocolo de infusión cutánea EMFUSION®",
         "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
         "clinical_data": {
-            "technology": "Corrientes de alta frecuencia electromagnética + bioestimulación dérmica",
+            "technology": "Transductor sónico DYNAMiQ™ (ondas de choque mecánicas y microcanales acústicos)",
             "target": "Calidad cutánea global: luminosidad, hidratación, tono uniforme",
             "sessions": "4 sesiones protocolo inicial, separadas 1 semana",
             "downtime": "Sin downtime. No produce eritema ni descamación.",

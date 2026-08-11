@@ -161,6 +161,24 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['planning']['note'] ?? '' ) . '</em></p>';
 	$html .= '</div></section>';
 
+	// D2. Recovery / Downtime (phases).
+	if ( ! empty( $data['downtime']['phases'] ) && is_array( $data['downtime']['phases'] ) ) {
+		$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-downtime', 'nvx-endolaser-down-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['downtime']['kicker'] ?? '' ), 'nvx-endolaser-down-title', esc_html( $data['downtime']['title'] ?? '' ) );
+		$html .= '<div class="nvx-endolift-timeline">';
+		foreach ( $data['downtime']['phases'] as $phase ) {
+			$html .= '<div class="nvx-endolift-phase"><span class="nvx-endolift-phase__num">' . esc_html( $phase['n'] ?? '' ) . '</span>';
+			$html .= '<h3 class="nvx-endolift-phase__title">' . esc_html( $phase['title'] ?? '' ) . '</h3>';
+			$html .= '<p class="nvx-body">' . esc_html( $phase['body'] ?? '' ) . '</p></div>';
+		}
+		$html .= '</div>';
+		if ( ! empty( $data['downtime']['note'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['downtime']['note'] ) . '</em></p>';
+		}
+		$html .= '</div></section>';
+	}
+
+
 	// E. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolaser_corporal).
 	$faqs = array();
 	if ( function_exists( 'nvx_schema_faq_catalog' ) ) {

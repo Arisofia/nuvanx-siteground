@@ -465,8 +465,8 @@
 		return null;
 	}
 
-	function setLegacyField(root, propertyName, value) {
-		var input = legacyFieldInput(root, propertyName);
+	function setLegacyField(root, propertyName, value, resolvedInput) {
+		var input = resolvedInput || legacyFieldInput(root, propertyName);
 		if (!input) return false;
 		var nextValue = String(value || '');
 		try {
@@ -512,13 +512,13 @@
 				var input = legacyFieldInput(root, propertyName);
 				if (!consent && propertyName.indexOf('nvx_') !== 0) {
 					if (propertyName === 'hs_google_click_id' && input && legacyNativeGclidInputs.has(input)) {
-						var cleared = setLegacyField(root, propertyName, '');
+						var cleared = setLegacyField(root, propertyName, '', input);
 						modified = cleared || modified;
 						if (cleared || String(input.value || '') === '') legacyNativeGclidInputs.delete(input);
 					}
 					return;
 				}
-				var wrote = setLegacyField(root, propertyName, value);
+				var wrote = setLegacyField(root, propertyName, value, input);
 				modified = wrote || modified;
 				if (wrote && consent && propertyName === 'hs_google_click_id' && value && input) legacyNativeGclidInputs.add(input);
 			});
@@ -550,6 +550,8 @@
 		var email = normalizeEmail(emailInput.value);
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return;
 		if (legacyEmailClearTimer) window.clearTimeout(legacyEmailClearTimer);
+		if (legacyRetryTimer) window.clearTimeout(legacyRetryTimer);
+		legacyRetryTimer = null;
 		legacyPendingSubmission = { root: root, email: email, retryCount: 0 };
 		legacyEmailClearTimer = window.setTimeout(clearLegacyPendingSubmission, 30000);
 	}
@@ -638,11 +640,12 @@
 		var data = event.data || {};
 		if (typeof data === 'string') {
 			try {
-				data = JSON.parse(data);
+				data = JSON.parse(data) || {};
 			} catch (_error) {
 				data = {};
 			}
 		}
+		if (typeof data !== 'object') data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
 		if (String(data.id || '').toLowerCase() !== FORM_ID) return;
 		transmitLegacySuccess();

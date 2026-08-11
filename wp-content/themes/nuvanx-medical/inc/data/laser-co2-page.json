@@ -63,8 +63,8 @@
         "caption": "@nvx-t:Tarifa clínica de referencia. Rango por sesión: 300 € – 600 €. Protocolo de 3 a 5 sesiones espaciadas de 8 a 12 semanas para cicatrices complejas. Profundidad y zonas pueden modular el plan.",
         "col_session": "@nvx-t:Sesión",
         "col_pvp": "@nvx-t:PVP",
-        "row_facial": "@nvx-t:Láser CO₂ facial (300 € – 600 €)",
-        "row_body": "@nvx-t:Láser CO₂ corporal (350 € – 700 €)",
+        "row_facial": "@nvx-t:Láser CO₂ facial",
+        "row_body": "@nvx-t:Láser CO₂ corporal",
         "note": "@nvx-t:La indicación, el fototipo y el downtime esperable se confirman en valoración presencial antes de cualquier sesión."
     }
 }

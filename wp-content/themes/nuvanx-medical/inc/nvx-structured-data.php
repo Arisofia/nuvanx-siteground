@@ -606,10 +606,12 @@ function nvx_schema_find_organization( $graph ) {
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
-	static $catalog = null;
-	if ( null !== $catalog ) {
-		return $catalog;
+	static $catalogs = array();
+	$locale          = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+	if ( isset( $catalogs[ $locale ] ) ) {
+		return $catalogs[ $locale ];
 	}
+
 
 	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
@@ -658,8 +660,10 @@ function nvx_schema_faq_catalog() {
 		);
 	}
 
+	$catalogs[ $locale ] = $catalog;
 	return $catalog;
 }
+
 
 
 /**

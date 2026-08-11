@@ -28,15 +28,6 @@ const shortContentRoutes = new Set([
   '/mas-informacion-sobre-las-cookies/',
 ]);
 
-// Legal pages may have external widgets (cookie banners, consent managers) with transient network errors.
-// Tolerate minor network errors up to 2 per page.
-const legalPages = new Set([
-  '/politica-privacidad/',
-  '/politica-de-cookies/',
-  '/politica-de-cookies-ue/',
-  '/aviso-legal/',
-  '/mas-informacion-sobre-las-cookies/',
-]);
 
 // Every published WordPress page must remain addressable with HTTP 200.
 // Editorial readiness is governed by robots/sitemap policy, not by turning

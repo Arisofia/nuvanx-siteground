@@ -57,7 +57,14 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 			$item['procedureType'] = array( '@id' => $definition['procedureType'] );
 		}
 
+		if ( ! empty( $definition['additionalFields'] ) && is_array( $definition['additionalFields'] ) ) {
+			foreach ( $definition['additionalFields'] as $extra_key => $extra_val ) {
+				$item[ $extra_key ] = $extra_val;
+			}
+		}
+
 		$items[] = array(
+
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'url'      => $url,

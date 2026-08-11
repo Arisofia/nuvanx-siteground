@@ -76,8 +76,12 @@ function nvx_aesthetic_schema_procedure_node(
 		$node['priceRange'] = (string) $entry['price_range'];
 	}
 	if ( ! empty( $entry['session_time'] ) ) {
-		$node['duration'] = (string) $entry['session_time'];
+		$time_str = (string) $entry['session_time'];
+		if ( preg_match( '/(\d+)/', $time_str, $matches ) ) {
+			$node['duration'] = 'PT' . $matches[1] . 'M';
+		}
 	}
+
 
 	return $node;
 }

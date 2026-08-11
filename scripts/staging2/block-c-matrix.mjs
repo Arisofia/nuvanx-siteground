@@ -359,7 +359,7 @@ function collectCtaIssues(visible) {
   const invalidCtas = visibleCtas
     .filter((el) => {
       if (el.tagName === 'BUTTON') return false;
-      const href = (el.href || '').trim();
+      const href = (el.getAttribute('href') || '').trim();
       return !href || href === '#';
     })
     .slice(0, 10)

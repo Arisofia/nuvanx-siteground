@@ -29,10 +29,10 @@
             "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica con IA",
             "body": [
                 "@nvx-claim-key:exion_face_mech_intro",
-                "@nvx-claim-key:exion_face_ha_224",
-                "@nvx-t:Datos oficiales BTL: +224% de incremento en la producción endógena de ácido hialurónico, +47% de aumento en colágeno y +50% de elastina en modelos evaluados. La Inteligencia Artificial monitoriza la impedancia cutánea en tiempo real para evitar puntos calientes y maximizar la comodidad."
+                "@nvx-claim-key:exion_face_ha_224"
             ],
             "items": [
+
                 {
                     "title": "@nvx-t:Radiofrecuencia monopolar (~40–42 °C en dermis)",
                     "body": "@nvx-t:Busca hipertermia controlada y reversible: activación de vías de estrés adaptativo (p. ej. HSPs), señalización de síntesis de matriz y aporte energético celular. Objetivo: remodelado de colágeno de calidad, no cicatricial. El rango térmico es orientativo de protocolo, no una temperatura universal en cada paciente."
@@ -159,8 +159,7 @@
             "title": "@nvx-t:Cómo funciona EXION® Body con datos técnicos BTL",
             "body": [
                 "@nvx-t:El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.",
-                "@nvx-claim-key:exion_body_btl_22",
-                "@nvx-t:Datos oficiales BTL: reducción de hasta el 22% de grasa localizada y mejora del 85% en la laxitud cutánea en modelos evaluados. Combinación sinérgica de RF Monopolar profunda + Ultrasonido Dirigido + Enfriamiento por contacto activo."
+                "@nvx-claim-key:exion_body_btl_22"
             ],
             "items": [
                 {
@@ -293,13 +292,14 @@
             "contraindications": ["Keloides o cicatrices hipertróficas activas", "Isotretinoína en los últimos 6 meses", "Activos cutáneos en zona de tratamiento"]
         },
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Fractional RF con profundidad 8 mm",
+            "title": "@nvx-t:Cómo funciona EXION® Fractional RF y su control de profundidad",
             "body": [
                 "@nvx-t:Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.",
-                "@nvx-t:Profundidad de acción de hasta 8 mm (4 mm de inserción mecánica + 4 mm de gradiente térmico por RF monopolar). Algoritmo de Inteligencia Artificial (AI-driven RF) que mide la impedancia en tiempo real para personalizar el pulso en cada microdisparo.",
+                "@nvx-t:Profundidad de acción ajustable (0,5–4 mm en zona facial; hasta 8 mm en cuerpo combinando inserción mecánica y gradiente térmico por RF monopolar). El algoritmo de IA (AI-driven RF) mide la impedancia en tiempo real para personalizar la energía en cada microdisparo.",
                 "@nvx-t:Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista."
             ]
         },
+
         "indications": [
             {
                 "title": "@nvx-t:Textura y poro",

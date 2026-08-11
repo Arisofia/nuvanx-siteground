@@ -136,7 +136,7 @@ ob_start();
 			<div class="nvx-home-evidence__text-col">
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">El seguimiento clínico forma parte del protocolo, no es un extra.</h2>
 				<p class="nvx-home-evidence__desc">Las revisiones se programan en semanas 4 y 8 para los protocolos de láser intersticial, y según la respuesta individual en los de radiofrecuencia y CO₂. La responsabilidad médica no termina al salir de consulta.</p>
-				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Ver criterio del equipo médico', 'nuvanx-medical' ); ?></a>
 			</div>
 		</div>
 	</section>

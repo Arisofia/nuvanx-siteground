@@ -96,7 +96,51 @@
             {
                 "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
                 "a": "@nvx-t:Reincorporación laboral en 24-48 horas. Se recomienda abstención de deporte de impacto durante 7-10 días para permitir la adaptación tisular completa."
+            },
+            {
+                "q": "@nvx-t:¿El Endoláser corporal elimina la grasa definitivamente?",
+                "a": "@nvx-t:Las células adiposas tratadas se eliminan de forma permanente. Sin embargo, el peso corporal y el estilo de vida condicionan el resultado a largo plazo. No es un sustituto del control de peso."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es la diferencia entre Endoláser y Endolift®?",
+                "a": "@nvx-t:El Endolift® actúa principalmente sobre el tejido dérmico y subdérmico superficial para tensar y remodelar. El Endoláser trabaja sobre la grasa localizada subcutánea y tiene mayor componente de eliminación de tejido adiposo. Son indicaciones diferentes que el médico diferencia en valoración."
+            },
+            {
+                "q": "@nvx-t:¿El Endoláser corporal requiere anestesia?",
+                "a": "@nvx-t:Se realiza con anestesia local tumescente. No requiere anestesia general ni sedación. Se realiza en clínica, sin hospitalización."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto cuesta el Endoláser corporal en Madrid?",
+                "a": "@nvx-t:En NUVANX el precio del Endoláser corporal varía según la zona y la superficie a tratar. Las tarifas se informan en valoración médica presencial. Habitualmente una zona oscila entre 1.200€ y 2.400€ según plan médico."
             }
         ]
+    },
+    "downtime": {
+        "kicker": "@nvx-t:Recuperación",
+        "title": "@nvx-t:Qué esperar tras el Endoláser corporal",
+        "phases": [
+            {
+                "n": "01",
+                "title": "@nvx-t:Primeras 48h",
+                "body": "@nvx-t:Molestias similares a agujetas intensas en la zona tratada. Hematomas habituales según la zona. Vendaje o prenda de compresión según protocolo médico."
+            },
+            {
+                "n": "02",
+                "title": "@nvx-t:Días 3 a 7",
+                "body": "@nvx-t:Reducción progresiva de la inflamación y los hematomas. La prenda de compresión se mantiene según el plan. El tejido empieza a reorganizarse internamente."
+            },
+            {
+                "n": "03",
+                "title": "@nvx-t:Semana 2 en adelante",
+                "body": "@nvx-t:Mejoría visible progresiva. La retracción cutánea y la eliminación del tejido adiposo tratado se producen gradualmente durante 3–6 meses."
+            }
+        ],
+        "note": "@nvx-t:El Endoláser corporal requiere compromiso con el postoperatorio. Los plazos varían según zona, volumen tratado y respuesta individual."
+    },
+    "pricing": {
+        "kicker": "@nvx-t:Inversión",
+        "title": "@nvx-t:Tarifas orientativas Endoláser corporal Madrid",
+        "note": "@nvx-t:El precio final se establece en valoración según superficie a tratar, técnica y plan médico. Las tarifas son orientativas.",
+        "reference_catalog": "endolaser"
     }
 }

@@ -606,13 +606,47 @@ function nvx_schema_find_organization( $graph ) {
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
+	static $catalog = null;
+	if ( null !== $catalog ) {
+		return $catalog;
+	}
+
 	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 
-	// Only keys that render the same Q/A in visible HTML (Endolift module).
-	// Do not add EXION here until the EXION page prints the same pairs.
-	return array(
-		'endolift_facial' => array(
+	$catalog = array(
+		'endolift_facial'    => array(),
+		'endolaser_corporal' => array(),
+	);
+
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$endolift_json = nvx_catalog_json_resolved( 'endolift-page.json' );
+		if ( ! empty( $endolift_json['faq']['items'] ) && is_array( $endolift_json['faq']['items'] ) ) {
+			foreach ( $endolift_json['faq']['items'] as $item ) {
+				if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+					$catalog['endolift_facial'][] = array(
+						'q' => (string) $item['q'],
+						'a' => (string) $item['a'],
+					);
+				}
+			}
+		}
+
+		$endolaser_json = nvx_catalog_json_resolved( 'endolaser-page.json' );
+		if ( ! empty( $endolaser_json['faq']['items'] ) && is_array( $endolaser_json['faq']['items'] ) ) {
+			foreach ( $endolaser_json['faq']['items'] as $item ) {
+				if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+					$catalog['endolaser_corporal'][] = array(
+						'q' => (string) $item['q'],
+						'a' => (string) $item['a'],
+					);
+				}
+			}
+		}
+	}
+
+	if ( empty( $catalog['endolift_facial'] ) ) {
+		$catalog['endolift_facial'] = array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
 				'a' => 'PVP con IVA incluido desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' € cada una. Full Face y combos en la tabla de tarifas de la página. El presupuesto se cierra tras valoración anatómica presencial.',
@@ -621,21 +655,12 @@ function nvx_schema_faq_catalog() {
 				'q' => '¿Endolift® es para cualquier papada o flacidez?',
 				'a' => 'No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser.',
 			),
-			array(
-				'q' => '¿Cuál es la durabilidad real de los resultados del Endolift®?',
-				'a' => 'Al inducir colágeno profundo, no se comporta como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento, sol, tabaquismo y genética. El seguimiento personaliza expectativas.',
-			),
-			array(
-				'q' => '¿El Endolift® sustituye al ácido hialurónico?',
-				'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
-			),
-			array(
-				'q' => '¿Es doloroso?',
-				'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
-			),
-		),
-	);
+		);
+	}
+
+	return $catalog;
 }
+
 
 /**
  * Return an FAQPage node that exactly mirrors visible page content.

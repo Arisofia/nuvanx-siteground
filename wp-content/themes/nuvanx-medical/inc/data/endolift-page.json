@@ -100,12 +100,20 @@
         "title": "@nvx-t:Preguntas clínicas frecuentes",
         "items": [
             {
+                "q": "@nvx-t:¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?",
+                "a": "@nvx-t:La tarifa de referencia parte desde 798,60 € (ojeras). Papada y marcación mandibular: 980 € cada una. El presupuesto definitivo se documenta tras valoración anatómica presencial."
+            },
+            {
+                "q": "@nvx-t:¿Endolift® es para cualquier papada o flacidez?",
+                "a": "@nvx-t:No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser."
+            },
+            {
                 "q": "@nvx-t:¿Cuántas sesiones de Endolift® se necesitan?",
                 "a": "@nvx-t:El procedimiento se realiza en 1 sola sesión en más del 90% de los casos. Para casos complejos que requieren retoques o combinaciones con otras tecnologías, se planifica un protocolo complementario tras la valoración médica."
             },
             {
                 "q": "@nvx-t:¿Cuánto dura el efecto del Endolift®?",
-                "a": "@nvx-t:La neocolagénesis y el efecto definitivo sobre los adipocitos destruidos se mantiene entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con un pico de colágeno nuevo que se alcanza entre los 3 y 6 meses."
+                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con un pico de colágeno nuevo que se alcanza entre los 3 y 6 meses."
             },
             {
                 "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
@@ -114,7 +122,12 @@
             {
                 "q": "@nvx-t:¿Cuáles son las contraindicaciones del Endolift®?",
                 "a": "@nvx-t:Embarazo, lactancia, infecciones activas cutáneas, tratamiento anticoagulante activo, historia de queloides o hilos tensores colocados en los últimos 6 meses. Afecciones autoinmunes cutáneas en fase activa requieren evaluación médica específica."
+            },
+            {
+                "q": "@nvx-t:¿Es doloroso el tratamiento?",
+                "a": "@nvx-t:Se realiza con anestesia local tumescente personalizada para garantizar máxima comodidad. El paciente percibe únicamente una leve sensación de calor o presión en la zona tratada."
             }
         ]
     }
+
 }

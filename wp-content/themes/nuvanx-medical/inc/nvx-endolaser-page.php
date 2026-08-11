@@ -161,12 +161,40 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['planning']['note'] ?? '' ) . '</em></p>';
 	$html .= '</div></section>';
 
+	// E. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolaser_corporal).
+	$faqs = array();
+	if ( function_exists( 'nvx_schema_faq_catalog' ) ) {
+		$catalog = nvx_schema_faq_catalog();
+		if ( ! empty( $catalog['endolaser_corporal'] ) ) {
+			$faqs = $catalog['endolaser_corporal'];
+		}
+	}
+	if ( empty( $faqs ) && ! empty( $data['faq']['items'] ) && is_array( $data['faq']['items'] ) ) {
+		$faqs = $data['faq']['items'];
+	}
+
+	if ( ! empty( $faqs ) ) {
+		$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-faq', 'nvx-endolaser-faq-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['faq']['kicker'] ?? 'Base de conocimiento' ), 'nvx-endolaser-faq-title', esc_html( $data['faq']['title'] ?? 'Preguntas clínicas frecuentes' ) );
+		$html .= '<div class="nvx-faq nvx-endolaser-faq-list">';
+		foreach ( $faqs as $faq ) {
+			if ( ! empty( $faq['q'] ) && ! empty( $faq['a'] ) ) {
+				$html .= '<details class="nvx-brand-faq-item">';
+				$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
+				$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+				$html .= '</details>';
+			}
+		}
+		$html .= '</div></div></section>';
+	}
+
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$html .= '</div>';
 
 	return $html;
 }
+
 
 /**
  * Rebuild Endoláser page content.

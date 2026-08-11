@@ -277,6 +277,9 @@ function nvx_endolift_editorial_body_markup(): string {
 			$faqs = $catalog['endolift_facial'];
 		}
 	}
+	if ( empty( $faqs ) && ! empty( $data['faq']['items'] ) && is_array( $data['faq']['items'] ) ) {
+		$faqs = $data['faq']['items'];
+	}
 	if ( empty( $faqs ) ) {
 		$faqs = array(
 			array(
@@ -285,6 +288,7 @@ function nvx_endolift_editorial_body_markup(): string {
 			),
 		);
 	}
+
 
 	foreach ( $faqs as $faq ) {
 		$html .= '<details class="nvx-brand-faq-item">';

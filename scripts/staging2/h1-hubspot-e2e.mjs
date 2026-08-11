@@ -15,6 +15,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sel = (name) => `input[name="${name}"],input[name="0-1/${name}"]`;
 
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+if (expectedSha && !/^[0-9a-f]{40}$/i.test(expectedSha)) {
+  throw new Error(`EXPECTED_SHA must be a 40-hex commit SHA; received=${JSON.stringify(expectedSha)}`);
+}
 
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 try {
@@ -65,7 +68,7 @@ try {
   const sha = metaCount > 0 ? (await metaLocator.getAttribute('content', { timeout: 2000 }).catch(() => '')) || '' : '';
   console.log(`PRODUCTION_SHA=${sha || '(none)'}`);
   if (expectedSha && sha !== expectedSha) {
-    console.warn(`WARNING: Production SHA mismatch: current=${sha}, expected=${expectedSha}`);
+    throw new Error(`Production SHA mismatch: current=${sha || '(none)'}, expected=${expectedSha}`);
   }
 
   await page.evaluate(() => {
@@ -183,9 +186,7 @@ try {
     try {
       const request = response.request();
       const targetUrl = response.url();
-      // Match both v2 and v3 HubSpot form-submission endpoints for this form
-      // v2: api.hsforms.com/submissions/v3/integration/async/submit/<portalId>/<formId>
-      // v3: api.hsforms.com/submissions/v3/integration/submit/<portalId>/<formId>
+      // Match both sync and async HubSpot v3 form-submission endpoints for this form
       // to avoid false positives from HubSpot analytics/telemetry traffic.
       const isSubmissionPost = request.method() === 'POST' &&
         /\/submissions\/v3\/integration\/(async\/)?submit\//i.test(targetUrl) &&

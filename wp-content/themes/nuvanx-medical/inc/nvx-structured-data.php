@@ -654,6 +654,38 @@ function nvx_schema_faq_load_map_catalog( string $file ): array {
 	return $catalog;
 }
 
+/** Parse a mapped catalog JSON file for FAQ items with claim resolver. */
+function nvx_schema_faq_load_map_catalog_with_resolver( string $file, callable $resolver ): array {
+	$json    = nvx_catalog_json_resolved( $file, $resolver, array(), array(), basename( $file, '.json' ) );
+	$catalog = array();
+	if ( ! is_array( $json ) ) {
+		return $catalog;
+	}
+	foreach ( $json as $key => $entry ) {
+		if ( empty( $entry['faqs'] ) || ! is_array( $entry['faqs'] ) ) {
+			continue;
+		}
+		$items = array();
+		foreach ( $entry['faqs'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+		if ( ! empty( $items ) ) {
+			$catalog[ $key ]                        = $items;
+			$catalog[ str_replace( '-', '_', $key ) ] = $items;
+			$catalog[ str_replace( '_', '-', $key ) ] = $items;
+			if ( ! empty( $entry['key'] ) ) {
+				$catalog[ $entry['key'] ] = $items;
+			}
+		}
+	}
+	return $catalog;
+}
+
 function nvx_schema_faq_catalog() {
 	static $catalogs = array();
 	$locale          = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
@@ -665,8 +697,13 @@ function nvx_schema_faq_catalog() {
 	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
 		$catalog['endolift_facial']    = nvx_schema_faq_load_single_page( 'endolift-page.json' );
 		$catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
-		$catalog                       = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'btl-detail-pages.json' ) );
-		$catalog                       = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
+		// Use claim resolver for BTL detail pages to ensure claim keys are resolved
+		if ( function_exists( 'nvx_btl_claim' ) ) {
+			$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog_with_resolver( 'btl-detail-pages.json', 'nvx_btl_claim' ) );
+		} else {
+			$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'btl-detail-pages.json' ) );
+		}
+		$catalog = array_merge( $catalog, nvx_schema_faq_load_map_catalog( 'aesthetic-treatment-pages.json' ) );
 	}
 
 

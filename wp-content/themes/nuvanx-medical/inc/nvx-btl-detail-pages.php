@@ -390,9 +390,53 @@ function nvx_btl_detail_faq_markup( array $c ): string {
 }
 
 /**
+ * Render clinical parameters section for BTL detail pages if present.
+ *
+ * @param array<string,mixed> $c Registry entry config.
+ */
+function nvx_btl_detail_clinical_data_markup( array $c ): string {
+	if ( empty( $c['clinical_data'] ) || ! is_array( $c['clinical_data'] ) ) {
+		return '';
+	}
+
+	$cd     = $c['clinical_data'];
+	$marker = (string) ( $c['marker'] ?? 'nvx-btl' );
+	$sid    = esc_attr( $marker . '-clinical-data-title' );
+
+	$labels = array(
+		'technology'           => __( 'Tecnología:', 'nuvanx-medical' ),
+		'energy_depth'         => __( 'Profundidad:', 'nuvanx-medical' ),
+		'collagen_stimulation' => __( 'Efecto matriz:', 'nuvanx-medical' ),
+		'sessions'             => __( 'Sesiones:', 'nuvanx-medical' ),
+		'downtime'             => __( 'Recuperación:', 'nuvanx-medical' ),
+		'price_range'          => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
+		'duration_result'      => __( 'Evolución:', 'nuvanx-medical' ),
+	);
+
+	$items_html = '';
+	foreach ( $labels as $key => $label ) {
+		if ( ! empty( $cd[ $key ] ) ) {
+			$val         = is_array( $cd[ $key ] ) ? implode( ', ', $cd[ $key ] ) : (string) $cd[ $key ];
+			$items_html .= '<li><strong>' . esc_html( $label ) . '</strong> ' . esc_html( $val ) . '</li>';
+		}
+	}
+
+	if ( '' === $items_html ) {
+		return '';
+	}
+
+	$html  = nvx_page_brand_section_open_markup( 'nvx-btl-clinical-data', $sid );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Parámetros de tratamiento', 'nuvanx-medical' ), $sid, esc_html__( 'Datos clínicos y de consulta', 'nuvanx-medical' ) );
+	$html .= '<ul class="nvx-strategy-checklist">' . $items_html . '</ul></div></section>';
+
+	return $html;
+}
+
+/**
  * Build full editorial markup for a detail key.
  */
 function nvx_btl_detail_page_markup( string $key ): string {
+
 	$reg = nvx_btl_detail_registry();
 	if ( empty( $reg[ $key ] ) || ! is_array( $reg[ $key ] ) ) {
 		return '';
@@ -403,6 +447,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-brand-editorial nvx-btl-detail-editorial">';
 	$body .= nvx_btl_detail_mechanism_markup( $c );
 	$body .= nvx_btl_detail_indications_markup( $c );
+	$body .= nvx_btl_detail_clinical_data_markup( $c );
 	$body .= nvx_btl_detail_compare_markup( $c );
 	$body .= nvx_btl_detail_process_markup( $c );
 	$body .= nvx_btl_detail_faq_markup( $c );

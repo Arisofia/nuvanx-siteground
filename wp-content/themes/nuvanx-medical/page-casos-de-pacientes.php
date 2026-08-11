@@ -17,7 +17,7 @@ $page_id = (int) get_queried_object_id();
 $ready   = $page_id > 0 && '1' === (string) get_post_meta( $page_id, '_nvx_cases_publication_ready', true );
 
 if ( $ready ) {
-	require_once get_template_directory() . '/page.php';
+	require get_template_directory() . '/page.php';
 	return;
 }
 
@@ -102,7 +102,7 @@ get_header();
 			<h2 id="nvx-cases-criteria-title" class="nvx-brand-title"><?php esc_html_e( 'Antes de comparar casos, revisamos su situación clínica', 'nuvanx-medical' ); ?></h2>
 			<div class="nvx-cases-holding__criteria-grid">
 				<div><p class="nvx-brand-body"><?php esc_html_e( 'Una fotografía aislada no explica una indicación. Por eso cada publicación deberá identificar, cuando corresponda, la zona tratada, la técnica utilizada, el tiempo transcurrido y las condiciones de la toma fotográfica.', 'nuvanx-medical' ); ?></p></div>
-				<div><p class="nvx-brand-body"><?php esc_html_e( 'Los resultados pueden variar me entre pacientes. La valoración médica individual sigue siendo el punto de partida para determinar si un tratamiento tiene indicación y qué expectativas son razonables.', 'nuvanx-medical' ); ?></p></div>
+				<div><p class="nvx-brand-body"><?php esc_html_e( 'Los resultados pueden variar entre pacientes. La valoración médica individual sigue siendo el punto de partida para determinar si un tratamiento tiene indicación y qué expectativas son razonables.', 'nuvanx-medical' ); ?></p></div>
 			</div>
 			<?php
 			if ( have_posts() ) {

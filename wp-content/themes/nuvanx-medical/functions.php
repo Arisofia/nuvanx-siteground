@@ -24,7 +24,6 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
 require_once __DIR__ . '/inc/nvx-constants.php';
 require_once __DIR__ . '/inc/nvx-config-helpers.php';
 
-
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
 	add_theme_support( 'title-tag' );
@@ -262,6 +261,7 @@ require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
+require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
 
 // 3. Core UI Components
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';

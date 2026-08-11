@@ -16,10 +16,11 @@
         "schema_type": "Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)",
         "schema_desc": "Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.",
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica",
+            "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica con IA",
             "body": [
                 "@nvx-claim-key:exion_face_mech_intro",
-                "@nvx-claim-key:exion_face_ha_224"
+                "@nvx-claim-key:exion_face_ha_224",
+                "@nvx-t:Datos oficiales BTL: +224% de incremento en la producción endógena de ácido hialurónico, +47% de aumento en colágeno y +50% de elastina en modelos evaluados. La Inteligencia Artificial monitoriza la impedancia cutánea en tiempo real para evitar puntos calientes y maximizar la comodidad."
             ],
             "items": [
                 {
@@ -29,6 +30,10 @@
                 {
                     "title": "@nvx-t:Ultrasonido dirigido (TUS)",
                     "body": "@nvx-t:Mecanoestimulación no invasiva que complementa la RF: favorece cascadas de señalización en fibroblastos y síntesis de matriz (ácido hialurónico, colágeno, elastina) sin el perfil de cavitación de ultrasonidos de alto poder. Se usa como estímulo, no como trauma controlado."
+                },
+                {
+                    "title": "@nvx-t:Inteligencia Artificial en tiempo real",
+                    "body": "@nvx-t:El sistema de IA monitoriza la impedancia cutánea y ajusta automáticamente la entrega de energía para evitar puntos calientes, garantizar seguridad y maximizar el confort durante el procedimiento."
                 }
             ]
         },
@@ -132,15 +137,17 @@
         "schema_type": "Protocolo médico corporal con EXION® Body",
         "schema_desc": "Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.",
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Body",
+            "title": "@nvx-t:Cómo funciona EXION® Body con datos técnicos BTL",
             "body": [
                 "@nvx-t:El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.",
-                "@nvx-claim-key:exion_body_btl_22"
+                "@nvx-claim-key:exion_body_btl_22",
+                "@nvx-t:Datos oficiales BTL: reducción de hasta el 22% de grasa localizada y mejora del 85% en la laxitud cutánea en modelos evaluados. Combinación sinérgica de RF Monopolar profunda + Ultrasonido Dirigido + Enfriamiento por contacto activo."
             ],
             "items": [
                 {
-                    "title": "@nvx-t:Refrigeración activa en superficie",
-                    "body": "@nvx-claim-key:exion_body_cooling"
+                    "title": "@nvx-t:Refrigeración activa en superficie (Active Cooling)",
+                    "body": "@nvx-claim-key:exion_body_cooling",
+                    "extra": "@nvx-t:El enfriamiento integrado permite alcanzar temperaturas lipolíticas profundas sin riesgo de quemadura epidérmica, garantizando seguridad y confort."
                 },
                 {
                     "title": "@nvx-t:RF monopolar profunda (~40–45 °C en tejido objetivo)",
@@ -258,10 +265,10 @@
         "schema_type": "Protocolo de radiofrecuencia fraccionada EXION®",
         "schema_desc": "Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.",
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EXION® Fractional RF",
+            "title": "@nvx-t:Cómo funciona EXION® Fractional RF con profundidad 8 mm",
             "body": [
                 "@nvx-t:Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.",
-                "@nvx-t:Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.",
+                "@nvx-t:Profundidad de acción de hasta 8 mm (4 mm de inserción mecánica + 4 mm de gradiente térmico por RF monopolar). Algoritmo de Inteligencia Artificial (AI-driven RF) que mide la impedancia en tiempo real para personalizar el pulso en cada microdisparo.",
                 "@nvx-t:Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista."
             ]
         },
@@ -324,11 +331,30 @@
         "schema_type": "Protocolo de infusión cutánea EMFUSION®",
         "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
         "mechanism": {
-            "title": "@nvx-t:Cómo funciona EMFUSION® (DYNAMiQ™)",
+            "title": "@nvx-t:Cómo funciona EMFUSION® (DYNAMiQ™) en 4 fases",
             "body": [
                 "@nvx-t:Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.",
                 "@nvx-t:El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.",
-                "@nvx-t:Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas."
+                "@nvx-t:Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas.",
+                "@nvx-t:Protocolo estructurado en 4 fases: Refinar (Refine) → Activar (Activate) → Fusionar (Fuse) → Sellar (Seal). Este enfoque aporta claridad, valor percibido y rigor al protocolo."
+            ],
+            "items": [
+                {
+                    "title": "@nvx-t:Fase 1: Refinar (Refine)",
+                    "body": "@nvx-t:Limpieza profunda y preparación de la superficie cutánea para maximizar la absorción de activos."
+                },
+                {
+                    "title": "@nvx-t:Fase 2: Activar (Activate)",
+                    "body": "@nvx-t:Estimulación de la dermis para optimizar la respuesta celular a los principios activos."
+                },
+                {
+                    "title": "@nvx-t:Fase 3: Fusionar (Fuse)",
+                    "body": "@nvx-t:Infusión transdérmica de activos médicos (ceramidas, ectoína) a través de microcanales temporales."
+                },
+                {
+                    "title": "@nvx-t:Fase 4: Sellar (Seal)",
+                    "body": "@nvx-t:Consolidación de la barrera cutánea y optimización de la homeostasis del calcio epidérmico."
+                }
             ]
         },
         "indications": [

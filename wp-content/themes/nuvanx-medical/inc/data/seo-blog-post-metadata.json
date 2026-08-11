@@ -1,46 +1,78 @@
 {
-    "endolift-primeras-72-horas-que-esperar": {
-        "title": "Endolift: primeras 72 horas | Qué esperar",
-        "description": "Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid."
-    },
-    "endolift-ciencia-laser-subdermico": {
-        "title": "Cómo funciona Endolift | Láser subdérmico",
-        "description": "Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX."
-    },
-    "endolift-vs-lifting-quirurgico-cuando-operarse": {
-        "title": "Endolift vs lifting quirúrgico | Madrid",
-        "description": "Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid."
-    },
-    "ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento": {
-        "title": "IPL BTL EXILITE™ Madrid | Manchas y rojeces",
-        "description": "IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo."
-    },
-    "exion-btl-fractional-rf-face-body": {
-        "title": "EXION® BTL Face, Body y Fractional RF",
-        "description": "Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica."
-    },
-    "well-aging-48-cambios-hormonales-piel": {
-        "title": "Well-aging a los 48 | Cambios hormonales",
-        "description": "Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid."
-    },
-    "intrusismo-tratamientos-inyectables-riesgos": {
-        "title": "Intrusismo estético y rellenos | Riesgos",
-        "description": "Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico."
-    },
-    "laser-co2-vs-rf-cuando-elegir": {
-        "title": "Láser CO₂ vs Radiofrecuencia | Cuándo elegir",
-        "description": "Diferencias entre láser CO₂ y radiofrecuencia: indicaciones, recuperación y cuándo elegir cada tecnología según diagnóstico en NUVANX."
-    },
-    "orden-tratamientos-medicina-estetica": {
-        "title": "Orden de tratamientos medicina estética | Protocolo",
-        "description": "Secuencia lógica de tratamientos de medicina estética: cuándo combinar, tiempos de espera y optimización de resultados en NUVANX."
-    },
-    "papada-sin-cirugia-tratamientos": {
-        "title": "Papada sin cirugía | Tratamientos Madrid",
-        "description": "Tratamientos no quirúrgicos para papada: Endolift®, ácido hialurónico y tecnología láser. Valoración anatómica en NUVANX Madrid."
-    },
-    "rinomodelacion-guia-completa": {
-        "title": "Rinomodelación | Guía completa Madrid",
-        "description": "Guía completa de rinomodelación sin cirugía: indicaciones, expectativas, recuperación y criterio médico en NUVANX Madrid."
-    }
+  "endolift-primeras-72-horas-que-esperar": {
+    "title": "Primeras 72 horas tras Endolift®: qué esperar | NUVANX",
+    "description": "Guía médica sobre las primeras 72 horas después de Endolift®: inflamación, cuidados, señales de alarma y recuperación esperada."
+  },
+  "endolift-ciencia-laser-subdermico": {
+    "title": "Endolift®: ciencia del láser subdérmico | NUVANX Madrid",
+    "description": "Cómo actúa el láser subdérmico de Endolift® sobre tejido, colágeno y grasa localizada, explicado con criterio médico y sin jerga."
+  },
+  "endolift-vs-lifting-quirurgico-cuando-operarse": {
+    "title": "Endolift® vs lifting quirúrgico: diferencias | NUVANX",
+    "description": "Comparativa médica entre Endolift® y lifting quirúrgico: indicaciones, límites, recuperación y cuándo la cirugía puede ser la opción adecuada."
+  },
+  "ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento": {
+    "title": "IPL médica BTL EXILITE™: manchas y rojeces | NUVANX",
+    "description": "Qué puede tratar la IPL médica BTL EXILITE™ en manchas, rojeces, acné y fotorejuvenecimiento según diagnóstico y fototipo."
+  },
+  "exion-btl-fractional-rf-face-body": {
+    "title": "EXION® BTL: Fractional RF, Face y Body | NUVANX",
+    "description": "Diferencias entre EXION® Fractional RF, Face y Body, sus indicaciones y cómo se elige cada modalidad tras una valoración médica."
+  },
+  "well-aging-48-cambios-hormonales-piel": {
+    "title": "Piel y cambios hormonales a los 48: well-aging | NUVANX",
+    "description": "Cómo cambian hidratación, colágeno, elasticidad y respuesta cutánea en la perimenopausia y cómo plantear un enfoque médico de well-aging."
+  },
+  "intrusismo-tratamientos-inyectables-riesgos": {
+    "title": "Intrusismo en inyectables: riesgos y seguridad | NUVANX",
+    "description": "Riesgos de los tratamientos inyectables realizados sin competencia médica y criterios para elegir un entorno sanitario seguro."
+  },
+  "laser-co2-vs-radiofrecuencia-cuando-elegir": {
+    "title": "Láser CO₂ vs radiofrecuencia: cuándo elegir | NUVANX",
+    "description": "Diferencias entre láser CO₂ fraccionado y radiofrecuencia para textura, cicatrices y calidad cutánea: indicaciones y recuperación."
+  },
+  "orden-tratamientos-faciales-que-tratar-primero": {
+    "title": "Orden de tratamientos faciales: qué tratar primero | NUVANX",
+    "description": "Cómo secuenciar tratamientos faciales, qué conviene abordar primero y cuánto tiempo dejar entre procedimientos según el diagnóstico."
+  },
+  "papada-sin-cirugia-madrid-opciones-endolift": {
+    "title": "Papada sin cirugía en Madrid: opciones y Endolift® | NUVANX",
+    "description": "Opciones médicas para tratar papada sin cirugía en Madrid y criterios para valorar cuándo Endolift® puede tener sentido."
+  },
+  "rinomodelacion-sin-cirugia-madrid-guia": {
+    "title": "Rinomodelación sin cirugía en Madrid: guía médica | NUVANX",
+    "description": "Qué puede corregir la rinomodelación con ácido hialurónico, qué no puede cambiar y qué riesgos deben valorarse antes del tratamiento."
+  },
+  "endolaser-corporal-vs-no-invasivos-grasa-localizada": {
+    "title": "Endoláser corporal vs no invasivos: diferencias | NUVANX",
+    "description": "Diferencias entre endoláser corporal y tecnologías no invasivas para grasa localizada, laxitud y contorno según indicación médica."
+  },
+  "exion-fractional-rf-vs-morpheus8-comparativa": {
+    "title": "EXION® Fractional RF vs Morpheus8: comparativa | NUVANX",
+    "description": "Comparativa médica de EXION® Fractional RF y Morpheus8: tecnología, control de energía, indicaciones, recuperación y selección del caso."
+  },
+  "endolift-vs-hifu-diferencias-reales": {
+    "title": "Endolift® vs HIFU: diferencias reales | NUVANX Madrid",
+    "description": "Endolift® y HIFU no actúan igual. Revisa diferencias en profundidad, invasividad, indicaciones, recuperación y criterios de selección."
+  },
+  "exposoma-cutaneo-envejecimiento-piel-factores-externos": {
+    "title": "Exposoma cutáneo y envejecimiento de la piel | NUVANX",
+    "description": "Cómo sol, tabaco, contaminación, sueño y otros factores externos influyen en el envejecimiento cutáneo y en una estrategia de prevención."
+  },
+  "well-aging-estrategia-medica-global": {
+    "title": "Well-aging: estrategia médica global | NUVANX Madrid",
+    "description": "Qué significa un enfoque médico de well-aging y cómo integrar salud, función, piel y tratamientos sin caer en el sobretratamiento."
+  },
+  "tratamientos-faciales-sin-cirugia-guia-medica-diagnostico": {
+    "title": "Tratamientos faciales sin cirugía: guía médica | NUVANX",
+    "description": "Guía para entender qué tratamientos faciales sin cirugía pueden indicarse según estructura, piel, volumen, expresión y diagnóstico."
+  },
+  "plan-anual-medicina-estetica-sin-sobretratar": {
+    "title": "Plan anual de medicina estética sin sobretratar | NUVANX",
+    "description": "Cómo organizar un plan anual de medicina estética con prioridades, tiempos de recuperación y revisiones para evitar el sobretratamiento."
+  },
+  "botox-madrid-precio-neuromoduladores": {
+    "title": "Bótox en Madrid: precio y planificación médica | NUVANX",
+    "description": "Qué determina el precio de un tratamiento con neuromoduladores en Madrid y cómo se planifica según anatomía, dosis e indicación médica."
+  }
 }

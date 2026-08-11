@@ -53,6 +53,9 @@ function nvx_build_redirect_url( string $target, string $query ): string {
 	if ( '' !== $query ) {
 		$query_args = array();
 		wp_parse_str( $query, $query_args );
+		// Never carry post-resolution args: they would re-select the retired
+		// record on the target URL and loop this redirect indefinitely.
+		unset( $query_args['p'], $query_args['page_id'], $query_args['name'], $query_args['pagename'], $query_args['attachment_id'], $query_args['preview'], $query_args['preview_id'], $query_args['post_type'] );
 		if ( ! empty( $query_args ) ) {
 			$redirect_url = add_query_arg( $query_args, $redirect_url );
 		}

@@ -47,11 +47,16 @@ For a push-triggered Staging run, `run.head_sha` must equal the candidate SHA ex
 
 For a supported manual `workflow_dispatch` that deploys an older master-contained SHA, GitHub records the dispatch ref tip as `run.head_sha`, not necessarily the selected `inputs.sha`. In that case:
 
-- the live Staging marker and exact artifact name bind the selected candidate SHA;
 - the dispatch head must remain contained in current `master`;
-- the selected candidate SHA must be an ancestor of that dispatch head.
+- the selected candidate SHA must be an ancestor of that dispatch head;
+- the production-eligible artifact must contain `acceptance-manifest.json` generated after successful Block C and the read-only Production check;
+- Production downloads that artifact and requires the manifest `candidate_sha`, `run_id`, `event`, `head_sha`, `head_branch`, and canonical `workflow_path` to match the candidate and source run exactly.
 
-Failed Staging runs are never production-eligible, even if they uploaded diagnostic evidence through `if: always()`.
+This manifest provides the immutable binding between a manually selected historical candidate and the Staging run that actually validated it.
+
+Failed Staging runs do not publish the `staging2-block-c-<candidate-sha>` production-eligible name. They publish a separate `staging2-block-c-diagnostic-...` artifact and are never eligible for Production.
+
+Production also iterates legacy candidate artifacts and selects the first source run satisfying the complete contract, so a newer failed historical artifact cannot shadow older valid evidence. Historical manual artifacts created before the immutable manifest was introduced must be re-run with `run_acceptance=true` before promotion.
 
 ## Runner Registration Tokens
 
@@ -70,5 +75,5 @@ gh api --method POST \
 - Exactly two workflows are supported: `.github/workflows/staging.yml` and `.github/workflows/production.yml`.
 - Canonical jobs use GitHub-hosted runners.
 - SSH uses strict host-key verification and bounded retries.
-- Staging owns deploy, rollback, browser acceptance, and exact-SHA evidence.
+- Staging owns deploy, rollback, browser acceptance, immutable acceptance manifest, and exact-SHA evidence.
 - Production promotes only a candidate with valid successful Staging evidence.

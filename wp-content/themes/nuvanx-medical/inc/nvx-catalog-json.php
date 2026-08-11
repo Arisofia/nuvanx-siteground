@@ -218,6 +218,42 @@ function nvx_catalog_json_resolved(
 }
 
 /**
+ * Supply neutral defaults for optional aesthetic presentation fields.
+ *
+ * These values are optional in the renderer and are omitted from visible output
+ * when empty. Normalizing their shape here prevents an otherwise complete
+ * clinical record from being discarded solely because an optional presentation
+ * field is absent from the source JSON.
+ *
+ * @param array<mixed> $entry Catalog record.
+ * @return array<mixed>
+ */
+function nvx_catalog_apply_optional_defaults( array $entry, string $catalog_name ): array {
+	if ( 'aesthetic-treatment-pages.json' !== $catalog_name ) {
+		return $entry;
+	}
+
+	$defaults = array(
+		'brands'       => array(),
+		'duration'     => '',
+		'session_time' => '',
+		'anesthesia'   => '',
+		'techniques'   => array(),
+		'price_range'  => '',
+		'sessions'     => '',
+		'downtime'     => '',
+	);
+
+	foreach ( $defaults as $key => $default ) {
+		if ( ! array_key_exists( $key, $entry ) ) {
+			$entry[ $key ] = $default;
+		}
+	}
+
+	return $entry;
+}
+
+/**
  * Retain only catalog records that contain every required key.
  *
  * @param array<mixed>      $catalog Catalog records.
@@ -231,6 +267,9 @@ function nvx_catalog_filter_records(
 ): array {
 	$valid = array();
 	foreach ( $catalog as $key => $entry ) {
+		if ( is_array( $entry ) ) {
+			$entry = nvx_catalog_apply_optional_defaults( $entry, $catalog_name );
+		}
 		if ( ! is_array( $entry ) || array() !== array_diff( $required_keys, array_keys( $entry ) ) ) {
 			nvx_catalog_log_error(
 				sprintf( 'Incomplete record %s in %s.', (string) $key, $catalog_name )

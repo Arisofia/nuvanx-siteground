@@ -79,19 +79,44 @@ function nvx_aesthetic_schema_procedure_node(
 	if ( ! empty( $entry['price_range'] ) ) {
 		$price_text = (string) $entry['price_range'];
 		$numeric_price = null;
-		if ( preg_match( '/(\d[\d.]*(?:,\d+)?)/', $price_text, $matches ) ) {
-			$normalized    = str_replace( '.', '', $matches[1] );
-			$normalized    = str_replace( ',', '.', $normalized );
-			$numeric_price = (float) $normalized;
+		$high_price = null;
+
+		// Extract all numeric values from the price text
+		if ( preg_match_all( '/(\d[\d.]*(?:,\d+)?)/', $price_text, $matches ) ) {
+			$prices = array();
+			foreach ( $matches[1] as $match ) {
+				$normalized = str_replace( '.', '', $match );
+				$normalized = str_replace( ',', '.', $normalized );
+				$prices[] = (float) $normalized;
+			}
+
+			if ( ! empty( $prices ) ) {
+				$numeric_price = min( $prices );
+				$high_price = max( $prices );
+			}
 		}
+
 		if ( null !== $numeric_price && $numeric_price > 0 ) {
-			$node['offers'] = array(
+			$offer = array(
 				'@type'         => 'Offer',
 				'price'         => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
 				'priceCurrency' => 'EUR',
 				'availability'  => 'https://schema.org/InStock',
 				'description'   => $price_text,
 			);
+
+			// Use highPrice if we have a price range
+			if ( null !== $high_price && $high_price > $numeric_price ) {
+				$offer['priceSpecification'] = array(
+					'@type'      => 'PriceSpecification',
+					'price'      => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+					'priceCurrency' => 'EUR',
+					'minPrice'   => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $numeric_price ) : (string) $numeric_price,
+					'maxPrice'   => function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $high_price ) : (string) $high_price,
+				);
+			}
+
+			$node['offers'] = $offer;
 		}
 	}
 	// Duration should be expressed as a duration value or omitted (not valid on MedicalProcedure/Service)
@@ -178,18 +203,8 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 	);
 	$graph           = nvx_aesthetic_schema_upsert_node( $graph, $procedure );
 
-	$questions = nvx_aesthetic_schema_faq_questions( $faq_catalog[ $key ] ?? array() );
-	if ( ! empty( $questions ) ) {
-		$graph = nvx_aesthetic_schema_upsert_node(
-			$graph,
-			array(
-				'@type'      => 'FAQPage',
-				'@id'        => $permalink . '#faq',
-				'url'        => $permalink,
-				'mainEntity' => $questions,
-			)
-		);
-	}
+	// FAQPage is now emitted by the global nvx_schema_faq_node() in nvx-structured-data.php
+	// which uses the centralized FAQ catalog. This prevents duplicate @id collisions.
 
 	$graph = nvx_aesthetic_schema_link_webpage_main_entity( $graph, $permalink, $procedure['@id'] );
 

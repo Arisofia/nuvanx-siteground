@@ -657,9 +657,8 @@ function nvx_schema_faq_load_map_catalog_impl( string $file, ?callable $resolver
 			}
 		}
 		if ( ! empty( $items ) ) {
-			$catalog[ $key ]                        = $items;
-			$catalog[ str_replace( '-', '_', $key ) ] = $items;
-			$catalog[ str_replace( '_', '-', $key ) ] = $items;
+			$catalog[ $key ] = $items;
+			// Only add explicit 'key' alias if present in JSON
 			if ( ! empty( $entry['key'] ) ) {
 				$catalog[ $entry['key'] ] = $items;
 			}

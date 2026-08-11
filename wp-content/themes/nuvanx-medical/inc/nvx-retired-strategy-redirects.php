@@ -24,33 +24,19 @@ function nvx_retired_strategy_page_ids(): array {
 		return $ids;
 	}
 
-	$ids   = array();
 	$slugs = array( 'liposculpt-air', 'tratamiento-retirado', 'v-lift-awake' );
 
-	foreach ( $slugs as $slug ) {
-		$page = get_page_by_path( $slug );
-		if ( $page ) {
-			$ids[] = (int) $page->ID;
-		}
-	}
-
-	// Also search for nested pages with matching post_name
-	$nested_query = new WP_Query(
+	// Search every singular post type for matching top-level or nested slugs.
+	$retired_query = new WP_Query(
 		array(
 			'post_type'      => 'any',
-			'post_name__in' => $slugs,
+			'post_name__in'  => $slugs,
 			'fields'         => 'ids',
 			'posts_per_page' => -1,
 		)
 	);
 
-	if ( $nested_query->have_posts() ) {
-		foreach ( $nested_query->posts as $post_id ) {
-			$ids[] = (int) $post_id;
-		}
-	}
-
-	$ids = array_values( array_unique( $ids ) );
+	$ids = array_map( 'intval', $retired_query->posts );
 
 	return $ids;
 }
@@ -62,7 +48,7 @@ function nvx_retired_strategy_page_ids(): array {
  * @param string $query  The query string.
  * @return string The full redirect URL.
  */
-function nvx_build_redirect_url( $target, $query ) {
+function nvx_build_redirect_url( string $target, string $query ): string {
 	$redirect_url = home_url( $target );
 	if ( '' !== $query ) {
 		$query_args = array();
@@ -92,14 +78,14 @@ function nvx_redirect_retired_strategy_slugs(): void {
 		'v-lift-awake'         => '/endolift-facial-papada-mandibula/',
 	);
 
-	// Check path-based redirect (top-level pages)
+	// Check path-based redirect for top-level pages.
 	if ( isset( $targets[ $path ] ) ) {
 		$redirect_url = nvx_build_redirect_url( $targets[ $path ], $query );
 		wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
 		exit;
 	}
 
-	// Check post_name-based redirect (nested pages, other post types)
+	// Check post_name-based redirect for nested pages and other post types.
 	if ( is_singular() ) {
 		$queried_object = get_queried_object();
 		if ( $queried_object && isset( $queried_object->post_name ) && isset( $targets[ $queried_object->post_name ] ) ) {

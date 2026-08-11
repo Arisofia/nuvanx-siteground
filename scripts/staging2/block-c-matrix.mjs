@@ -475,7 +475,7 @@ async function testResponsiveMenu(page, viewport, geometry, issues) {
     const beforeVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
     await toggle.click({ timeout: 2500 });
     await page.waitForTimeout(220);
-    const afterExpanded = await toggle.evaluate((el) => el.getAttribute('aria-expanded'));
+    const afterExpanded = await toggle.getAttribute('aria-expanded');
     const afterVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
 
     const ariaOpened = beforeExpanded !== 'true' && afterExpanded === 'true';

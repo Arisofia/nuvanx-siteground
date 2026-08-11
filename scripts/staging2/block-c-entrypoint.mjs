@@ -121,12 +121,18 @@ function isTransientFailure(result) {
 
 async function failedResultsAreTransient() {
   let results;
-  let manifest;
   try {
     results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+  } catch (error) {
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=RESULTS_UNAVAILABLE reason=${error.message}`);
+    return false;
+  }
+
+  let manifest;
+  try {
     manifest = await loadPublishedPagesManifest();
   } catch (error) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=UNAVAILABLE reason=${error.message}`);
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=MANIFEST_INVALID reason=${error.message}`);
     return false;
   }
 

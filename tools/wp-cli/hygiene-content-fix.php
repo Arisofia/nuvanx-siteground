@@ -133,12 +133,67 @@ try {
 			}
 		}
 	}
+
+	// 3. Repair staging-only aesthetic seed records deterministically. Historical
+	// staging databases can contain a seeded page whose title/route is correct but
+	// whose marker metadata was never written. In that state the theme sees an
+	// inert CMS page and Block C gets only the shell H1. Never apply this repair to
+	// production and never overwrite authored page content.
+	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() && function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
+		WP_CLI::line( 'Repairing staging aesthetic seed metadata...' );
+		$published_pages = get_posts(
+			array(
+				'post_type'      => 'page',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			)
+		);
+
+		foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
+			$matched = null;
+			foreach ( $published_pages as $candidate ) {
+				$existing_key = get_post_meta( $candidate->ID, '_nvx_aesthetic_treatment_key', true );
+				if ( $existing_key === $key || $candidate->post_name === $entry['slug'] || $candidate->post_title === $entry['h1'] ) {
+					$matched = $candidate;
+					break;
+				}
+			}
+
+			if ( ! $matched instanceof WP_Post ) {
+				continue;
+			}
+
+			$content      = trim( (string) $matched->post_content );
+			$is_seed_body = '' === $content || false !== strpos( $content, 'nvx-aesthetic-treatment-source' );
+			if ( ! $is_seed_body ) {
+				continue;
+			}
+
+			$marker = '<div class="nvx-aesthetic-treatment-source" data-nvx-treatment="' . esc_attr( $key ) . '"></div>';
+			if ( $content !== $marker ) {
+				wp_update_post(
+					wp_slash(
+						array(
+							'ID'           => $matched->ID,
+							'post_content' => $marker,
+							'post_excerpt' => (string) $entry['description'],
+						)
+					)
+				);
+			}
+			update_post_meta( $matched->ID, '_nvx_aesthetic_treatment_key', $key );
+			update_post_meta( $matched->ID, '_nvx_medical_review_status', 'pending' );
+			WP_CLI::line( "AESTHETIC_SEED_READY id={$matched->ID} key={$key} slug={$matched->post_name}" );
+		}
+	}
 } finally {
 	// Restore KSES filters removed before DB writes.
 	kses_init_filters();
 }
 
-// 3. Audit versioned JSON catalogs without modifying them. Any hygiene drift in
+// 4. Audit versioned JSON catalogs without modifying them. Any hygiene drift in
 // tracked release data must be fixed in GitHub so the deployed tree remains the
 // exact content represented by .nvx-deploy-sha.
 WP_CLI::line( 'Auditing versioned JSON catalogs (read-only)...' );

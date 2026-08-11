@@ -298,7 +298,7 @@ async function collectGeometry(page) {
       const body = document.body;
       const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
       const culprits = [];
-      
+
       if (overflowAmount > 2) {
         for (const el of document.querySelectorAll('body *')) {
           if (!isVisible(el)) continue;
@@ -316,7 +316,7 @@ async function collectGeometry(page) {
           }
         }
       }
-      
+
       return { overflowAmount, culprits };
     }
 
@@ -345,7 +345,7 @@ async function collectGeometry(page) {
           img.alt ||
           '(unknown lazy image)'
         );
-        
+
       return { brokenImages, unresolvedLazyImages };
     }
 

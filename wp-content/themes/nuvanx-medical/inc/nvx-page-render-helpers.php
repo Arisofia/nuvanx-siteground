@@ -60,23 +60,6 @@ function nvx_page_extract_brand_hero_media( string $content ): string {
 	return nvx_page_extract_brand_hero_div( $content );
 }
 
-/** Preserve an existing brand-page opening wrapper or apply a defined fallback. */
-function nvx_page_render_brand_wrapper(
-	string $content,
-	string $inner_markup,
-	string $fallback_class = 'nvx-brand-page'
-): string {
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $matches ) ) {
-		return $matches[1] . $inner_markup . '</div>';
-	}
-
-	if ( '' === trim( $fallback_class ) ) {
-		$fallback_class = 'nvx-brand-page';
-	}
-
-	return '<div class="' . esc_attr( $fallback_class ) . '">' . $inner_markup . '</div>';
-}
-
 /**
  * Open a canonical brand section and its inner shell.
  *
@@ -126,19 +109,6 @@ function nvx_page_brand_section_heading_markup(
 ): string {
 	return '<p class="nvx-brand-kicker">' . $kicker . '</p>'
 		. '<h2 id="' . esc_attr( $heading_id ) . '" class="nvx-brand-title">' . $heading . '</h2>';
-}
-
-/**
- * Devuelve si la página actual utiliza el page-shell de NUVANX.
- */
-function nvx_has_page_shell(): bool {
-	// Si tiene 'nvx_page_owner', asumimos que está gobernado por el shell u otro orquestador que necesita su propio <main>.
-	if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
-		return true;
-	}
-
-	// Otras comprobaciones de plantillas
-	return is_page() || is_single() || is_404();
 }
 
 /**

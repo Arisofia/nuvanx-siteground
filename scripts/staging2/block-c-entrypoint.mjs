@@ -2,11 +2,11 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest } from './published-pages-contract.mjs';
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const attemptScript = fileURLToPath(new URL('./block-c-52x3.mjs', import.meta.url));
+const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
 const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
@@ -16,14 +16,7 @@ async function prepareTrustedPagesPreload() {
   if (!pagesFile) return null;
 
   const pages = JSON.parse(await fs.readFile(pagesFile, 'utf8'));
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const manifestPath = join(__dirname, 'published-pages-manifest.json');
-  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
-  if (!Array.isArray(pages) || pages.length < minimumPageCount) {
-    throw new Error(`Trusted WordPress page inventory must contain at least ${minimumPageCount} pages; got ${Array.isArray(pages) ? pages.length : 'non-array'}`);
-  }
+  if (!Array.isArray(pages)) throw new TypeError('Trusted WordPress page inventory must be an array');
 
   const normalizedPages = pages.map((page) => ({
     id: Number(page.id),
@@ -40,6 +33,13 @@ async function prepareTrustedPagesPreload() {
       throw new Error(`Trusted WordPress page ${page.id} points outside staging: ${page.link}`);
     }
   }
+
+  const manifest = await loadPublishedPagesManifest();
+  assertCanonicalPublishedPaths(
+    normalizedPages.map((page) => new URL(page.link).pathname),
+    manifest,
+    'Trusted WordPress page inventory'
+  );
 
   const payload = JSON.stringify(normalizedPages);
   const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
@@ -123,12 +123,8 @@ async function failedResultsAreTransient() {
     return false;
   }
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const manifestPath = join(__dirname, 'published-pages-manifest.json');
-  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
-  const expectedResultsCount = minimumPageCount * 3; // 3 viewports per page
+  const manifest = await loadPublishedPagesManifest();
+  const expectedResultsCount = manifest.length * 3;
 
   if (!Array.isArray(results) || results.length < expectedResultsCount) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);

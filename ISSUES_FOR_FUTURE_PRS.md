@@ -74,61 +74,22 @@ Documented issues from bot analysis that should be addressed in separate PRs.
 **Impact:** Metadata can fail to apply to the intended posts.
 **Fix:** Verify each key against live/current WordPress slugs before renaming.
 
-### 5. Structured Data Collision
-
-**File:** `wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php:1544-1555`
-**Issue:** Custom WebSite node may collide with Yoast's WebSite `@id`.
-**Impact:** Custom values can be deduplicated or overridden.
-**Fix:** Verify emitted graph and mutate the existing canonical node where appropriate.
-
-### 6. Hardcoded Production URLs in Staging Scripts
-
-**Files:**
-
-- `scripts/staging2/verify-all-pages.mjs:3-12`
-- `scripts/staging2/verify-critical-pages.mjs`
-
-**Issue:** Scripts under `scripts/staging2/` contain production URLs.
-**Impact:** Manual execution can target production unexpectedly.
-**Fix:** Parameterize base URL and enforce the intended host at invocation.
-
 ## Low Priority / Info Issues
 
-### 7. Clinics Hub Navigation Change
-
-**File:** `wp-content/themes/nuvanx-medical/inc/nvx-clinics-hub.php:1069-1071`
-**Issue:** In-page navigation was replaced by full-page links while anchors remain.
-**Impact:** The hub's jump-navigation behavior changed.
-**Fix:** Verify intended UX and either document or restore in-page navigation.
-
-### 8. Template Include Safety
-
-**File:** `wp-content/themes/nuvanx-medical/page-casos-de-pacientes.php`
-**Issue:** `require_once` behavior should be verified against the page rendering path.
-**Impact:** A prior include could suppress expected rendering.
-**Fix:** Confirm current call graph before changing to `require` or `get_template_part`.
-
-### 9. SSH Alias Allowlist
+### 5. SSH Alias Allowlist
 
 **File:** `scripts/staging2/verify-staging-boundary.mjs`
 **Issue:** Verify whether all allowed SSH aliases are still produced by canonical workflows.
 **Impact:** Stale aliases obscure the supported deployment paths.
 **Fix:** Remove only aliases proven unused by current workflows.
 
-### 10. SEO/Ads Workflows Orphaned
+### 6. SEO/Ads Workflows Orphaned
 
 **Issue:** Legacy SEO/Ads workflows were removed while some supporting scripts remain.
 **Impact:** Scheduled coverage may have been reduced while unused tooling remains.
 **Fix:** Reconcile remaining scripts with the two-workflow architecture before deleting or restoring anything.
 
-### 11. WP-Config Mutation Without Backup
-
-**File:** `.github/workflows/staging.yml`
-**Issue:** Runtime normalization can mutate `wp-config.php`; backup/syntax validation should be verified against the rollback snapshot sequence.
-**Impact:** A malformed config mutation could complicate recovery.
-**Fix:** Ensure backup precedes mutation or add a dedicated guarded config backup plus PHP validation.
-
-### 12. Release Candidate File Behavior
+### 7. Release Candidate File Behavior
 
 **File:** `release/production-candidate.txt`
 **Issue:** The file is an authorization/trigger signal while Production resolves the deploy candidate from the locked live Staging marker.

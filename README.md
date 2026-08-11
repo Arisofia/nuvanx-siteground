@@ -39,7 +39,7 @@ The canonical browser acceptance entrypoint is:
 - `scripts/staging2/verify-staging-boundary.mjs`
 - `scripts/validate-page-templates.mjs`
 
-Block C keeps a minimum canonical baseline of 52 published pages, but the runtime inventory is dynamic. Every published WordPress page returned by the trusted inventory is validated at desktop, tablet and mobile; additional published pages therefore increase the total test count automatically. The internal `block-c-52x3.mjs` filename is retained for compatibility and does not define the runtime page count.
+Block C requires every path in the canonical published-page manifest to be present in the trusted WordPress inventory. Every published WordPress page returned by that inventory is validated at desktop, tablet and mobile; additional published pages therefore increase the total test count automatically.
 
 Install browser dependencies only in the scoped package:
 

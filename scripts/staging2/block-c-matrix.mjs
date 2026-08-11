@@ -1,8 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest } from './published-pages-contract.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -84,17 +83,12 @@ async function validateAndNormalizePages(pages) {
     path: normalizePath(page.link),
   }));
   const unique = new Set(normalized.map((page) => page.path));
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const manifestPath = join(__dirname, 'published-pages-manifest.json');
-  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-  const minimumPageCount = Array.isArray(manifest) ? manifest.length : 50;
-  if (normalized.length < minimumPageCount) {
-    throw new Error(`Block C requires at least ${minimumPageCount} published pages; WordPress REST returned ${normalized.length}`);
+  if (unique.size !== normalized.length) {
+    throw new Error(`WordPress REST returned duplicate published paths: pages=${normalized.length} unique=${unique.size}`);
   }
-  if (unique.size < minimumPageCount) {
-    throw new Error(`Block C requires at least ${minimumPageCount} unique published paths; REST returned ${unique.size}`);
-  }
+
+  const manifest = await loadPublishedPagesManifest();
+  assertCanonicalPublishedPaths(unique, manifest, 'WordPress REST inventory');
   for (const page of normalized) {
     if (new URL(page.url).hostname !== expectedHost) {
       throw new Error(`Published page ${page.id} points outside staging2: ${page.url}`);
@@ -727,11 +721,6 @@ for (const viewport of viewports) {
 }
 
 await browser.close();
-
-if (totalCases < 156) {
-  console.error(`Expected at least 156 Block C cases, got ${totalCases}`);
-  process.exit(1);
-}
 
 const matrixRows = [
   '| # | WP ID | URL | 1440×1100 | 1024×768 | 390×844 |',

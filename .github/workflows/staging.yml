@@ -675,7 +675,7 @@ jobs:
           ./node_modules/.bin/playwright install --with-deps chromium
           cd ../..
           mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
-          node scripts/staging2/block-c-52x3.mjs
+          node scripts/staging2/block-c-matrix.mjs
           node scripts/staging2/valoracion-placement.mjs
           echo 'PR_BLOCK_C=PASS'
 

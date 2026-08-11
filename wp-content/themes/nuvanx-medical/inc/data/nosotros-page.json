@@ -1,69 +1,73 @@
 {
   "hero": {
     "kicker": "@nvx-t:NUVANX · Madrid",
-    "h1": "@nvx-t:Sobre Nosotros: Autoridad Médica, Criterio Clínico y Transparencia",
-    "lead": "@nvx-t:Medicina estética láser basada en evidencia, ingeniería tisular y well-aging — sin protocolos estandarizados ni inercia comercial.",
-    "meta": "@nvx-t:Chamberí · Goya · Registros sanitarios CS20144 y CS20073"
+    "h1": "@nvx-t:Sobre NUVANX: equipo médico, centros sanitarios y criterio de indicación",
+    "lead": "@nvx-t:Dos centros sanitarios autorizados en Madrid, tres médicos colegiados con formación hospitalaria y un principio claro: si no hay indicación médica, no se trata.",
+    "meta": "@nvx-t:Chamberí (CS20144) · Goya (CS20073) · Fundada en 2020"
   },
   "positioning": {
-    "kicker": "@nvx-t:Posicionamiento",
-    "title": "@nvx-t:Criterio clínico antes que catálogo",
+    "kicker": "@nvx-t:Quiénes somos",
+    "title": "@nvx-t:Medicina estética con indicación médica previa en cada tratamiento",
     "body": [
-      "@nvx-t:En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).",
-      "@nvx-t:No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables."
+      "@nvx-t:NUVANX es un centro médico de medicina estética láser en Madrid, fundado en 2020, con dos sedes autorizadas por la Comunidad de Madrid (Chamberí CS20144 y Salamanca–Goya CS20073). Nuestro equipo está formado por tres médicos colegiados en el ICOMEM con trayectoria hospitalaria e investigadora.",
+      "@nvx-t:Todos los tratamientos requieren una valoración médica previa. El médico evalúa piel, anatomía, antecedentes y objetivos antes de proponer cualquier procedimiento. Si un tratamiento no está indicado para tu caso, no se realiza — aunque lo solicites expresamente."
     ]
   },
   "platforms": {
     "kicker": "@nvx-t:Plataformas clínicas",
-    "title": "@nvx-t:Tecnología con evidencia, nunca por tendencia",
-    "lead": "@nvx-t:Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.",
+    "title": "@nvx-t:Equipamiento médico certificado, seleccionado por indicación",
+    "lead": "@nvx-t:Trabajamos con dispositivos con marcado CE y documentación clínica publicada. Se indican solo cuando la valoración identifica un objetivo clínico real, una alternativa posible y un seguimiento apropiado.",
     "learn_more": "@nvx-t:Saber más",
     "items": [
       {
         "title": "@nvx-t:Endolift® — láser intersticial 1470 nm",
-        "body": "@nvx-t:Tecnología mínimamente invasiva que, a 1470 nm, actúa de forma selectiva sobre agua y grasa subcutánea. Mediante microfibra óptica estéril de 200–300 micras se induce lipólisis selectiva y se estimula neocolagénesis con retracción estructural, sin incisiones de lifting clásico.",
+        "body": "@nvx-t:Microfibra óptica estéril de 200–300 micras que actúa en el tejido subcutáneo a 1470 nm. Produce lipólisis selectiva y estimula la neocolagénesis con retracción tisular. Indicado en flacidez leve–moderada del tercio inferior y papada. Tarifa de referencia desde 798,60 €.",
         "url": "endolift-facial-papada-mandibula"
       },
       {
         "title": "@nvx-t:EXION® — radiofrecuencia fraccionada y ultrasonido",
-        "body": "@nvx-t:Plataforma que combina radiofrecuencia monopolar y ultrasonido focalizado (TUS), con control de profundidad orientado a dermis profunda. Estudios preclínicos de referencia describen un incremento de la producción endógena de ácido hialurónico del orden del 224% en el modelo evaluado; la indicación y el número de sesiones se definen siempre tras valoración médica.",
+        "body": "@nvx-t:Tres aplicadores: Face (RF sin agujas para calidad cutánea), Fractional RF (microagujas de 0,3 mm con control de impedancia para textura y poros) y Body (RF con refrigeración para grasa y laxitud). La elección del aplicador y el número de sesiones se definen en consulta.",
         "url": "exion-btl"
       },
       {
-        "title": "@nvx-t:EMFUSION® — restauración de barrera DYNAMiQ™",
-        "body": "@nvx-t:Sistema de infusión cutánea con tecnología DYNAMiQ™ que convierte energía eléctrica en ondas mecánicas y crea microcanales temporales para favorecer la penetración de activos (p. ej. ceramidas y ectoína). Datos de referencia del fabricante describen una reducción relevante de la pérdida de agua transepidérmica y mejor absorción de nutrientes; se indica solo cuando el tejido lo justifica.",
+        "title": "@nvx-t:EMFUSION® — microcanales acústicos DYNAMiQ™",
+        "body": "@nvx-t:Tecnología de infusión que crea microcanales temporales para aplicar activos como ceramidas o ectoína. Indicado para piel deshidratada, barrera frágil o como fase de consolidación tras otros procedimientos. Sin agujas ni succión agresiva.",
         "url": ""
       },
       {
-        "title": "@nvx-t:Láser CO₂ fraccionado, laserlipólisis y modelado subdérmico",
-        "body": "@nvx-t:Sistemas de alta precisión térmica para resurfacing y corrección de cicatrices atróficas (CO₂ fraccionado) y para modelado subdérmico / laserlipólisis corporal en casos seleccionados. Se activan únicamente cuando el diagnóstico anticipa una respuesta clínica real y predecible.",
+        "title": "@nvx-t:Láser CO₂ fraccionado y endoláser corporal",
+        "body": "@nvx-t:CO₂ fraccionado para cicatrices de acné, poros y fotodaño (desde 330 €/sesión facial, recuperación 5–7 días). Endoláser corporal para grasa localizada en abdomen, flancos, brazos y muslos bajo anestesia local. Presupuesto según zonas tras valoración.",
         "url": "laser-co2-fraccionado-madrid-textura-cicatrices-poro"
       }
     ],
     "related": {
       "title": "@nvx-t:Endoláser corporal",
-      "body": "@nvx-t:Protocolo de laserlipólisis corporal para adiposidad localizada con retracción térmica asociada, documentado en página propia.",
+      "body": "@nvx-t:Laserlipólisis corporal para grasa localizada con retracción térmica. Plan por zonas y presupuesto cerrado tras valoración presencial.",
       "label": "@nvx-t:Ver Endoláser corporal",
       "url": "endolaser-corporal-grasa-localizada"
     }
   },
   "clinics": {
     "kicker": "@nvx-t:Sedes",
-    "title": "@nvx-t:Instalaciones autorizadas en Madrid",
-    "lead": "@nvx-t:Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:",
+    "title": "@nvx-t:Dos centros sanitarios autorizados en Madrid",
+    "lead": "@nvx-t:Ambas sedes cuentan con registro sanitario de la Comunidad de Madrid y cumplen los requisitos de la normativa para centros de medicina estética.",
     "reg_label": "@nvx-t:Registro sanitario",
     "fallback_clinics": [
       {
         "name": "@nvx-t:Centro Clínico NUVANX Chamberí",
         "reg": "CS20144",
-        "address": "@nvx-t:Calle de Fernández de la Hoz, 4, 28010 Madrid",
-        "phone": "669 319 836"
+        "address": "@nvx-t:Calle de Fernández de la Hoz, 4, Bajo Derecha — 28010 Madrid",
+        "phone": "669 319 836",
+        "phone_href": "+34669319836",
+        "days": "@nvx-t:Lunes a viernes 12:00–20:00 · Sábados 10:00–18:00"
       },
       {
         "name": "@nvx-t:Centro Clínico NUVANX Salamanca / Goya",
         "reg": "CS20073",
-        "address": "@nvx-t:Calle de Fernán González, 26, 28009 Madrid",
-        "phone": "647 505 107"
+        "address": "@nvx-t:Calle de Fernán González, 26 — 28009 Madrid",
+        "phone": "647 505 107",
+        "phone_href": "+34647505107",
+        "days": "@nvx-t:Lunes a viernes 11:00–20:00"
       }
     ],
     "hub_link_label": "@nvx-t:Ver clínicas NUVANX",
@@ -71,14 +75,14 @@
   },
   "team": {
     "kicker": "@nvx-t:Cuadro médico",
-    "title": "@nvx-t:Excelencia hospitalaria e investigadora",
-    "lead": "@nvx-t:El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.",
+    "title": "@nvx-t:Tres médicos colegiados con formación hospitalaria",
+    "lead": "@nvx-t:El equipo médico de NUVANX combina especialización en medicina estética láser con formación en geriatría, well-aging e investigación clínica. Biografías completas en la página de Equipo médico.",
     "icomem_label": "@nvx-t:ICOMEM",
     "members": [
       {
         "name": "@nvx-t:Dr. José Javier Rivera Tejeda",
         "role": "@nvx-t:Director médico",
-        "body": "@nvx-t:Especialista en medicina estética avanzada, láser intervencionista (Endolift®) y tricología. Perfil público con reseñas verificadas en Doctoralia.",
+        "body": "@nvx-t:Especialista en láser intersticial (Endolift®), CO₂ fraccionado y medicina facial. Máster en Medicina Estética por la UCM y en Tricología por AMIR. Responsable directo de los protocolos láser en NUVANX.",
         "anchor": "physician-rivera-tejeda",
         "colegiado": "282864786",
         "doctoralia": "https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid"
@@ -86,7 +90,7 @@
       {
         "name": "@nvx-t:Dra. Ivon Yamileth Rivera Deras",
         "role": "@nvx-t:Well-aging y geriatría preventiva",
-        "body": "@nvx-t:Referente en longevidad y well-aging. FEA en Hospital Universitario La Paz; investigación y sociedades científicas (SEMEG / EuGMS).",
+        "body": "@nvx-t:FEA en Geriatría en Hospital Universitario La Paz y Hospital Central de la Cruz Roja. Investigadora en OXON Epidemiology, coordinación científica SEMEG y colaboración EuGMS. Integra well-aging y geriatría preventiva en NUVANX.",
         "anchor": "physician-rivera-deras",
         "colegiado": "284621525",
         "doctoralia": ""
@@ -94,7 +98,7 @@
       {
         "name": "@nvx-t:Dr. Fabio Augusto Quiñónez Bareiro",
         "role": "@nvx-t:Geriatría y paciente complejo",
-        "body": "@nvx-t:Especialista en geriatría, gerontología y paciente complejo. Trayectoria hospitalaria (SERMAS / SESCAM), CIBERFES y docencia universitaria.",
+        "body": "@nvx-t:Doctor por la UAM. FEA en Geriatría (Hospital Virgen del Valle, Toledo). Investigador en CIBERFES (fragilidad y envejecimiento saludable) y miembro de SEMEG. Experto en fisiología del envejecimiento y longevidad.",
         "anchor": "physician-quinonez-bareiro",
         "colegiado": "282877543",
         "doctoralia": ""
@@ -107,26 +111,26 @@
   },
   "principles": {
     "kicker": "@nvx-t:Principios",
-    "title": "@nvx-t:Principios médicos innegociables",
+    "title": "@nvx-t:Cómo tomamos las decisiones clínicas",
     "items": [
       {
-        "title": "@nvx-t:Diagnóstico tisular estricto",
-        "body": "@nvx-t:Ningún láser se enciende sin indicación médica. Evaluamos calidad dérmica, grado de ptosis y anatomía facial o corporal. Si el caso requiere cirugía, lo comunicamos con honestidad y derivamos al especialista correspondiente."
+        "title": "@nvx-t:Diagnóstico antes de tecnología",
+        "body": "@nvx-t:Ningún tratamiento se realiza sin exploración previa. El médico evalúa calidad dérmica, anatomía, grado de flacidez o grasa y antecedentes. Si el caso requiere cirugía, se comunica con honestidad y se deriva al especialista."
       },
       {
-        "title": "@nvx-t:Transparencia transaccional",
-        "body": "@nvx-t:Rangos de inversión claros y presupuestos médicos cerrados tras la valoración, sin costes ocultos. La claridad sustituye al hermetismo tradicional del sector."
+        "title": "@nvx-t:Presupuesto cerrado y por escrito",
+        "body": "@nvx-t:El presupuesto incluye honorarios, material, revisiones protocolizadas y seguimiento postprocedimiento. Se documenta por escrito antes de cualquier decisión y no varía una vez firmado."
       },
       {
-        "title": "@nvx-t:Tecnología con evidencia",
-        "body": "@nvx-t:Solo incorporamos dispositivos con certificación CE y respaldo en estudios clínicos publicados. Nunca por tendencia de mercado."
+        "title": "@nvx-t:Equipamiento con evidencia publicada",
+        "body": "@nvx-t:Solo incorporamos dispositivos con marcado CE y respaldo en estudios clínicos. La tecnología se elige porque responde al diagnóstico, no porque sea tendencia de mercado."
       },
       {
-        "title": "@nvx-t:Seguimiento médico reglado",
-        "body": "@nvx-t:Monitorizamos la evolución y la respuesta celular a corto, medio y largo plazo. La responsabilidad clínica no termina al salir de la consulta."
+        "title": "@nvx-t:Seguimiento clínico reglado",
+        "body": "@nvx-t:Las revisiones forman parte del protocolo, no son un extra. Se programan en semanas 4 y 8 para el Endolift® y según la respuesta en los protocolos de EXION® y Láser CO₂. La responsabilidad médica no termina al salir de consulta."
       }
     ]
   },
-  "yoast_title": "@nvx-t:Sobre Nosotros | Autoridad médica y transparencia · NUVANX Madrid",
-  "yoast_desc": "@nvx-t:NUVANX Madrid: medicina estética láser con evidencia, well-aging e ingeniería tisular. Sedes Chamberí (CS20144) y Goya (CS20073). Cuadro médico colegiado y principios de transparencia."
+  "yoast_title": "@nvx-t:Sobre NUVANX | Centro Médico Estética Láser Madrid",
+  "yoast_desc": "@nvx-t:NUVANX: dos centros sanitarios en Madrid (CS20144, CS20073), tres médicos colegiados con formación hospitalaria. Endolift® desde 798 €, CO₂ desde 330 €. Sin tratar sin indicación médica."
 }

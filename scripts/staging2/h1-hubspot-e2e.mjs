@@ -67,8 +67,13 @@ try {
   const metaCount = await metaLocator.count().catch(() => 0);
   const sha = metaCount > 0 ? (await metaLocator.getAttribute('content', { timeout: 2000 }).catch(() => '')) || '' : '';
   console.log(`PRODUCTION_SHA=${sha || '(none)'}`);
+  if (!sha) {
+    throw new Error(
+      `Production deploy SHA meta tag missing or unreadable (meta[name="nvx-deploy-sha"] count=${metaCount}); expected=${expectedSha}. Likely a cached/CDN page or template not emitting the marker.`
+    );
+  }
   if (sha !== expectedSha) {
-    throw new Error(`Production SHA mismatch: current=${sha || '(none)'}, expected=${expectedSha}`);
+    throw new Error(`Production SHA mismatch: current=${sha}, expected=${expectedSha}`);
   }
 
   await page.evaluate(() => {

@@ -339,7 +339,7 @@ jobs:
       always() &&
       (github.event_name == 'push' || inputs.run_post_audits) &&
       (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
-    runs-on: [self-hosted, siteground]
+    runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
       - name: Check out canonical master audit tooling

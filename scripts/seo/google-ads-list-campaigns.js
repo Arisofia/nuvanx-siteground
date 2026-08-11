@@ -166,9 +166,13 @@ main().catch((err) => {
 
     const projected = {};
     for (const [key, value] of Object.entries(raw).slice(0, 8)) {
-      if (!/^[A-Za-z]\w{0,63}$/.test(key)) continue;
-      if (!['string', 'number', 'boolean'].includes(typeof value)) continue;
-      projected[key] = String(value).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+      if (!/^[A-Za-z][\w-]{0,63}$/.test(key)) continue;
+      if (['string', 'number', 'boolean'].includes(typeof value)) {
+        projected[key] = String(value).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+      } else {
+        // Preserve the bounded oneof key without serializing nested request/error payloads.
+        projected[key] = true;
+      }
     }
     return Object.keys(projected).length ? projected : undefined;
   };

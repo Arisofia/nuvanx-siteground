@@ -86,14 +86,23 @@ async function main() {
   let rawCustomerId = customerIdRes.value;
   let rawLoginCustomerId = loginCustomerIdRes.value;
 
-  // Auto-heal swapped client_secret vs customer_id environment variables if customer_id starts with GOCSPX-
-  if (rawCustomerId?.startsWith('GOCSPX-') && !clientSecret?.startsWith('GOCSPX-')) {
-    const tempSecret = rawCustomerId;
-    const previousCustomerSource = customerIdRes.source;
-    rawCustomerId = (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecret : (rawLoginCustomerId || '');
-    customerIdRes = { value: rawCustomerId, source: (clientSecret && !clientSecret.startsWith('GOCSPX-')) ? clientSecretRes.source : loginCustomerIdRes.source };
-    clientSecret = tempSecret;
-    clientSecretRes = { value: clientSecret, source: previousCustomerSource };
+  const looksLikeSecret = (value) => /^GOCSPX-/.test(String(value || ''));
+  const looksLikeCustomerId = (value) => {
+    const candidate = String(value || '').trim();
+    return /^\d{10}$/.test(candidate) || /^\d{3}-\d{3}-\d{4}$/.test(candidate);
+  };
+
+  // Auto-heal only a verifiable one-to-one swap. login_customer_id is manager
+  // context and must never be promoted to the target customer_id as a fallback.
+  if (looksLikeSecret(rawCustomerId) && looksLikeCustomerId(clientSecret)) {
+    const swappedSecret = rawCustomerId;
+    const swappedCustomerId = clientSecret;
+    const swappedSecretSource = customerIdRes.source;
+    const swappedCustomerSource = clientSecretRes.source;
+    rawCustomerId = swappedCustomerId;
+    customerIdRes = { value: swappedCustomerId, source: swappedCustomerSource };
+    clientSecret = swappedSecret;
+    clientSecretRes = { value: swappedSecret, source: swappedSecretSource };
   }
 
   const customerId = rawCustomerId.replace(/-/g, '');
@@ -116,6 +125,13 @@ async function main() {
     if (!customerId) missing.push('customer_id');
 
     throw new LocalConfigError('missing_credentials', `Missing required Google Ads credential parameters: ${missing.join(', ')}`);
+  }
+
+  if (!/^\d{10}$/.test(customerId)) {
+    throw new LocalConfigError('invalid_customer_id', 'Google Ads customer_id must be exactly 10 digits (UI dashes are allowed and removed before use)');
+  }
+  if (loginCustomerId && !/^\d{10}$/.test(loginCustomerId)) {
+    throw new LocalConfigError('invalid_login_customer_id', 'Google Ads login_customer_id must be exactly 10 digits when provided (UI dashes are allowed and removed before use)');
   }
 
   const GoogleAds = new GoogleAdsApi({
@@ -149,28 +165,45 @@ async function main() {
 main().catch((err) => {
   const classifyMessage = (msg) => {
     const value = String(msg || '').toLowerCase();
-    if (/invalid[_ -]?grant/.test(value)) return 'invalid_grant';
-    if (/invalid[_ -]?client/.test(value)) return 'invalid_client';
-    if (/developer[_ -]?token/.test(value)) return 'developer_token_error';
-    if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/.test(value)) return 'quota_or_rate_limit';
-    if (/permission[_ -]?denied/.test(value)) return 'permission_denied';
-    if (/unauthenticated|authentication/.test(value)) return 'authentication_error';
-    return 'google_ads_api_error';
+    const labels = [];
+    if (/invalid[_ -]?grant/.test(value)) labels.push('invalid_grant');
+    if (/invalid[_ -]?client/.test(value)) labels.push('invalid_client');
+    if (/developer[_ -]?token/.test(value)) labels.push('developer_token_error');
+    if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/.test(value)) labels.push('quota_or_rate_limit');
+    if (/permission[_ -]?denied/.test(value)) labels.push('permission_denied');
+    if (/unauthenticated|authentication/.test(value)) labels.push('authentication_error');
+    return labels.length ? labels.join('+') : 'google_ads_api_error';
   };
+
+  const sanitizeScalar = (raw) => String(raw).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
 
   const projectErrorCode = (raw) => {
     if (raw === undefined || raw === null) return undefined;
     if (typeof raw !== 'object' || Array.isArray(raw)) {
-      return String(raw).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+      const scalar = sanitizeScalar(raw);
+      return scalar === '' ? undefined : scalar;
     }
 
     const projected = {};
     for (const [key, value] of Object.entries(raw).slice(0, 8)) {
       if (!/^[A-Za-z][\w-]{0,63}$/.test(key)) continue;
       if (['string', 'number', 'boolean'].includes(typeof value)) {
-        projected[key] = String(value).replace(/[^A-Za-z0-9_.:-]/g, '_').slice(0, 120);
+        const scalar = sanitizeScalar(value);
+        if (scalar !== '') projected[key] = scalar;
+      } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Project one additional level of primitive enum-like leaves only; never
+        // serialize arbitrary nested request metadata into CI logs.
+        const nested = {};
+        for (const [nestedKey, nestedValue] of Object.entries(value).slice(0, 8)) {
+          if (!/^[A-Za-z][\w-]{0,63}$/.test(nestedKey)) continue;
+          if (['string', 'number', 'boolean'].includes(typeof nestedValue)) {
+            const scalar = sanitizeScalar(nestedValue);
+            if (scalar !== '') nested[nestedKey] = scalar;
+          }
+        }
+        projected[key] = Object.keys(nested).length ? nested : true;
       } else {
-        // Preserve the bounded oneof key without serializing nested request/error payloads.
+        // Retain only the bounded oneof key when no safe primitive leaf exists.
         projected[key] = true;
       }
     }
@@ -199,9 +232,13 @@ main().catch((err) => {
     process.exit(1);
   }
 
-  const topLevelClass = classifyMessage(err?.message || err);
+  const isApiError = Array.isArray(err?.errors);
+  const runtimeClass = String(err?.constructor?.name || 'runtime_error')
+    .replace(/[^A-Za-z0-9_.:-]/g, '_')
+    .slice(0, 64) || 'runtime_error';
+  const topLevelClass = isApiError ? classifyMessage(err?.message || err) : runtimeClass;
   console.error('Error listing campaigns:', topLevelClass);
-  if (Array.isArray(err?.errors)) {
+  if (isApiError) {
     const projectedErrors = err.errors.map((e) => projectError(e));
     console.error('Details:', JSON.stringify(projectedErrors, null, 2));
   }

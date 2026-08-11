@@ -1,6 +1,48 @@
 const { GoogleAdsApi, errors } = require('google-ads-api');
 const fs = require('fs');
 
+const MAX_PROJECTED_ERRORS = 20;
+const SAFE_ERROR_FAMILIES = new Set([
+  'authentication_error',
+  'authenticationError',
+  'authorization_error',
+  'authorizationError',
+  'query_error',
+  'queryError',
+  'quota_error',
+  'quotaError',
+  'request_error',
+  'requestError',
+  'resource_access_denied_error',
+  'resourceAccessDeniedError',
+]);
+const SAFE_ERROR_ENUMS = new Set([
+  'UNSPECIFIED',
+  'UNKNOWN',
+  'AUTHENTICATION_ERROR',
+  'CLIENT_CUSTOMER_ID_INVALID',
+  'CUSTOMER_NOT_FOUND',
+  'NOT_ADS_USER',
+  'OAUTH_TOKEN_INVALID',
+  'ORGANIZATION_NOT_RECOGNIZED',
+  'USER_PERMISSION_DENIED',
+  'PROJECT_DISABLED',
+  'CUSTOMER_NOT_ENABLED',
+  'MISSING_TOS',
+  'DEVELOPER_TOKEN_NOT_APPROVED',
+  'DEVELOPER_TOKEN_PROHIBITED',
+  'RESOURCE_EXHAUSTED',
+  'RESOURCE_TEMPORARILY_EXHAUSTED',
+  'BAD_RESOURCE_ID',
+  'INVALID_CUSTOMER_ID',
+  'INVALID_QUERY',
+  'MALFORMED_QUERY',
+  'PROHIBITED_FIELD_COMBINATION',
+  'REQUEST_ERROR',
+  'QUOTA_ERROR',
+]);
+const SAFE_RUNTIME_CODES = new Set(['ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ECONNREFUSED']);
+
 class LocalConfigError extends Error {
   constructor(code, message) {
     super(message);
@@ -10,14 +52,13 @@ class LocalConfigError extends Error {
 }
 
 function parseJsonFile(filePath) {
-  if (fs.existsSync(filePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch {
-      console.log(`Credentials file ${filePath} is not valid JSON`);
-    }
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    console.log(`Credentials file ${filePath} is not valid JSON`);
+    return null;
   }
-  return null;
 }
 
 function loadJsonCredentials() {
@@ -57,6 +98,86 @@ function pickWithValueAndSource(envCandidates, jsonCandidates, isOptional = fals
   return { value: '', source: isOptional ? 'OPTIONAL_MISSING' : 'MISSING' };
 }
 
+function classifyMessage(message) {
+  const value = String(message || '').toLowerCase();
+  const labels = [];
+  if (/invalid[_ -]?grant/.test(value)) labels.push('invalid_grant');
+  if (/invalid[_ -]?client/.test(value)) labels.push('invalid_client');
+  if (/developer[_ -]?token/.test(value)) labels.push('developer_token_error');
+  if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/.test(value)) labels.push('quota_or_rate_limit');
+  if (/permission[_ -]?denied/.test(value)) labels.push('permission_denied');
+  if (/unauthenticated|authentication/.test(value)) labels.push('authentication_error');
+  return labels.length ? labels.join('+') : 'google_ads_api_error';
+}
+
+function safeEnum(value) {
+  if (!['string', 'number'].includes(typeof value)) return undefined;
+  const normalized = String(value);
+  return SAFE_ERROR_ENUMS.has(normalized) ? normalized : undefined;
+}
+
+function projectNestedEnums(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const nested = Object.create(null);
+  for (const [key, nestedValue] of Object.entries(value).slice(0, 8)) {
+    if (!/^[A-Za-z]\w{0,63}$/.test(key)) continue;
+    const enumValue = safeEnum(nestedValue);
+    if (enumValue !== undefined) nested[key] = enumValue;
+  }
+  return Object.keys(nested).length ? nested : null;
+}
+
+function projectErrorFamilyValue(value) {
+  const direct = safeEnum(value);
+  if (direct !== undefined) return direct;
+  return projectNestedEnums(value) || true;
+}
+
+function projectErrorCode(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const projected = Object.create(null);
+  for (const [key, value] of Object.entries(raw).slice(0, 8)) {
+    if (!SAFE_ERROR_FAMILIES.has(key)) continue;
+    projected[key] = projectErrorFamilyValue(value);
+  }
+  return Object.keys(projected).length ? projected : undefined;
+}
+
+function projectError(error) {
+  if (!error || typeof error !== 'object') {
+    return { message_class: classifyMessage(error) };
+  }
+
+  const projected = { message_class: classifyMessage(error.message) };
+  const snakeCode = projectErrorCode(error.error_code);
+  const camelCode = projectErrorCode(error.errorCode);
+  if (snakeCode !== undefined) projected.error_code = snakeCode;
+  if (camelCode !== undefined) projected.errorCode = camelCode;
+  return projected;
+}
+
+function googleAdsFailureClass(projectedErrors) {
+  const classes = [...new Set(projectedErrors.map((entry) => entry.message_class).filter(Boolean))];
+  return classes.length ? classes.join('+') : 'google_ads_api_error';
+}
+
+function reportGoogleAdsFailure(error) {
+  const projectedErrors = (Array.isArray(error.errors) ? error.errors : [])
+    .slice(0, MAX_PROJECTED_ERRORS)
+    .map(projectError);
+  const failureClass = googleAdsFailureClass(projectedErrors);
+  console.error('Error listing campaigns:', failureClass);
+  if (projectedErrors.length) console.error('Details:', JSON.stringify(projectedErrors, null, 2));
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', failureClass);
+}
+
+function runtimeDiagnostic(error) {
+  const rawClass = String(error?.constructor?.name || '');
+  const runtimeClass = /^[A-Za-z][\w$]{0,63}$/.test(rawClass) ? rawClass : 'runtime_error';
+  const rawCode = typeof error?.code === 'string' ? error.code : '';
+  return SAFE_RUNTIME_CODES.has(rawCode) ? `${runtimeClass}:${rawCode}` : runtimeClass;
+}
+
 async function main() {
   const json = loadJsonCredentials();
   if (!json || typeof json !== 'object' || Array.isArray(json)) {
@@ -83,7 +204,7 @@ async function main() {
   let rawCustomerId = customerIdRes.value;
   const rawLoginCustomerId = loginCustomerIdRes.value;
 
-  const looksLikeSecret = (value) => /^GOCSPX-/.test(String(value || ''));
+  const looksLikeSecret = (value) => String(value || '').startsWith('GOCSPX-');
   const looksLikeCustomerId = (value) => {
     const candidate = String(value || '').trim();
     return /^\d{10}$/.test(candidate) || /^\d{3}-\d{3}-\d{4}$/.test(candidate);
@@ -156,137 +277,25 @@ async function main() {
   `);
 
   console.log('Campaigns found:', campaigns.length);
-  campaigns.forEach((c) => console.log('-', c.campaign.id, c.campaign.name, c.campaign.status));
+  campaigns.forEach((campaign) => console.log('-', campaign.campaign.id, campaign.campaign.name, campaign.campaign.status));
   console.log('SUCCESS: Google Ads credentials are valid for read-only access');
 }
 
-main().catch((err) => {
-  const MAX_PROJECTED_ERRORS = 20;
-  const SAFE_ERROR_FAMILIES = new Set([
-    'authentication_error',
-    'authenticationError',
-    'authorization_error',
-    'authorizationError',
-    'query_error',
-    'queryError',
-    'quota_error',
-    'quotaError',
-    'request_error',
-    'requestError',
-    'resource_access_denied_error',
-    'resourceAccessDeniedError',
-  ]);
-  const SAFE_ERROR_ENUMS = new Set([
-    'UNSPECIFIED',
-    'UNKNOWN',
-    'AUTHENTICATION_ERROR',
-    'CLIENT_CUSTOMER_ID_INVALID',
-    'CUSTOMER_NOT_FOUND',
-    'NOT_ADS_USER',
-    'OAUTH_TOKEN_INVALID',
-    'ORGANIZATION_NOT_RECOGNIZED',
-    'USER_PERMISSION_DENIED',
-    'PROJECT_DISABLED',
-    'CUSTOMER_NOT_ENABLED',
-    'MISSING_TOS',
-    'DEVELOPER_TOKEN_NOT_APPROVED',
-    'DEVELOPER_TOKEN_PROHIBITED',
-    'RESOURCE_EXHAUSTED',
-    'RESOURCE_TEMPORARILY_EXHAUSTED',
-    'BAD_RESOURCE_ID',
-    'INVALID_CUSTOMER_ID',
-    'INVALID_QUERY',
-    'MALFORMED_QUERY',
-    'PROHIBITED_FIELD_COMBINATION',
-    'REQUEST_ERROR',
-    'QUOTA_ERROR',
-  ]);
-
-  const classifyMessage = (msg) => {
-    const value = String(msg || '').toLowerCase();
-    const labels = [];
-    if (/invalid[_ -]?grant/.test(value)) labels.push('invalid_grant');
-    if (/invalid[_ -]?client/.test(value)) labels.push('invalid_client');
-    if (/developer[_ -]?token/.test(value)) labels.push('developer_token_error');
-    if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/.test(value)) labels.push('quota_or_rate_limit');
-    if (/permission[_ -]?denied/.test(value)) labels.push('permission_denied');
-    if (/unauthenticated|authentication/.test(value)) labels.push('authentication_error');
-    return labels.length ? labels.join('+') : 'google_ads_api_error';
-  };
-
-  const safeEnum = (value) => {
-    if (!['string', 'number'].includes(typeof value)) return undefined;
-    const normalized = String(value);
-    return SAFE_ERROR_ENUMS.has(normalized) ? normalized : undefined;
-  };
-
-  const projectErrorCode = (raw) => {
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
-    const projected = Object.create(null);
-    for (const [key, value] of Object.entries(raw).slice(0, 8)) {
-      if (!SAFE_ERROR_FAMILIES.has(key)) continue;
-      const direct = safeEnum(value);
-      if (direct !== undefined) {
-        projected[key] = direct;
-        continue;
-      }
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        const nested = Object.create(null);
-        for (const [nestedKey, nestedValue] of Object.entries(value).slice(0, 8)) {
-          if (!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(nestedKey)) continue;
-          const nestedEnum = safeEnum(nestedValue);
-          if (nestedEnum !== undefined) nested[nestedKey] = nestedEnum;
-        }
-        // Keep only the allow-listed family if an unknown nested enum is seen;
-        // never copy arbitrary external scalar data into CI logs.
-        projected[key] = Object.keys(nested).length ? nested : true;
-      } else {
-        projected[key] = true;
-      }
-    }
-    return Object.keys(projected).length ? projected : undefined;
-  };
-
-  const projectError = (e) => {
-    const projected = {};
-    if (e && typeof e === 'object') {
-      const errorCode = projectErrorCode(e.error_code);
-      const camelCode = projectErrorCode(e.errorCode);
-      if (errorCode !== undefined) projected.error_code = errorCode;
-      if (camelCode !== undefined) projected.errorCode = camelCode;
-      projected.message_class = classifyMessage(e.message);
-      return projected;
-    }
-    return { message_class: classifyMessage(e) };
-  };
-
-  if (err instanceof LocalConfigError) {
-    console.error('Google Ads configuration error:', err.message);
-    console.log('GOOGLE_ADS_READ_ONLY=FAIL', err.code);
+main().catch((error) => {
+  if (error instanceof LocalConfigError) {
+    console.error('Google Ads configuration error:', error.message);
+    console.log('GOOGLE_ADS_READ_ONLY=FAIL', error.code);
     process.exit(1);
   }
 
-  const isGoogleAdsFailure = Boolean(errors && errors.GoogleAdsFailure && err instanceof errors.GoogleAdsFailure);
-  const apiErrors = isGoogleAdsFailure && Array.isArray(err.errors)
-    ? err.errors.slice(0, MAX_PROJECTED_ERRORS)
-    : [];
-
+  const isGoogleAdsFailure = Boolean(errors?.GoogleAdsFailure && error instanceof errors.GoogleAdsFailure);
   if (isGoogleAdsFailure) {
-    const projectedErrors = apiErrors.map((entry) => projectError(entry));
-    const classes = [...new Set(projectedErrors.map((entry) => entry.message_class).filter(Boolean))];
-    const topLevelClass = classes.length ? classes.join('+') : 'google_ads_api_error';
-    console.error('Error listing campaigns:', topLevelClass);
-    if (projectedErrors.length) console.error('Details:', JSON.stringify(projectedErrors, null, 2));
-    console.log('GOOGLE_ADS_READ_ONLY=FAIL', topLevelClass);
+    reportGoogleAdsFailure(error);
     process.exit(1);
   }
 
-  const rawRuntimeClass = String(err?.constructor?.name || '');
-  const runtimeClass = /^[A-Za-z][A-Za-z0-9_$]{0,63}$/.test(rawRuntimeClass) ? rawRuntimeClass : 'runtime_error';
-  const safeRuntimeCodes = new Set(['ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ECONNREFUSED']);
-  const rawRuntimeCode = typeof err?.code === 'string' ? err.code : '';
-  const runtimeDiagnostic = safeRuntimeCodes.has(rawRuntimeCode) ? `${runtimeClass}:${rawRuntimeCode}` : runtimeClass;
-  console.error('Error listing campaigns:', runtimeDiagnostic);
-  console.log('GOOGLE_ADS_READ_ONLY=FAIL', runtimeDiagnostic);
+  const diagnostic = runtimeDiagnostic(error);
+  console.error('Error listing campaigns:', diagnostic);
+  console.log('GOOGLE_ADS_READ_ONLY=FAIL', diagnostic);
   process.exit(1);
 });

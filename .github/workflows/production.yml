@@ -54,7 +54,7 @@ jobs:
   release:
     name: Promote exact accepted Staging2 SHA
     if: ${{ github.event_name == 'push' || inputs.deploy }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, siteground]
     timeout-minutes: 45
     outputs:
       candidate_sha: ${{ steps.candidate.outputs.sha }}
@@ -339,7 +339,7 @@ jobs:
       always() &&
       (github.event_name == 'push' || inputs.run_post_audits) &&
       (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, siteground]
     timeout-minutes: 35
     steps:
       - name: Check out canonical master audit tooling

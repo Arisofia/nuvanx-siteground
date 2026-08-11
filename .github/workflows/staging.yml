@@ -223,10 +223,12 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           connected=0
           for attempt in 1 2 3 4 5; do
-            if ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then connected=1; break; fi
-            [[ "$attempt" -eq 5 ]] || sleep $((attempt * 10))
+            if ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
+              connected=1; break
+            fi
+            [[ "$attempt" -eq 5 ]] || { echo "Staging SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
           done
-          test "$connected" = 1
+          test "$connected" = 1 || { echo 'STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround after 5 attempts.' >&2; exit 255; }
           echo 'STAGING_SSH=PASS'
 
       - name: Verify environment isolation and normalize runtime
@@ -532,11 +534,20 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 60
-            ConnectionAttempts 5
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging2-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"
+          pr_connected=0
+          for attempt in 1 2 3 4 5; do
+            if ssh -n nvx-staging2-pr "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null"; then
+              pr_connected=1; break
+            fi
+            [[ "$attempt" -eq 5 ]] || { echo "Staging PR SSH attempt $attempt/5 failed; retrying in $((attempt * 15))s..."; sleep $((attempt * 15)); }
+          done
+          test "$pr_connected" = 1 || { echo 'STAGING_PR_SSH=FAIL_TRANSPORT: could not reach SiteGround after 5 attempts.' >&2; exit 255; }
 
       - name: Snapshot and deploy PR candidate with trusted tooling
         shell: bash

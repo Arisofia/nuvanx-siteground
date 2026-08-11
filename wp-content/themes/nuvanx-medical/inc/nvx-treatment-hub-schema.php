@@ -59,12 +59,13 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 
 		if ( ! empty( $definition['additionalFields'] ) && is_array( $definition['additionalFields'] ) ) {
 			foreach ( $definition['additionalFields'] as $extra_key => $extra_val ) {
-				if ( 'provider' === $extra_key ) {
+				if ( in_array( $extra_key, array( 'provider', 'availableService', 'priceRange' ), true ) ) {
 					continue;
 				}
 				$item[ $extra_key ] = $extra_val;
 			}
 		}
+
 		$items[] = array(
 
 			'@type'    => 'ListItem',

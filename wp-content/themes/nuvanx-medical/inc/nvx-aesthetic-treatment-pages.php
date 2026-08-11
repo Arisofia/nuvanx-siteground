@@ -15,11 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Canonical catalogue for facial injectable/regenerative treatment pages.
  *
- * No prices, fixed session counts or guaranteed durations are published here.
- * Every entry is explicitly pending medical sign-off before production release.
+ * Orientative reference tariffs, session counts, durations and clinical parameters
+ * are published here, subject to individual medical assessment in consultation.
  *
  * @return array<string, array<string, mixed>>
  */
+
 function nvx_aesthetic_treatment_catalog(): array {
 	static $catalog = null;
 

@@ -35,8 +35,6 @@ const shortContentRoutes = new Set([
 // Every published WordPress page must remain addressable with HTTP 200.
 // Editorial readiness is governed by robots/sitemap policy, not by turning
 // published CMS records into frontend 404 responses.
-const expectedStatusByRoute = new Map();
-
 const normalizePath = (value) => {
   const url = new URL(value, `${baseUrl}/`);
   let pathname = url.pathname || '/';
@@ -283,37 +281,96 @@ async function activateLazyImages(page) {
   await page.waitForTimeout(100);
 }
 
+function rectData(el) {
+  const r = el?.getBoundingClientRect();
+  return r ? { width: Math.round(r.width), height: Math.round(r.height), left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom) } : null;
+}
+
+function isVisible(el) {
+  if (!el) return false;
+  const style = getComputedStyle(el);
+  const rect = el.getBoundingClientRect();
+  return style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0.01 && rect.width > 1 && rect.height > 1;
+}
+
+function collectOverflowCulprits(vw, visible) {
+  const doc = document.documentElement;
+  const body = document.body;
+  const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
+  const culprits = [];
+  
+  if (overflowAmount > 2) {
+    for (const el of document.querySelectorAll('body *')) {
+      if (!visible(el)) continue;
+      const r = el.getBoundingClientRect();
+      if (r.right > vw + 2 || r.left < -2 || r.width > vw + 2) {
+        culprits.push({
+          tag: el.tagName,
+          id: el.id || '',
+          className: typeof el.className === 'string' ? el.className.slice(0, 180) : '',
+          left: Math.round(r.left),
+          right: Math.round(r.right),
+          width: Math.round(r.width),
+        });
+        if (culprits.length >= 12) break;
+      }
+    }
+  }
+  
+  return culprits;
+}
+
+function collectImageIssues(visible) {
+  const brokenImages = Array.from(document.images)
+    .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.src))
+    .slice(0, 12)
+    .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)');
+
+  const unresolvedLazyImages = Array.from(document.images)
+    .filter((img) => {
+      if (!visible(img) || img.naturalWidth > 0 || img.currentSrc) return false;
+      return Boolean(
+        img.dataset.src ||
+        img.dataset.lazySrc ||
+        img.dataset.original ||
+        img.dataset.srcset
+      );
+    })
+    .slice(0, 12)
+    .map((img) =>
+      img.dataset.src ||
+      img.dataset.lazySrc ||
+      img.dataset.original ||
+      img.dataset.srcset ||
+      img.alt ||
+      '(unknown lazy image)'
+    );
+    
+  return { brokenImages, unresolvedLazyImages };
+}
+
+function collectCtaIssues(visible) {
+  const visibleCtas = Array.from(
+    document.querySelectorAll('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]')
+  ).filter(visible);
+
+  const invalidCtas = visibleCtas
+    .filter((el) => {
+      if (el.tagName === 'BUTTON') return false;
+      const href = (el.href || '').trim();
+      return !href || href === '#';
+    })
+    .slice(0, 10)
+    .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120));
+
+  return invalidCtas;
+}
+
 async function collectGeometry(page) {
   return page.evaluate(() => {
     const vw = window.innerWidth;
     const doc = document.documentElement;
     const body = document.body;
-    const visible = (el) => {
-      if (!el) return false;
-      const style = getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      return style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0.01 && rect.width > 1 && rect.height > 1;
-    };
-
-    const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
-    const culprits = [];
-    if (overflowAmount > 2) {
-      for (const el of document.querySelectorAll('body *')) {
-        if (!visible(el)) continue;
-        const r = el.getBoundingClientRect();
-        if (r.right > vw + 2 || r.left < -2 || r.width > vw + 2) {
-          culprits.push({
-            tag: el.tagName,
-            id: el.id || '',
-            className: typeof el.className === 'string' ? el.className.slice(0, 180) : '',
-            left: Math.round(r.left),
-            right: Math.round(r.right),
-            width: Math.round(r.width),
-          });
-          if (culprits.length >= 12) break;
-        }
-      }
-    }
 
     const header = document.querySelector('header, .nvx-site-header, .nvx-header');
     const footer = document.querySelector('footer, .nvx-site-footer, .nvx-footer');
@@ -322,11 +379,10 @@ async function collectGeometry(page) {
     const nav = document.querySelector('header nav, .nvx-site-header nav, .nvx-header nav, .nvx-primary-nav');
     const video = document.querySelector('.nvx-home-hero video, video');
     const navToggleSelector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
-    const navToggleVisible = Array.from(document.querySelectorAll(navToggleSelector)).some(visible);
+    const navToggleVisible = Array.from(document.querySelectorAll(navToggleSelector)).some(isVisible);
 
-    const h1s = Array.from(document.querySelectorAll('h1')).filter(visible);
+    const h1s = Array.from(document.querySelectorAll('h1')).filter(isVisible);
     const h1 = h1s[0] || null;
-    const h1Rect = h1?.getBoundingClientRect() || null;
     const h1Style = h1 ? getComputedStyle(h1) : null;
     const h1Clipped = Boolean(
       h1 &&
@@ -336,50 +392,16 @@ async function collectGeometry(page) {
 
     const visibleCtas = Array.from(
       document.querySelectorAll('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]')
-    ).filter(visible);
+    ).filter(isVisible);
 
-    const invalidCtas = visibleCtas
-      .filter((el) => {
-        if (el.tagName === 'BUTTON') return false;
-        const href = (el.getAttribute('href') || '').trim();
-        return !href || href === '#';
-      })
-      .slice(0, 10)
-      .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120));
-
-    const brokenImages = Array.from(document.images)
-      .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.getAttribute('src')))
-      .slice(0, 12)
-      .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)');
-
-    const unresolvedLazyImages = Array.from(document.images)
-      .filter((img) => {
-        if (!visible(img) || img.naturalWidth > 0 || img.currentSrc) return false;
-        return Boolean(
-          img.getAttribute('data-src') ||
-          img.getAttribute('data-lazy-src') ||
-          img.getAttribute('data-original') ||
-          img.getAttribute('data-srcset')
-        );
-      })
-      .slice(0, 12)
-      .map((img) =>
-        img.getAttribute('data-src') ||
-        img.getAttribute('data-lazy-src') ||
-        img.getAttribute('data-original') ||
-        img.getAttribute('data-srcset') ||
-        img.alt ||
-        '(unknown lazy image)'
-      );
+    const invalidCtas = collectCtaIssues(isVisible);
+    const { brokenImages, unresolvedLazyImages } = collectImageIssues(isVisible);
+    const culprits = collectOverflowCulprits(vw, isVisible);
+    const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
 
     const visibleSections = main
-      ? Array.from(main.querySelectorAll('section, article')).filter(visible)
+      ? Array.from(main.querySelectorAll('section, article')).filter(isVisible)
       : [];
-
-    const rectData = (el) => {
-      const r = el?.getBoundingClientRect();
-      return r ? { width: Math.round(r.width), height: Math.round(r.height), left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom) } : null;
-    };
 
     const mainText = (main?.innerText || '').replace(/\s+/g, ' ').trim();
     const bodyStyle = getComputedStyle(document.body);
@@ -394,17 +416,17 @@ async function collectGeometry(page) {
       documentScrollWidth: Math.max(doc.scrollWidth, body?.scrollWidth || 0),
       horizontalOverflowPx: Math.max(0, Math.round(overflowAmount)),
       overflowCulprits: culprits,
-      headerVisible: visible(header),
+      headerVisible: isVisible(header),
       headerRect: rectData(header),
-      footerVisible: visible(footer),
+      footerVisible: isVisible(footer),
       footerRect: rectData(footer),
-      mainVisible: visible(main),
+      mainVisible: isVisible(main),
       mainTextLength: mainText.length,
       visibleH1Count: h1s.length,
       h1Text: (h1?.textContent || '').replace(/\s+/g, ' ').trim(),
       h1Rect: rectData(h1),
       h1Clipped,
-      heroVisible: visible(hero),
+      heroVisible: isVisible(hero),
       heroRect: rectData(hero),
       visibleCtaCount: visibleCtas.length,
       invalidCtas,
@@ -415,9 +437,20 @@ async function collectGeometry(page) {
       bodyFontSize: bodyStyle.fontSize || '',
       runtimeDiagnostics,
       visibleSectionCount: visibleSections.length,
-      navVisible: visible(nav),
+      navVisible: isVisible(nav),
       navToggleVisible,
-      videoVisible: visible(video),
+      videoVisible: isVisible(video),
+      videoRect: rectData(video),
+    };
+  });
+}
+      bodyFontFamily: bodyStyle.fontFamily || '',
+      bodyFontSize: bodyStyle.fontSize || '',
+      runtimeDiagnostics,
+      visibleSectionCount: visibleSections.length,
+      navVisible: isVisible(nav),
+      navToggleVisible,
+      videoVisible: isVisible(video),
       videoRect: rectData(video),
     };
   });
@@ -452,7 +485,7 @@ async function testResponsiveMenu(page, viewport, geometry, issues) {
     const beforeVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
     await toggle.click({ timeout: 2500 });
     await page.waitForTimeout(220);
-    const afterExpanded = await toggle.getAttribute('aria-expanded');
+    const afterExpanded = await toggle.evaluate((el) => el.getAttribute('aria-expanded'));
     const afterVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
 
     const ariaOpened = beforeExpanded !== 'true' && afterExpanded === 'true';
@@ -495,7 +528,7 @@ for (const viewport of viewports) {
   for (let index = 0; index < publishedPages.length; index += 1) {
     const pageRecord = publishedPages[index];
     const route = pageRecord.path;
-    const expectedHttpStatus = expectedStatusByRoute.get(route) || 200;
+    const expectedHttpStatus = 200;
     const url = `${baseUrl}${route}`;
     const page = await context.newPage();
     const consoleErrors = [];

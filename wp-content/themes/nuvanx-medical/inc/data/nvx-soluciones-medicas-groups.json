@@ -6,15 +6,13 @@
     "title": "Rostro y cuello: definición, soporte y calidad cutánea",
     "intro": "La misma preocupación visible puede proceder de grasa, laxitud, pérdida de soporte, pigmentación o una combinación. La exploración determina qué componente debe tratarse y cuál no. Rangos orientativos: Endolift® facial desde 798 €; ácido hialurónico desde 290 €; bioestimuladores desde 248 €.",
     "surface": "light",
-    "brands": ["Juvederm", "Restylane", "Radiesse", "Sculptra", "Belotero"],
     "solutions": [
       {
         "protocol": "Profile Definition™",
         "title": "Papada y línea mandibular",
         "question": "Grasa localizada, laxitud, soporte del mentón y continuidad entre rostro y cuello.",
         "limit": "Un exceso importante de piel o una alteración estructural puede requerir una alternativa quirúrgica.",
-        "path": "/papada-definicion-mandibular-madrid/",
-        "price_range": "Desde 798 € (según zona y valoración)"
+        "path": "/papada-definicion-mandibular-madrid/"
       },
 
       {
@@ -22,16 +20,14 @@
         "title": "Región periocular y mirada",
         "question": "Surco, pigmentación, vascularización, calidad de piel, laxitud y bolsas reales o aparentes.",
         "limit": "Las bolsas grasas verdaderas o las alteraciones funcionales requieren valoración específica.",
-        "path": "/ojeras-surco-lagrimal-madrid/",
-        "price_range": "Tras valoración médica personalizada"
+        "path": "/ojeras-surco-lagrimal-madrid/"
       },
       {
         "protocol": "Skin Architecture™",
         "title": "Firmeza y densidad facial",
         "question": "Calidad dérmica, pérdida de firmeza, textura, poros y luminosidad.",
         "limit": "La modalidad depende del fototipo, la profundidad del problema y el tiempo de recuperación disponible.",
-        "path": "/calidad-piel-firmeza-luminosidad-madrid/",
-        "price_range": "Desde 490 € (bioestimuladores)"
+        "path": "/calidad-piel-firmeza-luminosidad-madrid/"
       }
     ]
   },
@@ -42,31 +38,27 @@
     "title": "Textura, cicatrices, manchas y rojeces",
     "intro": "Las alteraciones de superficie requieren diagnóstico diferencial. El fototipo, la profundidad, la inflamación y el riesgo de pigmentación condicionan la energía y la secuencia de tratamiento. Rangos orientativos: Láser CO₂ 300 € – 600 €/sesión; IPL 250 € – 450 €/sesión.",
     "surface": "soft",
-    "brands": ["SkinCeuticals", "Biologique Recherche", "La Roche-Posay"],
     "solutions": [
       {
         "protocol": "Surface Renewal™",
         "title": "Cicatrices de acné, poros y textura",
         "question": "Tipo y profundidad de cicatriz, irregularidad de superficie, poros y calidad dérmica.",
         "limit": "Las cicatrices profundas o mixtas pueden requerir varias técnicas y fases.",
-        "path": "/cicatrices-acne-poros-textura-madrid/",
-        "price_range": "300 € – 600 €/sesión (CO₂)"
+        "path": "/cicatrices-acne-poros-textura-madrid/"
       },
       {
         "protocol": "Tone Correction™",
         "title": "Manchas, rojeces y fotodaño",
         "question": "Léntigos, eritema, telangiectasias, melasma y pigmentación postinflamatoria.",
         "limit": "Las lesiones pigmentadas sospechosas deben evaluarse antes de aplicar luz o láser.",
-        "path": "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/",
-        "price_range": "250 € – 450 €/sesión (IPL)"
+        "path": "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/"
       },
       {
         "protocol": "Láser CO₂ fraccionado",
         "title": "Renovación cutánea con láser CO₂",
         "question": "Textura, arrugas finas, cicatrices y alteraciones seleccionadas de superficie.",
         "limit": "La intensidad y la recuperación se individualizan según la indicación y el fototipo.",
-        "path": "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/",
-        "price_range": "300 € – 600 €/sesión"
+        "path": "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/"
       }
     ]
   },
@@ -77,47 +69,41 @@
     "title": "Contorno corporal: grasa localizada, laxitud y continuidad anatómica",
     "intro": "No tratamos zonas como compartimentos aislados. Analizamos la relación entre abdomen, flancos, espalda, brazos, muslos y rodillas para preservar proporción y continuidad. Rangos orientativos: Endoláser corporal 900 € – 1.800 € por zona; EXION Body 300 € – 500 €/sesión.",
     "surface": "dark",
-    "brands": ["BTL Aesthetics", "Sciton", "Lutronic"],
     "solutions": [
       {
         "protocol": "contour_architecture",
         "title": "Abdomen y flancos",
         "question": "Grasa subcutánea, laxitud, estrías, estabilidad de peso y pared abdominal.",
         "limit": "La grasa visceral, una diástasis relevante o un exceso importante de piel no se resuelven con un tratamiento focal.",
-        "path": "/grasa-localizada-abdomen-flancos-madrid/",
-        "price_range": "1.200 € – 1.800 € (Endoláser)"
+        "path": "/grasa-localizada-abdomen-flancos-madrid/"
       },
       {
         "protocol": "contour_architecture",
         "title": "Brazos y continuidad axilar",
         "question": "Grasa localizada, laxitud posterior y relación con axila, espalda y torso.",
         "limit": "La reserva de piel condiciona cuánto puede mejorar el contorno sin cirugía.",
-        "path": "/flacidez-grasa-localizada-brazos-madrid/",
-        "price_range": "900 € – 1.300 € (Endoláser)"
+        "path": "/flacidez-grasa-localizada-brazos-madrid/"
       },
       {
         "protocol": "contour_architecture",
         "title": "Espalda y zona del sujetador",
         "question": "Pliegues por grasa, laxitud, presión de la prenda y continuidad con brazos y flancos.",
         "limit": "Cada zona debe tener una indicación documentada; una combinación no se prescribe por defecto.",
-        "path": "/grasa-espalda-zona-sujetador-madrid/",
-        "price_range": "900 € – 1.500 € (Endoláser)"
+        "path": "/grasa-espalda-zona-sujetador-madrid/"
       },
       {
         "protocol": "contour_architecture",
         "title": "Muslos y región subglútea",
         "question": "Laxitud, grasa localizada, celulitis estructural y continuidad del tren inferior.",
         "limit": "La grasa, la laxitud y la celulitis responden a mecanismos distintos.",
-        "path": "/flacidez-muslos-internos-subgluteo-madrid/",
-        "price_range": "1.000 € – 1.600 € (Endoláser)"
+        "path": "/flacidez-muslos-internos-subgluteo-madrid/"
       },
       {
         "protocol": "contour_architecture",
         "title": "Rodillas",
         "question": "Grasa localizada, laxitud y relación con muslo interno y pierna.",
         "limit": "La anatomía de la zona y la calidad de piel determinan la indicación.",
-        "path": "/tratamiento-rodillas-grasa-flacidez-madrid/",
-        "price_range": "900 € – 1.300 € (Endoláser)"
+        "path": "/tratamiento-rodillas-grasa-flacidez-madrid/"
       }
     ]
   },
@@ -128,31 +114,27 @@
     "title": "Contextos que requieren una lectura propia",
     "intro": "Algunos cambios no deben abordarse como una zona aislada. La historia clínica, la etapa vital, el patrón anatómico y los procedimientos previos modifican la planificación. Protocolos personalizados según década de vida: 30s (prevención), 40s (mantenimiento), 50s (restauración), 60s+ (integral).",
     "surface": "base",
-    "brands": ["Endolift", "EXION", "BTL"],
     "solutions": [
       {
         "protocol": "Post-Maternity Contour™",
         "title": "Cambios posgestacionales",
         "question": "Grasa localizada, laxitud, estrías, cicatriz de cesárea, diástasis y cambio de proporción.",
         "limit": "La diástasis, la hernia o el exceso importante de piel pueden requerir valoración especializada.",
-        "path": "/tratamiento-postparto-abdomen-contorno-corporal-madrid/",
-        "price_range": "1.200 € – 2.500 € (paquete integral)"
+        "path": "/tratamiento-postparto-abdomen-contorno-corporal-madrid/"
       },
       {
         "protocol": "Male Contour",
         "title": "Contorno masculino",
         "question": "Perfil mandibular, grasa localizada, calidad de piel y proporciones del patrón anatómico masculino.",
         "limit": "La planificación preserva la anatomía individual y no impone una forma estándar.",
-        "path": "/contorno-corporal-masculino-madrid/",
-        "price_range": "Desde 1.200 €"
+        "path": "/contorno-corporal-masculino-madrid/"
       },
       {
         "protocol": "Segunda valoración médica",
         "title": "Valoración de procedimientos previos",
         "question": "Evolución, materiales utilizados, tiempos biológicos y posibilidad real de corregir o esperar.",
         "limit": "Una segunda valoración puede concluir que lo indicado es observar, derivar o no intervenir.",
-        "path": "/madrid/valoracion/",
-        "price_range": "15–30 min (consulta presencial)"
+        "path": "/madrid/valoracion/"
       }
     ]
   }

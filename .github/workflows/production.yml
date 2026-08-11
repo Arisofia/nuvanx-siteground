@@ -238,7 +238,9 @@ jobs:
             fi
             if [[ "$manifest_candidate" != "$CANDIDATE_SHA" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest candidate=$manifest_candidate expected=$CANDIDATE_SHA" >&2; continue; fi
             if [[ "$manifest_run_id" != "$run_id" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest run_id=$manifest_run_id" >&2; continue; fi
-            if [[ ! "$manifest_run_attempt" =~ ^[0-9]+$ || "$manifest_run_attempt" -lt 1 ]]; then echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; fi
+            if [[ ! "$manifest_run_attempt" =~ ^[0-9]+$ ]]; then echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; fi
+            manifest_run_attempt=$((10#$manifest_run_attempt))
+            if (( manifest_run_attempt < 1 )); then echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; fi
             if [[ ! "$manifest_head_sha" =~ ^[0-9a-f]{40}$ ]]; then echo "Skipping artifact $artifact_id run $run_id: invalid manifest head_sha=$manifest_head_sha" >&2; continue; fi
             if [[ "$manifest_head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest head_branch=$manifest_head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
             if [[ "$manifest_workflow" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest workflow_path=$manifest_workflow expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH" >&2; continue; fi

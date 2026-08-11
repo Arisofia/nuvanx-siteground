@@ -256,6 +256,8 @@ for (const route of routes) {
     result.redirects = hops;
     result.transientRetries = transientRetries;
     result.deploySha = deploySha;
+    result.robotsMeta = robotsMeta;
+    result.xRobotsTag = xRobotsTag;
     result.robots = robotsContract(robotsMeta, xRobotsTag);
     result.robotsSource = 'edge';
 

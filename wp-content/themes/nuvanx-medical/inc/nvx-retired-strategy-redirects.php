@@ -10,30 +10,30 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
  * Redirect retired strategy slugs to their approved public clinical hubs.
  */
-function nvxRedirectRetiredStrategySlugs(): void {
-    if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-        return;
-    }
+function nvx_redirect_retired_strategy_slugs(): void {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
 
-    $uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-    $path = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
 
-    $targets = array(
-        'liposculpt-air' => '/remodelacion-corporal-laser-madrid/',
-        'v-lift-awake'   => '/papada-definicion-mandibular-madrid/',
-    );
+	$targets = array(
+		'liposculpt-air' => '/remodelacion-corporal-laser-madrid/',
+		'v-lift-awake'   => '/endolift-facial-papada-mandibula/',
+	);
 
-    if ( ! isset( $targets[ $path ] ) ) {
-        return;
-    }
+	if ( ! isset( $targets[ $path ] ) ) {
+		return;
+	}
 
-    wp_safe_redirect( home_url( $targets[ $path ] ), 301, 'NUVANX' );
-    exit;
+	wp_safe_redirect( home_url( $targets[ $path ] ), 301, 'NUVANX' );
+	exit;
 }
-add_action( 'template_redirect', 'nvxRedirectRetiredStrategySlugs', 0 );
+add_action( 'template_redirect', 'nvx_redirect_retired_strategy_slugs', 0 );

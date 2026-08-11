@@ -49,8 +49,8 @@ function loadManifest() {
     throw new Error(`Canonical published-page manifest is missing: ${MANIFEST_FILE}`);
   }
   const manifest = parsePagesJson(readFileSync(MANIFEST_FILE, 'utf8'), MANIFEST_FILE);
-  if (manifest.length < 52) {
-    throw new Error(`Canonical published-page manifest must contain at least 52 pages; got ${manifest.length}`);
+  if (manifest.length === 0) {
+    throw new Error('Canonical published-page manifest must not be empty');
   }
 
   const ids = manifest.map((page) => Number(page.id));

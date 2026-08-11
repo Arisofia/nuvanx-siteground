@@ -85,6 +85,23 @@ const allUrls = [...pages, ...blogArticles].map((path) => new URL(path, base).hr
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 const results = [];
 
+function crossHostNavigationUrls(response, finalUrl) {
+  const urls = [finalUrl];
+  let request = response?.request();
+  while (request) {
+    urls.push(request.url());
+    request = request.redirectedFrom();
+  }
+
+  return [...new Set(urls)].filter((url) => {
+    try {
+      return new URL(url).hostname !== expectedHost;
+    } catch {
+      return true;
+    }
+  });
+}
+
 for (const url of allUrls) {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
@@ -95,9 +112,11 @@ for (const url of allUrls) {
   try {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const status = response?.status() || 0;
+    const crossHostUrls = crossHostNavigationUrls(response, page.url());
     
     const issues = [];
     if (status !== 200) issues.push(`HTTP ${status}`);
+    if (crossHostUrls.length > 0) issues.push(`Navigation left ${expectedHost}: ${crossHostUrls.join(', ')}`);
     
     // Check for basic structure
     const hasBody = await page.locator('body').count() > 0;

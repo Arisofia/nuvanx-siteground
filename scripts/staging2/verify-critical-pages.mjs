@@ -25,6 +25,23 @@ const criticalUrls = [
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 const results = [];
 
+function crossHostNavigationUrls(response, finalUrl) {
+  const urls = [finalUrl];
+  let request = response?.request();
+  while (request) {
+    urls.push(request.url());
+    request = request.redirectedFrom();
+  }
+
+  return [...new Set(urls)].filter((url) => {
+    try {
+      return new URL(url).hostname !== expectedHost;
+    } catch {
+      return true;
+    }
+  });
+}
+
 for (const path of criticalUrls) {
   const url = new URL(path, base).href;
   const context = await browser.newContext({
@@ -36,6 +53,7 @@ for (const path of criticalUrls) {
   try {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const status = response?.status() || 0;
+    const crossHostUrls = crossHostNavigationUrls(response, page.url());
     
     // Check for critical elements
     const hasHeader = await page.locator('header, .nvx-header, .nvx-site-header').count() > 0;
@@ -44,6 +62,7 @@ for (const path of criticalUrls) {
     
     const issues = [];
     if (status !== 200) issues.push(`HTTP ${status}`);
+    if (crossHostUrls.length > 0) issues.push(`Navigation left ${expectedHost}: ${crossHostUrls.join(', ')}`);
     if (!hasHeader) issues.push('Missing header');
     if (!hasContent) issues.push('Missing content area');
     if (!hasFooter) issues.push('Missing footer');

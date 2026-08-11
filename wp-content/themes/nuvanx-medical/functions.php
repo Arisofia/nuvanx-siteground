@@ -294,6 +294,5 @@ require_once get_template_directory() . '/inc/nvx-valoracion-managed-page.php';
 require_once get_template_directory() . '/inc/nvx-laser-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
-require_once get_template_directory() . '/inc/nvx-clinics-hub-navigation.php';
 require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';

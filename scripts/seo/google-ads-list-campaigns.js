@@ -288,7 +288,10 @@ main().catch((error) => {
     process.exit(1);
   }
 
-  const isGoogleAdsFailure = Boolean(errors?.GoogleAdsFailure && error instanceof errors.GoogleAdsFailure);
+  const isGoogleAdsFailure = Boolean(
+    (errors?.GoogleAdsFailure && error instanceof errors.GoogleAdsFailure) ||
+    Array.isArray(error?.errors)
+  );
   if (isGoogleAdsFailure) {
     reportGoogleAdsFailure(error);
     process.exit(1);

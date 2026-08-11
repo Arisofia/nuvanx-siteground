@@ -300,11 +300,39 @@
 
     let promise = null;
 
+    function safeErrorName(error) {
+      return error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+    }
+
     function reportHubSpotError(scope, error, hookName) {
       if (config.debug !== true || !window.console || typeof window.console.warn !== 'function') return;
-      const errorName = error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+      const errorName = safeErrorName(error);
       if (hookName) window.console.warn('NUVANX ' + scope, hookName, errorName);
       else window.console.warn('NUVANX ' + scope, errorName);
+    }
+
+    function dispatchRuntimeError(eventName, detail) {
+      try {
+        document.dispatchEvent(new CustomEvent(eventName, { detail: detail }));
+      } catch (error) {
+        reportHubSpotError('monitoring event failed', error, eventName);
+      }
+    }
+
+    function reportAttributionHookError(error, hookName) {
+      reportHubSpotError('attribution hook failed', error, hookName);
+      dispatchRuntimeError('nvx:attribution-hook-error', {
+        hook: hookName,
+        error_name: safeErrorName(error)
+      });
+    }
+
+    function reportHubSpotInitError(error, formId) {
+      reportHubSpotError('HubSpot form initialization failed', error);
+      dispatchRuntimeError('nvx:hubspot-init-error', {
+        error_name: safeErrorName(error),
+        form_id: String(formId || '').slice(0, 64)
+      });
     }
 
     /** Invoke an optional attribution hook without allowing sync or async failures to escape into HubSpot. */
@@ -315,11 +343,11 @@
         const result = hooks[hookName](form, formId);
         if (result && typeof result.then === 'function') {
           result.catch(function (error) {
-            reportHubSpotError('attribution hook failed', error, hookName);
+            reportAttributionHookError(error, hookName);
           });
         }
       } catch (error) {
-        reportHubSpotError('attribution hook failed', error, hookName);
+        reportAttributionHookError(error, hookName);
       }
     }
 
@@ -369,7 +397,7 @@
           } catch (error) {
             delete frame.dataset.hsInitialized;
             if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
-            reportHubSpotError('HubSpot form initialization failed', error);
+            reportHubSpotInitError(error, frame.dataset.formId);
           }
         });
       }

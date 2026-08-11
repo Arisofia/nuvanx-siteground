@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param array $graph Yoast schema graph.
  * @return array
  */
-function nvxSchemaMergeCanonicalWebsiteNodes( $graph ) {
+function nvx_schema_merge_canonical_website_nodes( $graph ) {
     if ( ! is_array( $graph ) || is_admin() || is_feed() || ! is_front_page() ) {
         return $graph;
     }
@@ -57,4 +57,4 @@ function nvxSchemaMergeCanonicalWebsiteNodes( $graph ) {
 
     return array_values( $graph );
 }
-add_filter( 'wpseo_schema_graph', 'nvxSchemaMergeCanonicalWebsiteNodes', 21, 1 );
+add_filter( 'wpseo_schema_graph', 'nvx_schema_merge_canonical_website_nodes', 21, 1 );

@@ -15,6 +15,10 @@
     return normalized + '/';
   }
 
+  function safeErrorName(error) {
+    return error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
+  }
+
   function focusableElements(container) {
     if (!container) return [];
     return Array.prototype.slice.call(
@@ -299,10 +303,6 @@
     if (!hasModal && !hasPageMount) return;
 
     let promise = null;
-
-    function safeErrorName(error) {
-      return error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
-    }
 
     function reportHubSpotError(scope, error, hookName) {
       if (config.debug !== true || !window.console || typeof window.console.warn !== 'function') return;

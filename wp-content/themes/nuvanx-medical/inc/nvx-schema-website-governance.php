@@ -95,6 +95,41 @@ function nvx_schema_merge_actions( array $base, array $override ): array {
 }
 
 /**
+ * Determine whether a graph node is the canonical WebSite node.
+ *
+ * @param mixed  $node       Graph node.
+ * @param string $website_id Canonical WebSite identifier.
+ * @return bool
+ */
+function nvx_schema_is_canonical_website_node( $node, string $website_id ): bool {
+	if ( ! is_array( $node ) || ( $node['@id'] ?? '' ) !== $website_id ) {
+		return false;
+	}
+
+	$types = isset( $node['@type'] ) ? (array) $node['@type'] : array();
+	return in_array( 'WebSite', $types, true );
+}
+
+/**
+ * Merge one later WebSite contribution into the accumulated node.
+ *
+ * @param array $merged Existing canonical node.
+ * @param array $node   Later node contribution.
+ * @return array
+ */
+function nvx_schema_merge_website_node( array $merged, array $node ): array {
+	$base_actions     = isset( $merged['potentialAction'] ) && is_array( $merged['potentialAction'] ) ? $merged['potentialAction'] : array();
+	$override_actions = isset( $node['potentialAction'] ) && is_array( $node['potentialAction'] ) ? $node['potentialAction'] : array();
+	$merged           = nvx_schema_deep_merge( $merged, $node );
+
+	if ( $base_actions && $override_actions ) {
+		$merged['potentialAction'] = nvx_schema_merge_actions( $base_actions, $override_actions );
+	}
+
+	return $merged;
+}
+
+/**
  * Merge duplicate canonical WebSite nodes into their first graph position.
  *
  * @param array $graph Yoast schema graph.
@@ -110,12 +145,7 @@ function nvx_schema_merge_canonical_website_nodes( $graph ) {
 	$merged     = array();
 
 	foreach ( $graph as $key => $node ) {
-		if ( ! is_array( $node ) || ( $node['@id'] ?? '' ) !== $website_id ) {
-			continue;
-		}
-
-		$types = isset( $node['@type'] ) ? (array) $node['@type'] : array();
-		if ( ! in_array( 'WebSite', $types, true ) ) {
+		if ( ! nvx_schema_is_canonical_website_node( $node, $website_id ) ) {
 			continue;
 		}
 
@@ -125,12 +155,7 @@ function nvx_schema_merge_canonical_website_nodes( $graph ) {
 			continue;
 		}
 
-		$base_actions     = isset( $merged['potentialAction'] ) && is_array( $merged['potentialAction'] ) ? $merged['potentialAction'] : array();
-		$override_actions = isset( $node['potentialAction'] ) && is_array( $node['potentialAction'] ) ? $node['potentialAction'] : array();
-		$merged           = nvx_schema_deep_merge( $merged, $node );
-		if ( $base_actions && $override_actions ) {
-			$merged['potentialAction'] = nvx_schema_merge_actions( $base_actions, $override_actions );
-		}
+		$merged = nvx_schema_merge_website_node( $merged, $node );
 		unset( $graph[ $key ] );
 	}
 

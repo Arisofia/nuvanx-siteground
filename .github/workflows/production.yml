@@ -188,12 +188,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          command -v unzip >/dev/null || { echo 'Required unzip command is unavailable on the runner.' >&2; exit 1; }
           artifact_name="staging2-block-c-${CANDIDATE_SHA}"
           response="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
           mapfile -t candidates < <(printf '%s' "$response" | jq -rc --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | reverse | .[] | [.id, .workflow_run.id, .created_at] | @tsv')
-          (( ${#candidates[@]} > 0 )) || { echo "No non-expired Staging acceptance artifacts for $CANDIDATE_SHA" >&2; exit 1; }
+          (( ${#candidates[@]} > 0 )) || { echo "No non-expired Staging acceptance artifacts for $CANDIDATE_SHA. If this was a manual Staging run, rerun it with run_acceptance=true." >&2; exit 1; }
 
-          git fetch --no-tags origin "$STAGING_ACCEPTANCE_BRANCH"
           accepted=0
           accepted_run_id=''
           accepted_artifact_id=''
@@ -231,9 +231,33 @@ jobs:
                 fi
                 ;;
               workflow_dispatch)
-                if ! git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null; then echo "Skipping artifact $artifact_id run $run_id: dispatch head is unavailable: $run_head_sha" >&2; continue; fi
+                if ! git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null; then echo "Skipping artifact $artifact_id run $run_id: dispatch head is unavailable locally: $run_head_sha" >&2; continue; fi
                 if ! git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH"; then echo "Skipping artifact $artifact_id run $run_id: dispatch head $run_head_sha is outside current $STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
                 if ! git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha"; then echo "Skipping artifact $artifact_id run $run_id: candidate $CANDIDATE_SHA was not contained in dispatch head $run_head_sha" >&2; continue; fi
+
+                artifact_zip="$RUNNER_TEMP/staging-acceptance-${artifact_id}.zip"
+                rm -f "$artifact_zip"
+                if ! curl -LfsS --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip"; then
+                  echo "Skipping artifact $artifact_id run $run_id: unable to download immutable acceptance artifact" >&2
+                  continue
+                fi
+                manifest_path="$(unzip -Z1 "$artifact_zip" 2>/dev/null | grep -E '(^|/)acceptance-manifest\.json$' | head -n1 || true)"
+                if [[ -z "$manifest_path" ]]; then
+                  echo "Skipping artifact $artifact_id run $run_id: manual historical evidence has no immutable acceptance manifest; rerun Staging with run_acceptance=true" >&2
+                  continue
+                fi
+                manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
+                if ! printf '%s' "$manifest" | jq -e . >/dev/null 2>&1; then
+                  echo "Skipping artifact $artifact_id run $run_id: invalid acceptance manifest JSON" >&2
+                  continue
+                fi
+                IFS=$'\t' read -r manifest_candidate manifest_run_id manifest_event manifest_head_sha manifest_head_branch manifest_workflow < <(printf '%s' "$manifest" | jq -r '[.candidate_sha,.run_id,.event,.head_sha,.head_branch,.workflow_path] | @tsv')
+                if [[ "$manifest_candidate" != "$CANDIDATE_SHA" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest candidate=$manifest_candidate expected=$CANDIDATE_SHA" >&2; continue; fi
+                if [[ "$manifest_run_id" != "$run_id" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest run_id=$manifest_run_id" >&2; continue; fi
+                if [[ "$manifest_event" != workflow_dispatch ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest event=$manifest_event" >&2; continue; fi
+                if [[ "$manifest_head_sha" != "$run_head_sha" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest head_sha=$manifest_head_sha expected=$run_head_sha" >&2; continue; fi
+                if [[ "$manifest_head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest head_branch=$manifest_head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
+                if [[ "$manifest_workflow" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]]; then echo "Skipping artifact $artifact_id run $run_id: manifest workflow_path=$manifest_workflow expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH" >&2; continue; fi
                 ;;
               *)
                 echo "Skipping artifact $artifact_id run $run_id: unsupported event=$run_event" >&2
@@ -249,7 +273,7 @@ jobs:
             break
           done
 
-          [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging run provides valid acceptance evidence for $CANDIDATE_SHA" >&2; exit 1; }
+          [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging run provides valid exact-candidate acceptance evidence for $CANDIDATE_SHA." >&2; exit 1; }
           echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name artifact_id=$accepted_artifact_id run_id=$accepted_run_id sha=$CANDIDATE_SHA event=$accepted_event run_head_sha=$accepted_head_sha conclusion=success"
 
       - name: Materialize exact candidate from master history

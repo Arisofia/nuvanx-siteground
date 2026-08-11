@@ -1,4 +1,4 @@
-const { GoogleAdsApi } = require('google-ads-api');
+const { GoogleAdsApi, errors } = require('google-ads-api');
 const fs = require('fs');
 
 class LocalConfigError extends Error {
@@ -77,14 +77,14 @@ async function main() {
   const devTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_DEVELOPER_TOKEN, process.env.DEVELOPER_TOKEN], [oauth.developer_token, oauth.developerToken]);
   const refreshTokenRes = pickWithValueAndSource([process.env.GOOGLE_ADS_REFRESH_TOKEN, process.env.REFRESH_TOKEN], [oauth.refresh_token, oauth.refreshToken]);
   let customerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_CUSTOMER_ID, process.env.CUSTOMER_ID], [oauth.customer_id, oauth.customerId]);
-  let loginCustomerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID], [oauth.login_customer_id, oauth.loginCustomerId], true);
+  const loginCustomerIdRes = pickWithValueAndSource([process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID, process.env.LOGIN_CUSTOMER_ID], [oauth.login_customer_id, oauth.loginCustomerId], true);
 
-  let clientId = clientIdRes.value;
+  const clientId = clientIdRes.value;
   let clientSecret = clientSecretRes.value;
-  let devToken = devTokenRes.value;
-  let refreshToken = refreshTokenRes.value;
+  const devToken = devTokenRes.value;
+  const refreshToken = refreshTokenRes.value;
   let rawCustomerId = customerIdRes.value;
-  let rawLoginCustomerId = loginCustomerIdRes.value;
+  const rawLoginCustomerId = loginCustomerIdRes.value;
 
   const looksLikeSecret = (value) => /^GOCSPX-/.test(String(value || ''));
   const looksLikeCustomerId = (value) => {
@@ -232,11 +232,15 @@ main().catch((err) => {
     process.exit(1);
   }
 
-  const isApiError = Array.isArray(err?.errors);
+  const isApiError = err instanceof errors.GoogleAdsFailure;
   const runtimeClass = String(err?.constructor?.name || 'runtime_error')
     .replace(/[^A-Za-z0-9_.:-]/g, '_')
     .slice(0, 64) || 'runtime_error';
-  const topLevelClass = isApiError ? classifyMessage(err?.message || err) : runtimeClass;
+  const runtimeCode = ['string', 'number'].includes(typeof err?.code)
+    ? sanitizeScalar(err.code).slice(0, 64)
+    : '';
+  const runtimeDiagnostic = runtimeCode ? `${runtimeClass}:${runtimeCode}` : runtimeClass;
+  const topLevelClass = isApiError ? classifyMessage(err?.message || err) : runtimeDiagnostic;
   console.error('Error listing campaigns:', topLevelClass);
   if (isApiError) {
     const projectedErrors = err.errors.map((e) => projectError(e));

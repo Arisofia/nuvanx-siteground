@@ -180,7 +180,7 @@ jobs:
           set -euo pipefail
           artifact_name="staging2-block-c-${CANDIDATE_SHA}"
           response="$(curl -fsSL --proto '=https' --proto-redir '=https' -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
-          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" --arg sha "$CANDIDATE_SHA" '[.artifacts[] | select(.name == $name and .expired == false and .workflow_run.head_branch == "master" and .workflow_run.head_sha == $sha)] | sort_by(.created_at) | last')"
+          artifact="$(printf '%s' "$response" | jq -c --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false and .workflow_run.head_branch == "master")] | sort_by(.created_at) | last')"
           [[ "$artifact" != 'null' ]] || { echo "No non-expired successful-candidate Staging artifact for $CANDIDATE_SHA" >&2; exit 1; }
           run_id="$(printf '%s' "$artifact" | jq -r '.workflow_run.id')"
           [[ "$run_id" =~ ^[0-9]+$ ]]
@@ -188,9 +188,27 @@ jobs:
           test "$(printf '%s' "$run" | jq -r '.status')" = 'completed'
           test "$(printf '%s' "$run" | jq -r '.conclusion')" = 'success'
           test "$(printf '%s' "$run" | jq -r '.head_branch')" = 'master'
-          test "$(printf '%s' "$run" | jq -r '.head_sha')" = "$CANDIDATE_SHA"
           test "$(printf '%s' "$run" | jq -r '.path')" = '.github/workflows/staging.yml'
-          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name run_id=$run_id sha=$CANDIDATE_SHA conclusion=success"
+
+          run_event="$(printf '%s' "$run" | jq -r '.event')"
+          run_head_sha="$(printf '%s' "$run" | jq -r '.head_sha')"
+          [[ "$run_head_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Staging run head SHA: $run_head_sha" >&2; exit 1; }
+          case "$run_event" in
+            push)
+              test "$run_head_sha" = "$CANDIDATE_SHA" || { echo "Push Staging run head SHA $run_head_sha does not match candidate $CANDIDATE_SHA" >&2; exit 1; }
+              ;;
+            workflow_dispatch)
+              git fetch --no-tags origin master
+              git cat-file -e "${run_head_sha}^{commit}"
+              git merge-base --is-ancestor "$run_head_sha" origin/master || { echo "Manual Staging run head SHA is no longer contained in master: $run_head_sha" >&2; exit 1; }
+              git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha" || { echo "Manual Staging candidate $CANDIDATE_SHA was not contained in dispatch head $run_head_sha" >&2; exit 1; }
+              ;;
+            *)
+              echo "Unsupported Staging acceptance event: $run_event" >&2
+              exit 1
+              ;;
+          esac
+          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name run_id=$run_id sha=$CANDIDATE_SHA event=$run_event run_head_sha=$run_head_sha conclusion=success"
 
       - name: Materialize exact candidate from master history
         shell: bash

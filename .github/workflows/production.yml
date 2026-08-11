@@ -644,6 +644,10 @@ jobs:
           USER: ${{ secrets.PROD_SSH_USER }}
           KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
           KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          PROD_ROOT: ${{ env.PROD_ROOT }}
+          SSH_RETRY_ATTEMPTS: ${{ env.SSH_RETRY_ATTEMPTS }}
+          SSH_RETRY_BASE_DELAY_SECONDS: ${{ env.SSH_RETRY_BASE_DELAY_SECONDS }}
+          SSH_TRANSPORT_EXIT_CODE: ${{ env.SSH_TRANSPORT_EXIT_CODE }}
         run: |
           set -euo pipefail
           expected_sha="$(printf '%s' "$RELEASE_SHA" | tr -d '[:space:]')"
@@ -651,6 +655,7 @@ jobs:
             : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
             SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
             mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+            trap 'rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"' EXIT
             printf '%s\n' "$KEY" > "$HOME/.ssh/prod_h1_key"; chmod 600 "$HOME/.ssh/prod_h1_key"
             printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
             test -s "$HOME/.ssh/known_hosts" || { echo 'H1_PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
@@ -684,7 +689,6 @@ jobs:
             done
             [[ "$connected" = 1 ]] || { echo 'H1_PRODUCTION_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
             expected_sha="$(ssh -n nvx-prod-h1 "tr -d '\\r\\n' < '$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
-            rm -f "$HOME/.ssh/prod_h1_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
           fi
           [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid authoritative production SHA: $expected_sha" >&2; exit 1; }
           echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"

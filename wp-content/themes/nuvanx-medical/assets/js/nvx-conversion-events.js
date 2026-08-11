@@ -396,7 +396,7 @@
 	function releaseAuditClaim() {
 		auditClaimed = false;
 		var pending = legacyPendingSubmission;
-		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer) {
+		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer && pending.retryCount < 3) {
 			scheduleLegacyRetry(pending, false);
 		}
 	}

@@ -165,12 +165,19 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
  */
 function nvx_signature_phase_details_section( array $page ): string {
 	$fields = array(
-		'price_range' => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
-		'timeline'    => __( 'Evolución:', 'nuvanx-medical' ),
-		'post_care'   => __( 'Cuidados recomendados:', 'nuvanx-medical' ),
-		'comparison'  => __( 'Comparativa de abordajes:', 'nuvanx-medical' ),
-		'scarring'    => __( 'Abordaje tisular:', 'nuvanx-medical' ),
+		'price_range'   => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
+		'sessions'      => __( 'Sesiones orientativas:', 'nuvanx-medical' ),
+		'timeline'      => __( 'Evolución:', 'nuvanx-medical' ),
+		'post_care'     => __( 'Cuidados recomendados:', 'nuvanx-medical' ),
+		'comparison'    => __( 'Comparativa de abordajes:', 'nuvanx-medical' ),
+		'scarring'      => __( 'Abordaje tisular:', 'nuvanx-medical' ),
+		'laxity_levels' => __( 'Niveles de laxitud aptos:', 'nuvanx-medical' ),
+		'first_visit'   => __( 'Primera consulta:', 'nuvanx-medical' ),
+		'financing'     => __( 'Financiación:', 'nuvanx-medical' ),
+		'anatomy_note'  => __( 'Nota anatómica:', 'nuvanx-medical' ),
+		'gynecomastia'  => __( 'Descarte de ginecomastia:', 'nuvanx-medical' ),
 	);
+
 
 	$items = '';
 	foreach ( $fields as $key => $label ) {

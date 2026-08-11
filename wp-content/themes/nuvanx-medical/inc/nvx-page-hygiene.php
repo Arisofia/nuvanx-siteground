@@ -145,6 +145,8 @@ function nvx_quarantined_comparison_post_ids(): array {
 		return $ids;
 	}
 
+	$ids = array();
+
 	$query = new WP_Query(
 		array(
 			'post_type'              => 'post',
@@ -156,12 +158,14 @@ function nvx_quarantined_comparison_post_ids(): array {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => true,
+			'suppress_filters'       => true,
 		)
 	);
 
 	$ids = array_values( array_map( 'intval', (array) $query->posts ) );
 	return $ids;
 }
+
 
 /**
  * Keep pending comparison content out of public post collections.

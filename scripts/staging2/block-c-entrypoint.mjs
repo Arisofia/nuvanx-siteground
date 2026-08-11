@@ -97,6 +97,14 @@ function isTransientFailure(result) {
 
   if (antiBotOnly) return true;
 
+  const siteGroundChallengeAbortOnly =
+    networkErrors.length === 0 ||
+    networkErrors.every(
+      (message) =>
+        message.startsWith(`${baseUrl}/.well-known/sgcaptcha/`) &&
+        message.endsWith(': net::ERR_ABORTED')
+    );
+
   const navigationNoResponseOnly =
     result.status === 'BLOCKED' &&
     status === 0 &&
@@ -104,7 +112,7 @@ function isTransientFailure(result) {
     blockers.length > 0 &&
     blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
     issues.length === 0 &&
-    networkErrors.length === 0 &&
+    siteGroundChallengeAbortOnly &&
     typeof result.finalUrl === 'string' &&
     result.finalUrl.startsWith(`${baseUrl}/`);
 

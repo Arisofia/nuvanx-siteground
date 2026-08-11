@@ -124,11 +124,16 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
             if ssh -n nvx-staging-gate "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"; then
               connected=1; break
             fi
-            [[ "$attempt" -eq "$SSH_RETRY_ATTEMPTS" ]] || { delay=$((attempt * SSH_RETRY_BASE_DELAY_SECONDS)); echo "Staging gate SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${delay}s..."; sleep "$delay"; }
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Staging gate SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
           done
           [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround staging gate after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
 
@@ -210,7 +215,12 @@ jobs:
             if [[ "$status" != completed ]]; then echo "Skipping artifact $artifact_id run $run_id: status=$status expected=completed" >&2; continue; fi
             if [[ "$conclusion" != success ]]; then echo "Skipping artifact $artifact_id run $run_id: conclusion=$conclusion expected=success" >&2; continue; fi
             if [[ "$head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: head_branch=$head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
-            if [[ "$workflow_path" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]]; then echo "Skipping artifact $artifact_id run $run_id: path=$workflow_path expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH" >&2; continue; fi
+            workflow_prefix="${workflow_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
+            workflow_suffix="${workflow_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
+            if [[ "$workflow_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$workflow_suffix" && "${workflow_suffix:0:1}" != '@' ) || "$workflow_suffix" == '@' ]]; then
+              echo "Skipping artifact $artifact_id run $run_id: path=$workflow_path expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH or $STAGING_ACCEPTANCE_WORKFLOW_PATH@<ref>" >&2
+              continue
+            fi
             if [[ ! "$run_head_sha" =~ ^[0-9a-f]{40}$ ]]; then echo "Skipping artifact $artifact_id run $run_id: invalid head_sha=$run_head_sha" >&2; continue; fi
 
             case "$run_event" in
@@ -289,11 +299,16 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           prod_connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
             if ssh -n nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
               prod_connected=1; break
             fi
-            [[ "$attempt" -eq "$SSH_RETRY_ATTEMPTS" ]] || { delay=$((attempt * SSH_RETRY_BASE_DELAY_SECONDS)); echo "Production SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${delay}s..."; sleep "$delay"; }
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Production SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
           done
           [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_SSH=FAIL_TRANSPORT: could not reach SiteGround production after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
 
@@ -433,11 +448,16 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           audit_connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
             if ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"; then
               audit_connected=1; break
             fi
-            [[ "$attempt" -eq "$SSH_RETRY_ATTEMPTS" ]] || { delay=$((attempt * SSH_RETRY_BASE_DELAY_SECONDS)); echo "Production audit SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${delay}s..."; sleep "$delay"; }
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              echo "Production audit SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
           done
           [[ "$audit_connected" = 1 ]] || { echo 'PRODUCTION_AUDIT_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
 

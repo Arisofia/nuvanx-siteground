@@ -4,6 +4,14 @@ const manifestUrl = new URL('./published-pages-manifest.json', import.meta.url);
 
 export const MIN_MANIFEST_ENTRIES = 40;
 
+// Canonical Block C viewport matrix. Shared so the entrypoint's
+// expected-results math stays in sync with the browser matrix.
+export const VIEWPORTS = [
+  { key: 'desktop-1440x1100', label: 'Desktop 1440×1100', width: 1440, height: 1100 },
+  { key: 'tablet-1024x768', label: 'Tablet 1024×768', width: 1024, height: 768 },
+  { key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 },
+];
+
 function normalizePath(value) {
   const path = String(value || '').split(/[?#]/, 1)[0] || '/';
   return path.endsWith('/') ? path : `${path}/`;

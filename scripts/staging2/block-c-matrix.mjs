@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { assertCanonicalPublishedPaths, loadPublishedPagesManifest } from './published-pages-contract.mjs';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -12,11 +12,7 @@ if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   process.exit(1);
 }
 
-const viewports = [
-  { key: 'desktop-1440x1100', label: 'Desktop 1440×1100', width: 1440, height: 1100 },
-  { key: 'tablet-1024x768', label: 'Tablet 1024×768', width: 1024, height: 768 },
-  { key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 },
-];
+const viewports = VIEWPORTS;
 
 const outputDir = path.resolve('scripts/staging2/block-c-artifacts');
 const screenshotDir = path.join(outputDir, 'screenshots');
@@ -320,7 +316,7 @@ async function collectGeometry(page) {
         }
       }
       
-      return culprits;
+      return { overflowAmount, culprits };
     }
 
     function collectImageIssues() {
@@ -366,7 +362,7 @@ async function collectGeometry(page) {
         .slice(0, 10)
         .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120));
 
-      return invalidCtas;
+      return { visibleCtaCount: visibleCtas.length, invalidCtas };
     }
 
     const vw = window.innerWidth;
@@ -391,14 +387,9 @@ async function collectGeometry(page) {
           (h1.scrollHeight > h1.clientHeight + 2 && ['hidden', 'clip'].includes(h1Style.overflowY)))
     );
 
-    const visibleCtas = Array.from(
-      document.querySelectorAll('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]')
-    ).filter(isVisible);
-
-    const invalidCtas = collectCtaIssues();
+    const { visibleCtaCount, invalidCtas } = collectCtaIssues();
     const { brokenImages, unresolvedLazyImages } = collectImageIssues();
-    const culprits = collectOverflowCulprits(vw);
-    const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
+    const { overflowAmount, culprits } = collectOverflowCulprits(vw);
 
     const visibleSections = main
       ? Array.from(main.querySelectorAll('section, article')).filter(isVisible)
@@ -429,7 +420,7 @@ async function collectGeometry(page) {
       h1Clipped,
       heroVisible: isVisible(hero),
       heroRect: rectData(hero),
-      visibleCtaCount: visibleCtas.length,
+      visibleCtaCount,
       invalidCtas,
       brokenImages,
       unresolvedLazyImages,

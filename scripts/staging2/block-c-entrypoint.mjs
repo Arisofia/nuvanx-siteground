@@ -2,9 +2,9 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { assertCanonicalPublishedPaths, loadPublishedPagesManifest } from './published-pages-contract.mjs';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 
-const VIEWPORT_COUNT = 3;
+const VIEWPORT_COUNT = VIEWPORTS.length;
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');

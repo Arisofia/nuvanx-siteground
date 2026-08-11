@@ -54,6 +54,25 @@ function nvx_retired_strategy_page_ids(): array {
 }
 
 /**
+ * Build redirect URL with preserved query string.
+ *
+ * @param string $target The target path.
+ * @param string $query  The query string.
+ * @return string The full redirect URL.
+ */
+function nvx_build_redirect_url( $target, $query ) {
+	$redirect_url = home_url( $target );
+	if ( '' !== $query ) {
+		$query_args = array();
+		wp_parse_str( $query, $query_args );
+		if ( ! empty( $query_args ) ) {
+			$redirect_url = add_query_arg( $query_args, $redirect_url );
+		}
+	}
+	return $redirect_url;
+}
+
+/**
  * Redirect retired strategy slugs to their approved public clinical hubs.
  */
 function nvx_redirect_retired_strategy_slugs(): void {
@@ -73,14 +92,7 @@ function nvx_redirect_retired_strategy_slugs(): void {
 
 	// Check path-based redirect (top-level pages)
 	if ( isset( $targets[ $path ] ) ) {
-		$redirect_url = home_url( $targets[ $path ] );
-		if ( '' !== $query ) {
-			$query_args = array();
-			wp_parse_str( $query, $query_args );
-			if ( ! empty( $query_args ) ) {
-				$redirect_url = add_query_arg( $query_args, $redirect_url );
-			}
-		}
+		$redirect_url = nvx_build_redirect_url( $targets[ $path ], $query );
 		wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
 		exit;
 	}
@@ -89,14 +101,7 @@ function nvx_redirect_retired_strategy_slugs(): void {
 	if ( is_singular() ) {
 		$queried_object = get_queried_object();
 		if ( $queried_object && isset( $queried_object->post_name ) && isset( $targets[ $queried_object->post_name ] ) ) {
-			$redirect_url = home_url( $targets[ $queried_object->post_name ] );
-			if ( '' !== $query ) {
-				$query_args = array();
-				wp_parse_str( $query, $query_args );
-				if ( ! empty( $query_args ) ) {
-					$redirect_url = add_query_arg( $query_args, $redirect_url );
-				}
-			}
+			$redirect_url = nvx_build_redirect_url( $targets[ $queried_object->post_name ], $query );
 			wp_safe_redirect( $redirect_url, 301, 'NUVANX' );
 			exit;
 		}

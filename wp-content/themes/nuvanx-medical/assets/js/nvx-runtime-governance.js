@@ -300,6 +300,17 @@
 
     let promise = null;
 
+    function invokeLegacyAttributionHook(hookName, form, formId) {
+      try {
+        const hooks = window.NUVANXGoogleAttributionLegacy;
+        if (hooks && typeof hooks[hookName] === 'function') hooks[hookName](form, formId);
+      } catch (_error) {
+        document.dispatchEvent(new CustomEvent('nvx:attribution-hook-error', {
+          detail: { hook: hookName }
+        }));
+      }
+    }
+
     /**
      * Initializes eligible HubSpot form frames and connects supported attribution callbacks.
      */
@@ -334,22 +345,13 @@
               formId: frame.dataset.formId || config.hubspotFormId,
               target: '#' + frame.id,
               onFormReady: function ($form) {
-                try {
-                  const hooks = window.NUVANXGoogleAttributionLegacy;
-                  if (hooks && typeof hooks.onFormReady === 'function') hooks.onFormReady($form, frame.dataset.formId);
-                } catch (_error) {}
+                invokeLegacyAttributionHook('onFormReady', $form, frame.dataset.formId);
               },
               onBeforeFormSubmit: function ($form) {
-                try {
-                  const hooks = window.NUVANXGoogleAttributionLegacy;
-                  if (hooks && typeof hooks.onBeforeFormSubmit === 'function') hooks.onBeforeFormSubmit($form, frame.dataset.formId);
-                } catch (_error) {}
+                invokeLegacyAttributionHook('onBeforeFormSubmit', $form, frame.dataset.formId);
               },
               onFormSubmitted: function ($form) {
-                try {
-                  const hooks = window.NUVANXGoogleAttributionLegacy;
-                  if (hooks && typeof hooks.onFormSubmitted === 'function') hooks.onFormSubmitted($form, frame.dataset.formId);
-                } catch (_error) {}
+                invokeLegacyAttributionHook('onFormSubmitted', $form, frame.dataset.formId);
               }
             });
           } catch (_err) {

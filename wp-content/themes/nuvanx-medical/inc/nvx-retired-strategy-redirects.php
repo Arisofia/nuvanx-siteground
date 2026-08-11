@@ -37,7 +37,7 @@ function nvx_retired_strategy_page_ids(): array {
 	// Also search for nested pages with matching post_name
 	$nested_query = new WP_Query(
 		array(
-			'post_type'      => 'page',
+			'post_type'      => 'any',
 			'post_name__in' => $slugs,
 			'fields'         => 'ids',
 			'posts_per_page' => -1,

@@ -97,9 +97,9 @@ function nvx_site_closing_cta_markup(): string {
 	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
-	$html .= '<p class="nvx-cta-banner__kicker">Medicina estética con criterio clínico</p>';
+	$html .= '<p class="nvx-cta-banner__kicker">En NUVANX, si no hay indicación, no se trata</p>';
 	$html .= '<h2 class="nvx-cta-banner__title">Da el siguiente paso con una valoración médica personalizada.</h2>';
-	$html .= '<p class="nvx-cta-banner__sub">Plan individualizado &bull; Precisión clínica &bull; Recuperación según tu caso</p>';
+	$html .= '<p class="nvx-cta-banner__sub">Presupuesto y plan documentado por escrito en la primera visita &bull; 2–5 días de recuperación en la mayoría de protocolos</p>';
 	$html .= '</div>';
 	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
 	$html .= sprintf(
@@ -177,7 +177,7 @@ function nvx_home_action_banner_markup(): string {
 	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( '15–30 minutos para saber si existe indicación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
-		__( 'Evaluamos tu caso, explicamos las opciones disponibles y documentamos el presupuesto antes de cualquier decisión. Presencial en <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
+		__( 'El Dr. Rivera evalúa piel, anatomía y antecedentes en la primera visita. Explicamos las opciones disponibles y documentamos el presupuesto antes de cualquier decisión. Presencial en <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
 		array( 'strong' => array() )
 	) . '</p>';
 	$html .= '</div>';
@@ -216,7 +216,7 @@ function nvx_values_section_markup(): string {
 		),
 		array(
 			'icon'  => 'nature',
-			'title' => '3. Resultados naturales y expectativa realista',
+			'title' => '3. Sin cambiar la expresión ni añadir volumen donde no hay indicación',
 			'body'  => 'El objetivo es mejorar firmeza, textura y definición respetando la expresión y la identidad del rostro. Antes de tratar, explicamos qué puede mejorar, qué límites existen y qué recuperación requiere cada protocolo.',
 		),
 	);

@@ -30,7 +30,7 @@ ob_start();
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 		</video>
 		<div class="nvx-home-hero__copy">
-			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio. Madrid.</h1>
+			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">En NUVANX, si no hay indicación, no se trata. Madrid.</h1>
 			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
 			<div class="nvx-brand-actions">
 				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
@@ -210,8 +210,8 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
-		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Medicina estética con criterio clínico.</h2>
-		<p class="nvx-home-closure__desc">Plan individualizado. Precisión médica. Seguimiento según tu caso.</p>
+		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">En NUVANX, si no hay indicación, no se trata</h2>
+		<p class="nvx-home-closure__desc">Presupuesto y plan documentado por escrito en la primera visita. 2–5 días de recuperación en la mayoría de protocolos.</p>
 		<div class="nvx-home-closure__actions">
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Definir mi plan clínico</a>
 			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>

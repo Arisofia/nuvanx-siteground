@@ -71,14 +71,14 @@ function nvx_redirect_retired_strategy_slugs(): void {
 		return;
 	}
 
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-	$path = strtolower( trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) );
+	$uri   = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path  = strtolower( trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' ) );
 	$query = isset( $_SERVER['QUERY_STRING'] ) ? (string) wp_unslash( $_SERVER['QUERY_STRING'] ) : '';
 
 	$targets = array(
 		'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/',
 		'tratamiento-retirado' => '/tratamientos/',
-		'v-lift-awake'         => '/endolift-facial-papada-mandibula/',
+		'v-lift-awake'         => '/papada-definicion-mandibular-madrid/',
 	);
 
 	// Check path-based redirect for top-level pages.

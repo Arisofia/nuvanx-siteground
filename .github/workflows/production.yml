@@ -19,7 +19,7 @@ on:
         required: false
         type: string
       run_post_audits:
-        description: Run SEO/GEO and IndexNow verification/submission.
+        description: Run SEO/GEO, Search Console URL Inspection and IndexNow verification/submission.
         required: true
         default: true
         type: boolean
@@ -48,6 +48,7 @@ env:
   PROD_PARENT: /home/customer/www/nuvanx.com
   BASE_URL: https://nuvanx.com
   EXPECTED_HOST: nuvanx.com
+  SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
   INDEXNOW_KEY: 53546cf8077aa596b76aac664739bbb4
   STAGING_ACCEPTANCE_BRANCH: master
   STAGING_ACCEPTANCE_WORKFLOW_PATH: .github/workflows/staging.yml
@@ -77,6 +78,7 @@ jobs:
           set -euo pipefail
           bash -n tools/deploy/deploy-to-prod.sh
           node --check scripts/production/verify-production-boundary.mjs
+          node --check scripts/seo/index-pages.js
           bash -n scripts/production/seo-geo-origin-audit.sh
           bash -n scripts/production/document-head-title-audit.sh
           bash -n scripts/production/diagnose-title-emitters.sh
@@ -232,8 +234,6 @@ jobs:
               echo "Skipping malformed artifact candidate: artifact_id=$artifact_id run_id=$run_id created_at=$created_at" >&2
               continue
             fi
-
-            # Cheap source-run checks happen before downloading the potentially large ZIP.
             if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
               echo "Skipping artifact $artifact_id: unable to fetch source run $run_id" >&2
               continue
@@ -279,8 +279,6 @@ jobs:
             manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
             rm -f "$artifact_zip"
 
-            # Producer contract: staging.yml writes every field with jq --arg, so
-            # run_id/run_attempt intentionally remain JSON strings in schema 1.
             if ! manifest_fields="$(printf '%s' "$manifest" | jq -er '
               select(type == "object" and .schema == 1) |
               [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
@@ -318,10 +316,6 @@ jobs:
               continue
             fi
 
-            # A later rerun does not invalidate immutable evidence from this exact
-            # successful attempt. The release gate separately requires the live
-            # Staging marker/environment to still equal CANDIDATE_SHA, so a later
-            # mutation or rollback cannot be promoted from stale evidence.
             case "$manifest_event" in
               push)
                 [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: push manifest head is not candidate" >&2; continue; }
@@ -494,14 +488,18 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:
-    name: Production SEO/GEO and IndexNow
+    name: Production SEO/GEO, GSC and IndexNow
     needs: release
     if: >-
       always() &&
       (github.event_name == 'push' || inputs.run_post_audits) &&
       (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
     steps:
       - name: Check out canonical master audit tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -509,6 +507,17 @@ jobs:
           ref: master
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Setup Node.js for Search Console audit
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/seo/package-lock.json
+
+      - name: Install Search Console audit dependencies
+        shell: bash
+        run: npm ci --prefix scripts/seo --ignore-scripts
 
       - name: Configure strict production audit SSH
         shell: bash
@@ -522,7 +531,7 @@ jobs:
           set -euo pipefail
           : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
           SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh" scripts/production/artifacts; chmod 700 "$HOME/.ssh"
+          mkdir -p "$HOME/.ssh" scripts/production/artifacts scripts/seo/artifacts; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/prod_audit_key"; chmod 600 "$HOME/.ssh/prod_audit_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
           test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_AUDIT_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
@@ -568,6 +577,105 @@ jobs:
           set -euo pipefail
           ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < scripts/production/seo-geo-origin-audit.sh | tee scripts/production/artifacts/seo-geo-origin-audit.log
 
+      - name: Materialize exact sitemap URL inventory from origin audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          log='scripts/production/artifacts/seo-geo-origin-audit.log'
+          out='scripts/seo/artifacts/sitemap-urls.txt'
+          expected="$(sed -nE 's/^PASS SITEMAP_URL_COUNT count=([0-9]+)$/\1/p' "$log" | tail -n1)"
+          grep '^PASS URL_SEO url=' "$log" | sed -E 's/^PASS URL_SEO url=([^ ]+) .*/\1/' > "$out"
+          actual="$(grep -c '^https://nuvanx\.com/' "$out" || true)"
+          [[ "$expected" =~ ^[0-9]+$ && "$actual" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]] || {
+            echo "GSC_URL_INVENTORY=FAIL expected=${expected:-missing} actual=$actual" >&2
+            exit 1
+          }
+          [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]] || { echo 'GSC_URL_INVENTORY=FAIL duplicate_urls' >&2; exit 1; }
+          echo "GSC_URL_INVENTORY=PASS urls=$actual source=origin-audit"
+
+      - name: Authenticate to Google Cloud with Workload Identity Federation
+        id: google_auth
+        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' && vars.GCP_SEARCH_CONSOLE_SERVICE_ACCOUNT != '' }}
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: nuvanx
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SEARCH_CONSOLE_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Resolve Search Console authentication
+        shell: bash
+        env:
+          STATIC_SEARCH_CONSOLE_JSON: ${{ secrets.SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
+          WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SEARCH_CONSOLE_SERVICE_ACCOUNT }}
+        run: |
+          set -euo pipefail
+          rm -f scripts/seo/credentials.json
+          if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && -s "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+            echo 'SEARCH_CONSOLE_AUTH=WIF_ADC'
+          elif [[ -n "$STATIC_SEARCH_CONSOLE_JSON" ]]; then
+            printf '%s' "$STATIC_SEARCH_CONSOLE_JSON" > scripts/seo/credentials.json
+            chmod 600 scripts/seo/credentials.json
+            jq -e '.type == "service_account" and (.client_email | type == "string" and length > 0) and (.private_key | type == "string" and length > 0)' scripts/seo/credentials.json >/dev/null
+            echo 'SEARCH_CONSOLE_AUTH=SERVICE_ACCOUNT_JSON_FALLBACK'
+          else
+            echo "SEARCH_CONSOLE_AUTH=FAIL no WIF ADC and no SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON fallback. WIF provider configured=${WIF_PROVIDER:+yes} service_account configured=${WIF_SERVICE_ACCOUNT:+yes}" >&2
+            exit 1
+          fi
+
+      - name: Inspect exact production sitemap URLs in Google Search Console
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/seo/index-pages.js \
+            --property "$SEARCH_CONSOLE_PROPERTY" \
+            --url "$BASE_URL" \
+            --urls-file scripts/seo/artifacts/sitemap-urls.txt \
+            --max-urls 200 \
+            2>&1 | tee scripts/seo/artifacts/url-inspection.log
+          grep -Fq 'INSPECTION_COMPLETED=true' scripts/seo/artifacts/url-inspection.log
+          total="$(sed -nE 's/^TOTAL_URLS=([0-9]+)$/\1/p' scripts/seo/artifacts/url-inspection.log | tail -n1)"
+          api_errors="$(sed -nE 's/^API_ERRORS=([0-9]+)$/\1/p' scripts/seo/artifacts/url-inspection.log | tail -n1)"
+          inventory="$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
+          [[ "$total" =~ ^[0-9]+$ && "$total" -eq "$inventory" ]] || { echo "GSC_INSPECTION=FAIL total=${total:-missing} inventory=$inventory" >&2; exit 1; }
+          [[ "$api_errors" == '0' ]] || { echo "GSC_INSPECTION=FAIL api_errors=${api_errors:-missing}" >&2; exit 1; }
+          echo "GSC_INSPECTION=PASS urls=$total api_errors=0"
+
+      - name: Export Search Console URL-level CSV evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          json='scripts/seo/artifacts/indexing-results.json'
+          csv='scripts/seo/artifacts/indexing-results.csv'
+          if [[ -s "$json" ]]; then
+            jq -r '
+              (["url","apiStatus","verdict","coverageState","indexingState","robotsTxtState","pageFetchState","lastCrawlTime","crawledAs","userCanonical","googleCanonical","blocked","canonicalMismatch","referringUrls","sitemap"] | @csv),
+              (.results[] | [
+                .url,
+                .apiStatus,
+                (.verdict // ""),
+                (.coverageState // ""),
+                (.indexingState // ""),
+                (.robotsTxtState // ""),
+                (.pageFetchState // ""),
+                (.lastCrawlTime // ""),
+                (.crawledAs // ""),
+                (.userCanonical // ""),
+                (.googleCanonical // ""),
+                (.blocked // false),
+                (.canonicalMismatch // false),
+                ((.referringUrls // []) | join(" | ")),
+                ((.sitemap // []) | join(" | "))
+              ] | @csv)
+            ' "$json" > "$csv"
+            echo "GSC_CSV=PASS rows=$(($(wc -l < "$csv") - 1))"
+          else
+            echo 'GSC_CSV=SKIPPED no_indexing_results' >&2
+          fi
+
       - name: Diagnose title emitters after audit failure
         if: failure()
         shell: bash
@@ -590,15 +698,22 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-post-audits-${{ github.run_id }}-attempt-${{ github.run_attempt }}
-          path: scripts/production/artifacts/*.log
+          path: |
+            scripts/production/artifacts/*.log
+            scripts/seo/artifacts/sitemap-urls.txt
+            scripts/seo/artifacts/url-inspection.log
+            scripts/seo/artifacts/indexing-results.json
+            scripts/seo/artifacts/indexing-results.csv
           retention-days: 30
           if-no-files-found: warn
           compression-level: 6
 
-      - name: Destroy production audit SSH identity
+      - name: Destroy production audit identities and temporary credentials
         if: always()
         shell: bash
-        run: rm -f "$HOME/.ssh/prod_audit_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+        run: |
+          rm -f "$HOME/.ssh/prod_audit_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config" scripts/seo/credentials.json
+          find . -maxdepth 2 -type f -name 'gha-creds-*.json' -delete 2>/dev/null || true
 
   performance:
     name: Lighthouse production matrix

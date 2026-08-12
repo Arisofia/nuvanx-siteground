@@ -32,6 +32,8 @@ To prevent editorial content changes (e.g. H1 text) from triggering full rollbac
 - Pre-cutover: checks only non-migratable issues (legal page H1, missing pages) and fails fast on those
 - Post-migration: requires full AUDIT_CLEAN including string/regex hygiene rules after migration fixes them
 
+Note: The workflow no longer runs a separate migration step - the migration executes only inside deploy-to-prod.sh in the atomic window.
+
 ## Host-level emergency production operation
 
 Direct host operation is an emergency/explicit-authorization path, not the default release trigger:

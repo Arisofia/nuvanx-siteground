@@ -118,13 +118,6 @@ cleanup_uncommitted_release() {
   else
     # After rollback, clean up empty release directories
     rm -rf "$RELEASE_ROOT" 2>/dev/null || true
-    # Keep FAILED_THEME for forensic investigation if rollback failed
-    # Only delete if rollback was successful
-    if [[ "$ROLLBACK_OK" -eq 1 ]]; then
-      rm -rf "$FAILED_THEME" 2>/dev/null || true
-    else
-      echo "INFO: Keeping failed theme at $FAILED_THEME for investigation" >&2
-    fi
   fi
 }
 trap cleanup_uncommitted_release EXIT
@@ -400,6 +393,15 @@ rollback_after_swap() {
   if [[ "$rollback_ok" -ne 1 ]]; then
     rc=1
   fi
+  # Clean up FAILED_THEME based on rollback success before resetting SWAPPED
+  if [[ "$SWAPPED" -eq 1 ]]; then
+    if [[ "$rollback_ok" -eq 1 ]]; then
+      rm -rf "$FAILED_THEME" 2>/dev/null || true
+    else
+      echo "INFO: Keeping failed theme at $FAILED_THEME for investigation" >&2
+    fi
+  fi
+
   # Reset SWAPPED=0 after rollback so EXIT trap cleans up RELEASE_ROOT
   SWAPPED=0
   exit "$rc"
@@ -470,24 +472,27 @@ echo "== Purge production caches =="
 # However, Speed Optimizer restoration failures are serious - they change the
 # production plugin state and must be treated as a deployment failure.
 purge_rc=0
+purge_restore_rc=0
 (
   trap - ERR
   cd "$PROD_ROOT"
   inner_rc=0
   wp cache flush || inner_rc=$?
-  # purge_siteground_dynamic_cache returns distinct codes:
+  # Capture purge_siteground_dynamic_cache return code separately
   # - 0: success
   # - 10: plugin restoration failure (plugin remained active) - fatal
   # - other non-zero: purge failure - non-fatal
-  purge_siteground_dynamic_cache || inner_rc=$?
+  purge_siteground_dynamic_cache || purge_restore_rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
-  exit "$inner_rc"
+  # Exit with the first non-zero code encountered
+  [[ "$inner_rc" -eq 0 ]] || exit "$inner_rc"
+  [[ "$purge_restore_rc" -eq 0 ]] || exit "$purge_restore_rc"
 ) || purge_rc=$?
 
-# Check for plugin restoration failure (exit code 10)
-if [[ "$purge_rc" -eq 10 ]]; then
+# Check for plugin restoration failure (exit code 10) - use dedicated variable
+if [[ "$purge_restore_rc" -eq 10 ]]; then
   echo "ERROR: Speed Optimizer plugin restoration failed - this changes production state" >&2
   exit 1
 fi

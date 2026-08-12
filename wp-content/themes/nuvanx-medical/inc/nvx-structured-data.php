@@ -480,6 +480,27 @@ function nvx_schema_clinics() {
 	$ch = isset( $config['chamberi'] ) ? $config['chamberi'] : array();
 	$go = isset( $config['goya'] ) ? $config['goya'] : array();
 
+	// Build opening hours from config (same format as nvx-medical-clinic-schema.php)
+	$ch_opening_hours = array();
+	foreach ( $ch['opening_hours'] ?? array() as $spec ) {
+		$ch_opening_hours[] = array(
+			'@type'     => 'OpeningHoursSpecification',
+			'dayOfWeek' => $spec['days'] ?? array(),
+			'opens'     => $spec['opens'] ?? '',
+			'closes'    => $spec['closes'] ?? '',
+		);
+	}
+
+	$go_opening_hours = array();
+	foreach ( $go['opening_hours'] ?? array() as $spec ) {
+		$go_opening_hours[] = array(
+			'@type'     => 'OpeningHoursSpecification',
+			'dayOfWeek' => $spec['days'] ?? array(),
+			'opens'     => $spec['opens'] ?? '',
+	        'closes'    => $spec['closes'] ?? '',
+		);
+	}
+
 	return array(
 		'chamberi' => array(
 			'@type'                     => array( 'MedicalClinic', 'LocalBusiness' ),
@@ -510,7 +531,7 @@ function nvx_schema_clinics() {
 			'hasMap'                    => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
 			'areaServed'                => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Malasaña', 'Ríos Rosas', 'Madrid' ),
 			'description'               => 'Medicina estética láser premium en Chamberí, Madrid. Endolift®, endoláser corporal, láser CO₂ fraccionado y neuromoduladores con dirección médica especializada. Cerca de Almagro, Malasaña y Ríos Rosas.',
-			'openingHoursSpecification' => array(
+			'openingHoursSpecification' => ! empty( $ch_opening_hours ) ? $ch_opening_hours : array(
 				array(
 					'@type'     => 'OpeningHoursSpecification',
 					'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
@@ -557,7 +578,7 @@ function nvx_schema_clinics() {
 			'hasMap'                    => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
 			'areaServed'                => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Velázquez', 'Serrano', 'Madrid' ),
 			'description'               => 'Medicina estética láser premium en Goya, Barrio Salamanca, Madrid. Endolift®, endoláser corporal, láser CO₂ fraccionado y neuromoduladores con dirección médica especializada. Cerca de Lista, Recoletos, Velázquez y Serrano.',
-			'openingHoursSpecification' => array(
+			'openingHoursSpecification' => ! empty( $go_opening_hours ) ? $go_opening_hours : array(
 				array(
 					'@type'     => 'OpeningHoursSpecification',
 					'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),

@@ -125,43 +125,38 @@
 			cta_marker: dataEvent || 'selector',
 		};
 
+		var isReserve = target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+			|| href.indexOf('/madrid/valoracion/') !== -1;
+		var isWhatsApp = target.matches('[data-gtag="click-whatsapp"]')
+			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href);
+		var isPhone = /^tel:/i.test(href);
+
+		// Track treatment-specific clicks for Google Ads conversion attribution.
+		// Emitted before the early-returning CTA branches so that treatment CTAs
+		// (reservation/WhatsApp/phone) still surface a treatment-scoped signal.
+		if (isReserve || isWhatsApp || isPhone) {
+			if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
+				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+			}
+			if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
+				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+			}
+		}
+
 		// Track reservation clicks
-		if (
-			target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
-			|| href.indexOf('/madrid/valoracion/') !== -1
-		) {
+		if (isReserve) {
 			emit('reserve_click', Object.assign({ contact_method: 'reservation' }, common));
 			return;
 		}
 
 		// Track WhatsApp clicks
-		if (
-			target.matches('[data-gtag="click-whatsapp"]')
-			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
-		) {
+		if (isWhatsApp) {
 			emit('whatsapp_click', Object.assign({ contact_method: 'whatsapp' }, common));
 			return;
 		}
 
-		// Track treatment-specific clicks for Google Ads conversion attribution
-		// Only emit for actual treatment CTAs (reservation/WhatsApp/phone), not generic links
-		if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
-			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
-				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
-				|| /^tel:/i.test(href)) {
-				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
-			}
-		}
-		if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
-			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
-				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
-				|| /^tel:/i.test(href)) {
-				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
-			}
-		}
-
 		// Track phone clicks
-		if (/^tel:/i.test(href)) {
+		if (isPhone) {
 			emit('phone_click', {
 				contact_method: 'phone',
 				cta_region: regionFor(target),

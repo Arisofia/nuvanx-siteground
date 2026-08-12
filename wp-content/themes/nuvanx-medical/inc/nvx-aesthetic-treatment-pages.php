@@ -92,6 +92,7 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'h1',
 				'lead',
 				'description',
+				'seo_title',
 				'diagnosis',
 				'indications',
 				'precautions',
@@ -184,212 +185,183 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return $result;
 }
 
-function nvx_aesthetic_treatment_list_markup( array $items ): string {
-	$html = '<ul class="nvx-aes-panel-list" role="list">';
+/** Current page data or null. */
+function nvx_aesthetic_treatment_current(): ?array {
+	$key = nvx_aesthetic_treatment_current_key();
+	if ( null === $key ) {
+		return null;
+	}
+	$catalog = nvx_aesthetic_treatment_catalog();
+	return $catalog[ $key ] ?? null;
+}
+
+/** Whether the current page is one of the governed aesthetic treatment pages. */
+function nvx_is_aesthetic_treatment_page(): bool {
+	return null !== nvx_aesthetic_treatment_current_key();
+}
+
+/**
+ * Render one treatment data row.
+ *
+ * @param string $label Row label.
+ * @param string $value Row value.
+ */
+function nvx_aesthetic_treatment_data_row( string $label, string $value ): string {
+	if ( '' === trim( $value ) ) {
+		return '';
+	}
+	return '<li><strong>' . esc_html( $label ) . '</strong><span>' . esc_html( $value ) . '</span></li>';
+}
+
+/**
+ * Render plain bullet list.
+ *
+ * @param array<int,string> $items List values.
+ */
+function nvx_aesthetic_treatment_list( array $items ): string {
+	if ( empty( $items ) ) {
+		return '';
+	}
+	$html = '<ul class="nvx-treatment-page__list">';
 	foreach ( $items as $item ) {
 		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
-	return $html . '</ul>';
-}
-
-function nvx_aesthetic_treatment_faq_markup( array $faqs ): string {
-	$html = '<div class="nvx-faq nvx-aes-faq-list">';
-	foreach ( $faqs as $index => $faq ) {
-		$html .= '<details class="nvx-brand-faq-item"' . ( 0 === $index ? ' open' : '' ) . '>';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-		$html .= '</details>';
-	}
-	return $html . '</div>';
-}
-
-function nvx_aesthetic_treatment_cta_markup(): string {
-	$buttons = function_exists( 'nvx_cta_pair_markup' )
-		? nvx_cta_pair_markup( 'nvx-aesthetic-treatment__ctas' )
-		: '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a>';
-
-	return '<section class="nvx-aes-section nvx-aesthetic-treatment__cta" aria-labelledby="nvx-aesthetic-treatment-cta-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Valoración médica</p><h2 id="nvx-aesthetic-treatment-cta-title" class="nvx-aes-heading">Diagnóstico antes que producto</h2><p class="nvx-aes-body nvx-aes-body--lead">La indicación, el material, el plano y el presupuesto se confirman después de explorar la anatomía, los antecedentes y los objetivos.</p>' . $buttons . '</div></section>';
+	$html .= '</ul>';
+	return $html;
 }
 
 /**
- * Renders the optional clinical parameters section for an aesthetic treatment page.
+ * Render optional page section.
  *
- * @param array $entry Catalog entry.
- * @return string The rendered HTML section, or an empty string when no parameters apply.
+ * @param string $title Section title.
+ * @param string $copy Section copy.
  */
-function nvx_aesthetic_treatment_details_markup( array $entry ): string {
-	$text_fields = array(
-		'price_range'  => __( 'Tarifa orientativa:', 'nuvanx-medical' ),
-		'sessions'     => __( 'Sesiones orientativas:', 'nuvanx-medical' ),
-		'session_time' => __( 'Duración en cabina:', 'nuvanx-medical' ),
-		'duration'     => __( 'Durabilidad orientativa:', 'nuvanx-medical' ),
-		'downtime'     => __( 'Recuperación y downtime:', 'nuvanx-medical' ),
-		'anesthesia'   => __( 'Anestesia:', 'nuvanx-medical' ),
-	);
-
-	$items = '';
-	foreach ( $text_fields as $key => $label ) {
-		if ( ! empty( $entry[ $key ] ) ) {
-			$items .= '<li><strong>' . esc_html( $label ) . '</strong> ' . esc_html( (string) $entry[ $key ] ) . '</li>';
-		}
-	}
-
-	if ( ! empty( $entry['brands'] ) && is_array( $entry['brands'] ) ) {
-		$items .= '<li><strong>' . esc_html__( 'Productos de referencia:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ', ', $entry['brands'] ) ) . '</li>';
-	}
-	if ( ! empty( $entry['techniques'] ) && is_array( $entry['techniques'] ) ) {
-		$items .= '<li><strong>' . esc_html__( 'Técnicas / Áreas de abordaje:', 'nuvanx-medical' ) . '</strong> ' . esc_html( implode( ' · ', $entry['techniques'] ) ) . '</li>';
-	}
-
-	if ( '' === $items ) {
+function nvx_aesthetic_treatment_copy_section( string $title, string $copy ): string {
+	if ( '' === trim( $copy ) ) {
 		return '';
 	}
-
-	return '<section class="nvx-aes-section nvx-aes-clinical-data" aria-labelledby="nvx-aesthetic-data-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">'
-		. esc_html__( 'Parámetros de tratamiento', 'nuvanx-medical' )
-		. '</p><h2 id="nvx-aesthetic-data-title" class="nvx-aes-heading">'
-		. esc_html__( 'Datos clínicos y de consulta', 'nuvanx-medical' )
-		. '</h2><ul class="nvx-strategy-checklist">' . $items . '</ul></div></section>';
+	return '<section class="nvx-treatment-page__section"><h2>' . esc_html( $title ) . '</h2><p>' . esc_html( $copy ) . '</p></section>';
 }
 
 /**
- * Renders the complete HTML body for a canonical aesthetic treatment page.
+ * Render treatment page content.
  *
- * @param string $key The catalogue key identifying the treatment.
- * @return string The rendered page HTML, or an empty string when the treatment is unavailable.
+ * @param array<string,mixed> $page Current treatment data.
  */
-function nvx_aesthetic_treatment_render( string $key ): string {
-	$catalog = nvx_aesthetic_treatment_catalog();
-	if ( empty( $catalog[ $key ] ) ) {
-		return '';
-	}
-	$entry = $catalog[ $key ];
+function nvx_aesthetic_treatment_render( array $page ): void {
+	$schema    = is_array( $page['schema'] ?? null ) ? $page['schema'] : array();
+	$protocol  = is_array( $page['protocol'] ?? null ) ? $page['protocol'] : array();
+	$brands    = array_values( array_filter( array_map( 'strval', (array) ( $page['brands'] ?? array() ) ) ) );
+	$techniques = array_values( array_filter( array_map( 'strval', (array) ( $page['techniques'] ?? array() ) ) ) );
+	$price     = (string) ( $page['price_range'] ?? $protocol['price_range'] ?? $schema['price_range'] ?? '' );
+	$duration  = (string) ( $page['duration'] ?? $protocol['duration_result'] ?? $schema['duration'] ?? '' );
+	$session   = (string) ( $page['session_time'] ?? $protocol['session_time'] ?? $schema['session_time'] ?? '' );
+	$anesthesia = (string) ( $page['anesthesia'] ?? $protocol['anesthesia'] ?? $schema['anesthesia'] ?? '' );
+	$sessions  = (string) ( $page['sessions'] ?? $protocol['sessions'] ?? $schema['sessions'] ?? '' );
+	$downtime  = (string) ( $page['downtime'] ?? $protocol['downtime'] ?? $schema['downtime'] ?? '' );
+	?>
+	<article class="nvx-treatment-page" data-nvx-treatment-page>
+		<header class="nvx-treatment-page__hero">
+			<p class="nvx-kicker"><?php echo esc_html( (string) $page['kicker'] ); ?></p>
+			<h1><?php echo esc_html( (string) $page['h1'] ); ?></h1>
+			<p class="nvx-treatment-page__lead"><?php echo esc_html( (string) $page['lead'] ); ?></p>
+			<a class="nvx-button nvx-button--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+		</header>
 
-	$html  = '<div class="nvx-aesthetic-treatment nvx-aesthetic-treatment--' . esc_attr( $key ) . '">';
-	$html .= '<section class="nvx-brand-hero" aria-labelledby="nvx-aesthetic-treatment-h1"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $entry['kicker'] ) . '</p>';
-	$html .= '<h1 id="nvx-aesthetic-treatment-h1" class="nvx-brand-hero__title">' . esc_html( $entry['h1'] ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $entry['lead'] ) . '</p>';
-	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup( 'nvx-brand-actions' ) : '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>' );
-	$html .= '<p class="nvx-brand-meta">Chamberí (CS20144) · Salamanca–Goya (CS20073) · Según valoración médica</p>';
-	$html .= '</div></div></section>';
+		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Diagnóstico médico', 'nuvanx-medical' ); ?></h2><p><?php echo esc_html( (string) $page['diagnosis'] ); ?></p></section>
+		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Cuándo puede estar indicado', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['indications'] ) ); ?></section>
+		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo actúa', 'nuvanx-medical' ), (string) $page['mechanism'] ) ); ?>
+		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo es el tratamiento', 'nuvanx-medical' ), (string) $page['process'] ) ); ?>
+		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Evolución esperable', 'nuvanx-medical' ), (string) $page['evolution'] ) ); ?>
 
-	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
-		$html .= '<aside class="nvx-aes-section nvx-aesthetic-treatment__review" aria-label="Estado de revisión médica"><div class="nvx-aes-section__inner"><p class="nvx-aes-body"><strong>Revisión médica pendiente.</strong> Esta página permanece bloqueada para publicación en producción hasta registrar revisor, fecha y aprobación clínica.</p></div></aside>';
-	}
+		<?php if ( $price || $duration || $session || $anesthesia || $sessions || $downtime || $brands || $techniques ) : ?>
+			<section class="nvx-treatment-page__facts" aria-label="<?php esc_attr_e( 'Datos orientativos', 'nuvanx-medical' ); ?>">
+				<h2><?php esc_html_e( 'Datos orientativos', 'nuvanx-medical' ); ?></h2>
+				<ul>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Precio orientativo', 'nuvanx-medical' ), $price ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Duración del resultado', 'nuvanx-medical' ), $duration ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Tiempo de sesión', 'nuvanx-medical' ), $session ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Anestesia', 'nuvanx-medical' ), $anesthesia ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Sesiones', 'nuvanx-medical' ), $sessions ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Recuperación', 'nuvanx-medical' ), $downtime ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Marcas / productos', 'nuvanx-medical' ), implode( ', ', $brands ) ) ); ?>
+					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Técnicas', 'nuvanx-medical' ), implode( ', ', $techniques ) ) ); ?>
+				</ul>
+			</section>
+		<?php endif; ?>
 
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-diagnosis-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Diagnóstico</p><h2 id="nvx-aesthetic-diagnosis-title" class="nvx-aes-heading">Qué problema aborda y cuándo no debe tratarse</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['diagnosis'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Indicaciones seleccionadas</h3>' . nvx_aesthetic_treatment_list_markup( $entry['indications'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Precauciones y no indicación</h3>' . nvx_aesthetic_treatment_list_markup( $entry['precautions'] ) . '</article></div></div></section>';
+		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Seguridad y valoración', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['precautions'] ) ); ?></section>
+		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Riesgos y efectos adversos', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['risks'] ) ); ?></section>
 
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-mechanism-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Mecanismo</p><h2 id="nvx-aesthetic-mechanism-title" class="nvx-aes-heading">Cómo se plantea el tratamiento</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['mechanism'] ) . '</p><ol class="nvx-aes-panel-list">';
-	foreach ( $entry['process'] as $step ) {
-		$html .= '<li>' . esc_html( $step ) . '</li>';
-	}
-	$html .= '</ol></div></section>';
-	$html .= nvx_aesthetic_treatment_details_markup( $entry );
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-evolution-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Evolución y seguridad</p><h2 id="nvx-aesthetic-evolution-title" class="nvx-aes-heading">Recuperación, límites y riesgos</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['evolution'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Riesgos que deben explicarse</h3>' . nvx_aesthetic_treatment_list_markup( $entry['risks'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Combinaciones posibles</h3>' . nvx_aesthetic_treatment_list_markup( $entry['combinations'] ) . '</article></div></div></section>';
+		<?php if ( ! empty( $page['combinations'] ) ) : ?>
+			<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Combinaciones posibles', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['combinations'] ) ); ?></section>
+		<?php endif; ?>
 
-	$html .= '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aesthetic-faq-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Preguntas frecuentes</p><h2 id="nvx-aesthetic-faq-title" class="nvx-aes-heading">Respuestas clínicas antes de decidir</h2>' . nvx_aesthetic_treatment_faq_markup( $entry['faqs'] ) . '</div></section>';
-
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-clinics-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">NUVANX Madrid</p><h2 id="nvx-aesthetic-clinics-title" class="nvx-aes-heading">Valoración en Chamberí o Salamanca–Goya</h2><p class="nvx-aes-body"><a href="' . esc_url( home_url( '/medicina-estetica-chamberi/' ) ) . '">Clínica NUVANX Chamberí</a> · <a href="' . esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ) . '">Clínica NUVANX Salamanca–Goya</a></p></div></section>';
-	$html .= nvx_aesthetic_treatment_cta_markup();
-
-	return $html . '</div>';
+		<?php if ( ! empty( $page['faqs'] ) ) : ?>
+			<section class="nvx-treatment-page__faq" aria-label="<?php esc_attr_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?>">
+				<h2><?php esc_html_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?></h2>
+				<?php foreach ( (array) $page['faqs'] as $faq ) : ?>
+					<details><summary><?php echo esc_html( (string) ( $faq['q'] ?? '' ) ); ?></summary><p><?php echo esc_html( (string) ( $faq['a'] ?? '' ) ); ?></p></details>
+				<?php endforeach; ?>
+			</section>
+		<?php endif; ?>
+	</article>
+	<?php
 }
 
-add_filter(
-	'nvx_page_owner',
-	function ( $owner ) {
-		if ( ! empty( $owner ) ) {
-			return $owner; }
-		if ( function_exists( 'nvx_aesthetic_treatment_current_key' ) && null !== nvx_aesthetic_treatment_current_key() ) {
-			return 'nvx_aesthetic_treatment_pages';
-		}
-		return $owner;
-	}
-);
-
-/** Replace marker content with the canonical versioned page. */
-function nvx_aesthetic_treatment_filter_content( string $content ): string {
-	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
-	if ( $owner !== 'nvx_aesthetic_treatment_pages' ) {
+/** Render complete treatment page for governed slugs. */
+function nvx_aesthetic_treatment_page_content( string $content ): string {
+	if ( ! is_singular( 'page' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
-
-	if ( ! in_the_loop() || ! is_main_query() ) {
+	$page = nvx_aesthetic_treatment_current();
+	if ( null === $page ) {
 		return $content;
 	}
-	$key = nvx_aesthetic_treatment_current_key();
-	return null === $key ? $content : nvx_aesthetic_treatment_render( $key );
+	ob_start();
+	nvx_aesthetic_treatment_render( $page );
+	return (string) ob_get_clean();
 }
-add_filter( 'the_content', 'nvx_aesthetic_treatment_filter_content', NVX_HOOK_PRIO_AESTHETIC_TREATMENT );
+add_filter( 'the_content', 'nvx_aesthetic_treatment_page_content', NVX_HOOK_PRIO_CATALOG_CONTENT );
 
-/** Canonical SEO metadata for the four pages. */
-function nvx_aesthetic_treatment_current_entry(): ?array {
-	$key     = nvx_aesthetic_treatment_current_key();
-	$catalog = nvx_aesthetic_treatment_catalog();
-	return null !== $key && isset( $catalog[ $key ] ) ? $catalog[ $key ] : null;
-}
-
-function nvx_aesthetic_treatment_filter_title( $title ) {
-	$entry = nvx_aesthetic_treatment_current_entry();
-	return null === $entry ? $title : $entry['seo_title'];
-}
-add_filter( 'wpseo_title', 'nvx_aesthetic_treatment_filter_title', 90 );
-add_filter( 'wpseo_opengraph_title', 'nvx_aesthetic_treatment_filter_title', 90 );
-add_filter( 'wpseo_twitter_title', 'nvx_aesthetic_treatment_filter_title', 90 );
-
-function nvx_aesthetic_treatment_filter_description( $description ) {
-	$entry = nvx_aesthetic_treatment_current_entry();
-	return null === $entry ? $description : $entry['description'];
-}
-add_filter( 'wpseo_metadesc', 'nvx_aesthetic_treatment_filter_description', 90 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_aesthetic_treatment_filter_description', 90 );
-add_filter( 'wpseo_twitter_description', 'nvx_aesthetic_treatment_filter_description', 90 );
-
-function nvx_aesthetic_treatment_filter_canonical( $canonical ) {
-	$entry = nvx_aesthetic_treatment_current_entry();
-	return null === $entry ? $canonical : home_url( '/' . $entry['slug'] . '/' );
-}
-// HTML canonical: nvx-document-governance only. OG URL may still be adjusted.
-add_filter( 'wpseo_opengraph_url', 'nvx_aesthetic_treatment_filter_canonical', 90 );
-
-function nvx_aesthetic_treatment_document_title( array $parts ): array {
-	$entry = nvx_aesthetic_treatment_current_entry();
-	if ( null !== $entry ) {
-		$parts['title'] = $entry['h1'];
+/** Use a dedicated page template for governed aesthetic treatments. */
+function nvx_aesthetic_treatment_template( string $template ): string {
+	if ( ! nvx_is_aesthetic_treatment_page() ) {
+		return $template;
 	}
-	return $parts;
+	$custom = get_template_directory() . '/templates/page-aesthetic-treatment.php';
+	return is_readable( $custom ) ? $custom : $template;
 }
-add_filter( 'document_title_parts', 'nvx_aesthetic_treatment_document_title', 90 );
+add_filter( 'template_include', 'nvx_aesthetic_treatment_template', 50 );
 
-/** Seed the four pages only in staging2, which is globally noindex. */
-function nvx_aesthetic_treatment_seed_staging_pages(): void {
+/** Seed governed pages on staging only; never mutate production automatically. */
+function nvx_aesthetic_treatment_seed_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;
 	}
-
-	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
-		$page = get_page_by_path( $entry['slug'], OBJECT, 'page' );
-		if ( $page instanceof WP_Post ) {
+	if ( ! current_user_can( 'manage_options' ) && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return;
+	}
+	foreach ( nvx_aesthetic_treatment_catalog() as $key => $page ) {
+		$slug = (string) $page['slug'];
+		$post = get_page_by_path( $slug, OBJECT, 'page' );
+		$data = array(
+			'post_title'   => wp_strip_all_tags( (string) $page['h1'] ),
+			'post_name'    => $slug,
+			'post_content' => '<div data-nvx-treatment="' . esc_attr( (string) $key ) . '"></div>',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+		);
+		if ( $post instanceof WP_Post ) {
+			$data['ID'] = $post->ID;
+			$post_id    = wp_update_post( $data, true );
+		} else {
+			$post_id = wp_insert_post( $data, true );
+		}
+		if ( is_wp_error( $post_id ) ) {
 			continue;
 		}
-
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $entry['h1'],
-				'post_name'    => $entry['slug'],
-				'post_excerpt' => $entry['description'],
-				'post_content' => '<div class="nvx-aesthetic-treatment-source" data-nvx-treatment="' . esc_attr( $key ) . '"></div>',
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $post_id ) ) {
-			update_post_meta( $post_id, '_nvx_aesthetic_treatment_key', $key );
-			update_post_meta( $post_id, '_nvx_medical_review_status', 'pending' );
-		}
+		update_post_meta( (int) $post_id, '_nvx_aesthetic_treatment_key', (string) $key );
 	}
 }
-add_action( 'init', 'nvx_aesthetic_treatment_seed_staging_pages', 30 );
+add_action( 'admin_init', 'nvx_aesthetic_treatment_seed_pages', 30 );

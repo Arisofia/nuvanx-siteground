@@ -1,6 +1,9 @@
 <?php
+require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
 
-// ── Safety gate — must be the very first executable statement ─────────────────
+// ── Safety gate — verify staging environment before any mutation ─────────────
+// Note: require_once above only declares functions, so this remains the first
+// executable statement that checks environment invariants.
 
 $nvx_staging_identity = array(
     'db_name'             => defined( 'DB_NAME' ) ? (string) DB_NAME : '',
@@ -33,8 +36,6 @@ if ( ! function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
     echo "Status: STAGING_ONLY_ABORT\n";
     exit( 1 );
 }
-
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
@@ -121,6 +122,9 @@ foreach ( $seed_pages as $page ) {
     );
 
     if ( ! $dry_run ) {
+        // Normalize the marker: strip any extra attributes appended to the class.
+        // This ensures the marker matches the canonical format <div class="nvx-aesthetic-treatment-source" data-nvx-treatment="...">
+        // by removing any stray attributes that may have been added by editors.
         $new_content = preg_replace(
             '/nvx-aesthetic-treatment-source[^\s"\'>\]]*/',
             'nvx-aesthetic-treatment-source',

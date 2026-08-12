@@ -56,6 +56,18 @@ $write_field = function( int $post_id, string $field, string $new_value ) use ( 
     if ( $dry_run ) {
         return true;
     }
+    // Emit durable marker BEFORE first DB write for conservative rollback detection
+    // This ensures that any interruption between marker creation and DB write
+    // will conservatively assume DB was modified and trigger rollback.
+    $marker_file = getenv( 'MIGRATION_WRITE_MARKER' );
+    if ( $marker_file && ! file_exists( $marker_file ) ) {
+        if ( ! touch( $marker_file ) ) {
+            fwrite( STDERR, "[FATAL] Failed to create migration write marker at {$marker_file}. Aborting to prevent silent DB rollback disable.\n" );
+            echo "Status: MIGRATION_FAIL\n";
+            exit( 1 );
+        }
+        echo "MIGRATION_WRITE_MARKER_CREATED at={$marker_file}\n";
+    }
     $result = $wpdb->update(
         $wpdb->posts,
         [ $field => $new_value ],

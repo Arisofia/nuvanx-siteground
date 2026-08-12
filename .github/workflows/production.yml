@@ -446,25 +446,6 @@ jobs:
           set -euo pipefail
           ssh nvx-prod "NVX_RUN_TOKEN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-prod.sh' --prod-root '$PROD_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
 
-      - name: Run shared content migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          LOG="$REMOTE_RELEASE/migration-${{ github.sha }}.log"
-
-          ssh nvx-prod \
-            "cd '$PROD_ROOT' && \
-             wp eval-file '$REMOTE_RELEASE/tools/migrations/content-hygiene-shared.php' \
-             --allow-root 2>&1 | tee '$LOG'"
-
-          # Verify sentinel — abort if missing
-          ssh nvx-prod "grep -q 'Status: MIGRATION_OK' '$LOG'" || {
-            echo "[FATAL] MIGRATION_OK sentinel not found in log. Aborting.";
-            exit 1;
-          }
-
-          echo "SHARED_MIGRATION=PASS sha=${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
-
       - name: Verify production public boundary and exact disk SHA
         shell: bash
         run: |

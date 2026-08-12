@@ -22,9 +22,17 @@ See [`docs/operations/deployment.md`](../../docs/operations/deployment.md) for t
 
 ## Migrations are separate from deploys
 
-One-time or bounded data migrations do not belong in this directory. Retained migration tooling lives under [`tools/migrations/`](../migrations/) and must not be executed as part of routine deployment.
+One-time or bounded data migrations do not belong in this directory. Retained migration tooling lives under [`tools/migrations/`](../migrations/).
 
 The currently retained CMS cleanup migration is documented in [`tools/migrations/README.md`](../migrations/README.md). It remains only because active theme compatibility guards explicitly depend on evidence that the migration has completed.
+
+The shared content-hygiene migration and the divergence audit are the sole exception: `deploy-to-prod.sh` runs `tools/migrations/content-hygiene-shared.php` and `tools/migrations/audit-content-divergence.php` inside the atomic post-cutover window. If either the `MIGRATION_OK` or the `AUDIT_CLEAN` status is missing, the deploy rolls back both the previous theme and the database snapshot together. No other migration may be executed as part of routine deployment.
+
+To prevent editorial content changes (e.g. H1 text) from triggering full rollbacks, the audit runs twice:
+- Pre-cutover: checks only non-migratable issues (legal page H1, missing pages) and fails fast on those
+- Post-migration: requires full AUDIT_CLEAN including string/regex hygiene rules after migration fixes them
+
+**Important change:** The workflow step "Run shared content migration" has been removed. The migration now executes only once, inside deploy-to-prod.sh's atomic post-cutover window. This eliminates the unprotected second execution that previously ran outside the rollback transaction.
 
 ## Host-level emergency production operation
 

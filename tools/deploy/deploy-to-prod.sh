@@ -256,6 +256,7 @@ rollback_after_swap() {
     fi
     echo "ROLLBACK_PRODUCTION=PASS" >&2
   fi
+  [[ "$rc" -ne 0 ]] || rc=1
   exit "$rc"
 }
 trap rollback_after_swap ERR INT TERM HUP
@@ -282,11 +283,13 @@ purge_rc=0
 (
   trap - ERR INT TERM HUP
   cd "$PROD_ROOT"
-  wp cache flush || purge_rc=$?
-  purge_siteground_dynamic_cache || purge_rc=$?
+  rc=0
+  wp cache flush || rc=$?
+  purge_siteground_dynamic_cache || rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+  exit "$rc"
 ) || purge_rc=$?
 [[ "$purge_rc" -eq 0 ]] || echo "WARN: production cache purge reported a non-fatal error rc=$purge_rc" >&2
 

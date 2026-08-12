@@ -60,7 +60,7 @@ function printStaticReference() {
     console.log(`   Días de consulta médica: ${clinic.days}\n`);
   }
 
-  console.log('STATIC_NAP_REFERENCE=PASS clinics=2');
+  console.log('STATIC_NAP_REFERENCE=PRINTED clinics=2');
   console.log('LIVE_GBP_AUDIT_REQUIRED=true');
   console.log('NEXT_CHECK=Compare GBP name, primary/secondary categories, address, phone, hours, website URL, appointment URL, services and review profile against this reference.');
 }

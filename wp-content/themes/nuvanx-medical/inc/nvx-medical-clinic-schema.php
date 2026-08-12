@@ -50,7 +50,7 @@ function nvx_add_medical_clinic_schema( $data ) {
 
 		$config   = $clinics_config[ $key ];
 		$page_url = 'chamberi' === $key
-			? home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi/' )
+			? home_url( '/medicina-estetica-chamberi/' )
 			: home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
 
 		$schema = array(

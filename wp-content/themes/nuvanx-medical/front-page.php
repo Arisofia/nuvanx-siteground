@@ -22,6 +22,17 @@ $hero_poster_url       = is_string( $configured_poster_url ) && '' !== $configur
 	: $canonical_poster_url;
 $evidence_image        = content_url( '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 
+// Preload hero poster for LCP optimization
+function nvx_preload_hero_poster( string $poster_url ): void {
+	if ( ! is_string( $poster_url ) || '' === $poster_url ) {
+		return;
+	}
+	echo '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $poster_url ) . '">' . "\n";
+}
+add_action( 'wp_head', function() use ( $hero_poster_url ) {
+	nvx_preload_hero_poster( $hero_poster_url );
+}, 1 );
+
 ob_start();
 ?>
 <div id="nvx-home-v3" class="nvx-home-v3">

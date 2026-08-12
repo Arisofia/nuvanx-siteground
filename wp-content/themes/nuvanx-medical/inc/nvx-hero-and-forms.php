@@ -18,9 +18,10 @@ function nvx_hero_featured_media_figure(): string {
 		null,
 		'full',
 		array(
-			'class'   => 'nvx-media nvx-media--hero',
-			'loading' => 'eager',
-			'alt'     => the_title_attribute( array( 'echo' => false ) ),
+			'class'         => 'nvx-media nvx-media--hero',
+			'loading'       => 'eager',
+			'fetchpriority' => 'high',
+			'alt'           => the_title_attribute( array( 'echo' => false ) ),
 		)
 	);
 

@@ -1,24 +1,34 @@
 <?php
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
 
 // ── Safety gate — must be the very first executable statement ─────────────────
 
-if (
-    ! function_exists( 'nvx_environment_is_staging2' )
-    || ! nvx_environment_is_staging2()
-) {
-    fwrite( STDERR,
-        "[FATAL] content-hygiene-staging-only.php executed outside Staging2. " .
-        "This script is not permitted in production. Aborting.\n"
+$nvx_staging_identity = array(
+    'db_name'             => defined( 'DB_NAME' ) ? (string) DB_NAME : '',
+    'home'                => (string) get_option( 'home' ),
+    'siteurl'             => (string) get_option( 'siteurl' ),
+    'nvx_env'             => defined( 'NVX_ENV' ) ? (string) NVX_ENV : '',
+    'wp_environment_type' => defined( 'WP_ENVIRONMENT_TYPE' ) ? (string) WP_ENVIRONMENT_TYPE : '',
+);
+
+$nvx_is_staging2_cli = 'dbshcocboodiwr' === $nvx_staging_identity['db_name']
+    && 'https://staging2.nuvanx.com' === $nvx_staging_identity['home']
+    && 'https://staging2.nuvanx.com' === $nvx_staging_identity['siteurl']
+    && 'staging' === $nvx_staging_identity['nvx_env']
+    && 'staging' === $nvx_staging_identity['wp_environment_type'];
+
+if ( ! $nvx_is_staging2_cli ) {
+    fwrite(
+        STDERR,
+        "[FATAL] content-hygiene-staging-only.php executed outside the canonical Staging2 WP-CLI identity. Aborting.\n"
     );
     echo "Status: STAGING_ONLY_ABORT\n";
     exit( 1 );
 }
 
 if ( ! function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
-    fwrite( STDERR,
-        "[FATAL] nvx_aesthetic_treatment_catalog() not available. " .
-        "Theme may not be fully loaded. Aborting.\n"
+    fwrite(
+        STDERR,
+        "[FATAL] nvx_aesthetic_treatment_catalog() not available. Theme may not be fully loaded. Aborting.\n"
     );
     echo "Status: STAGING_ONLY_ABORT\n";
     exit( 1 );
@@ -111,7 +121,6 @@ foreach ( $seed_pages as $page ) {
     );
 
     if ( ! $dry_run ) {
-        // Normalize the marker: strip any extra attributes appended to the class.
         $new_content = preg_replace(
             '/nvx-aesthetic-treatment-source[^\s"\'>\]]*/',
             'nvx-aesthetic-treatment-source',

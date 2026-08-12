@@ -34,6 +34,9 @@ function nvx_theme_setup(): void {
 		array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' )
 	);
 
+	// Enable WebP support for better performance
+	add_theme_support( 'webp' );
+
 	register_nav_menus(
 		array(
 			'primary' => esc_html__( 'Primary', 'nuvanx-medical' ),

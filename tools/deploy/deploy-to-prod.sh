@@ -97,9 +97,12 @@ purge_siteground_dynamic_cache() {
   cd "$PROD_ROOT"
 
   if wp help sg >/dev/null 2>&1; then
-    wp sg purge
-    echo 'SITEGROUND_DYNAMIC_PURGE=PASS mode=existing-command'
-    return 0
+    if wp sg purge; then
+      echo 'SITEGROUND_DYNAMIC_PURGE=PASS mode=existing-command'
+      return 0
+    fi
+    echo "ERROR: wp sg purge failed" >&2
+    return 1
   fi
 
   if ! wp plugin is-installed "$plugin" >/dev/null 2>&1; then
@@ -228,7 +231,11 @@ echo "ROLLBACK_SNAPSHOT=PASS path=$BACKUP_DIR"
 
 rollback_after_swap() {
   local rc=$?
-  trap - ERR INT TERM HUP
+  # Disable the ERR trap but IGNORE (not default) INT/TERM/HUP so a second
+  # signal cannot kill the process mid-restore and leave production without a
+  # live theme. Default signal disposition is restored only on final exit.
+  trap - ERR
+  trap '' INT TERM HUP
   set +e
   if [[ "$ROLLBACK_IN_PROGRESS" -eq 1 ]]; then
     [[ "$rc" -ne 0 ]] || rc=1

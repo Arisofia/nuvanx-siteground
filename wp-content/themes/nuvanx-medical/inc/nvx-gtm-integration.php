@@ -6,10 +6,10 @@
  * Consent Mode snippets. This module never loads GTM, emits a GTM noscript
  * iframe, or resolves Google Ads conversion-action IDs.
  *
- * The theme owns only business context that GTM can consume from dataLayer.
- * Keeping this push independent from the GTM loader means it is available
- * before Site Kit's container executes, including when third-party scripts are
- * delayed by the theme performance layer.
+ * The theme owns only business context consumed by GTM/dataLayer and by the
+ * NUVANX conversion-events client. Keeping this context independent from the
+ * GTM loader makes it available before Site Kit's container executes, including
+ * when third-party scripts are delayed by the theme performance layer.
  *
  * @package nuvanx-medical
  */
@@ -31,7 +31,10 @@ function nvx_gtm_context_page_type(): string {
 	}
 
 	if ( is_page() ) {
-		if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
+		$is_valoracion = function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page();
+		$request_path  = function_exists( 'nvx_theme_request_path' ) ? nvx_theme_request_path() : '';
+
+		if ( $is_valoracion || false !== strpos( $request_path, '/valoracion/' ) ) {
 			return 'valoracion';
 		}
 
@@ -46,6 +49,28 @@ function nvx_gtm_context_page_type(): string {
 }
 
 /**
+ * Resolve non-Google business configuration consumed by nvx-conversion-events.js.
+ *
+ * This deliberately excludes GTM and Google Ads conversion IDs. Site Kit and
+ * the GTM container own Google tag configuration; the theme only exposes the
+ * canonical HubSpot form identity required by the NUVANX event classifier.
+ *
+ * @return array{env:string,forms:array{valoracion:string}}
+ */
+function nvx_gtm_client_context(): array {
+	$valoracion_form_id = defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' )
+		? (string) NVX_HUBSPOT_VALORACION_FORM_ID
+		: (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
+
+	return array(
+		'env'   => nvx_environment_is_staging2() ? 'staging2' : 'production',
+		'forms' => array(
+			'valoracion' => $valoracion_form_id,
+		),
+	);
+}
+
+/**
  * Push NUVANX business context before Site Kit executes the GTM container.
  */
 function nvx_gtm_push_context(): void {
@@ -53,21 +78,24 @@ function nvx_gtm_push_context(): void {
 		return;
 	}
 
-	$context = wp_json_encode(
+	$client_context = nvx_gtm_client_context();
+	$data_layer     = wp_json_encode(
 		array(
-			'nvx_env'       => nvx_environment_is_staging2() ? 'staging2' : 'production',
+			'nvx_env'       => $client_context['env'],
 			'nvx_page_type' => nvx_gtm_context_page_type(),
 		),
-		JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+		JSON_UNESCAPED_UNICODE
 	);
+	$client_config  = wp_json_encode( $client_context, JSON_UNESCAPED_UNICODE );
 
-	if ( ! is_string( $context ) || '' === $context ) {
+	if ( ! is_string( $data_layer ) || '' === $data_layer || ! is_string( $client_config ) || '' === $client_config ) {
 		return;
 	}
 
 	printf(
-		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);</script>\n",
-		$context // wp_json_encode() returns executable JSON, not user-authored markup.
+		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=Object.assign({},window.nvxConversionEvents||{},%s);</script>\n",
+		$data_layer, // wp_json_encode() returns executable JSON, not user-authored markup.
+		$client_config
 	);
 }
 add_action( 'wp_head', 'nvx_gtm_push_context', 1 );

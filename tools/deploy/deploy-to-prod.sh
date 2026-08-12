@@ -511,9 +511,9 @@ purge_restore_rc=0
   # - 10: plugin restoration failure (plugin remained active) - fatal
   # - other non-zero: purge failure - non-fatal
   purge_siteground_dynamic_cache || purge_restore_rc=$?
-  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-  rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
-  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || inner_rc=$?
+  rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || inner_rc=$?
+  wp eval 'if (function_exists("opcache_reset")) { if ( ! opcache_reset() ) { echo "opcache_reset failed\n"; exit(1); } echo "opcache=ok\n"; }' || inner_rc=$?
   # Exit with the first non-zero code encountered
   [[ "$inner_rc" -eq 0 ]] || exit "$inner_rc"
   [[ "$purge_restore_rc" -eq 0 ]] || exit "$purge_restore_rc"

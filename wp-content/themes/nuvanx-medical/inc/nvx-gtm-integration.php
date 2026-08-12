@@ -123,7 +123,7 @@ function nvx_gtm_head_snippet(): void {
 
 	// Build initial dataLayer push with page metadata.
 	$data_layer = array(
-		'gtm.start' => new Date().getTime(),
+		'gtm.start' => (int) round( microtime( true ) * 1000 ),
 		'event' => 'gtm.js',
 		'nvx_env' => $env_label,
 		'nvx_page_type' => $page_type,

@@ -13,6 +13,7 @@ pass() { printf 'PASS %s\n' "$*"; }
 
 [[ "$INDEXNOW_KEY" =~ ^[A-Za-z0-9_-]{8,128}$ ]] || fail 'INDEXNOW_KEY_INVALID'
 [[ "$BASE_URL" == "https://$EXPECTED_HOST" ]] || fail "BASE_URL_HOST_MISMATCH base=$BASE_URL expected=$EXPECTED_HOST"
+command -v cmp >/dev/null || fail 'CMP_UNAVAILABLE'
 
 cd "$PROD_ROOT"
 release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
@@ -23,15 +24,47 @@ release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-dep
 [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
 pass "PRODUCTION_IDENTITY sha=$release_sha"
 
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
 key_file="$PROD_ROOT/$INDEXNOW_KEY.txt"
 umask 022
 printf '%s' "$INDEXNOW_KEY" > "$key_file"
 chmod 0644 "$key_file"
-[[ "$(cat "$key_file")" == "$INDEXNOW_KEY" ]] || fail 'INDEXNOW_KEY_FILE_WRITE'
-pass "INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt"
+cmp -s "$key_file" <(printf '%s' "$INDEXNOW_KEY") || fail 'INDEXNOW_KEY_FILE_WRITE'
 
-tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' EXIT
+public_key_file="$tmpdir/indexnow-public-key.txt"
+public_key_error="$tmpdir/indexnow-public-key.err"
+set +e
+public_key_http="$(curl -sS \
+  --retry 3 \
+  --retry-all-errors \
+  --retry-delay 2 \
+  --retry-max-time 45 \
+  --connect-timeout 5 \
+  --max-time 15 \
+  --proto '=https' \
+  --proto-redir '=https' \
+  -o "$public_key_file" \
+  -w '%{http_code}' \
+  "$BASE_URL/$INDEXNOW_KEY.txt" 2>"$public_key_error")"
+public_key_rc=$?
+set -e
+
+if (( public_key_rc != 0 )); then
+  printf 'INDEXNOW_KEY_PUBLIC_ERROR=%s\n' "$(tr '\n' ' ' < "$public_key_error" | head -c 500)" >&2
+  fail "INDEXNOW_KEY_PUBLIC_FETCH curl_rc=$public_key_rc"
+fi
+[[ "$public_key_http" == '200' ]] || fail "INDEXNOW_KEY_PUBLIC_HTTP status=$public_key_http"
+
+if cmp -s "$public_key_file" <(printf '%s' "$INDEXNOW_KEY") \
+  || cmp -s "$public_key_file" <(printf '%s\n' "$INDEXNOW_KEY") \
+  || cmp -s "$public_key_file" <(printf '%s\r\n' "$INDEXNOW_KEY"); then
+  :
+else
+  fail 'INDEXNOW_KEY_PUBLIC_CONTENT_MISMATCH'
+fi
+pass "INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt source=public-origin http=200"
 
 curl -fsS --max-time 30 "$BASE_URL/sitemap_index.xml" -o "$tmpdir/sitemap-index.xml"
 grep -oE '<loc>[^<]+</loc>' "$tmpdir/sitemap-index.xml" \

@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
 
 // ── Safety gate — must be the very first executable statement ─────────────────
 
@@ -24,7 +23,7 @@ if ( ! function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
     exit( 1 );
 }
 
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
+require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 

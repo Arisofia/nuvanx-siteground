@@ -31,7 +31,7 @@ function nvx_gtm_context_page_type(): string {
 	}
 
 	if ( is_page() ) {
-		if ( is_page( 'valoracion' ) || false !== strpos( (string) get_the_permalink(), '/valoracion/' ) ) {
+		if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
 			return 'valoracion';
 		}
 

@@ -1,36 +1,5 @@
 <?php
-/**
- * content-hygiene-shared.php
- *
- * NVX Shared Content Migration — STAGING and PRODUCTION.
- *
- * Applies all string / regex replacements defined in nvx-content-hygiene-rules.php
- * to wp_posts (title, content, excerpt) for published, draft, private, and
- * pending posts.
- *
- * Idempotent: each operation checks the current DB value before writing.
- * A record that is already correct is never touched.
- *
- * Usage:
- *   wp eval-file /path/to/tools/migrations/content-hygiene-shared.php
- *
- * Dry-run (no writes, full diff report):
- *   MIGRATION_DRY_RUN=1 wp eval-file /path/to/tools/migrations/content-hygiene-shared.php
- *
- * CI integration — check for sentinel before marking step green:
- *   grep -q "Status: MIGRATION_OK" migration.log || exit 1
- *
- * Exit codes:
- *   0 — all blocks completed, emits "Status: MIGRATION_OK"
- *   1 — one or more blocks failed, emits "Status: MIGRATION_FAIL"
- *
- * @package NVX\Migrations
- * @version 1.0.0
- */
-
-declare( strict_types = 1 );
-
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
+require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 

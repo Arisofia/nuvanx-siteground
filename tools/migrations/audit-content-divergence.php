@@ -1,29 +1,5 @@
 <?php
-/**
- * audit-content-divergence.php
- *
- * NVX Content Divergence Auditor — READ-ONLY.
- *
- * Scans wp_posts for all strings / regex patterns defined in
- * nvx-content-hygiene-rules.php that still require migration, and
- * verifies legal-page H1 integrity.
- *
- * Usage (from WP installation root):
- *   wp eval-file /path/to/tools/migrations/audit-content-divergence.php
- *
- * Safe in production: ZERO database writes.
- *
- * Exit codes:
- *   0 — nothing pending (Status: AUDIT_CLEAN)
- *   1 — pending migrations found or fatal error (Status: AUDIT_PENDING_N)
- *
- * @package NVX\Migrations
- * @version 1.0.0
- */
-
-declare( strict_types = 1 );
-
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
+require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 

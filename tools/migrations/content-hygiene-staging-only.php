@@ -1,32 +1,5 @@
 <?php
-/**
- * content-hygiene-staging-only.php
- *
- * NVX Staging-Only Content Migration.
- *
- * Normalizes aesthetic treatment seed pages. Intended exclusively for
- * Staging2 — must NEVER be executed in production.
- *
- * Safety enforcement is two-layered:
- *   1. Runtime gate: aborts if nvx_environment_is_staging2() is false.
- *   2. Deploy gate: this file must not be included in the production
- *      release payload (enforced in the workflow — see workflow-patches.md).
- *
- * Usage (Staging2 only):
- *   wp eval-file /path/to/tools/migrations/content-hygiene-staging-only.php
- *
- * Dry-run:
- *   MIGRATION_DRY_RUN=1 wp eval-file /path/to/tools/migrations/content-hygiene-staging-only.php
- *
- * Exit codes:
- *   0 — MIGRATION_OK
- *   1 — STAGING_ONLY_ABORT (wrong environment) or MIGRATION_FAIL
- *
- * @package NVX\Migrations
- * @version 1.0.0
- */
-
-declare( strict_types = 1 );
+require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
 
 // ── Safety gate — must be the very first executable statement ─────────────────
 

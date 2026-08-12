@@ -80,6 +80,21 @@ function nvx_navigation_resolve_published_slug( array $slugs ): ?array {
 
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
+			// Fallback: search by post_name (basename) if get_page_by_path failed for nested pages.
+			$posts = get_posts(
+				array(
+					'name'        => basename( $slug ),
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'numberposts' => 1,
+				)
+			);
+			if ( ! empty( $posts[0] ) && $posts[0] instanceof WP_Post ) {
+				$page = $posts[0];
+			}
+		}
+
+		if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
 			continue;
 		}
 
@@ -202,10 +217,10 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 
 	// Clinic location children for Clínicas menu item.
 	$clinic_children = array();
-	$chamberi_slug   = 'medicina-estetica-chamberi';
-	$goya_slug       = 'medicina-estetica-goya-barrio-salamanca';
-	$chamberi_page   = nvx_navigation_resolve_published_slug( array( $chamberi_slug ) );
-	$goya_page       = nvx_navigation_resolve_published_slug( array( $goya_slug ) );
+	$chamberi_slugs = array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi', 'medicina-estetica-chamberi' );
+	$goya_slugs     = array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca', 'medicina-estetica-goya-barrio-salamanca' );
+	$chamberi_page  = nvx_navigation_resolve_published_slug( $chamberi_slugs );
+	$goya_page      = nvx_navigation_resolve_published_slug( $goya_slugs );
 
 	if ( null !== $chamberi_page ) {
 		$clinic_children[] = array(

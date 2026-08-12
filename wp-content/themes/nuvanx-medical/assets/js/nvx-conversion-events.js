@@ -102,13 +102,16 @@
 		};
 		window.gtag('event', normalizedName, params);
 
-		// Fire Google Ads conversion for specific high-intent events.
+		// Fire direct Google Ads conversion ONLY when GTM is not active (fallback mode).
+		// When GTM is configured, GTM handles the conversion tags via nvx_conversion_signal triggers.
 		var gadsConfig = window.nvxConversionEvents || {};
-		if (normalizedName === 'generate_lead' && gadsConfig.gadsConversionForm) {
-			emitGadsConversion(gadsConfig.gadsConversionForm);
-		}
-		if ((normalizedName === 'phone_click' || normalizedName === 'whatsapp_click') && gadsConfig.gadsConversionCall) {
-			emitGadsConversion(gadsConfig.gadsConversionCall);
+		if (!gadsConfig.gtmId) {
+			if (normalizedName === 'generate_lead' && gadsConfig.gadsConversionForm) {
+				emitGadsConversion(gadsConfig.gadsConversionForm);
+			}
+			if ((normalizedName === 'phone_click' || normalizedName === 'whatsapp_click') && gadsConfig.gadsConversionCall) {
+				emitGadsConversion(gadsConfig.gadsConversionCall);
+			}
 		}
 
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {

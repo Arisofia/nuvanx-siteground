@@ -2,7 +2,14 @@
 
 /**
  * Request indexing of specific URLs using Google Indexing API v3.
- * Autentica mediante Google OAuth 2.0 / ADC / Service Account (gsc-sitemap-reader@nuvanx.iam.gserviceaccount.com).
+ *
+ * NOTE ON GOOGLE POLICY & SCOPE:
+ * According to Google's official documentation, the Indexing API is intended
+ * for pages containing JobPosting or BroadcastEvent structured data.
+ * For general medical treatment pages, submitting/updating XML sitemaps
+ * via Search Console API or GSC UI is the recommended mechanism for organic indexing.
+ *
+ * Authenticates via Google OAuth 2.0 / ADC / Service Account.
  */
 
 const { google } = require('googleapis');
@@ -37,7 +44,9 @@ async function publishUrlNotification(indexing, targetUrl) {
 
 async function main() {
   console.log('Autenticando con Google Indexing API (ADC / Service Account)...');
-  
+  console.log('ℹ️ Nota: La API de Indexación de Google está orientada formalmente a JobPosting/BroadcastEvent.');
+  console.log('   Para páginas de tratamiento web, las sitemaps XML y GSC son la vía canonical.\n');
+
   const credentialsPath = path.join(__dirname, 'credentials.json');
   let auth;
   if (process.env.GOOGLE_ACCESS_TOKEN) {
@@ -58,14 +67,14 @@ async function main() {
 
   const indexing = google.indexing({ version: 'v3', auth });
 
-  console.log(`Enviando ${urls.length} URLs a Googlebot para indexación inmediata...\n`);
+  console.log(`Enviando ${urls.length} URLs a Google Indexing API...\n`);
 
   for (const url of urls) {
     try {
-      console.log(`--> Solicitando indexación para: ${url}`);
+      console.log(`--> Solicitando notificación de actualización para: ${url}`);
       const result = await publishUrlNotification(indexing, url);
-      console.log(`✅ ¡ÉXITO! En enviado a Google Indexing API.`);
-      console.log(`   Notificación: notifyTime=${result.urlNotificationMetadata?.latestUpdate?.notifyTime || 'N/A'}\n`);
+      console.log(`✅ Notificación procesada por Google Indexing API.`);
+      console.log(`   notifyTime: ${result.urlNotificationMetadata?.latestUpdate?.notifyTime || 'N/A'}\n`);
     } catch (error) {
       console.error(`❌ Error en ${url}:`, error.message);
       if (error.response?.data) {

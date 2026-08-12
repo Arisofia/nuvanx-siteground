@@ -41,12 +41,18 @@ The canonical browser acceptance entrypoint is:
 
 Block C requires every path in the canonical published-page manifest to be present in the trusted WordPress inventory. Every published WordPress page returned by that inventory is validated at desktop, tablet and mobile; additional published pages therefore increase the total test count automatically.
 
-Install browser dependencies only in the scoped package:
+Install browser dependencies in the scoped package:
 
 ```bash
 cd scripts/staging2
 npm ci --ignore-scripts
 npx playwright install chromium
+```
+
+Install root dependencies for SEO scripts:
+
+```bash
+npm ci
 ```
 
 Then run the canonical entrypoint from the repository root with `EXPECTED_SHA` set to the deployed SHA.

@@ -208,23 +208,38 @@ function nvx_superseded_legal_page_ids(): array {
 }
 
 /**
+ * Publicly navigable legal pages that are intentionally excluded from organic
+ * indexing. Callers that hide navigation should subtract these IDs rather than
+ * treating every noindex page as non-navigable.
+ *
+ * @return int[]
+ */
+function nvx_navigable_noindex_page_ids(): array {
+	$ids              = array();
+	$cookie_policy_id = function_exists( 'nvx_page_id_by_slug' )
+		? nvx_page_id_by_slug( 'politica-de-cookies-ue' )
+		: 0;
+
+	if ( $cookie_policy_id > 0 ) {
+		$ids[] = $cookie_policy_id;
+	}
+
+	return array_values( array_unique( $ids ) );
+}
+
+/**
  * Collects page and post IDs that should be excluded from public indexing.
  *
  * @return int[] Unique IDs excluded from sitemaps and other public index listings.
  */
 function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
-	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids(), nvx_superseded_legal_page_ids() );
-
-	// The canonical cookie policy must remain publicly reachable from the legal
-	// footer, but it is a functional/legal document rather than an organic-search
-	// landing page. Keep it noindex,follow and out of XML sitemaps without hiding it.
-	$cookie_policy_id = function_exists( 'nvx_page_id_by_slug' )
-		? nvx_page_id_by_slug( 'politica-de-cookies-ue' )
-		: 0;
-	if ( $cookie_policy_id > 0 ) {
-		$ids[] = $cookie_policy_id;
-	}
+	$ids = array_merge(
+		$ids,
+		nvx_quarantined_comparison_post_ids(),
+		nvx_superseded_legal_page_ids(),
+		nvx_navigable_noindex_page_ids()
+	);
 
 	// Retired strategy pages: exclude from sitemaps since they only redirect.
 	if ( function_exists( 'nvx_retired_strategy_page_ids' ) ) {
@@ -348,8 +363,8 @@ add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', NVX_HOOK_PRI
 /**
  * Remove sensitive pages (e.g., Casos de pacientes ID 2645) from navigation menus automatically.
  *
- * The canonical cookie policy is intentionally exempt: it is noindex,follow for
- * search governance but must remain directly reachable from legal navigation.
+ * Public legal pages may be noindex for search governance while still needing
+ * direct navigation access, so they are explicitly excluded from this hide-list.
  *
  * @param array $items Array of menu items.
  * @return array
@@ -360,15 +375,15 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 	}
 
 	$noindex_ids      = nvx_noindex_page_ids();
+	$navigable_ids    = nvx_navigable_noindex_page_ids();
+	$menu_excluded_ids = array_values( array_diff( $noindex_ids, $navigable_ids ) );
 	$cases_id         = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-	$cookie_policy_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'politica-de-cookies-ue' ) : 0;
 	$cases_public     = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
 
 	foreach ( $items as $key => $item ) {
 		$is_blocked_post = isset( $item->type, $item->object_id )
 			&& 'post_type' === $item->type
-			&& in_array( (int) $item->object_id, $noindex_ids, true )
-			&& (int) $item->object_id !== $cookie_policy_id;
+			&& in_array( (int) $item->object_id, $menu_excluded_ids, true );
 
 		$is_blocked_cases_url = false;
 		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {

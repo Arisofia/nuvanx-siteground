@@ -73,18 +73,23 @@ function nvx_add_medical_clinic_schema( $data ) {
 				'latitude'  => (float) ( $config['latitude'] ?? 40.431204 ),
 				'longitude' => (float) ( $config['longitude'] ?? -3.693425 ),
 			),
-			'openingHoursSpecification' => array_map(
-				static function ( $spec ) {
-					return array(
-						'@type'     => 'OpeningHoursSpecification',
-						'dayOfWeek' => $spec['days'] ?? array(),
-						'opens'     => $spec['opens'] ?? '',
-						'closes'    => $spec['closes'] ?? '',
-					);
-				},
-				$config['opening_hours'] ?? array()
-			),
 		);
+
+		$opening_hours = array_map(
+			static function ( $spec ) {
+				return array(
+					'@type'     => 'OpeningHoursSpecification',
+					'dayOfWeek' => $spec['days'] ?? array(),
+					'opens'     => $spec['opens'] ?? '',
+					'closes'    => $spec['closes'] ?? '',
+				);
+			},
+			$config['opening_hours'] ?? array()
+		);
+
+		if ( ! empty( $opening_hours ) ) {
+			$schema['openingHoursSpecification'] = $opening_hours;
+		}
 
 		$data[] = $schema;
 	}

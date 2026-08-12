@@ -50,7 +50,7 @@ function nvx_add_medical_clinic_schema( $data ) {
 
 		$config   = $clinics_config[ $key ];
 		$page_url = 'chamberi' === $key
-			? home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi/' )
+			? home_url( '/medicina-estetica-chamberi/' )
 			: home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
 
 		$schema = array(
@@ -73,15 +73,23 @@ function nvx_add_medical_clinic_schema( $data ) {
 				'latitude'  => (float) ( $config['latitude'] ?? 40.431204 ),
 				'longitude' => (float) ( $config['longitude'] ?? -3.693425 ),
 			),
-			'openingHoursSpecification' => array(
-				array(
-					'@type'     => 'OpeningHoursSpecification',
-					'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
-					'opens'     => '10:00',
-					'closes'    => '20:00',
-				),
-			),
 		);
+
+		$opening_hours = array_map(
+			static function ( $spec ) {
+				return array(
+					'@type'     => 'OpeningHoursSpecification',
+					'dayOfWeek' => $spec['days'] ?? array(),
+					'opens'     => $spec['opens'] ?? '',
+					'closes'    => $spec['closes'] ?? '',
+				);
+			},
+			$config['opening_hours'] ?? array()
+		);
+
+		if ( ! empty( $opening_hours ) ) {
+			$schema['openingHoursSpecification'] = $opening_hours;
+		}
 
 		$data[] = $schema;
 	}

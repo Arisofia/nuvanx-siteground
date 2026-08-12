@@ -234,6 +234,8 @@ jobs:
               echo "Skipping malformed artifact candidate: artifact_id=$artifact_id run_id=$run_id created_at=$created_at" >&2
               continue
             fi
+
+            # Cheap source-run checks happen before downloading the potentially large ZIP.
             if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
               echo "Skipping artifact $artifact_id: unable to fetch source run $run_id" >&2
               continue
@@ -279,6 +281,8 @@ jobs:
             manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
             rm -f "$artifact_zip"
 
+            # Producer contract: staging.yml writes every field with jq --arg, so
+            # run_id/run_attempt intentionally remain JSON strings in schema 1.
             if ! manifest_fields="$(printf '%s' "$manifest" | jq -er '
               select(type == "object" and .schema == 1) |
               [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
@@ -316,6 +320,10 @@ jobs:
               continue
             fi
 
+            # A later rerun does not invalidate immutable evidence from this exact
+            # successful attempt. The release gate separately requires the live
+            # Staging marker/environment to still equal CANDIDATE_SHA, so a later
+            # mutation or rollback cannot be promoted from stale evidence.
             case "$manifest_event" in
               push)
                 [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: push manifest head is not candidate" >&2; continue; }
@@ -585,7 +593,13 @@ jobs:
           out='scripts/seo/artifacts/sitemap-urls.txt'
           expected="$(sed -nE 's/^PASS SITEMAP_URL_COUNT count=([0-9]+)$/\1/p' "$log" | tail -n1)"
           grep '^PASS URL_SEO url=' "$log" | sed -E 's/^PASS URL_SEO url=([^ ]+) .*/\1/' > "$out"
-          actual="$(grep -c '^https://nuvanx\.com/' "$out" || true)"
+          base_prefix="${BASE_URL%/}/"
+          base_host="$(node -e 'process.stdout.write(new URL(process.argv[1]).host)' "$BASE_URL")"
+          [[ -n "$base_prefix" && "$base_host" == "$EXPECTED_HOST" ]] || {
+            echo "GSC_URL_INVENTORY=FAIL base_url=$BASE_URL base_host=${base_host:-missing} expected_host=$EXPECTED_HOST" >&2
+            exit 1
+          }
+          actual="$(awk -v prefix="$base_prefix" 'index($0, prefix) == 1 { count++ } END { print count + 0 }' "$out")"
           [[ "$expected" =~ ^[0-9]+$ && "$actual" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]] || {
             echo "GSC_URL_INVENTORY=FAIL expected=${expected:-missing} actual=$actual" >&2
             exit 1

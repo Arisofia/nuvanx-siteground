@@ -57,6 +57,36 @@
 		return output;
 	}
 
+	/**
+	 * Fire a Google Ads conversion event when an Ads Conversion ID is configured.
+	 *
+	 * The conversion ID + label come from window.nvxConversionEvents (injected
+	 * by nvx-gtm-integration.php via wp_head). If the IDs are not yet set,
+	 * this is a safe no-op — it will work automatically once the PHP constants
+	 * NVX_GADS_CONVERSION_ID_FORM / NVX_GADS_CONVERSION_ID_CALL are configured.
+	 *
+	 * Format expected: 'AW-XXXXXXXXXX/YYYYYYYYYYYY'
+	 *
+	 * @param {string} conversionId - Full conversion string (id/label).
+	 */
+	function emitGadsConversion(conversionId) {
+		if (!conversionId || conversionId.indexOf('AW-') !== 0) return;
+
+		var parts = conversionId.split('/');
+		if (parts.length !== 2 || !parts[0] || !parts[1]) return;
+
+		window.gtag = window.gtag || function () {
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push(arguments);
+		};
+
+		window.gtag('event', 'conversion', {
+			send_to: conversionId,
+			value: 1.0,
+			currency: 'EUR',
+		});
+	}
+
 	function emit(eventName, parameters) {
 		var normalizedName = cleanToken(eventName);
 		var params = allowedParameters(parameters);
@@ -72,10 +102,20 @@
 		};
 		window.gtag('event', normalizedName, params);
 
+		// Fire Google Ads conversion for specific high-intent events.
+		var gadsConfig = window.nvxConversionEvents || {};
+		if (normalizedName === 'generate_lead' && gadsConfig.gadsConversionForm) {
+			emitGadsConversion(gadsConfig.gadsConversionForm);
+		}
+		if ((normalizedName === 'phone_click' || normalizedName === 'whatsapp_click') && gadsConfig.gadsConversionCall) {
+			emitGadsConversion(gadsConfig.gadsConversionCall);
+		}
+
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
 	}
+
 
 	function trackClick(event) {
 		var target = event.target && typeof event.target.closest === 'function'

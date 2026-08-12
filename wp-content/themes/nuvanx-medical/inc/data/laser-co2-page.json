@@ -1,70 +1,131 @@
 {
     "hero": {
         "kicker": "@nvx-t:NUVANX · Medicina estética láser",
-        "h1": "@nvx-t:Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné",
+        "h1": "@nvx-t:Láser CO₂ fraccionado en Madrid: qué esperar tras el tratamiento de resurfacing",
         "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
         "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
-        "lead": "@nvx-t:Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).",
-        "description": "@nvx-t:Parámetros de potencia, profundidad y densidad ajustados por el equipo médico. PVP sesión facial desde %s € (IVA incl.).",
-        "meta": "@nvx-t:Chamberí · Salamanca–Goya · No es un peeling cosmético superficial"
+        "lead": "@nvx-t:Protocolo de resurfacing ablativo fraccionado para cicatrices de acné, poros dilatados y textura irregular. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
+        "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Parámetros de potencia, profundidad y densidad ajustados por el equipo médico. Downtime realista antes de decidir.",
+        "meta": "@nvx-t:Cicatrices de acné · Poros · Textura · Chamberí · Salamanca–Goya"
     },
-    "science": {
-        "kicker": "@nvx-t:Mecanismo",
-        "title": "@nvx-t:La ciencia de la ablación fraccionada",
+    "review": {
+        "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
+        "link": "@nvx-t:Ver equipo médico"
+    },
+    "what": {
+        "kicker": "@nvx-t:El protocolo",
+        "title": "@nvx-t:¿Qué es el láser CO₂ fraccionado y cómo funciona?",
         "body": [
-            "@nvx-t:El láser de dióxido de carbono (CO₂) fraccionado es un resurfacing ablativo de referencia en dermatología estética para renovar la arquitectura de la piel. No vaporiza toda la superficie de forma continua: emite microhaces que crean columnas térmicas de vaporización rodeadas de tejido sano.",
-            "@nvx-t:Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime."
+            "@nvx-t:No es un peeling cosmético superficial ni un tratamiento de calentamiento dérmico. El láser de dióxido de carbono (CO₂) fraccionado es un resurfacing ablativo de referencia en dermatología estética. Emite microhaces que crean columnas térmicas de vaporización rodeadas de tejido sano.",
+            "@nvx-t:El tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). El protocolo se personaliza según fototipo, objetivo y tolerancia al downtime: no es un tratamiento estándar para todos."
         ]
     },
-    "indications": {
-        "kicker": "@nvx-t:Indicaciones",
-        "title": "@nvx-t:Indicaciones terapéuticas principales",
-        "body": "@nvx-t:El equipo médico (dirección Dr. Rivera Tejeda) ajusta potencia, profundidad fraccional y densidad de haces según fototipo, objetivo y tolerancia al downtime.",
+    "diagnosis": {
+        "kicker": "@nvx-t:Indicaciones clínicas",
+        "title": "@nvx-t:Selección del paciente ideal",
+        "body": [
+            "@nvx-t:El protocolo está indicado en cicatrices atróficas de acné (boxcar, rolling), poros dilatados, textura irregular y fotodaño solar. Es adecuado para rostro, cuello y escote cuando se busca renovación arquitectónica de la piel.",
+            "@nvx-t:Se descarta en fototipos oscuros (Fitzpatrick V–VI) sin evaluación específica, infecciones activas cutáneas, historia de queloides o tratamiento isotretinoína en los últimos 6 meses. En esos casos se deriva al especialista adecuado.",
+            "@nvx-t:Antes del tratamiento, se realiza un diagnóstico que evalúa fototipo, profundidad de cicatrices, calidad de piel y objetivos. Eso calibra potencia, profundidad fraccional y densidad de haces."
+        ],
+        "panel_title": "@nvx-t:Diagnóstico diferencial",
+        "panel_items": [
+            { "title": "@nvx-t:Cicatrices de acné", "body": "@nvx-t:Depresiones atróficas (boxcar, rolling) que requieren remodelación profunda." },
+            { "title": "@nvx-t:Poros dilatados", "body": "@nvx-t:Nivelación de superficie cutánea dañada por inflamación previa." },
+            { "title": "@nvx-t:Fotodaño solar", "body": "@nvx-t:Piel asfixiada o envejecida por UV con pigmento anómalo." },
+            { "title": "@nvx-t:Exclusión", "body": "@nvx-t:Fototipos oscuros / queloides: contraindicación o derivación." }
+        ]
+    },
+    "compare": {
+        "kicker": "@nvx-t:Comparativa clínica",
+        "title": "@nvx-t:Láser CO₂ vs peelings químicos superficiales",
+        "col_param": "@nvx-t:Parámetro",
+        "col_co2": "@nvx-t:Láser CO₂ fraccionado",
+        "col_peel": "@nvx-t:Peelings químicos",
+        "rows": [
+            { "param": "@nvx-t:Naturaleza", "co2": "@nvx-t:Ablativo fraccionado (vaporización tisular)", "peel": "@nvx-t:Exfoliación química superficial (ácidos)" },
+            { "param": "@nvx-t:Profundidad", "co2": "@nvx-t:Actúa en dermis reticular (remodelación profunda)", "peel": "@nvx-t:Limitado a epidermis (efecto cosmético)" },
+            { "param": "@nvx-t:Estimulo colágeno", "co2": "@nvx-t:Neocolagénesis estructural tipo I y III", "peel": "@nvx-t:Estimulo transitorio y superficial" },
+            { "param": "@nvx-t:Downtime", "co2": "@nvx-t:7–10 días de eritema y descamación", "peel": "@nvx-t:1–3 días de descamación leve" },
+            { "param": "@nvx-t:Duración efecto", "co2": "@nvx-t:12–24 meses con protocolo de mantenimiento", "peel": "@nvx-t:3–6 meses (requiere sesiones muy frecuentes)" },
+            { "param": "@nvx-t:Resultados", "co2": "@nvx-t:Progresivos; consolidación 3–6 meses", "peel": "@nvx-t:Inmediatos pero temporales" }
+        ]
+    },
+    "biophysics": {
+        "kicker": "@nvx-t:La biofísica",
+        "title": "@nvx-t:Ablación fraccionada: microhaces térmicos",
+        "body1": "@nvx-t:El láser CO₂ emite a 10.600 nm, longitud de onda con alto coeficiente de absorción en agua. El fraccionamiento divide el haz en microcolumnas que vaporizan tejido en puntos específicos, dejando puentes de piel sana que aceleran la curación.",
+        "caption": "@nvx-t:Combinación de vaporización y coagulación según profundidad calibrada.",
+        "body2": "@nvx-t:En rango térmico de 60–80 °C en dermis, se produce desnaturalización del colágeno con estimulo de fibroblastos. El resultado es piel remodelada, con cicatrices elevadas, poros visiblemente reducidos y textura más uniforme."
+    },
+    "process": {
+        "kicker": "@nvx-t:El procedimiento en NUVANX",
+        "title": "@nvx-t:Ejecución paso a paso",
+        "body": "@nvx-t:Duración habitual 30–60 minutos según zonas. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de downtime.",
+        "steps": [
+            { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de fototipo, profundidad de cicatrices y objetivos. Definición de parámetros CO₂." },
+            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia tópica", "body": "@nvx-t:Aplicación de crema anestésica 30–60 minutos antes del procedimiento." },
+            { "icon": "procedure", "n": "03", "title": "@nvx-t:Láser CO₂ fraccionado", "body": "@nvx-t:Pasos del láser según mapa anatómico. Sensación de calor y pinchazos controlados." },
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Post-tratamiento inmediato", "body": "@nvx-t:Aplicación de crema regeneradora y protector solar. Ambulatorio sin baja laboral." }
+        ]
+    },
+    "postop": {
+        "kicker": "@nvx-t:Downtime Transparente",
+        "title": "@nvx-t:Cómo es la recuperación real del láser CO₂ (sin idealizaciones)",
+        "body": "@nvx-t:A diferencia de peelings superficiales, el láser CO₂ fraccionado exige compromiso con la curación. Esta es la verdad clínica sobre qué esperar día a día:",
+        "items": [
+            { "title": "@nvx-t:Días 1 a 3 (Eritema intenso):", "body": "@nvx-t:Es normal notar la zona tratada enrojecida, con calor profundo y patrón punteado oscuro (columnas tratadas). Sensación similar a quemadura solar fuerte. El disconfort se controla con crema hidratante y analgésicos orales estándar." },
+            { "title": "@nvx:t:Días 4 a 7 (Descamación activa):", "body": "@nvx-t:La epidermis tratada se desprende y aparece piel nueva, rosada e inmadura. No arrancar escamas. La piel puede sentirse tirante y sensible. Evitar exposición solar directa y usar protector solar físico." },
+            { "title": "@nvx-t:Día 7 en adelante (Recuperación visual):", "body": "@nvx-t:El eritema inicial cede considerablemente. La piel recupera su aspecto visual habitual, aunque puede permanecer un tono rosado que desaparece progresivamente. La remodelación de colágeno continúa en silencio 4–6 semanas." },
+            { "title": "@nvx-t:Semanas 4 a 12 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neocolagénesis. Las cicatrices aparecen elevadas, los poros visiblemente reducidos y la textura más uniforme. El resultado clínico real se mantiene 12–24 meses con protocolo de mantenimiento." }
+        ],
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo de cuidados post-tratamiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu fototipo."
+    },
+    "investment": {
+        "kicker": "@nvx-t:Presupuesto médico",
+        "title": "@nvx-t:Valoración y presupuesto láser CO₂ en NUVANX Madrid",
+        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 330 €/sesión (facial), 450 €/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
+        "items": [
+            "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
+            "@nvx-t:Honorarios médicos de la intervención",
+            "@nvx-t:Material fungible de uso exclusivo (puntas láser monouso)",
+            "@nvx-t:Revisiones clínicas protocolizadas (seguimiento según protocolo)",
+            "@nvx-t:Orientación de cuidados post-tratamiento y productos recomendados"
+        ],
+        "note": "@nvx-t:Presupuesto cerrado sin sorpresas tras la consulta de valoración."
+    },
+    "faq": {
+        "kicker": "@nvx-t:Base de conocimiento",
+        "title": "@nvx-t:Preguntas clínicas frecuentes",
         "items": [
             {
-                "title": "@nvx-t:Cicatrices atróficas de acné",
-                "body": "@nvx-t:Elevación y remodelación de depresiones (boxcar, rolling) con fraccionamiento calibrado a la profundidad de la cicatriz."
+                "q": "@nvx-t:¿Cuánto cuesta el láser CO₂ en NUVANX Madrid?",
+                "a": "@nvx-t:Las tarifas de referencia parten desde 330 €/sesión (facial) y 450 €/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial."
             },
             {
-                "title": "@nvx-t:Poros dilatados y textura irregular",
-                "body": "@nvx-t:Nivelación de la superficie cutánea dañada por inflamación previa y mejora de la regularidad del relieve."
+                "q": "@nvx-t:¿El láser CO₂ sirve para cualquier tipo de piel?",
+                "a": "@nvx-t:No. Fototipos oscuros (Fitzpatrick V–VI) requieren evaluación específica y pueden no ser candidatos. Se evalúa individualmente para evitar hiperpigmentación postinflamatoria."
             },
             {
-                "title": "@nvx-t:Fotodaño y elastosis solar",
-                "body": "@nvx-t:Tratamiento de pigmento anómalo y piel asfixiada o envejecida por UV, orientado a luminosidad y calidad dérmica tras la regeneración."
+                "q": "@nvx-t:¿Cuántas sesiones requieren?",
+                "a": "@nvx-t:Depende del objetivo. Textura y poros: 1–2 sesiones. Cicatrices complejas: 3–5 sesiones espaciadas de 8–12 semanas. El protocolo definitivo se define tras valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el efecto?",
+                "a": "@nvx-t:La neocolagénesis se mantiene entre 12 y 24 meses con protocolo de mantenimiento. Sesiones de refuerzo anuales pueden prolongar el resultado según indicación médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
+                "a": "@nvx-t:7–10 días de eritema y descamación. Sin baja laboral, pero con compromiso de evitar exposición solar y seguir protocolo de cuidados. Días 1–3: eritema intenso. Días 4–7: descamación activa."
+            },
+            {
+                "q": "@nvx-t:¿Cuáles son las contraindicaciones?",
+                "a": "@nvx-t:Embarazo, lactancia, infecciones activas cutáneas, historia de queloides, tratamiento isotretinoína en los últimos 6 meses, fototipos oscuros sin evaluación específica. Afecciones autoinmunes cutáneas requieren evaluación médica específica."
+            },
+            {
+                "q": "@nvx-t:¿Es doloroso el tratamiento?",
+                "a": "@nvx-t:Se realiza con anestesia tópica 30–60 minutos antes. Durante el procedimiento se percibe sensación de calor y pinchazos controlados. En los días posteriores puede haber sensibilidad y tirantez, manejada con crema hidratante y analgésicos prescritos."
             }
         ]
-    },
-    "downtime": {
-        "kicker": "@nvx-t:Downtime médico",
-        "title": "@nvx-t:Cronología real de la recuperación",
-        "body": "@nvx-t:El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.",
-        "phases": [
-            {
-                "n": "01",
-                "title": "@nvx-t:Días 1 a 3",
-                "body": "@nvx-t:Eritema intenso (similar a quemadura solar fuerte), calor profundo y patrón punteado oscuro (columnas tratadas / debris microscópico)."
-            },
-            {
-                "n": "02",
-                "title": "@nvx-t:Días 4 a 7",
-                "body": "@nvx-t:Descamación activa: la epidermis tratada se desprende y aparece piel nueva, rosada e inmadura. No arrancar escamas."
-            },
-            {
-                "n": "03",
-                "title": "@nvx-t:Día 7 en adelante",
-                "body": "@nvx-t:Recuperación visual habitual. La remodelación de colágeno continúa en silencio 4–6 semanas (y meses) mejorando firmeza y textura."
-            }
-        ]
-    },
-    "pricing": {
-        "kicker": "@nvx-t:Tarifas públicas",
-        "title": "@nvx-t:PVP sesión Láser CO₂ (IVA incluido)",
-        "caption": "@nvx-t:Tarifa clínica de referencia. Rango por sesión: 300 € – 600 €. Protocolo de 3 a 5 sesiones espaciadas de 8 a 12 semanas para cicatrices complejas. Profundidad y zonas pueden modular el plan.",
-        "col_session": "@nvx-t:Sesión",
-        "col_pvp": "@nvx-t:PVP",
-        "row_facial": "@nvx-t:Láser CO₂ facial",
-        "row_body": "@nvx-t:Láser CO₂ corporal",
-        "note": "@nvx-t:La indicación, el fototipo y el downtime esperable se confirman en valoración presencial antes de cualquier sesión."
     }
 }

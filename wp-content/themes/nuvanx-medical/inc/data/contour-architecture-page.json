@@ -1,0 +1,132 @@
+{
+    "hero": {
+        "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+        "h1": "@nvx-t:Contour Architecture™ en Madrid: qué esperar tras el tratamiento corporal",
+        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
+        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
+        "lead": "@nvx-t:Protocolo estructural de remodelación corporal con láser intersticial y radiofrecuencia. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
+        "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Protocolo personalizado según anatomía, evolución realista y recuperación transparente — antes de decidir.",
+        "meta": "@nvx-t:Abdomen · Flancos · Caderas · Muslos · Chamberí · Salamanca–Goya"
+    },
+    "review": {
+        "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
+        "link": "@nvx-t:Ver equipo médico"
+    },
+    "what": {
+        "kicker": "@nvx-t:El protocolo",
+        "title": "@nvx-t:¿Qué es Contour Architecture™ y cómo funciona?",
+        "body": [
+            "@nvx-t:No es una liposucción tradicional ni un tratamiento cosmético superficial. Es un protocolo médico estructural que combina láser intersticial (Endoláser Corporal) y radiofrecuencia para abordar el contorno corporal desde dos frentes: reducción adiposa focalizada y mejora de la firmeza cutánea.",
+            "@nvx-t:El enfoque se basa en la anatomía de cada paciente: se evalúa la distribución de grasa, la calidad del tejido y los objetivos realistas antes de definir el plan de tratamiento. No es un procedimiento estandarizado para todos, sino una arquitectura personalizada."
+        ]
+    },
+    "diagnosis": {
+        "kicker": "@nvx-t:Indicaciones clínicas",
+        "title": "@nvx-t:Selección del paciente ideal",
+        "body": [
+            "@nvx-t:El protocolo está indicado en depósitos adiposos localizados que no responden a dieta y ejercicio, y en flacidez leve–moderada de la piel. Es adecuado para abdomen, flancos, caderas, muslos y brazos cuando se busca remodelación sin cirugía invasiva.",
+            "@nvx-t:Se descarta en obesidad severa, exceso cutáneo marcado (piel sobrante tras pérdida de peso masiva) o ptosis severa que requiera cirugía plástica. En esos casos se deriva al especialista adecuado.",
+            "@nvx-t:Antes del tratamiento, se realiza un diagnóstico anatómico que separa adiposidad superficial vs profunda, calidad de la piel y elasticidad. Eso calibra la combinación de tecnologías y parámetros."
+        ],
+        "panel_title": "@nvx-t:Diagnóstico diferencial",
+        "panel_items": [
+            { "title": "@nvx-t:Adiposidad localizada", "body": "@nvx-t:Depósitos grasos resistentes a dieta/ejercicio en zonas específicas." },
+            { "title": "@nvx-t:Flacidez cutánea", "body": "@nvx-t:Pérdida de firmeza y elasticidad en abdomen, flancos o extremidades." },
+            { "title": "@nvx-t:Combinación", "body": "@nvx-t:Protocolo mixto láser + radiofrecuencia según diagnóstico." },
+            { "title": "@nvx-t:Exclusión", "body": "@nvx-t:Obesidad severa / exceso cutáneo: derivación quirúrgica." }
+        ]
+    },
+    "compare": {
+        "kicker": "@nvx-t:Comparativa clínica",
+        "title": "@nvx-t:Contour Architecture™ vs liposucción quirúrgica",
+        "col_param": "@nvx-t:Parámetro",
+        "col_contour": "@nvx-t:Contour Architecture™",
+        "col_lipo": "@nvx-t:Liposucción quirúrgica",
+        "rows": [
+            { "param": "@nvx-t:Naturaleza", "contour": "@nvx-t:Mínimamente invasiva (láser intersticial + RF)", "lipo": "@nvx-t:Invasiva (cánulas de resección mecánica)" },
+            { "param": "@nvx-t:Incisiones", "contour": "@nvx-t:Microperforaciones sin sutura de lifting", "lipo": "@nvx-t:Incisiones de 3-5 mm; cicatrices residuales posibles" },
+            { "param": "@nvx-t:Anestesia", "contour": "@nvx-t:Local infiltrativa en consulta", "lipo": "@nvx-t:General o sedación profunda habitual" },
+            { "param": "@nvx-t:Entorno", "contour": "@nvx-t:Ambulatorio en cabina médica", "lipo": "@nvx-t:Quirófano; a menudo ingreso" },
+            { "param": "@nvx-t:Baja social", "contour": "@nvx-t:5–10 días de edema moderado", "lipo": "@nvx-t:14–21 días de compresión y curación" },
+            { "param": "@nvx-t:Recuperación piel", "contour": "@nvx-t:Estimulo de colágeno + retracción progresiva", "lipo": "@nvx-t:Riesgo de irregularidades y flacidez residual" },
+            { "param": "@nvx-t:Evolución del resultado", "contour": "@nvx-t:Progresiva; pico de firmeza ~3–6 meses", "lipo": "@nvx-t:Estructural tras remitir el edema postquirúrgico" }
+        ]
+    },
+    "biophysics": {
+        "kicker": "@nvx-t:La tecnología",
+        "title": "@nvx-t:Láser 1470 nm + radiofrecuencia bipolar",
+        "body1": "@nvx-t:El protocolo combina dos tecnologías complementarias. El láser intersticial a 1470 nm actúa en el tejido adiposo con alto coeficiente de absorción en agua y lípidos, produciendo laserlipólisis selectiva. La radiofrecuencia bipolar estimula el colágeno dérmico y mejora la firmeza cutánea.",
+        "caption": "@nvx-t:Combinación secuencial según diagnóstico: láser para grasa, RF para piel.",
+        "body2": "@nvx-t:En rango térmico controlado, se produce desnaturalización del colágeno (contracción) y lipólisis de adipocitos, con estimulación simultáneo de neocolagénesis. El resultado es remodelación del contorno con mejora de la calidad cutánea."
+    },
+    "process": {
+        "kicker": "@nvx-t:El procedimiento en NUVANX",
+        "title": "@nvx-t:Ejecución paso a paso",
+        "body": "@nvx-t:Duración habitual 90–120 minutos según zonas tratadas. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de postoperatorio.",
+        "steps": [
+            { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de distribución adiposa, calidad de piel y elasticidad. Definición de zonas y parámetros." },
+            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración en zonas a tratar para confort y seguridad durante el procedimiento." },
+            { "icon": "procedure", "n": "03", "title": "@nvx-t:Láser intersticial", "body": "@nvx-t:Microfibra a 1470 nm en patrón de abanico según mapa anatómico para reducción adiposa." },
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Radiofrecuencia + alta", "body": "@nvx-t:RF bipolar para firmeza cutánea. Ambulatorio con faja compresiva. Revisiones protocolizadas." }
+        ]
+    },
+    "postop": {
+        "kicker": "@nvx-t:Recuperación Transparente",
+        "title": "@nvx-t:Cómo es el postoperatorio real de Contour Architecture™ (sin idealizaciones)",
+        "body": "@nvx-t:A diferencia de una liposucción quirúrgica tradicional, Contour Architecture™ no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:",
+        "items": [
+            { "title": "@nvx-t:Días 1 a 5 (Inflamación inicial):", "body": "@nvx-t:Es normal sentir las zonas tratadas inflamadas, sensibles y con sensación de tirantez. La faja compresiva es obligatoria durante este periodo. Pueden aparecer pequeños hematomas en los puntos de entrada. El disconfort se controla con analgésicos orales estándar." },
+            { "title": "@nvx-t:Semana 1 a 2 (Recuperación Social):", "body": "@nvx-t:La inflamación inicial cede considerablemente. Puedes retomar actividad laboral sedentaria en 3–5 días y actividad física suave tras 7–10 días. La faja se sigue usando de forma discontinua según indicación médica." },
+            { "title": "@nvx-t:Semanas 3 a 6 (Remodelación Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna. Notarás la piel visiblemente más firme y el contorno más definido. Las molestias físicas desaparecen casi por completo. Se autoriza ejercicio progresivo según tolerancia." },
+            { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neocolagénesis y la remodelación adiposa. El contorno corporal tratado muestra su resultado clínico real, con mejora sostenida de la firmeza cutánea." }
+        ],
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía específica."
+    },
+    "investment": {
+        "kicker": "@nvx-t:Presupuesto médico",
+        "title": "@nvx-t:Valoración y presupuesto Contour Architecture™ en NUVANX Madrid",
+        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 1.200 € (abdomen), 1.500 € (flancos), 1.800 € (piernas completas). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
+        "items": [
+            "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
+            "@nvx-t:Honorarios médicos de la intervención",
+            "@nvx-t:Fibra óptica láser monouso y material fungible de uso exclusivo",
+            "@nvx-t:Revisiones clínicas protocolizadas (semanas 2, 4, 8 y seguimiento posterior)",
+            "@nvx-t:Faja compresiva postoperatorio y orientación farmacológica"
+        ],
+        "note": "@nvx-t:Presupuesto cerrado sin sorpresas tras la consulta de valoración."
+    },
+    "faq": {
+        "kicker": "@nvx-t:Base de conocimiento",
+        "title": "@nvx-t:Preguntas clínicas frecuentes",
+        "items": [
+            {
+                "q": "@nvx-t:¿Cuánto cuesta Contour Architecture™ en NUVANX Madrid?",
+                "a": "@nvx-t:Las tarifas de referencia parten desde 1.200 € (abdomen), 1.500 € (flancos) y 1.800 € (piernas completas). El presupuesto definitivo se documenta tras valoración anatómica presencial."
+            },
+            {
+                "q": "@nvx-t:¿Contour Architecture™ sirve para cualquier tipo de grasa?",
+                "a": "@nvx-t:No. Está indicado en depósitos adiposos localizados resistentes a dieta y ejercicio. La obesidad severa o exceso cutáneo marcado se deriva a cirugía plástica; no se fuerza el protocolo."
+            },
+            {
+                "q": "@nvx-t:¿Cuántas sesiones requieren?",
+                "a": "@nvx-t:El protocolo se realiza en 1 sesión principal en la mayoría de los casos. Para casos complejos o zonas extensas, se puede planificar un protocolo complementario tras la valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el efecto?",
+                "a": "@nvx-t:La neocolagénesis y la remodelación tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con la consolidación máxima entre los 3 y 6 meses."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
+                "a": "@nvx-t:3–5 días para reincorporación laboral sedentaria. 7–10 días para actividad física suave. Faja compresiva obligatoria los primeros 5 días continuos + uso discontinuo 2–3 semanas. Dolor controlado con analgésicos orales estándar."
+            },
+            {
+                "q": "@nvx-t:¿Cuáles son las contraindicaciones?",
+                "a": "@nvx-t:Embarazo, lactancia, infecciones activas cutáneas, tratamiento anticoagulante activo, historia de queloides o liposucciones previas en los últimos 6 meses. Afecciones autoinmunes cutáneas requieren evaluación médica específica."
+            },
+            {
+                "q": "@nvx-t:¿Es doloroso el tratamiento?",
+                "a": "@nvx-t:Se realiza bajo anestesia local infiltrativa/tumescente para controlar las molestias. Durante el procedimiento es habitual percibir calor o presión; en los días posteriores puede haber sensibilidad, inflamación o molestia similar a agujetas, manejada con analgésicos prescritos."
+            }
+        ]
+    }
+}

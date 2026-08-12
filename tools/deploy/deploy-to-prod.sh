@@ -486,6 +486,14 @@ echo "== Run shared production content migration and divergence audit =="
 echo 'PRODUCTION_CONTENT_MIGRATION=PASS audit=clean'
 echo 'SHARED_MIGRATION=PASS audit=clean'
 
+# Re-verify SHA after migration/audit to catch any on-disk mutations
+[[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
+
+# At this point, the release is fully installed and verified. Disarm signal traps
+# so that workflow cancellation (e.g. GitHub Actions timeout) during the
+# subsequent cache purge does not roll back an already-verified release.
+trap - ERR INT TERM HUP
+
 echo "== Purge production caches =="
 # Cache purge is cosmetic and runs after the DB migration + audit have already
 # passed. It must never trigger a database rollback, so keep it non-fatal.
@@ -517,9 +525,6 @@ if [[ "$purge_restore_rc" -eq 10 ]]; then
   exit 1
 fi
 [[ "$purge_rc" -eq 0 ]] || echo "WARN: production cache purge reported a non-fatal error rc=$purge_rc" >&2
-
-# Re-verify SHA after migration/audit to catch any on-disk mutations
-[[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
 trap - ERR INT TERM HUP
 # All checks passed. Remove the migration write marker to finalize the deployment.

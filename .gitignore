@@ -13,6 +13,7 @@ wp-config.php
 
 *.pem
 *.key
+gsc-*-key.json
 id_*
 *.sql
 *-key.json

@@ -19,6 +19,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Resolve the canonical route metadata for the current request.
+ *
+ * @return array<string, mixed>
+ */
+function nvx_gtm_context_route(): array {
+	if ( ! function_exists( 'nvx_theme_request_path' ) || ! function_exists( 'nvx_catalog_json_load' ) ) {
+		return array();
+	}
+
+	$path   = '/' . trim( nvx_theme_request_path(), '/' ) . '/';
+	$routes = nvx_catalog_json_load( 'routes.json' );
+	$route  = isset( $routes[ $path ] ) && is_array( $routes[ $path ] ) ? $routes[ $path ] : array();
+
+	if ( isset( $route['route_alias'] ) && is_string( $route['route_alias'] ) ) {
+		$alias = '/' . trim( $route['route_alias'], '/' ) . '/';
+		if ( isset( $routes[ $alias ] ) && is_array( $routes[ $alias ] ) ) {
+			$route = $routes[ $alias ];
+		}
+	}
+
+	return $route;
+}
+
+/**
  * Resolve the canonical NUVANX analytics page type for the current request.
  */
 function nvx_gtm_context_page_type(): string {
@@ -30,22 +54,38 @@ function nvx_gtm_context_page_type(): string {
 		return 'blog';
 	}
 
-	if ( is_page() ) {
-		$is_valoracion = function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page();
-		$request_path  = function_exists( 'nvx_theme_request_path' ) ? nvx_theme_request_path() : '';
-
-		if ( $is_valoracion || false !== strpos( $request_path, '/valoracion/' ) ) {
-			return 'valoracion';
-		}
-
-		return 'tratamiento';
-	}
-
 	if ( is_archive() || is_category() ) {
 		return 'listado';
 	}
 
-	return 'other';
+	if ( ! is_page() ) {
+		return 'other';
+	}
+
+	$is_valoracion = function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page();
+	$request_path  = function_exists( 'nvx_theme_request_path' ) ? nvx_theme_request_path() : '';
+	if ( $is_valoracion || false !== strpos( $request_path, '/valoracion/' ) ) {
+		return 'valoracion';
+	}
+
+	if ( function_exists( 'nvx_theme_is_thank_you_page' ) && nvx_theme_is_thank_you_page() ) {
+		return 'conversion';
+	}
+
+	$route        = nvx_gtm_context_route();
+	$schema_group = isset( $route['schema_group'] ) && is_string( $route['schema_group'] )
+		? $route['schema_group']
+		: '';
+
+	if ( 'treatments' === $schema_group ) {
+		return 'tratamiento';
+	}
+
+	if ( in_array( $schema_group, array( 'clinics', 'clinic_hub' ), true ) ) {
+		return 'clinica';
+	}
+
+	return 'page';
 }
 
 /**

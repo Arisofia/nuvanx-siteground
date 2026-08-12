@@ -2,8 +2,12 @@
 /**
  * scripts/seo/google-business-profile-audit.js
  *
- * Verifies local SEO parameters, NAP (Name, Address, Phone) consistency,
- * and Schema alignment for NUVANX Chamberí and Salamanca-Goya clinics.
+ * Static NAP / local-SEO reference for the two NUVANX clinics.
+ *
+ * IMPORTANT: this script does NOT call the Google Business Profile API and must
+ * never be used as evidence that the live GBP listings are correct. It records
+ * the canonical website-side identity expected for each clinic so a separate
+ * live GBP/API audit can compare Google against the same contract.
  */
 
 'use strict';
@@ -21,7 +25,7 @@ const CLINICS = {
     days: 'Martes y jueves',
     latitude: 40.431204,
     longitude: -3.693425,
-    targetPage: 'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi/'
+    targetPage: 'https://nuvanx.com/medicina-estetica-chamberi/'
   },
   goya: {
     name: 'Centro Clínico NUVANX Salamanca / Goya',
@@ -39,26 +43,26 @@ const CLINICS = {
   }
 };
 
-function auditNAP() {
-  console.log('=== AUDITORÍA NAP Y LOCAL SEO DE NUVANX ===\n');
+function printStaticReference() {
+  console.log('=== REFERENCIA NAP / LOCAL SEO NUVANX (NO GBP LIVE) ===\n');
+  console.log('EVIDENCE_SCOPE=WEBSITE_CANONICAL_REFERENCE');
+  console.log('GBP_LIVE_API_CHECK=NOT_PERFORMED');
+  console.log('GBP_LIVE_STATUS=UNKNOWN\n');
 
   for (const [key, clinic] of Object.entries(CLINICS)) {
     console.log(`📍 Sede: ${clinic.name} (${key.toUpperCase()})`);
-    console.log(`   Registro Sanitario: ${clinic.reg}`);
+    console.log(`   Registro sanitario: ${clinic.reg}`);
     console.log(`   Dirección canónica: ${clinic.address}, ${clinic.postalCode} ${clinic.locality}`);
     console.log(`   Teléfono canónico:  ${clinic.phone} (${clinic.phoneClean})`);
-    console.log(`   Coordenadas GPS:   Lat ${clinic.latitude}, Lng ${clinic.longitude}`);
-    console.log(`   Página de destino: ${clinic.targetPage}`);
-    console.log(`   Horarios:          ${clinic.hours}`);
-    console.log(`   ✅ Alineado con nvx_get_clinics_config() y MedicalClinic Schema.\n`);
+    console.log(`   Coordenadas web:   Lat ${clinic.latitude}, Lng ${clinic.longitude}`);
+    console.log(`   Landing canónica:  ${clinic.targetPage}`);
+    console.log(`   Horario de referencia: ${clinic.hours}`);
+    console.log(`   Días de consulta médica: ${clinic.days}\n`);
   }
 
-  console.log('─────────────────────────────────────────────────');
-  console.log('Verificación completada: Los datos de ambas sedes coinciden 100% en:');
-  console.log('1. Inc / nvx-business-config.php');
-  console.log('2. Inc / nvx-medical-clinic-schema.php (MedicalClinic Schema Graph)');
-  console.log('3. Fichas de Google Business Profile recomendadas');
-  console.log('─────────────────────────────────────────────────\n');
+  console.log('STATIC_NAP_REFERENCE=PASS clinics=2');
+  console.log('LIVE_GBP_AUDIT_REQUIRED=true');
+  console.log('NEXT_CHECK=Compare GBP name, primary/secondary categories, address, phone, hours, website URL, appointment URL, services and review profile against this reference.');
 }
 
-auditNAP();
+printStaticReference();

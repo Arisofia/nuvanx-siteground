@@ -65,14 +65,26 @@ function nvx_gtm_is_active(): bool {
 
 /**
  * Resolve a Google Ads conversion ID from environment.
+ * Validates format AW-XXXXXXXXXX/YYYYYYYYYYYY to prevent invalid/malicious input.
  */
 function nvx_gads_conversion_id( string $type ): string {
 	$key = 'NVX_GADS_CONVERSION_ID_' . strtoupper( $type );
+	$id  = '';
 	if ( defined( $key ) ) {
-		return (string) constant( $key );
+		$id = (string) constant( $key );
+	} else {
+		$from_env = getenv( $key );
+		if ( is_string( $from_env ) ) {
+			$id = $from_env;
+		}
 	}
-	$from_env = getenv( $key );
-	return is_string( $from_env ) ? $from_env : '';
+
+	$id = trim( $id );
+	if ( '' !== $id && ! preg_match( '/^AW-[0-9]{8,12}\/[A-Za-z0-9_-]{10,40}$/', $id ) ) {
+		$id = '';
+	}
+
+	return $id;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,21 +118,30 @@ function nvx_gtm_head_snippet(): void {
 		$page_type = 'listado';
 	}
 
-	$conversion_form = esc_js( nvx_gads_conversion_id( 'FORM' ) );
-	$conversion_call = esc_js( nvx_gads_conversion_id( 'CALL' ) );
+	$conversion_form = nvx_gads_conversion_id( 'FORM' );
+	$conversion_call = nvx_gads_conversion_id( 'CALL' );
+
+	// Build initial dataLayer push with page metadata.
+	$data_layer = array(
+		'gtm.start' => new Date().getTime(),
+		'event' => 'gtm.js',
+		'nvx_env' => $env_label,
+		'nvx_page_type' => $page_type,
+	);
+
+	// Only add conversion IDs when they are configured (not empty strings)
+	if ( '' !== $conversion_form ) {
+		$data_layer['nvx_gads_conversion_form'] = esc_js( $conversion_form );
+	}
+	if ( '' !== $conversion_call ) {
+		$data_layer['nvx_gads_conversion_call'] = esc_js( $conversion_call );
+	}
 
 	?>
 <!-- Google Tag Manager -->
 <script>
 window.dataLayer = window.dataLayer || [];
-window.dataLayer.push({
-  'gtm.start': new Date().getTime(),
-  event: 'gtm.js',
-  nvx_env: '<?php echo $env_label; ?>',
-  nvx_page_type: '<?php echo esc_js( $page_type ); ?>',
-  nvx_gads_conversion_form: '<?php echo $conversion_form; ?>',
-  nvx_gads_conversion_call: '<?php echo $conversion_call; ?>'
-});
+window.dataLayer.push(<?php echo wp_json_encode( $data_layer ); ?>);
 </script>
 <script type="text/delayed" data-src="https://www.googletagmanager.com/gtm.js?id=<?php echo $container; ?>" defer></script>
 <!-- End Google Tag Manager -->

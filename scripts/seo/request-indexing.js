@@ -26,10 +26,10 @@ for (let i = 0; i < args.length; i++) {
 }
 
 if (urls.length === 0) {
-  urls = [
-    'https://nuvanx.com/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
-    'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid-guia/'
-  ];
+  console.error('❌ Error: No se proporcionaron URLs para indexar.');
+  console.error('   Use --urls para especificar URLs elegibles (JobPosting/BroadcastEvent).');
+  console.error('   Ejemplo: node request-indexing.js --urls=https://example.com/job-posting/');
+  process.exit(1);
 }
 
 async function publishUrlNotification(indexing, targetUrl) {

@@ -162,13 +162,8 @@ function nvx_exion_editorial_body_markup(): string {
 		$html .= '<p class="nvx-body">' . esc_html( $paragraph ) . '</p>';
 	}
 	$html .= '</div>';
-	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-fact-panel__label">' . esc_html( $data['diagnosis']['panel_title'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-fact-panel__list" role="list">';
-	foreach ( $data['diagnosis']['panel_items'] ?? array() as $item ) {
-		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> — ' . esc_html( $item['body'] ?? '' ) . '</li>';
-	}
-	$html .= '</ul></aside></div></section>';
+	$html .= nvx_render_editorial_fact_panel_markup( $data['diagnosis'] ?? array() );
+	$html .= '</div></section>';
 
 	// C. Comparativa vs tratamientos superficiales
 	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-compare', 'nvx-exion-compare-title' );
@@ -198,24 +193,7 @@ function nvx_exion_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// E. Proceso clínico
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-process', 'nvx-exion-process-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['process']['kicker'] ?? '' ), 'nvx-exion-process-title', esc_html( $data['process']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['process']['body'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-exion-process-grid">';
-
-	$step_idx = 0;
-	foreach ( $data['process']['steps'] ?? array() as $step ) {
-		$sid   = 'nvx-exion-step-' . $step_idx;
-		$html .= '<article class="nvx-exion-step" aria-labelledby="' . esc_attr( $sid ) . '">';
-		$html .= nvx_exion_process_icon( $step['icon'] ?? 'assess' );
-		$html .= '<span class="nvx-exion-step__n">' . esc_html( $step['n'] ?? '' ) . '</span>';
-		$html .= '<h3 id="' . esc_attr( $sid ) . '" class="nvx-exion-step__title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
-		$html .= '</article>';
-		++$step_idx;
-	}
-
-	$html .= '</div></div></section>';
+	$html .= nvx_render_editorial_process_grid_markup( $data['process'] ?? array(), 'nvx-exion', 'nvx_exion_process_icon' );
 
 	// F. Postoperatorio Real
 	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-postop', 'nvx-exion-postop-title', '', array( 'id' => 'postoperatorio-exion' ) );
@@ -243,18 +221,7 @@ function nvx_exion_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// H. FAQ
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-faq', 'nvx-exion-faq-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['faq']['kicker'] ?? '' ), 'nvx-exion-faq-title', esc_html( $data['faq']['title'] ?? '' ) );
-	$html .= '<div class="nvx-faq nvx-exion-faq-list">';
-
-	foreach ( $data['faq']['items'] ?? array() as $faq ) {
-		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-		$html .= '</details>';
-	}
-
-	$html .= '</div></div></section>';
+	$html .= nvx_render_editorial_faq_markup( $data['faq'] ?? array(), 'nvx-exion' );
 
 	$html .= '</div>';
 

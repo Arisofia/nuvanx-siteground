@@ -11,27 +11,10 @@
 defined( 'ABSPATH' ) || exit;
 
 $hero_video_url        = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$canonical_poster_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
-$poster_id             = (int) get_theme_mod( 'nvx_home_video_poster_id', 0 );
-$poster_file           = $poster_id > 0 ? get_attached_file( $poster_id ) : '';
-$configured_poster_url = ( $poster_id > 0 && is_string( $poster_file ) && '' !== $poster_file && is_readable( $poster_file ) )
-	? wp_get_attachment_image_url( $poster_id, 'full' )
-	: '';
-$hero_poster_url       = is_string( $configured_poster_url ) && '' !== $configured_poster_url
-	? $configured_poster_url
-	: $canonical_poster_url;
+$hero_poster_url       = function_exists( 'nvx_resolve_home_hero_poster_url' ) ? nvx_resolve_home_hero_poster_url() : content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
 $evidence_image        = content_url( '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 
-// Preload hero poster for LCP optimization
-function nvx_preload_hero_poster( string $poster_url ): void {
-	if ( ! is_string( $poster_url ) || '' === $poster_url ) {
-		return;
-	}
-	echo '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $poster_url ) . '">' . "\n";
-}
-add_action( 'wp_head', function() use ( $hero_poster_url ) {
-	nvx_preload_hero_poster( $hero_poster_url );
-}, 1 );
+
 
 ob_start();
 ?>

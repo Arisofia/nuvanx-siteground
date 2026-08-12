@@ -208,6 +208,33 @@ function nvx_superseded_legal_page_ids(): array {
 }
 
 /**
+ * Page IDs that are noindex but should remain navigable (e.g., cookie policy).
+ *
+ * These pages are excluded from sitemaps and search indexing but intentionally
+ * kept in navigation menus for legal compliance and user access.
+ *
+ * @return int[]
+ */
+function nvx_noindex_but_navigable_page_ids(): array {
+	$ids = array();
+
+	// Complianz EU cookie policy (page 577) - noindex but navigable
+	$cookie_policy_id = function_exists( 'nvx_page_id_by_slug' )
+		? nvx_page_id_by_slug( 'politica-de-cookies-ue' )
+		: 0;
+	if ( $cookie_policy_id > 0 ) {
+		$ids[] = $cookie_policy_id;
+	}
+
+	/**
+	 * Filter page IDs that are noindex but should remain navigable.
+	 *
+	 * @param int[] $ids Page IDs.
+	 */
+	return array_values( array_unique( array_map( 'intval', apply_filters( 'nvx_noindex_but_navigable_page_ids', $ids ) ) ) );
+}
+
+/**
  * Collects page and post IDs that should be excluded from public indexing.
  *
  * @return int[] Unique IDs excluded from sitemaps and other public index listings.
@@ -347,13 +374,15 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 	}
 
 	$noindex_ids  = nvx_noindex_page_ids();
+	$navigable_ids = nvx_noindex_but_navigable_page_ids();
 	$cases_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
 	$cases_public = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
 
 	foreach ( $items as $key => $item ) {
 		$is_blocked_post = isset( $item->type, $item->object_id )
 			&& 'post_type' === $item->type
-			&& in_array( (int) $item->object_id, $noindex_ids, true );
+			&& in_array( (int) $item->object_id, $noindex_ids, true )
+			&& ! in_array( (int) $item->object_id, $navigable_ids, true );
 
 		$is_blocked_cases_url = false;
 		if ( ! $cases_public && isset( $item->url ) && is_string( $item->url ) ) {

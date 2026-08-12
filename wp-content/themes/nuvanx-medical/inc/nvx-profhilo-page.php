@@ -157,13 +157,8 @@ function nvx_profhilo_editorial_body_markup(): string {
 		$html .= '<p class="nvx-body">' . esc_html( $paragraph ) . '</p>';
 	}
 	$html .= '</div>';
-	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-fact-panel__label">' . esc_html( $data['diagnosis']['panel_title'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-fact-panel__list" role="list">';
-	foreach ( $data['diagnosis']['panel_items'] ?? array() as $item ) {
-		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> — ' . esc_html( $item['body'] ?? '' ) . '</li>';
-	}
-	$html .= '</ul></aside></div></section>';
+	$html .= nvx_render_editorial_fact_panel_markup( $data['diagnosis'] ?? array() );
+	$html .= '</div></section>';
 
 	// C. Comparativa vs rellenos
 	$html .= nvx_page_brand_section_open_markup( 'nvx-profhilo-compare', 'nvx-profhilo-compare-title' );
@@ -193,24 +188,7 @@ function nvx_profhilo_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// E. Proceso clínico
-	$html .= nvx_page_brand_section_open_markup( 'nvx-profhilo-process', 'nvx-profhilo-process-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['process']['kicker'] ?? '' ), 'nvx-profhilo-process-title', esc_html( $data['process']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['process']['body'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-profhilo-process-grid">';
-
-	$step_idx = 0;
-	foreach ( $data['process']['steps'] ?? array() as $step ) {
-		$sid   = 'nvx-profhilo-step-' . $step_idx;
-		$html .= '<article class="nvx-profhilo-step" aria-labelledby="' . esc_attr( $sid ) . '">';
-		$html .= nvx_profhilo_process_icon( $step['icon'] ?? 'assess' );
-		$html .= '<span class="nvx-profhilo-step__n">' . esc_html( $step['n'] ?? '' ) . '</span>';
-		$html .= '<h3 id="' . esc_attr( $sid ) . '" class="nvx-profhilo-step__title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
-		$html .= '</article>';
-		++$step_idx;
-	}
-
-	$html .= '</div></div></section>';
+	$html .= nvx_render_editorial_process_grid_markup( $data['process'] ?? array(), 'nvx-profhilo', 'nvx_profhilo_process_icon' );
 
 	// F. Postoperatorio Real
 	$html .= nvx_page_brand_section_open_markup( 'nvx-profhilo-postop', 'nvx-profhilo-postop-title', '', array( 'id' => 'postoperatorio-profhilo' ) );
@@ -238,18 +216,7 @@ function nvx_profhilo_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// H. FAQ
-	$html .= nvx_page_brand_section_open_markup( 'nvx-profhilo-faq', 'nvx-profhilo-faq-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['faq']['kicker'] ?? '' ), 'nvx-profhilo-faq-title', esc_html( $data['faq']['title'] ?? '' ) );
-	$html .= '<div class="nvx-faq nvx-profhilo-faq-list">';
-
-	foreach ( $data['faq']['items'] ?? array() as $faq ) {
-		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-		$html .= '</details>';
-	}
-
-	$html .= '</div></div></section>';
+	$html .= nvx_render_editorial_faq_markup( $data['faq'] ?? array(), 'nvx-profhilo' );
 
 	$html .= '</div>';
 

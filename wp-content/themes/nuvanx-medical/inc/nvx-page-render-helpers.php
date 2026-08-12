@@ -249,3 +249,93 @@ function nvx_remove_missing_local_content_images( $content ) {
 	return $filtered;
 }
 add_filter( 'the_content', 'nvx_remove_missing_local_content_images', 20 );
+
+/**
+ * Render canonical FAQ accordion section markup.
+ *
+ * @param array{kicker?:string,title?:string,items?:array<int,array{q:string,a:string}>} $faq FAQ data array.
+ * @param string $prefix Section CSS prefix (e.g. 'nvx-co2').
+ * @return string Rendered section HTML.
+ */
+function nvx_render_editorial_faq_markup( array $faq, string $prefix ): string {
+	$kicker     = esc_html( $faq['kicker'] ?? '' );
+	$title      = esc_html( $faq['title'] ?? '' );
+	$title_id   = esc_attr( $prefix . '-faq-title' );
+	$sec_class  = esc_attr( $prefix . '-faq' );
+	$list_class = esc_attr( $prefix . '-faq-list' );
+
+	$html  = nvx_page_brand_section_open_markup( $sec_class, $title_id );
+	$html .= nvx_page_brand_section_heading_markup( $kicker, $title_id, $title );
+	$html .= '<div class="nvx-faq ' . $list_class . '">';
+
+	foreach ( $faq['items'] ?? array() as $item ) {
+		$q     = esc_html( $item['q'] ?? '' );
+		$a     = esc_html( $item['a'] ?? '' );
+		$html .= '<details class="nvx-brand-faq-item">';
+		$html .= '<summary><span>' . $q . '</span></summary>';
+		$html .= '<div class="nvx-brand-faq-content"><p>' . $a . '</p></div>';
+		$html .= '</details>';
+	}
+
+	$html .= '</div></div></section>';
+	return $html;
+}
+
+/**
+ * Render canonical fact panel sidebar component markup.
+ *
+ * @param array{panel_title?:string,panel_items?:array<int,array{title:string,body:string}>} $diagnosis Diagnosis data.
+ * @param string $aria_label Panel accessible label.
+ * @return string Rendered sidebar HTML.
+ */
+function nvx_render_editorial_fact_panel_markup( array $diagnosis, string $aria_label = 'Criterio de diagnóstico' ): string {
+	$title = esc_html( $diagnosis['panel_title'] ?? '' );
+	$html  = '<aside class="nvx-fact-panel" aria-label="' . esc_attr( $aria_label ) . '">';
+	$html .= '<p class="nvx-fact-panel__label">' . $title . '</p>';
+	$html .= '<ul class="nvx-fact-panel__list" role="list">';
+
+	foreach ( $diagnosis['panel_items'] ?? array() as $item ) {
+		$t     = esc_html( $item['title'] ?? '' );
+		$b     = esc_html( $item['body'] ?? '' );
+		$html .= '<li><strong>' . $t . '</strong> — ' . $b . '</li>';
+	}
+
+	$html .= '</ul></aside>';
+	return $html;
+}
+
+/**
+ * Render canonical process steps grid section markup.
+ *
+ * @param array{kicker?:string,title?:string,body?:string,steps?:array<int,array{n?:string,title?:string,body?:string,icon?:string}>} $process Process data.
+ * @param string $prefix Section CSS prefix (e.g. 'nvx-co2').
+ * @param callable $icon_cb Callback function that takes icon name and returns SVG markup.
+ * @return string Rendered section HTML.
+ */
+function nvx_render_editorial_process_grid_markup( array $process, string $prefix, callable $icon_cb ): string {
+	$title_id = esc_attr( $prefix . '-process-title' );
+	$sec_cls  = esc_attr( $prefix . '-process' );
+	$grid_cls = esc_attr( $prefix . '-process-grid' );
+
+	$html  = nvx_page_brand_section_open_markup( $sec_cls, $title_id );
+	$html .= nvx_page_brand_section_heading_markup( esc_html( $process['kicker'] ?? '' ), $title_id, esc_html( $process['title'] ?? '' ) );
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $process['body'] ?? '' ) . '</p>';
+	$html .= '<div class="' . $grid_cls . '">';
+
+	$step_idx = 0;
+	foreach ( $process['steps'] ?? array() as $step ) {
+		$sid   = esc_attr( $prefix . '-step-' . $step_idx );
+		$icon  = is_callable( $icon_cb ) ? $icon_cb( $step['icon'] ?? 'assess' ) : '';
+		$html .= '<article class="' . esc_attr( $prefix . '-step' ) . '" aria-labelledby="' . $sid . '">';
+		$html .= $icon;
+		$html .= '<span class="' . esc_attr( $prefix . '-step__n' ) . '">' . esc_html( $step['n'] ?? '' ) . '</span>';
+		$html .= '<h3 id="' . $sid . '" class="' . esc_attr( $prefix . '-step__title' ) . '">' . esc_html( $step['title'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
+		$html .= '</article>';
+		++$step_idx;
+	}
+
+	$html .= '</div></div></section>';
+	return $html;
+}
+

@@ -102,17 +102,9 @@
 		};
 		window.gtag('event', normalizedName, params);
 
-		// Fire direct Google Ads conversion ONLY when GTM is not active (fallback mode).
-		// When GTM is configured, GTM handles the conversion tags via nvx_conversion_signal triggers.
-		var gadsConfig = window.nvxConversionEvents || {};
-		if (!gadsConfig.gtmId) {
-			if (normalizedName === 'generate_lead' && gadsConfig.gadsConversionForm) {
-				emitGadsConversion(gadsConfig.gadsConversionForm);
-			}
-			if ((normalizedName === 'phone_click' || normalizedName === 'whatsapp_click') && gadsConfig.gadsConversionCall) {
-				emitGadsConversion(gadsConfig.gadsConversionCall);
-			}
-		}
+		// Google Ads conversions are handled exclusively by GTM via nvx_conversion_signal triggers.
+		// Direct gtag conversion calls are removed to prevent double-counting when GTM is configured.
+		// If GTM is not available, conversions will not fire through this path - GTM is the canonical mechanism.
 
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
@@ -133,6 +125,7 @@
 			cta_marker: dataEvent || 'selector',
 		};
 
+		// Track reservation clicks
 		if (
 			target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
 			|| href.indexOf('/madrid/valoracion/') !== -1
@@ -141,6 +134,7 @@
 			return;
 		}
 
+		// Track WhatsApp clicks
 		if (
 			target.matches('[data-gtag="click-whatsapp"]')
 			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
@@ -149,20 +143,31 @@
 			return;
 		}
 
+		// Track phone clicks
 		if (/^tel:/i.test(href)) {
 			emit('phone_click', {
 				contact_method: 'phone',
 				cta_region: regionFor(target),
 				cta_marker: dataEvent || 'tel_link',
 			});
+			return;
 		}
 
 		// Track treatment-specific clicks for Google Ads conversion attribution
+		// Only emit for actual treatment CTAs (reservation/WhatsApp/phone), not generic links
 		if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
-			emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
+				|| /^tel:/i.test(href)) {
+				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+			}
 		}
 		if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
-			emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
+				|| /^tel:/i.test(href)) {
+				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+			}
 		}
 	}
 

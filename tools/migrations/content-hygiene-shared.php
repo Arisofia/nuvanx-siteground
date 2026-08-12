@@ -99,7 +99,19 @@ $apply_str = function(
         return 'clean';
     }
 
-    $new_value = str_replace( $from, $to, $original );
+    // Protect H1 tags: only allow replacements outside <h1>...</h1> ranges
+    // This prevents modifying legal page H1 text while allowing replacements
+    // in the rest of the content (including paragraphs, headings, etc.)
+    $new_value = preg_replace_callback(
+        '/<h1[^>]*>.*?<\/h1>/is',
+        function( $matches ) {
+            return $matches[0]; // Return H1 unchanged
+        },
+        $original
+    );
+
+    // Apply the replacement to the H1-stripped content
+    $new_value = str_replace( $from, $to, $new_value );
 
     if ( $new_value === $original ) {
         return 'clean';

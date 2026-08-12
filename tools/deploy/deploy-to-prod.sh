@@ -97,7 +97,10 @@ RELEASE_ROOT="$THEMES_ROOT/.nvx-prod-release-${SHA}-${RUN_TOKEN}"
 STAGED_THEME="$RELEASE_ROOT/nuvanx-medical"
 PREVIOUS_THEME="$THEMES_ROOT/.nvx-prod-previous-${RUN_TOKEN}"
 FAILED_THEME="$THEMES_ROOT/.nvx-prod-failed-${RUN_TOKEN}"
-BACKUP_DIR="$PROD_ROOT/wp-content/backups-nuvanx/pre-prod-${RUN_TOKEN}-${SHA:0:12}"
+# Move BACKUP_DIR outside document root to prevent HTTP exposure of DB dump
+PROD_PARENT="$(dirname "$PROD_ROOT")"
+BACKUP_ROOT="$PROD_PARENT/.nvx-backups"
+BACKUP_DIR="$BACKUP_ROOT/pre-prod-${RUN_TOKEN}-${SHA:0:12}"
 # Keep the migration/audit evidence beside the run-token-scoped snapshot so a
 # rollback preserves the forensic trail. $SCRIPT_DIR is the ephemeral CI payload
 # that the workflow deletes after the run.
@@ -500,7 +503,6 @@ echo "== Purge production caches =="
 # However, Speed Optimizer restoration failures are serious - they change the
 # production plugin state and must be treated as a deployment failure.
 purge_rc=0
-purge_restore_rc=0
 (
   trap - ERR
   cd "$PROD_ROOT"
@@ -510,17 +512,17 @@ purge_restore_rc=0
   # - 0: success
   # - 10: plugin restoration failure (plugin remained active) - fatal
   # - other non-zero: purge failure - non-fatal
-  purge_siteground_dynamic_cache || purge_restore_rc=$?
+  purge_siteground_dynamic_cache || inner_rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || inner_rc=$?
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || inner_rc=$?
   wp eval 'if (function_exists("opcache_reset")) { if ( ! opcache_reset() ) { echo "opcache_reset failed\n"; exit(1); } echo "opcache=ok\n"; }' || inner_rc=$?
-  # Exit with the first non-zero code encountered
+  # Exit with the first non-zero code encountered, or plugin restoration code
   [[ "$inner_rc" -eq 0 ]] || exit "$inner_rc"
-  [[ "$purge_restore_rc" -eq 0 ]] || exit "$purge_restore_rc"
+  [[ "$inner_rc" -eq 0 ]] && [[ "$purge_restore_rc" -ne 0 ]] && exit "$purge_restore_rc"
 ) || purge_rc=$?
 
 # Check for plugin restoration failure (exit code 10) - use dedicated variable
-if [[ "$purge_restore_rc" -eq 10 ]]; then
+if [[ "$purge_rc" -eq 10 ]]; then
   echo "ERROR: Speed Optimizer plugin restoration failed - this changes production state" >&2
   exit 1
 fi

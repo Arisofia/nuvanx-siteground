@@ -32,7 +32,9 @@ To prevent editorial content changes (e.g. H1 text) from triggering full rollbac
 - Pre-cutover: checks only non-migratable issues (legal page H1, missing pages) and fails fast on those
 - Post-migration: requires full AUDIT_CLEAN including string/regex hygiene rules after migration fixes them
 
-**Important change:** The workflow step "Run shared content migration" has been removed. The migration now executes only once, inside deploy-to-prod.sh's atomic post-cutover window. This eliminates the unprotected second execution that previously ran outside the rollback transaction.
+**Important changes:**
+- The workflow step "Run shared content migration" has been removed. The migration now executes only once, inside deploy-to-prod.sh's atomic post-cutover window.
+- BACKUP_DIR has been moved outside the document root to `$PROD_PARENT/.nvx-backups/` to prevent HTTP exposure of the database dump.
 
 ## Host-level emergency production operation
 

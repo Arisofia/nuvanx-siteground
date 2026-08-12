@@ -37,6 +37,30 @@ function nvx_seo_blog_post_metadata_catalog(): array {
 }
 
 /**
+ * Build one complete governed metadata record.
+ *
+ * @param mixed $title       Candidate title.
+ * @param mixed $description Candidate description.
+ * @param mixed $canonical   Candidate canonical URL.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_complete_metadata_record( $title, $description, $canonical ): ?array {
+	$title       = trim( (string) $title );
+	$description = trim( (string) $description );
+	$canonical   = is_string( $canonical ) ? trim( $canonical ) : '';
+
+	if ( '' === $title || '' === $description || '' === $canonical ) {
+		return null;
+	}
+
+	return array(
+		'title'       => $title,
+		'description' => $description,
+		'canonical'   => $canonical,
+	);
+}
+
+/**
  * Resolve governed Signature metadata from an explicit WordPress post ID.
  *
  * Unlike request-condition helpers such as is_page(), the Yoast indexable
@@ -80,18 +104,104 @@ function nvx_seo_signature_metadata_for_post_id( int $post_id ): ?array {
 		return null;
 	}
 
-	$title       = isset( $source['seo_title'] ) ? trim( (string) $source['seo_title'] ) : '';
-	$description = isset( $source['seo_desc'] ) ? trim( (string) $source['seo_desc'] ) : '';
-	$canonical   = get_permalink( $post_id );
+	return nvx_seo_complete_metadata_record(
+		$source['seo_title'] ?? '',
+		$source['seo_desc'] ?? '',
+		get_permalink( $post_id )
+	);
+}
 
-	if ( '' === $title || '' === $description || ! is_string( $canonical ) || '' === $canonical ) {
+/**
+ * Resolve a governed aesthetic-treatment record by object type and slug.
+ *
+ * @param string $post_type WordPress post type.
+ * @param string $slug      WordPress slug.
+ * @param string $canonical Canonical URL.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_aesthetic_metadata_for_object( string $post_type, string $slug, string $canonical ): ?array {
+	if ( 'page' !== $post_type || ! function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
 		return null;
 	}
 
-	return array(
-		'title'       => $title,
-		'description' => $description,
-		'canonical'   => $canonical,
+	foreach ( nvx_aesthetic_treatment_catalog() as $entry ) {
+		if ( ! is_array( $entry ) || $slug !== (string) ( $entry['slug'] ?? '' ) ) {
+			continue;
+		}
+
+		return nvx_seo_complete_metadata_record(
+			$entry['seo_title'] ?? '',
+			$entry['description'] ?? '',
+			$canonical
+		);
+	}
+
+	return null;
+}
+
+/**
+ * Resolve governed blog metadata by object type and slug.
+ *
+ * @param string $post_type WordPress post type.
+ * @param string $slug      WordPress slug.
+ * @param string $canonical Canonical URL.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_blog_metadata_for_object( string $post_type, string $slug, string $canonical ): ?array {
+	if ( 'post' !== $post_type ) {
+		return null;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	$entry   = is_array( $catalog ) && isset( $catalog[ $slug ] ) && is_array( $catalog[ $slug ] )
+		? $catalog[ $slug ]
+		: null;
+
+	if ( ! is_array( $entry ) ) {
+		return null;
+	}
+
+	return nvx_seo_complete_metadata_record(
+		$entry['title'] ?? '',
+		$entry['description'] ?? '',
+		$canonical
+	);
+}
+
+/**
+ * Resolve governed route metadata from the versioned route + SEO catalogs.
+ *
+ * @param string $canonical Canonical URL.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_route_metadata_for_canonical( string $canonical ): ?array {
+	if ( ! function_exists( 'nvx_catalog_json_resolved' ) ) {
+		return null;
+	}
+
+	$path   = (string) wp_parse_url( $canonical, PHP_URL_PATH );
+	$path   = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
+	$routes = nvx_catalog_json_resolved( 'routes.json' );
+	$route  = is_array( $routes ) && isset( $routes[ $path ] ) && is_array( $routes[ $path ] )
+		? $routes[ $path ]
+		: null;
+	$seo_id = is_array( $route ) && isset( $route['seo_id'] ) ? trim( (string) $route['seo_id'] ) : '';
+	if ( '' === $seo_id ) {
+		return null;
+	}
+
+	$catalog = nvx_seo_metadata_catalog();
+	$entry   = is_array( $catalog ) && isset( $catalog[ $seo_id ] ) && is_array( $catalog[ $seo_id ] )
+		? $catalog[ $seo_id ]
+		: null;
+	if ( ! is_array( $entry ) ) {
+		return null;
+	}
+
+	return nvx_seo_complete_metadata_record(
+		$entry['title'] ?? '',
+		$entry['description'] ?? '',
+		$canonical
 	);
 }
 
@@ -99,6 +209,9 @@ function nvx_seo_signature_metadata_for_post_id( int $post_id ): ?array {
  * Resolve governed metadata for a concrete WordPress object rather than the
  * ambient HTTP request. This is essential for REST/headless responses, where
  * request-condition helpers point at /wp-json/ instead of the represented post.
+ *
+ * Resolver priority is intentionally: Signature → aesthetic treatment → blog
+ * post → routed catalog metadata.
  *
  * @param int $post_id WordPress post ID represented by the Yoast indexable.
  * @return array{title:string,description:string,canonical:string}|null
@@ -108,77 +221,21 @@ function nvx_seo_governed_metadata_for_post_id( int $post_id ): ?array {
 		return null;
 	}
 
-	$signature = nvx_seo_signature_metadata_for_post_id( $post_id );
-	if ( null !== $signature ) {
-		return $signature;
-	}
+	$metadata = nvx_seo_signature_metadata_for_post_id( $post_id );
+	if ( null === $metadata ) {
+		$post_type = (string) get_post_type( $post_id );
+		$slug      = (string) get_post_field( 'post_name', $post_id );
+		$canonical = get_permalink( $post_id );
+		$canonical = is_string( $canonical ) ? trim( $canonical ) : '';
 
-	$post_type = (string) get_post_type( $post_id );
-	$slug      = (string) get_post_field( 'post_name', $post_id );
-	$canonical = get_permalink( $post_id );
-	if ( '' === $slug || ! is_string( $canonical ) || '' === $canonical ) {
-		return null;
-	}
-
-	if ( 'page' === $post_type && function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
-		foreach ( nvx_aesthetic_treatment_catalog() as $entry ) {
-			if ( ! is_array( $entry ) || $slug !== (string) ( $entry['slug'] ?? '' ) ) {
-				continue;
-			}
-			$title       = trim( (string) ( $entry['seo_title'] ?? '' ) );
-			$description = trim( (string) ( $entry['description'] ?? '' ) );
-			if ( '' !== $title && '' !== $description ) {
-				return array(
-					'title'       => $title,
-					'description' => $description,
-					'canonical'   => $canonical,
-				);
-			}
+		if ( '' !== $slug && '' !== $canonical ) {
+			$metadata = nvx_seo_aesthetic_metadata_for_object( $post_type, $slug, $canonical );
+			$metadata = null !== $metadata ? $metadata : nvx_seo_blog_metadata_for_object( $post_type, $slug, $canonical );
+			$metadata = null !== $metadata ? $metadata : nvx_seo_route_metadata_for_canonical( $canonical );
 		}
 	}
 
-	if ( 'post' === $post_type ) {
-		$blog_catalog = nvx_seo_blog_post_metadata_catalog();
-		$blog_meta    = $blog_catalog[ $slug ] ?? null;
-		if ( is_array( $blog_meta ) ) {
-			$title       = trim( (string) ( $blog_meta['title'] ?? '' ) );
-			$description = trim( (string) ( $blog_meta['description'] ?? '' ) );
-			if ( '' !== $title && '' !== $description ) {
-				return array(
-					'title'       => $title,
-					'description' => $description,
-					'canonical'   => $canonical,
-				);
-			}
-		}
-	}
-
-	$path = (string) wp_parse_url( $canonical, PHP_URL_PATH );
-	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
-	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
-		$routes = nvx_catalog_json_resolved( 'routes.json' );
-		$route  = is_array( $routes ) && isset( $routes[ $path ] ) && is_array( $routes[ $path ] )
-			? $routes[ $path ]
-			: null;
-		$seo_id = is_array( $route ) && isset( $route['seo_id'] ) ? trim( (string) $route['seo_id'] ) : '';
-		if ( '' !== $seo_id ) {
-			$catalog     = nvx_seo_metadata_catalog();
-			$route_meta  = is_array( $catalog ) && isset( $catalog[ $seo_id ] ) && is_array( $catalog[ $seo_id ] )
-				? $catalog[ $seo_id ]
-				: null;
-			$title       = is_array( $route_meta ) ? trim( (string) ( $route_meta['title'] ?? '' ) ) : '';
-			$description = is_array( $route_meta ) ? trim( (string) ( $route_meta['description'] ?? '' ) ) : '';
-			if ( '' !== $title && '' !== $description ) {
-				return array(
-					'title'       => $title,
-					'description' => $description,
-					'canonical'   => $canonical,
-				);
-			}
-		}
-	}
-
-	return null;
+	return $metadata;
 }
 
 /**

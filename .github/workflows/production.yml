@@ -556,16 +556,17 @@ jobs:
             BatchMode yes
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
+            ConnectTimeout 30
+            ConnectionAttempts 3
+            ServerAliveInterval 20
+            ServerAliveCountMax 3
           EOF
           chmod 600 "$HOME/.ssh/config"
           audit_connected=0
           retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"; then
+            echo "Production audit SSH connection attempt $attempt/$SSH_RETRY_ATTEMPTS to $HOST:$SSH_PORT"
+            if ssh -n -v nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null" 2>&1 | tee /tmp/ssh-debug.log; then
               audit_connected=1; break
             fi
             if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then

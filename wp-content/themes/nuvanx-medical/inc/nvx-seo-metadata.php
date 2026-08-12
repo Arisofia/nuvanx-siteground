@@ -157,10 +157,15 @@ function nvx_seo_governed_metadata_for_post_id( int $post_id ): ?array {
 	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
 	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
 		$routes = nvx_catalog_json_resolved( 'routes.json' );
-		$seo_id = isset( $routes[ $path ]['seo_id'] ) ? (string) $routes[ $path ]['seo_id'] : '';
+		$route  = is_array( $routes ) && isset( $routes[ $path ] ) && is_array( $routes[ $path ] )
+			? $routes[ $path ]
+			: null;
+		$seo_id = is_array( $route ) && isset( $route['seo_id'] ) ? trim( (string) $route['seo_id'] ) : '';
 		if ( '' !== $seo_id ) {
 			$catalog     = nvx_seo_metadata_catalog();
-			$route_meta  = $catalog[ $seo_id ] ?? null;
+			$route_meta  = is_array( $catalog ) && isset( $catalog[ $seo_id ] ) && is_array( $catalog[ $seo_id ] )
+				? $catalog[ $seo_id ]
+				: null;
 			$title       = is_array( $route_meta ) ? trim( (string) ( $route_meta['title'] ?? '' ) ) : '';
 			$description = is_array( $route_meta ) ? trim( (string) ( $route_meta['description'] ?? '' ) ) : '';
 			if ( '' !== $title && '' !== $description ) {

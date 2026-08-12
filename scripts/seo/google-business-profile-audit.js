@@ -43,7 +43,25 @@ const CLINICS = {
   }
 };
 
-function printStaticReference() {
+const NEXT_CHECK = 'Compare GBP name, primary/secondary categories, address, phone, hours, website URL, appointment URL, services and review profile against this reference.';
+
+function buildReference() {
+  return {
+    evidenceScope: 'WEBSITE_CANONICAL_REFERENCE',
+    gbpLiveApiCheck: 'NOT_PERFORMED',
+    gbpLiveStatus: 'UNKNOWN',
+    staticNapReference: 'PRINTED',
+    liveGbpAuditRequired: true,
+    clinics: CLINICS,
+    nextCheck: NEXT_CHECK
+  };
+}
+
+function printJsonReference() {
+  console.log(JSON.stringify(buildReference(), null, 2));
+}
+
+function printHumanReference() {
   console.log('=== REFERENCIA NAP / LOCAL SEO NUVANX (NO GBP LIVE) ===\n');
   console.log('EVIDENCE_SCOPE=WEBSITE_CANONICAL_REFERENCE');
   console.log('GBP_LIVE_API_CHECK=NOT_PERFORMED');
@@ -60,9 +78,18 @@ function printStaticReference() {
     console.log(`   Días de consulta médica: ${clinic.days}\n`);
   }
 
-  console.log('STATIC_NAP_REFERENCE=PRINTED clinics=2');
+  console.log(`STATIC_NAP_REFERENCE=PRINTED clinics=${Object.keys(CLINICS).length}`);
   console.log('LIVE_GBP_AUDIT_REQUIRED=true');
-  console.log('NEXT_CHECK=Compare GBP name, primary/secondary categories, address, phone, hours, website URL, appointment URL, services and review profile against this reference.');
+  console.log(`NEXT_CHECK=${NEXT_CHECK}`);
+}
+
+function printStaticReference() {
+  if (process.argv.includes('--json')) {
+    printJsonReference();
+    return;
+  }
+
+  printHumanReference();
 }
 
 printStaticReference();

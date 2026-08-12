@@ -86,16 +86,22 @@ function nvx_gtm_push_context(): void {
 		),
 		JSON_UNESCAPED_UNICODE
 	);
-	$client_config  = wp_json_encode( $client_context, JSON_UNESCAPED_UNICODE );
+	$client_env     = wp_json_encode( $client_context['env'], JSON_UNESCAPED_UNICODE );
+	$client_forms   = wp_json_encode( $client_context['forms'], JSON_UNESCAPED_UNICODE );
 
-	if ( ! is_string( $data_layer ) || '' === $data_layer || ! is_string( $client_config ) || '' === $client_config ) {
+	if (
+		! is_string( $data_layer ) || '' === $data_layer
+		|| ! is_string( $client_env ) || '' === $client_env
+		|| ! is_string( $client_forms ) || '' === $client_forms
+	) {
 		return;
 	}
 
 	printf(
-		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=Object.assign({},window.nvxConversionEvents||{},%s);</script>\n",
+		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=Object.assign({},window.nvxConversionEvents.forms||{},%s);</script>\n",
 		$data_layer, // wp_json_encode() returns executable JSON, not user-authored markup.
-		$client_config
+		$client_env,
+		$client_forms
 	);
 }
 add_action( 'wp_head', 'nvx_gtm_push_context', 1 );

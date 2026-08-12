@@ -96,6 +96,26 @@ add_action(
 // Contact SEO/schema: nvx-contacto-valoracion-page.php (loaded from functions.php).
 // Non-production OG host policy: nvx-document-governance.php.
 
+/**
+ * Resolve the home page hero poster URL.
+ *
+ * Checks for a custom poster configured via theme mod nvx_home_video_poster_id,
+ * otherwise falls back to the canonical poster URL.
+ *
+ * @return string The resolved poster URL.
+ */
+function nvx_resolve_home_hero_poster_url(): string {
+	$canonical_poster_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+	$poster_id             = (int) get_theme_mod( 'nvx_home_video_poster_id', 0 );
+	$poster_file           = $poster_id > 0 ? get_attached_file( $poster_id ) : '';
+	$configured_poster_url = ( $poster_id > 0 && is_string( $poster_file ) && '' !== $poster_file && is_readable( $poster_file ) )
+		? wp_get_attachment_image_url( $poster_id, 'full' )
+		: '';
+	return is_string( $configured_poster_url ) && '' !== $configured_poster_url
+		? $configured_poster_url
+		: $canonical_poster_url;
+}
+
 add_action(
 	'wp_head',
 	function (): void {
@@ -105,8 +125,10 @@ add_action(
 		 * Ver Playwright tests para garantizar que las fuentes de marca se aplican correctamente. */
 
 		if ( is_front_page() ) {
-			$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
-			echo '<link rel="preload" as="image" href="' . esc_url( $poster_url ) . '" fetchpriority="high" type="image/webp" />' . "\n";
+			$poster_url = nvx_resolve_home_hero_poster_url();
+			if ( is_string( $poster_url ) && '' !== $poster_url ) {
+				echo '<link rel="preload" as="image" href="' . esc_url( $poster_url ) . '" fetchpriority="high" type="image/webp" />' . "\n";
+			}
 		}
 
 		if ( ! is_404() && ! is_search() ) {

@@ -11,13 +11,12 @@ Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
 ## Workflow ownership
 
-The shell scripts in this directory are implementation helpers. Release orchestration is owned by the reusable GitHub workflows:
+The shell scripts in this directory are implementation helpers. Release orchestration is owned by the canonical GitHub workflows:
 
-- `.github/workflows/deploy-staging2.yml`
-- `.github/workflows/staging2-acceptance.yml`
-- `.github/workflows/deploy.yml`
+- `.github/workflows/staging.yml` - Complete Staging2 lifecycle
+- `.github/workflows/production.yml` - Production promotion with SEO/GEO audits
 
-They are `workflow_call` workflows. A normal push to `master` does not deploy Staging2 or production. An authorized release path must explicitly call them with the exact 40-character candidate SHA. Production mutation in the permanent production workflow remains disabled until explicit authorization.
+A relevant push to `master` can automatically deploy **Staging2 only** through `staging.yml`. Production deployment requires explicit authorization via the `release/production` branch and changes to `release/production-candidate.txt`.
 
 See [`docs/operations/deployment.md`](../../docs/operations/deployment.md) for the canonical release model.
 

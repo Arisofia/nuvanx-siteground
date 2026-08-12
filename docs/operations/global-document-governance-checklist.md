@@ -15,10 +15,10 @@ Este documento define el estándar de gobernanza manual para la interfaz y dise�
 
 ## 3. Tipografía, Jerarquía y Colores (Design Tokens)
 
-- [ ] **Jerarquía Tipográfica (H1-H6):** 
+- [ ] **Jerarquía Tipográfica (H1-H6):**
   - Los encabezados de primer nivel (`H1`) utilizan invariablemente *Playfair Display* con los pesos (weight) correctos.
   - Los textos de párrafo (`p`) y UI utilizan *Manrope* (legibilidad técnica).
-- [ ] **Tokens de Color:** 
+- [ ] **Tokens de Color:**
   - Comprobar que los fondos oscuros (ej: `.nvx-theme-dark`) contrastan adecuadamente con textos blancos/claros.
   - No hay textos "gris claro" sobre fondos blancos que violen el contraste mínimo (WCAG).
   - Los CTAs (`.nvx-brand-btn`) usan los colores primarios y secundarios de marca definidos en `nvx-tokens.css` y reaccionan a los estados `:hover` y `:focus`.
@@ -32,5 +32,5 @@ Este documento define el estándar de gobernanza manual para la interfaz y dise�
 
 ---
 
-> [!NOTE]  
+> [!NOTE]
 > Cualquier fallo detectado durante este QA manual debe escalarse como *bug* de UI, asegurando que las correcciones se realicen actualizando las clases base de `nvx-components.css` o `nvx-patterns-editorial.css`, y **NUNCA** introduciendo estilos *inline* (`style="..."`) en los módulos PHP.

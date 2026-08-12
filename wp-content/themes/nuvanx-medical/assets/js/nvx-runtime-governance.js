@@ -201,7 +201,7 @@
       if (el.classList.contains('nvx-open-valoracion-modal')) return true;
       if (el.dataset.nvxValoracionModal === '1') return true;
       if (el.id === 'nvx-header-cta' || el.id === 'nvx-footer-cta' || el.id === 'nvx-mobile-cta') return true;
-      
+
       const href = el.getAttribute('href') || '';
       if (!isValoracionHref(href)) return false;
       const cls = el.className || '';
@@ -251,7 +251,7 @@
           closeModal();
         }
       });
-      
+
       modal.addEventListener('close', function() {
          closeModal();
       });
@@ -356,7 +356,7 @@
      */
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
-      
+
       if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
         const frames = document.querySelectorAll('.hs-form-frame[data-form-id][data-portal-id]');
         frames.forEach(function(frame, index) {

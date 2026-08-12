@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * Lint script to detect hardcoded font-size values in CSS files.
- * 
+ *
  * This script scans CSS files for:
  * - Hardcoded px values in font-size properties
  * - Exceptions: var() declarations, tokens, comments
- * 
+ *
  * Violations are reported and the script exits with error code 1.
  */
 

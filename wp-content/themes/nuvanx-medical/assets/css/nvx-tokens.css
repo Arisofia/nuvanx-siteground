@@ -31,7 +31,7 @@
 
   /* Luxurious dark surfaces with subtle grain texture */
   --nvx-surface-dark: #070707;
-  --nvx-surface-dark-texture: 
+  --nvx-surface-dark-texture:
     linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 100%);
   --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
@@ -76,7 +76,7 @@
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
   --nvx-gutter-inner: clamp(24px, 5vw, 48px);
-  
+
   --nvx-accent-gold: #C1A68D;
   --nvx-accent-gold-text: #735942;
 

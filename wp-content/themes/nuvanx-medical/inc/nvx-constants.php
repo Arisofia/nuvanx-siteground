@@ -58,6 +58,7 @@ const NVX_HOOK_PRIO_ENDOLIFT           = 19;
 const NVX_HOOK_PRIO_EQUIPO             = 19;
 const NVX_HOOK_PRIO_LASER_MEDICINE     = 19;
 const NVX_HOOK_PRIO_NOSOTROS           = 19;
+const NVX_HOOK_PRIO_PROFIHILO_MODULE   = 19;
 
 // Global Enhancements
 const NVX_HOOK_PRIO_PRESENTATION_ENHANCE = 20;

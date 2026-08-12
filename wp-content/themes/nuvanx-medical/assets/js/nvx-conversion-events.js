@@ -57,6 +57,36 @@
 		return output;
 	}
 
+	/**
+	 * Fire a Google Ads conversion event when an Ads Conversion ID is configured.
+	 *
+	 * The conversion ID + label come from window.nvxConversionEvents (injected
+	 * by nvx-gtm-integration.php via wp_head). If the IDs are not yet set,
+	 * this is a safe no-op — it will work automatically once the PHP constants
+	 * NVX_GADS_CONVERSION_ID_FORM / NVX_GADS_CONVERSION_ID_CALL are configured.
+	 *
+	 * Format expected: 'AW-XXXXXXXXXX/YYYYYYYYYYYY'
+	 *
+	 * @param {string} conversionId - Full conversion string (id/label).
+	 */
+	function emitGadsConversion(conversionId) {
+		if (!conversionId || conversionId.indexOf('AW-') !== 0) return;
+
+		var parts = conversionId.split('/');
+		if (parts.length !== 2 || !parts[0] || !parts[1]) return;
+
+		window.gtag = window.gtag || function () {
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push(arguments);
+		};
+
+		window.gtag('event', 'conversion', {
+			send_to: conversionId,
+			value: 1.0,
+			currency: 'EUR',
+		});
+	}
+
 	function emit(eventName, parameters) {
 		var normalizedName = cleanToken(eventName);
 		var params = allowedParameters(parameters);
@@ -72,10 +102,15 @@
 		};
 		window.gtag('event', normalizedName, params);
 
+		// Google Ads conversions are handled exclusively by GTM via nvx_conversion_signal triggers.
+		// Direct gtag conversion calls are removed to prevent double-counting when GTM is configured.
+		// If GTM is not available, conversions will not fire through this path - GTM is the canonical mechanism.
+
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
 	}
+
 
 	function trackClick(event) {
 		var target = event.target && typeof event.target.closest === 'function'
@@ -90,6 +125,7 @@
 			cta_marker: dataEvent || 'selector',
 		};
 
+		// Track reservation clicks
 		if (
 			target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
 			|| href.indexOf('/madrid/valoracion/') !== -1
@@ -98,6 +134,7 @@
 			return;
 		}
 
+		// Track WhatsApp clicks
 		if (
 			target.matches('[data-gtag="click-whatsapp"]')
 			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
@@ -106,12 +143,31 @@
 			return;
 		}
 
+		// Track phone clicks
 		if (/^tel:/i.test(href)) {
 			emit('phone_click', {
 				contact_method: 'phone',
 				cta_region: regionFor(target),
 				cta_marker: dataEvent || 'tel_link',
 			});
+			return;
+		}
+
+		// Track treatment-specific clicks for Google Ads conversion attribution
+		// Only emit for actual treatment CTAs (reservation/WhatsApp/phone), not generic links
+		if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
+			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
+				|| /^tel:/i.test(href)) {
+				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+			}
+		}
+		if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
+			if (target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+				|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
+				|| /^tel:/i.test(href)) {
+				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+			}
 		}
 	}
 

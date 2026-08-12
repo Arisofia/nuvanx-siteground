@@ -6,11 +6,11 @@ All notable changes to the NUVANX codebase are documented in this file.
 
 ### Fixed - Deployment SSH Issues (2026-08-05)
 
-- **deploy.yml**: Applied same SSH fixes as staging2:
+- **production.yml** and **staging.yml**: Applied SSH fixes:
   - ConnectTimeout increased from default to 30 seconds
   - ServerAliveInterval 60 for keep-alive
   - ServerAliveCountMax 3 for retries
-  - StrictHostKeyChecking no for connection reliability
+  - StrictHostKeyChecking yes for security
 
 ### Changed - CSS Optimization (2026-08-05)
 
@@ -27,7 +27,7 @@ All notable changes to the NUVANX codebase are documented in this file.
   - `no-hardcoded-colors.mjs`: Detects hardcoded hex colors in CSS, ignores tokens, shadows, and legitimate use cases
   - `no-hardcoded-fontsize.mjs`: Detects hardcoded px font-size values, allows exception markers
   - `no-inline-layout-styles.mjs`: Detects dangerous inline styles (margin, padding, font-size, color) in PHP
-  - All lints integrated into CI workflows (ci-quality.yml, deploy-staging2.yml, deploy.yml)
+  - All lints integrated into CI workflows (staging.yml, production.yml)
   - Fail-fast before expensive browser tests
 
 - **Layout Contract Enforcement**:

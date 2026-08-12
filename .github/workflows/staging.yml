@@ -574,7 +574,7 @@ jobs:
           git merge-base --is-ancestor origin/master "$PR_SHA" || { echo 'Rebase PR onto current master before preview.' >&2; exit 1; }
           mapfile -t changed < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' | sort -u)
           (( ${#changed[@]} > 0 ))
-          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
+          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*|release/production-candidate.txt) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
           git diff --check origin/master "$PR_SHA"
           ! git ls-tree -r "$PR_SHA" wp-content/themes/nuvanx-medical/ | awk '$1 == "120000" { found=1 } END { exit(found ? 0 : 1) }'
           CANDIDATE_ROOT="$RUNNER_TEMP/nvx-pr-${PR_NUMBER}-${PR_SHA}"

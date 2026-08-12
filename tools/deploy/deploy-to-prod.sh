@@ -227,7 +227,7 @@ fi
 echo "ROLLBACK_SNAPSHOT=PASS path=$BACKUP_DIR"
 
 rollback_after_swap() {
-  local rc=$?
+  local rc="${1:-$?}"
   trap - ERR INT TERM HUP
   set +e
   if [[ "$ROLLBACK_IN_PROGRESS" -eq 1 ]]; then
@@ -258,7 +258,10 @@ rollback_after_swap() {
   fi
   exit "$rc"
 }
-trap rollback_after_swap ERR INT TERM HUP
+trap rollback_after_swap ERR
+trap 'rollback_after_swap 130' INT
+trap 'rollback_after_swap 143' TERM
+trap 'rollback_after_swap 129' HUP
 
 echo "== Directory cutover =="
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
@@ -282,11 +285,13 @@ purge_rc=0
 (
   trap - ERR INT TERM HUP
   cd "$PROD_ROOT"
-  wp cache flush || purge_rc=$?
-  purge_siteground_dynamic_cache || purge_rc=$?
+  inner_rc=0
+  wp cache flush || inner_rc=$?
+  purge_siteground_dynamic_cache || inner_rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+  exit "$inner_rc"
 ) || purge_rc=$?
 [[ "$purge_rc" -eq 0 ]] || echo "WARN: production cache purge reported a non-fatal error rc=$purge_rc" >&2
 

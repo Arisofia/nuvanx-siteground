@@ -231,16 +231,22 @@ rollback_after_swap() {
   trap - ERR INT TERM HUP
   set +e
   if [[ "$ROLLBACK_IN_PROGRESS" -eq 1 ]]; then
-    return
+    [[ "$rc" -ne 0 ]] || rc=1
+    exit "$rc"
   fi
   ROLLBACK_IN_PROGRESS=1
-  if [[ "$SWAPPED" -eq 1 ]]; then
+  # A rollback is required whenever the cutover has started (SWAPPED=1) or a
+  # signal interrupted it mid-way, which is detectable because the previous
+  # live theme was moved aside to PREVIOUS_THEME.
+  if [[ "$SWAPPED" -eq 1 || -d "$PREVIOUS_THEME" ]]; then
     echo "ROLLBACK_TRIGGERED rc=$rc previous=$PREVIOUS_THEME" >&2
-    rm -rf "$FAILED_THEME"
-    if [[ -d "$LIVE_THEME" ]]; then
-      mv "$LIVE_THEME" "$FAILED_THEME"
-    fi
+    # Only displace the current live theme if we have a previous theme to
+    # restore; otherwise the live directory is the original and must stay.
     if [[ -d "$PREVIOUS_THEME" ]]; then
+      rm -rf "$FAILED_THEME"
+      if [[ -d "$LIVE_THEME" ]]; then
+        mv "$LIVE_THEME" "$FAILED_THEME"
+      fi
       mv "$PREVIOUS_THEME" "$LIVE_THEME"
     fi
     (
@@ -256,15 +262,21 @@ rollback_after_swap() {
     fi
     echo "ROLLBACK_PRODUCTION=PASS" >&2
   fi
+  # Drop the staged release so aborted deploys don't accumulate theme-sized
+  # directories under wp-content/themes/ (the EXIT trap skips it while SWAPPED=1).
+  rm -rf "$RELEASE_ROOT" 2>/dev/null || true
   [[ "$rc" -ne 0 ]] || rc=1
   exit "$rc"
 }
 trap rollback_after_swap ERR INT TERM HUP
 
 echo "== Directory cutover =="
+# Mark the cutover as in progress before the first mv so that a signal
+# arriving mid-way still triggers a full rollback (the handler also detects
+# a moved-aside PREVIOUS_THEME directly).
+SWAPPED=1
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
 mv "$STAGED_THEME" "$LIVE_THEME"
-SWAPPED=1
 
 echo "== Verify exact production release on disk =="
 (

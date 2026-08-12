@@ -17,8 +17,8 @@ printf( "WP prefix   : %s\n\n", $wpdb->prefix );
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** @var list<array{post_id:int,slug:string,field:string,type:string,pattern:string}> */
-$pending  = [];
-$errors   = [];
+$pending = [];
+$errors  = [];
 
 /**
  * Return a short excerpt of text surrounding the first occurrence of $needle.
@@ -147,9 +147,65 @@ foreach ( nvx_hygiene_regex_reps() as $rule ) {
 
 echo "\n";
 
-// ── Block 3: Legal page H1 audit ──────────────────────────────────────────────
+// ── Block 3: Retired strategy page audit ──────────────────────────────────────
 
-echo "--- Block 3: Legal Page H1 Audit ---\n";
+echo "--- Block 3: Retired Strategy Page Audit ---\n";
+
+$retired_pending = 0;
+
+foreach ( nvx_hygiene_retired_strategy_pages() as $slug => $contract ) {
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT ID, post_status, post_type
+               FROM {$wpdb->posts}
+              WHERE post_name = %s
+                AND post_type NOT IN ('revision','nav_menu_item','attachment')
+              ORDER BY ID ASC",
+            $slug
+        ),
+        ARRAY_A
+    );
+
+    if ( null === $rows ) {
+        printf( "[ERROR  ] /%s/ — database lookup failed\n", $slug );
+        $errors[] = "Retired page query failed: /{$slug}/";
+        continue;
+    }
+
+    if ( empty( $rows ) ) {
+        printf( "[OK     ] /%s/ — no content record; redirect target %s\n", $slug, $contract['target'] );
+        continue;
+    }
+
+    foreach ( $rows as $row ) {
+        if ( 'trash' === $row['post_status'] ) {
+            printf( "[OK     ] /%s/ — ID %d status=trash; redirect target %s\n", $slug, $row['ID'], $contract['target'] );
+            continue;
+        }
+
+        $retired_pending++;
+        $pending[] = [
+            'post_id' => (int) $row['ID'],
+            'slug'    => $slug,
+            'field'   => 'post_status',
+            'type'    => 'retired_page',
+            'pattern' => 'expected=trash;target=' . $contract['target'],
+        ];
+        printf(
+            "[PENDING] ID %-5d | /%-42s | post_status=%s must become trash; redirect=%s\n",
+            $row['ID'],
+            $slug . '/',
+            $row['post_status'],
+            $contract['target']
+        );
+    }
+}
+
+echo "\n";
+
+// ── Block 4: Legal page H1 audit ──────────────────────────────────────────────
+
+echo "--- Block 4: Legal Page H1 Audit ---\n";
 
 $h1_issues = 0;
 
@@ -193,13 +249,15 @@ $elapsed      = round( microtime( true ) - $start, 2 );
 $total        = count( $pending );
 $unique_posts = count( array_unique( array_column( $pending, 'post_id' ) ) );
 $str_count    = count( array_filter( $pending, fn( $r ) => 'string' === $r['type'] ) );
-$rx_count     = count( array_filter( $pending, fn( $r ) => 'regex'  === $r['type'] ) );
+$rx_count     = count( array_filter( $pending, fn( $r ) => 'regex' === $r['type'] ) );
+$retired_count = count( array_filter( $pending, fn( $r ) => 'retired_page' === $r['type'] ) );
 
 echo "=== SUMMARY ===\n";
-printf( "Posts scanned                : %d\n",    count( $posts ) );
-printf( "Pending (string)             : %d\n",    $str_count );
-printf( "Pending (regex)              : %d\n",    $rx_count );
-printf( "Legal page H1 issues         : %d\n",    $h1_issues );
+printf( "Posts scanned                : %d\n", count( $posts ) );
+printf( "Pending (string)             : %d\n", $str_count );
+printf( "Pending (regex)              : %d\n", $rx_count );
+printf( "Pending (retired pages)      : %d\n", $retired_count );
+printf( "Legal page H1 issues         : %d\n", $h1_issues );
 printf( "Total pending records        : %d across %d unique posts\n", $total, $unique_posts );
 printf( "Elapsed                      : %ss\n\n", $elapsed );
 
@@ -211,6 +269,7 @@ echo json_encode( [
     'posts_scanned'   => count( $posts ),
     'string_pending'  => $str_count,
     'regex_pending'   => $rx_count,
+    'retired_pending' => $retired_count,
     'h1_issues'       => $h1_issues,
     'total_pending'   => $total,
     'unique_posts'    => $unique_posts,
@@ -233,13 +292,12 @@ if ( 0 === $total && 0 === $h1_issues && empty( $errors ) ) {
     exit( 0 );
 }
 
-# Distinguish between migratable (string/regex) and non-migratable (H1) issues
+// H1 issues or database/query errors are non-migratable and require review.
 if ( $h1_issues > 0 || ! empty( $errors ) ) {
-    // H1 issues or missing pages are non-migratable - require manual review
     printf( "Status: AUDIT_FAIL h1_issues=%d errors=%d\n", $h1_issues, count( $errors ) );
     exit( 1 );
 }
 
-// Only string/regex hygiene rules pending - these are migratable
-printf( "Status: AUDIT_PENDING_MIGRABLE pending=%d\n", $total );
+// String/regex hygiene and retired-page status are intentionally migratable.
+printf( "Status: AUDIT_PENDING_MIGRABLE pending=%d retired=%d\n", $total, $retired_pending );
 exit( 0 );

@@ -217,22 +217,19 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 
 	// Clinic location children for Clínicas menu item.
 	$clinic_children = array();
-	$chamberi_slugs = array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi', 'medicina-estetica-chamberi' );
-	$goya_slugs     = array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca', 'medicina-estetica-goya-barrio-salamanca' );
-	$chamberi_page  = nvx_navigation_resolve_published_slug( $chamberi_slugs );
-	$goya_page      = nvx_navigation_resolve_published_slug( $goya_slugs );
+	$locations_map   = array(
+		'Chamberí'       => array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-chamberi', 'medicina-estetica-chamberi' ),
+		'Salamanca–Goya' => array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca', 'medicina-estetica-goya-barrio-salamanca' ),
+	);
 
-	if ( null !== $chamberi_page ) {
-		$clinic_children[] = array(
-			'url'   => $chamberi_page['url'],
-			'label' => __( 'Chamberí', 'nuvanx-medical' ),
-		);
-	}
-	if ( null !== $goya_page ) {
-		$clinic_children[] = array(
-			'url'   => $goya_page['url'],
-			'label' => __( 'Salamanca–Goya', 'nuvanx-medical' ),
-		);
+	foreach ( $locations_map as $label => $slugs ) {
+		$resolved_page = nvx_navigation_resolve_published_slug( $slugs );
+		if ( null !== $resolved_page ) {
+			$clinic_children[] = array(
+				'url'   => $resolved_page['url'],
+				'label' => __( $label, 'nuvanx-medical' ),
+			);
+		}
 	}
 
 	// Include Casos clínicos only when the page exists and is not noindex-gated.

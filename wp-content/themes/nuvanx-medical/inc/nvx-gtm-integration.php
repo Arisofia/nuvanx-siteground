@@ -108,10 +108,12 @@ function nvx_gtm_head_snippet(): void {
 	$page_type = 'other';
 	if ( is_front_page() ) {
 		$page_type = 'home';
-	} elseif ( is_singular() ) {
+	} elseif ( is_singular( 'post' ) ) {
+		$page_type = 'blog';
+	} elseif ( is_page() ) {
 		$page_type = 'tratamiento';
 		// Detect valoracion page by slug or template.
-		if ( is_page( 'valoracion' ) || ( is_page() && false !== strpos( (string) get_the_permalink(), '/valoracion/' ) ) ) {
+		if ( is_page( 'valoracion' ) || false !== strpos( (string) get_the_permalink(), '/valoracion/' ) ) {
 			$page_type = 'valoracion';
 		}
 	} elseif ( is_archive() || is_category() ) {
@@ -143,7 +145,7 @@ function nvx_gtm_head_snippet(): void {
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push(<?php echo wp_json_encode( $data_layer ); ?>);
 </script>
-<script type="text/delayed" data-src="https://www.googletagmanager.com/gtm.js?id=<?php echo $container; ?>" defer></script>
+<script type="text/delayed" data-src="https://www.googletagmanager.com/gtm.js?id=<?php echo esc_attr( $container ); ?>" defer></script>
 <!-- End Google Tag Manager -->
 	<?php
 }
@@ -178,7 +180,7 @@ add_action( 'wp_body_open', 'nvx_gtm_body_noscript', 1 );
  * nvx-conversion-events.js reads window.nvxConversionEvents at init time.
  */
 function nvx_gtm_inline_js_config(): void {
-	if ( is_admin() ) {
+	if ( is_admin() || ! nvx_gtm_is_active() ) {
 		return;
 	}
 

@@ -339,3 +339,131 @@ function nvx_render_editorial_process_grid_markup( array $process, string $prefi
 	return $html;
 }
 
+/**
+ * Render a complete, canonical editorial treatment page body from JSON schema data.
+ *
+ * Handles all 8 standard sections: What, Diagnosis (+Fact Panel), Compare Table,
+ * Biophysics/Tech, Process Grid, Postop, Investment, and FAQ.
+ *
+ * @param array<string, mixed> $data Treatment page data array.
+ * @param string $prefix Section CSS class prefix (e.g. 'nvx-co2').
+ * @param callable $icon_cb Icon renderer callback.
+ * @return string Rendered HTML markup.
+ */
+function nvx_render_generic_brand_treatment_page_body( array $data, string $prefix, callable $icon_cb ): string {
+	$html = '<div class="nvx-brand-page-body">';
+
+	// A. What / Intro
+	if ( ! empty( $data['what'] ) ) {
+		$html .= nvx_page_brand_section_open_markup( $prefix . '-what', $prefix . '-what-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['what']['kicker'] ?? '' ), $prefix . '-what-title', esc_html( $data['what']['title'] ?? '' ) );
+		foreach ( (array) ( $data['what']['body'] ?? array() ) as $paragraph ) {
+			$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( (string) $paragraph ) . '</p>';
+		}
+		$html .= '</div></section>';
+	}
+
+	// B. Diagnosis + Fact Panel
+	if ( ! empty( $data['diagnosis'] ) ) {
+		$html .= nvx_page_brand_section_open_markup( $prefix . '-diagnosis', $prefix . '-diagnosis-title', $prefix . '-diagnosis__grid' );
+		$html .= '<div class="' . esc_attr( $prefix ) . '-diagnosis__copy">';
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['diagnosis']['kicker'] ?? '' ), $prefix . '-diagnosis-title', esc_html( $data['diagnosis']['title'] ?? '' ) );
+		foreach ( (array) ( $data['diagnosis']['body'] ?? array() ) as $paragraph ) {
+			$html .= '<p class="nvx-body">' . esc_html( (string) $paragraph ) . '</p>';
+		}
+		$html .= '</div>';
+		$html .= nvx_render_editorial_fact_panel_markup( (array) $data['diagnosis'] );
+		$html .= '</div></section>';
+	}
+
+	// C. Comparison Table
+	if ( ! empty( $data['compare'] ) ) {
+		$rows     = (array) ( $data['compare']['rows'] ?? array() );
+		$first    = reset( $rows );
+		$col_keys = is_array( $first ) ? array_keys( array_filter( $first, static function ( $k ) { return 'param' !== $k; }, ARRAY_FILTER_USE_KEY ) ) : array();
+
+		$html .= nvx_page_brand_section_open_markup( $prefix . '-compare', $prefix . '-compare-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['compare']['kicker'] ?? '' ), $prefix . '-compare-title', esc_html( $data['compare']['title'] ?? '' ) );
+		$html .= '<div class="' . esc_attr( $prefix ) . '-compare-wrap">';
+		$html .= '<table class="' . esc_attr( $prefix ) . '-compare-table">';
+		$html .= '<thead><tr>';
+		$html .= '<th scope="col">' . esc_html( $data['compare']['col_param'] ?? '' ) . '</th>';
+		foreach ( $col_keys as $ckey ) {
+			$html .= '<th scope="col">' . esc_html( $data['compare'][ 'col_' . $ckey ] ?? '' ) . '</th>';
+		}
+		$html .= '</tr></thead><tbody>';
+		foreach ( $rows as $row ) {
+			$html .= '<tr>';
+			$html .= '<th scope="row">' . esc_html( $row['param'] ?? '' ) . '</th>';
+			foreach ( $col_keys as $ckey ) {
+				$html .= '<td>' . esc_html( $row[ $ckey ] ?? '' ) . '</td>';
+			}
+			$html .= '</tr>';
+		}
+		$html .= '</tbody></table></div></div></section>';
+	}
+
+	// D. Biophysics / Technology
+	if ( ! empty( $data['biophysics'] ) ) {
+		$html .= nvx_page_brand_section_open_markup( $prefix . '-biophysics', $prefix . '-bio-title' );
+		$html .= nvx_page_brand_section_heading_markup( esc_html( $data['biophysics']['kicker'] ?? '' ), $prefix . '-bio-title', esc_html( $data['biophysics']['title'] ?? '' ) );
+		if ( ! empty( $data['biophysics']['body1'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( (string) $data['biophysics']['body1'] ) . '</p>';
+		}
+		if ( ! empty( $data['biophysics']['caption'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( (string) $data['biophysics']['caption'] ) . '</em></p>';
+		}
+		if ( ! empty( $data['biophysics']['body2'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( (string) $data['biophysics']['body2'] ) . '</p>';
+		}
+		$html .= '</div></section>';
+	}
+
+	// E. Process Grid
+	if ( ! empty( $data['process'] ) ) {
+		$html .= nvx_render_editorial_process_grid_markup( (array) $data['process'], $prefix, $icon_cb );
+	}
+
+	// F. Postop / Recovery
+	if ( ! empty( $data['postop'] ) ) {
+		$slug_suffix = str_replace( 'nvx-', '', $prefix );
+		$html       .= nvx_page_brand_section_open_markup( $prefix . '-postop', $prefix . '-postop-title', '', array( 'id' => 'postoperatorio-' . $slug_suffix ) );
+		$html       .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), $prefix . '-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
+		$html       .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
+		$html       .= '<ul class="' . esc_attr( $prefix ) . '-postop-list" role="list">';
+		foreach ( (array) ( $data['postop']['items'] ?? array() ) as $item ) {
+			$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';
+		}
+		$html .= '</ul>';
+		if ( ! empty( $data['postop']['note'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( (string) $data['postop']['note'] ) . '</em></p>';
+		}
+		$html .= '</div></section>';
+	}
+
+	// G. Investment / Pricing
+	if ( ! empty( $data['investment'] ) ) {
+		$slug_suffix = str_replace( 'nvx-', '', $prefix );
+		$html       .= nvx_page_brand_section_open_markup( $prefix . '-investment', $prefix . '-price-title', '', array( 'id' => 'inversion-' . $slug_suffix ) );
+		$html       .= nvx_page_brand_section_heading_markup( esc_html( $data['investment']['kicker'] ?? '' ), $prefix . '-price-title', esc_html( $data['investment']['title'] ?? '' ) );
+		$html       .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['investment']['body'] ?? '' ) . '</p>';
+		$html       .= '<ul class="' . esc_attr( $prefix ) . '-price-includes" role="list">';
+		foreach ( (array) ( $data['investment']['items'] ?? array() ) as $item ) {
+			$html .= '<li>' . esc_html( (string) $item ) . '</li>';
+		}
+		$html .= '</ul>';
+		if ( ! empty( $data['investment']['note'] ) ) {
+			$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( (string) $data['investment']['note'] ) . '</em></p>';
+		}
+		$html .= '</div></section>';
+	}
+
+	// H. FAQ
+	if ( ! empty( $data['faq'] ) ) {
+		$html .= nvx_render_editorial_faq_markup( (array) $data['faq'], $prefix );
+	}
+
+	$html .= '</div>';
+	return $html;
+}
+

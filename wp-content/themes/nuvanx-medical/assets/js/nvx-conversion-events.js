@@ -143,16 +143,6 @@
 			return;
 		}
 
-		// Track phone clicks
-		if (/^tel:/i.test(href)) {
-			emit('phone_click', {
-				contact_method: 'phone',
-				cta_region: regionFor(target),
-				cta_marker: dataEvent || 'tel_link',
-			});
-			return;
-		}
-
 		// Track treatment-specific clicks for Google Ads conversion attribution
 		// Only emit for actual treatment CTAs (reservation/WhatsApp/phone), not generic links
 		if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
@@ -168,6 +158,16 @@
 				|| /^tel:/i.test(href)) {
 				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
 			}
+		}
+
+		// Track phone clicks
+		if (/^tel:/i.test(href)) {
+			emit('phone_click', {
+				contact_method: 'phone',
+				cta_region: regionFor(target),
+				cta_marker: dataEvent || 'tel_link',
+			});
+			return;
 		}
 	}
 

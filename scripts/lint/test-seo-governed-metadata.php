@@ -45,18 +45,6 @@ function nvx_aesthetic_treatment_catalog() {
     );
 }
 
-function nvx_seo_blog_post_metadata_catalog() {
-    return array();
-}
-
-function nvx_catalog_json_resolved( $filename ) {
-    return array();
-}
-
-function nvx_seo_metadata_catalog() {
-    return array();
-}
-
 function wp_parse_url( $url, $component = -1 ) {
     if ( 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/' === $url ) {
         return array(

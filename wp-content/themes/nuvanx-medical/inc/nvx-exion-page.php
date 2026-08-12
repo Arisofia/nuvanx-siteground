@@ -43,7 +43,9 @@ function nvx_content_is_exion_page( string $content ): bool {
 		: '';
 
 	$is_exion = false;
-	if ( is_string( $path ) && false !== strpos( $path, 'exion' ) ) {
+	// Only claim the EXION BTL hub page (/exion-btl/), not the applicator-specific pages
+	// which are owned by nvx-btl-detail-pages.php (exion-face, exion-body, exion-fractional).
+	if ( is_string( $path ) && '/exion-btl/' === $path ) {
 		$is_exion = true;
 	} elseif ( preg_match(
 		'/aria-label=["\']EXION BTL NUVANX["\']|id=["\']nvx-exion-h1["\']|class=["\'][^"\']*nvx-exion-hero/iu',
@@ -146,83 +148,7 @@ function nvx_exion_editorial_body_markup(): string {
 	$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $equipo_url ) . '">' . esc_html( $data['review']['link'] ?? '' ) . '</a>';
 	$html .= '</p>';
 
-	// A. Qué es
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-what', 'nvx-exion-what-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['what']['kicker'] ?? '' ), 'nvx-exion-what-title', esc_html( $data['what']['title'] ?? '' ) );
-	foreach ( $data['what']['body'] ?? array() as $paragraph ) {
-		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $paragraph ) . '</p>';
-	}
-	$html .= '</div></section>';
-
-	// B. Indicaciones + diagnóstico diferencial
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-diagnosis', 'nvx-exion-diagnosis-title', 'nvx-exion-diagnosis__grid' );
-	$html .= '<div class="nvx-exion-diagnosis__copy">';
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['diagnosis']['kicker'] ?? '' ), 'nvx-exion-diagnosis-title', esc_html( $data['diagnosis']['title'] ?? '' ) );
-	foreach ( $data['diagnosis']['body'] ?? array() as $paragraph ) {
-		$html .= '<p class="nvx-body">' . esc_html( $paragraph ) . '</p>';
-	}
-	$html .= '</div>';
-	$html .= nvx_render_editorial_fact_panel_markup( $data['diagnosis'] ?? array() );
-	$html .= '</div></section>';
-
-	// C. Comparativa vs tratamientos superficiales
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-compare', 'nvx-exion-compare-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['compare']['kicker'] ?? '' ), 'nvx-exion-compare-title', esc_html( $data['compare']['title'] ?? '' ) );
-	$html .= '<div class="nvx-exion-compare-wrap">';
-	$html .= '<table class="nvx-exion-compare-table">';
-	$html .= '<thead><tr>';
-	$html .= '<th scope="col">' . esc_html( $data['compare']['col_param'] ?? '' ) . '</th>';
-	$html .= '<th scope="col">' . esc_html( $data['compare']['col_exion'] ?? '' ) . '</th>';
-	$html .= '<th scope="col">' . esc_html( $data['compare']['col_other'] ?? '' ) . '</th>';
-	$html .= '</tr></thead><tbody>';
-	foreach ( $data['compare']['rows'] ?? array() as $row ) {
-		$html .= '<tr>';
-		$html .= '<th scope="row">' . esc_html( $row['param'] ?? '' ) . '</th>';
-		$html .= '<td>' . esc_html( $row['exion'] ?? '' ) . '</td>';
-		$html .= '<td>' . esc_html( $row['other'] ?? '' ) . '</td>';
-		$html .= '</tr>';
-	}
-	$html .= '</tbody></table></div></div></section>';
-
-	// D. Biofísica
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-biophysics', 'nvx-exion-bio-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['biophysics']['kicker'] ?? '' ), 'nvx-exion-bio-title', esc_html( $data['biophysics']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['biophysics']['body1'] ?? '' ) . '</p>';
-	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['biophysics']['caption'] ?? '' ) . '</em></p>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['biophysics']['body2'] ?? '' ) . '</p>';
-	$html .= '</div></section>';
-
-	// E. Proceso clínico
-	$html .= nvx_render_editorial_process_grid_markup( $data['process'] ?? array(), 'nvx-exion', 'nvx_exion_process_icon' );
-
-	// F. Postoperatorio Real
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-postop', 'nvx-exion-postop-title', '', array( 'id' => 'postoperatorio-exion' ) );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), 'nvx-exion-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
-
-	$html .= '<ul class="nvx-exion-postop-list" role="list">';
-	foreach ( $data['postop']['items'] ?? array() as $item ) {
-		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';
-	}
-	$html .= '</ul>';
-	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['postop']['note'] ?? '' ) . '</em></p>';
-	$html .= '</div></section>';
-
-	// G. Presupuesto Clínico
-	$html .= nvx_page_brand_section_open_markup( 'nvx-exion-investment', 'nvx-exion-price-title', '', array( 'id' => 'inversion-exion' ) );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['investment']['kicker'] ?? '' ), 'nvx-exion-price-title', esc_html( $data['investment']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['investment']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-exion-price-includes" role="list">';
-	foreach ( $data['investment']['items'] ?? array() as $item ) {
-		$html .= '<li>' . esc_html( $item ) . '</li>';
-	}
-	$html .= '</ul>';
-	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['investment']['note'] ?? '' ) . '</em></p>';
-	$html .= '</div></section>';
-
-	// H. FAQ
-	$html .= nvx_render_editorial_faq_markup( $data['faq'] ?? array(), 'nvx-exion' );
-
+	$html .= nvx_render_generic_brand_treatment_page_body( $data, 'nvx-exion', 'nvx_exion_process_icon' );
 	$html .= '</div>';
 
 	return $html;

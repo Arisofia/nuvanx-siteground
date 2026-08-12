@@ -70,11 +70,14 @@ for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations";
   if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" ]]; then
     MIGRATION_SCRIPT="$candidate_dir/content-hygiene-shared.php"
     AUDIT_SCRIPT="$candidate_dir/audit-content-divergence.php"
+    # Also check for the shared rules library dependency
+    RULES_LIB="$candidate_dir/../../lib/nvx-content-hygiene-rules.php"
     break
   fi
 done
 [[ -f "$MIGRATION_SCRIPT" ]] || { echo "ERROR: shared content migration missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$AUDIT_SCRIPT" ]] || { echo "ERROR: content divergence audit missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
+[[ -f "$RULES_LIB" ]] || { echo "ERROR: shared content hygiene rules library missing at $RULES_LIB" >&2; exit 1; }
 
 # Production site URL constants
 PROD_URL='https://nuvanx.com'
@@ -391,7 +394,8 @@ rollback_after_swap() {
     rc=1
   fi
   if [[ "$rollback_ok" -ne 1 ]]; then
-    rc=1
+    # Use distinct exit code for failed rollback (2) to distinguish from generic failure (1)
+    rc=2
   fi
   # Clean up FAILED_THEME based on rollback success before resetting SWAPPED
   if [[ "$SWAPPED" -eq 1 ]]; then

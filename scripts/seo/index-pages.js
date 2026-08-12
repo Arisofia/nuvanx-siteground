@@ -14,7 +14,7 @@ const args = process.argv.slice(2);
 let property = '';
 let baseUrl = '';
 let urlsFile = '';
-let maxUrls = 200;
+let maxUrls = null;
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--property' && args[i + 1]) property = args[++i];
@@ -27,8 +27,8 @@ if (!property || !baseUrl) {
   console.error('Error: --property and --url are required');
   process.exit(1);
 }
-if (!Number.isFinite(maxUrls) || maxUrls < 1 || maxUrls > 500) {
-  console.error('Error: --max-urls must be between 1 and 500');
+if (maxUrls !== null && (!Number.isFinite(maxUrls) || maxUrls < 1 || maxUrls > 2000)) {
+  console.error('Error: --max-urls must be between 1 and 2000 when supplied');
   process.exit(1);
 }
 
@@ -60,7 +60,8 @@ function normalizeCandidateUrls(candidates) {
       console.warn(`Ignoring invalid URL: ${candidate}`);
     }
   }
-  const normalized = [...urls].slice(0, maxUrls);
+  const allUrls = [...urls];
+  const normalized = maxUrls === null ? allUrls : allUrls.slice(0, maxUrls);
   if (normalized.length === 0) throw new Error('URL discovery returned zero same-origin URLs');
   return normalized;
 }
@@ -144,15 +145,24 @@ function simplifyInspection(url, inspectionResult) {
   };
 }
 
-async function inspectAllPages() {
-  const credentialsPath = path.join(__dirname, 'credentials.json');
-  if (!fs.existsSync(credentialsPath)) throw new Error('credentials.json not found');
+function createSearchConsoleAuth() {
+  const credentialsPath = path.resolve(__dirname, 'credentials.json');
+  if (path.dirname(credentialsPath) !== __dirname) throw new Error('Invalid Search Console credential path');
+  const options = { scopes: ['https://www.googleapis.com/auth/webmasters.readonly'] };
 
-  const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
-  });
+  if (fs.existsSync(credentialsPath)) {
+    options.credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    console.log('SEARCH_CONSOLE_AUTH=PRIVATE_JSON');
+  } else {
+    console.log('SEARCH_CONSOLE_AUTH=ADC');
+  }
+
+  return new google.auth.GoogleAuth(options);
+}
+
+async function inspectAllPages() {
+  const auth = createSearchConsoleAuth();
+  await auth.getClient();
   const searchconsole = google.searchconsole({ version: 'v1', auth });
   const urls = await discoverCanonicalUrls();
 

@@ -48,7 +48,7 @@ env:
   PROD_PARENT: /home/customer/www/nuvanx.com
   BASE_URL: https://nuvanx.com
   EXPECTED_HOST: nuvanx.com
-  SEARCH_CONSOLE_PROPERTY: sc-domain:nuvanx.com
+  SEARCH_CONSOLE_PROPERTY: https://nuvanx.com/
   INDEXNOW_KEY: 53546cf8077aa596b76aac664739bbb4
   STAGING_ACCEPTANCE_BRANCH: master
   STAGING_ACCEPTANCE_WORKFLOW_PATH: .github/workflows/staging.yml

@@ -70,7 +70,6 @@ for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations";
   if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" ]]; then
     MIGRATION_SCRIPT="$candidate_dir/content-hygiene-shared.php"
     AUDIT_SCRIPT="$candidate_dir/audit-content-divergence.php"
-    # Also check for the shared rules library dependency
     RULES_LIB="$candidate_dir/../../lib/nvx-content-hygiene-rules.php"
     break
   fi
@@ -79,7 +78,6 @@ done
 [[ -f "$AUDIT_SCRIPT" ]] || { echo "ERROR: content divergence audit missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$RULES_LIB" ]] || { echo "ERROR: shared content hygiene rules library missing at $RULES_LIB" >&2; exit 1; }
 
-# Production site URL constants
 PROD_URL='https://nuvanx.com'
 
 THEMES_ROOT="$PROD_ROOT/wp-content/themes"
@@ -97,16 +95,11 @@ RELEASE_ROOT="$THEMES_ROOT/.nvx-prod-release-${SHA}-${RUN_TOKEN}"
 STAGED_THEME="$RELEASE_ROOT/nuvanx-medical"
 PREVIOUS_THEME="$THEMES_ROOT/.nvx-prod-previous-${RUN_TOKEN}"
 FAILED_THEME="$THEMES_ROOT/.nvx-prod-failed-${RUN_TOKEN}"
-# Move BACKUP_DIR outside document root to prevent HTTP exposure of DB dump
 PROD_PARENT="$(dirname "$PROD_ROOT")"
 BACKUP_ROOT="$PROD_PARENT/.nvx-backups"
 BACKUP_DIR="$BACKUP_ROOT/pre-prod-${RUN_TOKEN}-${SHA:0:12}"
-# Keep the migration/audit evidence beside the run-token-scoped snapshot so a
-# rollback preserves the forensic trail. $SCRIPT_DIR is the ephemeral CI payload
-# that the workflow deletes after the run.
-# SECURITY: BACKUP_DIR is under PROD_ROOT/wp-content/backups-nuvanx/ (document root).
-# The webserver configuration must deny access to wp-content/backups-nuvanx/
-# to prevent exposure of these logs and the database snapshot.
+# The rollback snapshot and migration evidence live outside public_html so the
+# database dump is not HTTP-addressable by construction.
 MIGRATION_LOG="$BACKUP_DIR/migration-production.log"
 AUDIT_LOG="$BACKUP_DIR/migration-audit-production.log"
 MIGRATION_WRITE_MARKER="$BACKUP_DIR/.migration-write-marker"
@@ -117,20 +110,15 @@ ROLLBACK_OK=1
 cleanup_uncommitted_release() {
   if [[ "$SWAPPED" -eq 0 ]]; then
     rm -rf "$RELEASE_ROOT" 2>/dev/null || true
-    # If previous theme was moved but not swapped, restore it
     if [[ "$PREVIOUS_MOVED" -eq 1 && ! -d "$LIVE_THEME" && -d "$PREVIOUS_THEME" ]]; then
       mv "$PREVIOUS_THEME" "$LIVE_THEME" 2>/dev/null || true
     fi
   else
-    # After rollback, clean up empty release directories
     rm -rf "$RELEASE_ROOT" 2>/dev/null || true
   fi
 }
 trap cleanup_uncommitted_release EXIT
 
-# SiteGround exposes `wp sg purge` only while Speed Optimizer is active on some
-# installations. Temporarily activate it only when needed, purge, and always
-# restore the original plugin state before returning.
 purge_siteground_dynamic_cache() {
   local plugin='sg-cachepress'
   local activated_temporarily=0
@@ -166,7 +154,7 @@ purge_siteground_dynamic_cache() {
     wp plugin deactivate "$plugin" --quiet || restore_rc=$?
     if wp plugin is-active "$plugin" >/dev/null 2>&1; then
       echo "ERROR: Speed Optimizer remained active after transient cache purge" >&2
-      restore_rc=10  # Distinct code for plugin restoration failure
+      restore_rc=10
     fi
   fi
 
@@ -251,13 +239,8 @@ find "$STAGED_THEME/assets/css" -maxdepth 1 -type f -name 'nvx-*.min.css' -delet
 echo "== Mandatory pre-deploy rollback snapshot =="
 umask 077
 mkdir -p "$BACKUP_DIR"
-# Deny HTTP access to the snapshot directory: it holds a full production DB dump
-# plus the migration/audit logs, and lives under the document root. umask 077
-# only protects the filesystem, not the webserver, which reads as its own user.
-# SECURITY WARNING: This .htaccess protection only works on Apache servers with
-# AllowOverride enabled. For nginx/LiteSpeed or Apache with AllowOverride None,
-# these files may be HTTP-reachable. Consider moving BACKUP_DIR outside the
-# document root for maximum security in non-Apache environments.
+# Defense in depth: BACKUP_DIR is already outside public_html. Keep a deny rule
+# in case host document-root mapping changes in the future.
 cat > "$BACKUP_DIR/.htaccess" <<'HTACCESS'
 <IfModule mod_authz_core.c>
   Require all denied
@@ -268,7 +251,6 @@ cat > "$BACKUP_DIR/.htaccess" <<'HTACCESS'
   </IfModule>
 </IfModule>
 HTACCESS
-# Remove any stale migration write marker from previous runs
 rm -f "$MIGRATION_WRITE_MARKER" 2>/dev/null || true
 (
   cd "$PROD_ROOT"
@@ -290,24 +272,20 @@ echo "ROLLBACK_SNAPSHOT=PASS path=$BACKUP_DIR"
 
 ROLLBACK_IN_PROGRESS=0
 
-# Signal handlers that pass appropriate exit codes to rollback_after_swap
-# Standard Unix signal codes: 128+signal number
 rollback_on_int() {
-  rollback_after_swap 130  # SIGINT = 2, 128+2 = 130
+  rollback_after_swap 130
 }
 rollback_on_term() {
-  rollback_after_swap 143  # SIGTERM = 15, 128+15 = 143
+  rollback_after_swap 143
 }
 rollback_on_hup() {
-  rollback_after_swap 129  # SIGHUP = 1, 128+1 = 129
+  rollback_after_swap 129
 }
 rollback_after_swap() {
-  local rc="${1:-$?}"  # Use passed signal code or fall back to $?
+  local rc="${1:-$?}"
   local rollback_ok=1
+  local identity_rc=0
   ROLLBACK_OK=0
-  # Disarm every trigger and guard against re-entry: a second signal (e.g. the
-  # CI runner escalating from SIGTERM) must not re-run this handler and move the
-  # already-restored good theme aside, which would leave production with no theme.
   trap - ERR INT TERM HUP
   if [[ "$ROLLBACK_IN_PROGRESS" -eq 1 ]]; then
     return
@@ -315,17 +293,26 @@ rollback_after_swap() {
   ROLLBACK_IN_PROGRESS=1
   set +e
 
-  # Handle the critical no-theme window: if previous was moved but swap
-  # didn't complete, restore previous theme immediately
+  # Recover every incomplete-cutover state without ever moving PREVIOUS_THEME
+  # into an already-existing LIVE_THEME directory.
   if [[ "$PREVIOUS_MOVED" -eq 1 && "$SWAPPED" -eq 0 ]]; then
     echo "ROLLBACK_TRIGGERED rc=$rc recovering from incomplete cutover" >&2
     if [[ -d "$LIVE_THEME" && ! -d "$PREVIOUS_THEME" ]]; then
-      # The first move never happened: the live theme is still intact.
+      # The first move failed; production was never disturbed.
       PREVIOUS_MOVED=0
-    elif [[ -d "$PREVIOUS_THEME" ]] && mv "$PREVIOUS_THEME" "$LIVE_THEME"; then
-      PREVIOUS_MOVED=0
+    elif [[ -d "$PREVIOUS_THEME" ]]; then
+      if [[ -d "$LIVE_THEME" ]]; then
+        rm -rf "$FAILED_THEME" 2>/dev/null || true
+        mv "$LIVE_THEME" "$FAILED_THEME" || rollback_ok=0
+      fi
+      if [[ "$rollback_ok" -eq 1 ]] && mv "$PREVIOUS_THEME" "$LIVE_THEME"; then
+        PREVIOUS_MOVED=0
+      else
+        echo "ERROR: failed to restore previous theme during incomplete cutover" >&2
+        rollback_ok=0
+      fi
     else
-      echo "ERROR: failed to restore previous theme during incomplete cutover" >&2
+      echo "ERROR: incomplete cutover has neither a recoverable previous theme nor an intact live theme" >&2
       rollback_ok=0
     fi
   fi
@@ -344,8 +331,6 @@ rollback_after_swap() {
       rollback_ok=0
     fi
 
-    # Check durable write marker created by migration script after first DB write
-    # This is the authoritative source for whether the DB was actually modified.
     if [[ -f "$MIGRATION_WRITE_MARKER" ]]; then
       echo "ROLLBACK_DB=RESTORED reason=write-marker-detected-db-was-modified" >&2
       if [[ -s "$BACKUP_DIR/db.sql" ]]; then
@@ -384,8 +369,8 @@ rollback_after_swap() {
       fi
     fi
 
-    # Re-verify production identity invariants after theme+DB restore
-    # This ensures a partial DB restore didn't corrupt production settings
+    # Re-check restored DB/site identity and propagate the result back to the
+    # parent shell rather than assigning rollback_ok inside a subshell.
     (
       cd "$PROD_ROOT" || exit 1
       db="$(wp config get DB_NAME)"
@@ -393,12 +378,13 @@ rollback_after_swap() {
       home="$(wp option get home)"
       blog_public="$(wp option get blog_public)"
       theme="$(wp theme list --status=active --field=name)"
-      [[ "$db" == 'db0ecrycwv2tgb' ]] || { echo "ERROR: DB identity corrupted after rollback db=$db" >&2; rollback_ok=0; }
-      [[ "$siteurl" == "$PROD_URL" ]] || { echo "ERROR: siteurl corrupted after rollback siteurl=$siteurl" >&2; rollback_ok=0; }
-      [[ "$home" == "$PROD_URL" ]] || { echo "ERROR: home corrupted after rollback home=$home" >&2; rollback_ok=0; }
-      [[ "$blog_public" == '1' ]] || { echo "ERROR: blog_public corrupted after rollback blog_public=$blog_public" >&2; rollback_ok=0; }
-      [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme corrupted after rollback theme=$theme" >&2; rollback_ok=0; }
-    )
+      [[ "$db" == 'db0ecrycwv2tgb' ]] || { echo "ERROR: DB identity corrupted after rollback db=$db" >&2; exit 1; }
+      [[ "$siteurl" == "$PROD_URL" ]] || { echo "ERROR: siteurl corrupted after rollback siteurl=$siteurl" >&2; exit 1; }
+      [[ "$home" == "$PROD_URL" ]] || { echo "ERROR: home corrupted after rollback home=$home" >&2; exit 1; }
+      [[ "$blog_public" == '1' ]] || { echo "ERROR: blog_public corrupted after rollback blog_public=$blog_public" >&2; exit 1; }
+      [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme corrupted after rollback theme=$theme" >&2; exit 1; }
+    ) || identity_rc=$?
+    [[ "$identity_rc" -eq 0 ]] || rollback_ok=0
 
     if [[ "$rollback_ok" -eq 1 ]]; then
       echo "ROLLBACK_PRODUCTION=PASS scope=theme+db" >&2
@@ -413,10 +399,8 @@ rollback_after_swap() {
     rc=1
   fi
   if [[ "$rollback_ok" -ne 1 ]]; then
-    # Use distinct exit code for failed rollback (2) to distinguish from generic failure (1)
     rc=2
   fi
-  # Clean up FAILED_THEME based on rollback success before resetting SWAPPED
   if [[ "$SWAPPED" -eq 1 ]]; then
     if [[ "$rollback_ok" -eq 1 ]]; then
       rm -rf "$FAILED_THEME" 2>/dev/null || true
@@ -425,37 +409,24 @@ rollback_after_swap() {
     fi
   fi
 
-  # Reset SWAPPED=0 after rollback so EXIT trap cleans up RELEASE_ROOT
   SWAPPED=0
   exit "$rc"
 }
-# Arm on ERR and on interruption signals so a dropped SSH session or SIGTERM/
-# SIGHUP during the (now longer) post-cutover window still restores the theme
-# and, if the migration had started, the database.
 trap rollback_after_swap ERR
 trap rollback_on_int INT
 trap rollback_on_term TERM
 trap rollback_on_hup HUP
 
 echo "== Pre-cutover content audit (read-only) =="
-# Run the audit in read-only mode before cutover to fail fast on non-migratable
-# content issues (legal page H1, missing pages). This prevents editorial changes
-# from causing full rollbacks while still allowing the migration to fix
-# migratable string/regex hygiene rules.
 (
   trap - ERR
   cd "$PROD_ROOT"
   wp eval-file "$AUDIT_SCRIPT" --allow-root 2>&1 | tee "$BACKUP_DIR/pre-cutover-audit.log"
-  # Only fail on AUDIT_FAIL (non-migratable issues). Allow AUDIT_PENDING_MIGRABLE
-  # since the subsequent migration will fix those string/regex hygiene rules.
   grep -qE 'Status: (AUDIT_CLEAN|AUDIT_PENDING_MIGRABLE)' "$BACKUP_DIR/pre-cutover-audit.log"
 )
 echo 'PRE_CUTOVER_AUDIT=PASS'
 
 echo "== Directory cutover =="
-# Track intermediate state to handle the critical no-theme window. Set
-# PREVIOUS_MOVED=1 BEFORE the first mv so an interruption landing between the
-# move and the bookkeeping still lets the handler restore the previous theme.
 PREVIOUS_MOVED=1
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
 mv "$STAGED_THEME" "$LIVE_THEME"
@@ -475,9 +446,6 @@ echo "== Verify exact production release on disk =="
 )
 
 echo "== Run shared production content migration and divergence audit =="
-# Pass MIGRATION_WRITE_MARKER to the migration script so it can emit a durable
-# marker after the first successful DB write. This allows rollback to distinguish
-# between pre-write failures (no DB restore needed) and post-write failures.
 (
   trap - ERR
   cd "$PROD_ROOT"
@@ -489,39 +457,27 @@ echo "== Run shared production content migration and divergence audit =="
 echo 'PRODUCTION_CONTENT_MIGRATION=PASS audit=clean'
 echo 'SHARED_MIGRATION=PASS audit=clean'
 
-# Re-verify SHA after migration/audit to catch any on-disk mutations
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
-# At this point, the release is fully installed and verified. Disarm signal traps
-# so that workflow cancellation (e.g. GitHub Actions timeout) during the
-# subsequent cache purge does not roll back an already-verified release.
+# Migration and exact-SHA checks have committed. Cache maintenance is deliberately
+# non-transactional so a cache-only failure cannot roll the DB back to an older
+# snapshot and discard valid writes made during the release window.
 trap - ERR INT TERM HUP
 
 echo "== Purge production caches =="
-# Cache purge is cosmetic and runs after the DB migration + audit have already
-# passed. It must never trigger a database rollback, so keep it non-fatal.
-# However, Speed Optimizer restoration failures are serious - they change the
-# production plugin state and must be treated as a deployment failure.
 purge_rc=0
 (
   trap - ERR
   cd "$PROD_ROOT"
   inner_rc=0
   wp cache flush || inner_rc=$?
-  # Capture purge_siteground_dynamic_cache return code separately
-  # - 0: success
-  # - 10: plugin restoration failure (plugin remained active) - fatal
-  # - other non-zero: purge failure - non-fatal
   purge_siteground_dynamic_cache || inner_rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || inner_rc=$?
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || inner_rc=$?
   wp eval 'if (function_exists("opcache_reset")) { if ( ! opcache_reset() ) { echo "opcache_reset failed\n"; exit(1); } echo "opcache=ok\n"; }' || inner_rc=$?
-  # Exit with the first non-zero code encountered, or plugin restoration code
-  [[ "$inner_rc" -eq 0 ]] || exit "$inner_rc"
-  [[ "$inner_rc" -eq 0 ]] && [[ "$purge_restore_rc" -ne 0 ]] && exit "$purge_restore_rc"
+  exit "$inner_rc"
 ) || purge_rc=$?
 
-# Check for plugin restoration failure (exit code 10) - use dedicated variable
 if [[ "$purge_rc" -eq 10 ]]; then
   echo "ERROR: Speed Optimizer plugin restoration failed - this changes production state" >&2
   exit 1
@@ -529,8 +485,6 @@ fi
 [[ "$purge_rc" -eq 0 ]] || echo "WARN: production cache purge reported a non-fatal error rc=$purge_rc" >&2
 
 trap - ERR INT TERM HUP
-# All checks passed. Remove the migration write marker to finalize the deployment.
-# From this point, the DB changes are committed and no rollback should restore them.
 rm -f "$MIGRATION_WRITE_MARKER" 2>/dev/null || true
 rm -rf "$PREVIOUS_THEME" "$RELEASE_ROOT"
 SWAPPED=0

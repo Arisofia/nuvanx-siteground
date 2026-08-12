@@ -413,14 +413,17 @@ trap rollback_on_term TERM
 trap rollback_on_hup HUP
 
 echo "== Pre-cutover content audit (read-only) =="
-# Run the audit in read-only mode before cutover to fail fast on content issues
-# that would otherwise trigger a rollback after the theme swap. This prevents
-# editorial changes (e.g. H1 text) from causing full rollbacks.
+# Run the audit in read-only mode before cutover to fail fast on non-migratable
+# content issues (legal page H1, missing pages). This prevents editorial changes
+# from causing full rollbacks while still allowing the migration to fix
+# migratable string/regex hygiene rules.
 (
   trap - ERR
   cd "$PROD_ROOT"
   wp eval-file "$AUDIT_SCRIPT" --allow-root 2>&1 | tee "$BACKUP_DIR/pre-cutover-audit.log"
-  grep -Fq 'Status: AUDIT_CLEAN' "$BACKUP_DIR/pre-cutover-audit.log"
+  # Only fail on AUDIT_FAIL (non-migratable issues). Allow AUDIT_PENDING_MIGRABLE
+  # since the subsequent migration will fix those string/regex hygiene rules.
+  grep -qE 'Status: (AUDIT_CLEAN|AUDIT_PENDING_MIGRABLE)' "$BACKUP_DIR/pre-cutover-audit.log"
 )
 echo 'PRE_CUTOVER_AUDIT=PASS'
 

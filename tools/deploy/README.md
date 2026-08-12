@@ -28,7 +28,9 @@ The currently retained CMS cleanup migration is documented in [`tools/migrations
 
 The shared content-hygiene migration and the divergence audit are the sole exception: `deploy-to-prod.sh` runs `tools/migrations/content-hygiene-shared.php` and `tools/migrations/audit-content-divergence.php` inside the atomic post-cutover window. If either the `MIGRATION_OK` or the `AUDIT_CLEAN` status is missing, the deploy rolls back both the previous theme and the database snapshot together. No other migration may be executed as part of routine deployment.
 
-To prevent editorial content changes (e.g. H1 text) from triggering full rollbacks, the audit runs twice: once in read-only mode before the cutover (fail-fast without rollback), and once after the migration inside the atomic window (with rollback).
+To prevent editorial content changes (e.g. H1 text) from triggering full rollbacks, the audit runs twice:
+- Pre-cutover: checks only non-migratable issues (legal page H1, missing pages) and fails fast on those
+- Post-migration: requires full AUDIT_CLEAN including string/regex hygiene rules after migration fixes them
 
 ## Host-level emergency production operation
 

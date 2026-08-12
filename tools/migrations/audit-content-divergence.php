@@ -233,5 +233,13 @@ if ( 0 === $total && 0 === $h1_issues && empty( $errors ) ) {
     exit( 0 );
 }
 
-printf( "Status: AUDIT_PENDING_%d\n", $total + $h1_issues );
-exit( 1 );
+# Distinguish between migratable (string/regex) and non-migratable (H1) issues
+if ( $h1_issues > 0 || ! empty( $errors ) ) {
+    // H1 issues or missing pages are non-migratable - require manual review
+    printf( "Status: AUDIT_FAIL h1_issues=%d errors=%d\n", $h1_issues, count( $errors ) );
+    exit( 1 );
+}
+
+// Only string/regex hygiene rules pending - these are migratable
+printf( "Status: AUDIT_PENDING_MIGRABLE pending=%d\n", $total );
+exit( 0 );

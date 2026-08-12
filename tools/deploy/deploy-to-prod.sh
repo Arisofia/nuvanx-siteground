@@ -278,12 +278,12 @@ rollback_after_swap() {
 trap rollback_after_swap ERR INT TERM HUP
 
 echo "== Directory cutover =="
-# Mark the cutover as in progress before the first mv so that a signal
-# arriving mid-way still triggers a full rollback (the handler also detects
-# a moved-aside PREVIOUS_THEME directly).
-SWAPPED=1
+# The rollback handler detects an interrupted cutover directly through the
+# moved-aside PREVIOUS_THEME directory, so SWAPPED is only set once the
+# cutover has actually completed.
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
 mv "$STAGED_THEME" "$LIVE_THEME"
+SWAPPED=1
 
 echo "== Verify exact production release on disk =="
 (

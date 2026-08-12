@@ -13,9 +13,9 @@ wp-config.php
 
 *.pem
 *.key
+*-key.json
 id_*
 *.sql
-gsc-sitemap-reader-key.json
 
 # ============================================================
 # Archives / generated packages

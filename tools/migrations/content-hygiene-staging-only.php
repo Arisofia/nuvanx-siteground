@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/lib/nvx-content-hygiene-rules.php';
+require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
 
 // ── Safety gate — must be the very first executable statement ─────────────────
 

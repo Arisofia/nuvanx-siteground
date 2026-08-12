@@ -2,15 +2,20 @@
 /**
  * audit-content-divergence.php
  *
- * Read-only content divergence audit for production baseline.
+ * NVX Content Divergence Auditor — READ-ONLY.
  *
- * Scans wp_posts for content that would be modified by hygiene rules.
- * Outputs a complete inventory of divergent records WITHOUT making any changes.
+ * Scans wp_posts for all strings / regex patterns defined in
+ * nvx-content-hygiene-rules.php that still require migration, and
+ * verifies legal-page H1 integrity.
  *
- * Usage (on SiteGround host, from WordPress root):
- *   wp eval-file tools/migrations/audit-content-divergence.php --allow-root
+ * Usage (from WP installation root):
+ *   wp eval-file /path/to/tools/migrations/audit-content-divergence.php
  *
- * This script NEVER writes to the database. It only reports.
+ * Safe in production: ZERO database writes.
+ *
+ * Exit codes:
+ *   0 — nothing pending (Status: AUDIT_CLEAN)
+ *   1 — pending migrations found or fatal error (Status: AUDIT_PENDING_N)
  *
  * @package NVX\Migrations
  * @version 1.0.0
@@ -18,155 +23,239 @@
 
 declare( strict_types = 1 );
 
-if ( ! defined( 'ABSPATH' ) ) {
-    fwrite( STDERR, "[audit] Must be run inside a WordPress context (wp eval-file).\n" );
+require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+/** @global wpdb $wpdb */
+global $wpdb;
+
+$start    = microtime( true );
+$site_url = (string) get_option( 'siteurl', '(unknown)' );
+
+printf( "=== NVX Content Audit: Divergence Report ===\n" );
+printf( "Site        : %s\n", $site_url );
+printf( "Generated   : %s\n", current_time( 'Y-m-d H:i:s' ) );
+printf( "WP prefix   : %s\n\n", $wpdb->prefix );
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** @var list<array{post_id:int,slug:string,field:string,type:string,pattern:string}> */
+$pending  = [];
+$errors   = [];
+
+/**
+ * Return a short excerpt of text surrounding the first occurrence of $needle.
+ */
+$ctx = function( string $haystack, string $needle, int $window = 55 ): string {
+    $pos = mb_strpos( $haystack, $needle );
+    if ( false === $pos ) {
+        return '';
+    }
+    $start  = max( 0, $pos - $window );
+    $length = mb_strlen( $needle ) + $window * 2;
+    $raw    = mb_substr( $haystack, $start, $length );
+    return '…' . rtrim( str_replace( [ "\n", "\r", "\t" ], ' ', $raw ) ) . '…';
+};
+
+// ── Fetch posts (one query, kept in memory) ───────────────────────────────────
+
+$fields     = nvx_hygiene_fields();
+$fields_sql = implode( ', ', array_map( fn( $f ) => "`$f`", $fields ) );
+
+$posts = $wpdb->get_results(
+    "SELECT ID, post_name, post_status, post_type, {$fields_sql}
+       FROM {$wpdb->posts}
+      WHERE post_status IN ('publish','draft','private','pending')
+        AND post_type   NOT IN ('revision','nav_menu_item','attachment')
+      ORDER BY ID ASC",
+    ARRAY_A
+);
+
+if ( null === $posts ) {
+    fwrite( STDERR, "[FATAL] wpdb returned null. Last error: " . $wpdb->last_error . "\n" );
     exit( 1 );
 }
 
-// Load hygiene rules
-require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
+printf( "Posts scanned : %d\n\n", count( $posts ) );
 
-/**
- * Apply all hygiene rules to a string and return the transformed result.
- *
- * @param string $input Input string.
- * @return string Transformed string.
- */
-function nvx_audit_apply_hygiene( string $input ): string {
-    $result = $input;
+// ── Block 1: String replacement audit ─────────────────────────────────────────
 
-    // Apply plain string replacements
-    foreach ( nvx_hygiene_str_reps() as $rule ) {
-        $result = str_replace( $rule['from'], $rule['to'], $result );
-    }
+echo "--- Block 1: String Replacement Audit ---\n";
 
-    // Apply regex replacements
-    foreach ( nvx_hygiene_regex_reps() as $rule ) {
-        $pattern = '/' . $rule['pattern'] . '/' . $rule['flags'];
-        $result  = preg_replace( $pattern, $rule['replacement'], $result ) ?? $result;
-    }
+foreach ( nvx_hygiene_str_reps() as $rule ) {
+    $found_any = false;
 
-    return $result;
-}
+    foreach ( $posts as $post ) {
+        foreach ( $fields as $field ) {
+            $value = $post[ $field ] ?? '';
+            if ( '' === $value ) {
+                continue;
+            }
+            if ( false === mb_strpos( $value, $rule['from'] ) ) {
+                continue;
+            }
 
-/**
- * Check if a string would be modified by hygiene rules.
- *
- * @param string $input Input string.
- * @return bool True if rules would modify the string.
- */
-function nvx_audit_is_divergent( string $input ): bool {
-    return nvx_audit_apply_hygiene( $input ) !== $input;
-}
+            $found_any = true;
+            $pending[] = [
+                'post_id' => (int) $post['ID'],
+                'slug'    => $post['post_name'],
+                'field'   => $field,
+                'type'    => 'string',
+                'pattern' => $rule['from'],
+            ];
 
-/**
- * Generate a diff summary for a divergent field.
- *
- * @param string $field Field name.
- * @param string $original Original value.
- * @param string $transformed Transformed value.
- * @return string Diff summary.
- */
-function nvx_audit_diff_summary( string $field, string $original, string $transformed ): string {
-    $summary = "  {$field}:\n";
-    $summary .= "    BEFORE: " . substr( $original, 0, 200 ) . ( strlen( $original ) > 200 ? '...' : '' ) . "\n";
-    $summary .= "    AFTER:  " . substr( $transformed, 0, 200 ) . ( strlen( $transformed ) > 200 ? '...' : '' ) . "\n";
-    return $summary;
-}
-
-// ---------------------------------------------------------------------------
-// Main audit logic
-// ---------------------------------------------------------------------------
-
-$siteurl = (string) get_option( 'siteurl' );
-echo "=== NVX Content Divergence Audit ===\n";
-echo "Site: {$siteurl}\n";
-echo "Timestamp: " . gmdate( 'Y-m-d H:i:s' ) . " UTC\n";
-echo "Mode: READ-ONLY (no writes)\n";
-echo "\n";
-
-$fields = nvx_hygiene_fields();
-
-$q = new WP_Query(
-    array(
-        'post_type'              => array( 'page', 'post' ),
-        'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future' ),
-        'posts_per_page'         => -1,
-        'orderby'                => 'ID',
-        'order'                  => 'ASC',
-        'no_found_rows'          => true,
-        'update_post_meta_cache' => false,
-        'update_post_term_cache' => false,
-    )
-);
-
-$scanned     = 0;
-$divergent   = 0;
-$divergence_report = array();
-
-foreach ( $q->posts as $post ) {
-    if ( ! $post instanceof WP_Post ) {
-        continue;
-    }
-    ++$scanned;
-
-    $divergent_fields = array();
-    $field_changes    = array();
-
-    foreach ( $fields as $field ) {
-        $original = (string) $post->$field;
-        if ( '' === trim( $original ) ) {
-            continue;
-        }
-
-        $transformed = nvx_audit_apply_hygiene( $original );
-        if ( $transformed !== $original ) {
-            $divergent_fields[] = $field;
-            $field_changes[ $field ] = array(
-                'original'    => $original,
-                'transformed' => $transformed,
+            printf(
+                "[PENDING] ID %-5d | %-44s | %-16s | \"%s\"\n",
+                $post['ID'],
+                '/' . $post['post_name'] . '/',
+                $field,
+                $rule['from']
+            );
+            printf(
+                "          context: %s\n",
+                $ctx( $value, $rule['from'] )
             );
         }
     }
 
-    if ( empty( $divergent_fields ) ) {
+    if ( ! $found_any ) {
+        printf( "[CLEAN  ]                                                             | \"%s\"\n", $rule['from'] );
+    }
+}
+
+echo "\n";
+
+// ── Block 2: Regex replacement audit ──────────────────────────────────────────
+
+echo "--- Block 2: Regex Replacement Audit ---\n";
+
+foreach ( nvx_hygiene_regex_reps() as $rule ) {
+    $pcre      = '/' . $rule['pattern'] . '/' . $rule['flags'];
+    $found_any = false;
+
+    foreach ( $posts as $post ) {
+        foreach ( $fields as $field ) {
+            $value = $post[ $field ] ?? '';
+            if ( '' === $value ) {
+                continue;
+            }
+            if ( ! preg_match( $pcre, $value, $m ) ) {
+                continue;
+            }
+
+            $found_any = true;
+            $pending[] = [
+                'post_id' => (int) $post['ID'],
+                'slug'    => $post['post_name'],
+                'field'   => $field,
+                'type'    => 'regex',
+                'pattern' => $rule['pattern'],
+            ];
+
+            printf(
+                "[PENDING] ID %-5d | %-44s | %-16s | /%s/\n",
+                $post['ID'],
+                '/' . $post['post_name'] . '/',
+                $field,
+                $rule['pattern']
+            );
+            printf( "          matched: \"%s\"\n", $m[0] );
+        }
+    }
+
+    if ( ! $found_any ) {
+        printf( "[CLEAN  ] /%s/\n", $rule['pattern'] );
+    }
+}
+
+echo "\n";
+
+// ── Block 3: Legal page H1 audit ──────────────────────────────────────────────
+
+echo "--- Block 3: Legal Page H1 Audit ---\n";
+
+$h1_issues = 0;
+
+foreach ( nvx_hygiene_legal_pages() as $slug => $expected ) {
+    $page = get_page_by_path( $slug, OBJECT, 'page' );
+
+    if ( ! $page ) {
+        printf( "[MISSING] /%s/ — page not found in database\n", $slug );
+        $errors[]  = "Legal page not found: /{$slug}/";
+        $h1_issues++;
         continue;
     }
 
-    ++$divergent;
+    $count = preg_match_all( '/<h1[^>]*>(.*?)<\/h1>/is', $page->post_content, $m );
 
-    $report_line = sprintf(
-        "ID=%d type=%s status=%s slug=%s fields=[%s]",
-        (int) $post->ID,
-        $post->post_type,
-        $post->post_status,
-        $post->post_name,
-        implode( ', ', $divergent_fields )
-    );
-    $divergence_report[] = array(
-        'line' => $report_line,
-        'changes' => $field_changes,
-    );
+    if ( 0 === $count ) {
+        printf( "[NO H1  ] /%s/ — no <h1> tag found (ID %d)\n", $slug, $page->ID );
+        $h1_issues++;
+    } elseif ( $count > 1 ) {
+        printf( "[MULTI  ] /%s/ — %d <h1> tags (ID %d)\n", $slug, $count, $page->ID );
+        $h1_issues++;
+    } else {
+        $found = trim( wp_strip_all_tags( $m[1][0] ) );
+        if ( $found === $expected ) {
+            printf( "[OK     ] /%s/ — H1: \"%s\" (ID %d)\n", $slug, $expected, $page->ID );
+        } else {
+            printf(
+                "[MISMATCH] /%s/ — expected \"%s\", found \"%s\" (ID %d)\n",
+                $slug, $expected, $found, $page->ID
+            );
+            $h1_issues++;
+        }
+    }
 }
 
-echo "Scanned: {$scanned} posts/pages\n";
-echo "Divergent: {$divergent} posts/pages\n";
 echo "\n";
 
-if ( $divergent > 0 ) {
-    echo "=== Divergence Details ===\n";
-    echo "\n";
+// ── Summary ───────────────────────────────────────────────────────────────────
 
-    foreach ( $divergence_report as $item ) {
-        echo $item['line'] . "\n";
-        foreach ( $item['changes'] as $field => $change ) {
-            echo nvx_audit_diff_summary( $field, $change['original'], $change['transformed'] );
-        }
-        echo "\n";
-    }
-} else {
-    echo "No divergence found. Content is already compliant with hygiene rules.\n";
+$elapsed      = round( microtime( true ) - $start, 2 );
+$total        = count( $pending );
+$unique_posts = count( array_unique( array_column( $pending, 'post_id' ) ) );
+$str_count    = count( array_filter( $pending, fn( $r ) => 'string' === $r['type'] ) );
+$rx_count     = count( array_filter( $pending, fn( $r ) => 'regex'  === $r['type'] ) );
+
+echo "=== SUMMARY ===\n";
+printf( "Posts scanned                : %d\n",    count( $posts ) );
+printf( "Pending (string)             : %d\n",    $str_count );
+printf( "Pending (regex)              : %d\n",    $rx_count );
+printf( "Legal page H1 issues         : %d\n",    $h1_issues );
+printf( "Total pending records        : %d across %d unique posts\n", $total, $unique_posts );
+printf( "Elapsed                      : %ss\n\n", $elapsed );
+
+// Machine-readable JSON for CI / log parsing
+echo "--- JSON Summary ---\n";
+echo json_encode( [
+    'audit_timestamp' => current_time( 'c' ),
+    'site_url'        => $site_url,
+    'posts_scanned'   => count( $posts ),
+    'string_pending'  => $str_count,
+    'regex_pending'   => $rx_count,
+    'h1_issues'       => $h1_issues,
+    'total_pending'   => $total,
+    'unique_posts'    => $unique_posts,
+    'pending_records' => array_map(
+        fn( $r ) => [
+            'post_id' => $r['post_id'],
+            'slug'    => $r['slug'],
+            'field'   => $r['field'],
+            'type'    => $r['type'],
+            'pattern' => $r['pattern'],
+        ],
+        $pending
+    ),
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) . "\n\n";
+
+// ── Exit ──────────────────────────────────────────────────────────────────────
+
+if ( 0 === $total && 0 === $h1_issues && empty( $errors ) ) {
+    echo "Status: AUDIT_CLEAN\n";
+    exit( 0 );
 }
 
-echo "\n=== Audit Complete ===\n";
-echo "This is a READ-ONLY audit. No changes were made to the database.\n";
+printf( "Status: AUDIT_PENDING_%d\n", $total + $h1_issues );
+exit( 1 );

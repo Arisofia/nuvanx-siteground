@@ -99,13 +99,6 @@ $apply_str = function(
         return 'clean';
     }
 
-    // Safety check: do not modify text inside <h1> tags to avoid changing legal page headings
-    // The migration only fixes string/regex hygiene rules, not H1 mismatches
-    if ( preg_match( '/<h1[^>]*>.*?<\/h1>/is', $original ) ) {
-        fwrite( STDERR, "[SKIP] POST_ID={$post['ID']} field={$field}: Skipping replacement inside <h1> tag to preserve legal page headings\n" );
-        return 'clean';
-    }
-
     $new_value = str_replace( $from, $to, $original );
 
     if ( $new_value === $original ) {

@@ -81,12 +81,12 @@ ob_start();
 		</div>
 	</section>
 
-	
+
 		<section class="nvx-brand-section" aria-label="<?php esc_attr_e( 'Información de la sede', 'nuvanx-medical' ); ?>">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Datos de contacto', 'nuvanx-medical' ); ?></p>
 				<h2 class="nvx-brand-title"><?php esc_html_e( 'Ubicación y horarios', 'nuvanx-medical' ); ?></h2>
-				
+
 				<div class="nvx-brand-grid nvx-brand-grid--2">
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Dirección', 'nuvanx-medical' ); ?></h3>
@@ -95,7 +95,7 @@ ob_start();
 							<?php echo esc_html( $clinic_address ); ?>
 						</p>
 					</div>
-					
+
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Teléfono', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-body">
@@ -105,7 +105,7 @@ ob_start();
 							<?php endif; ?>
 						</p>
 					</div>
-					
+
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Horario', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-body">
@@ -113,7 +113,7 @@ ob_start();
 							<?php echo esc_html( $clinic_hours ); ?>
 						</p>
 					</div>
-					
+
 					<?php if ( ! empty( $clinic_maps ) ) : ?>
 						<div class="nvx-brand-card">
 							<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?></h3>

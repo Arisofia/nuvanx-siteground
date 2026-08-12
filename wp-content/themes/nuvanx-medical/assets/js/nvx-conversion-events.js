@@ -57,6 +57,36 @@
 		return output;
 	}
 
+	/**
+	 * Fire a Google Ads conversion event when an Ads Conversion ID is configured.
+	 *
+	 * The conversion ID + label come from window.nvxConversionEvents (injected
+	 * by nvx-gtm-integration.php via wp_head). If the IDs are not yet set,
+	 * this is a safe no-op — it will work automatically once the PHP constants
+	 * NVX_GADS_CONVERSION_ID_FORM / NVX_GADS_CONVERSION_ID_CALL are configured.
+	 *
+	 * Format expected: 'AW-XXXXXXXXXX/YYYYYYYYYYYY'
+	 *
+	 * @param {string} conversionId - Full conversion string (id/label).
+	 */
+	function emitGadsConversion(conversionId) {
+		if (!conversionId || conversionId.indexOf('AW-') !== 0) return;
+
+		var parts = conversionId.split('/');
+		if (parts.length !== 2 || !parts[0] || !parts[1]) return;
+
+		window.gtag = window.gtag || function () {
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push(arguments);
+		};
+
+		window.gtag('event', 'conversion', {
+			send_to: conversionId,
+			value: 1.0,
+			currency: 'EUR',
+		});
+	}
+
 	function emit(eventName, parameters) {
 		var normalizedName = cleanToken(eventName);
 		var params = allowedParameters(parameters);
@@ -72,10 +102,15 @@
 		};
 		window.gtag('event', normalizedName, params);
 
+		// Google Ads conversions are handled exclusively by GTM via nvx_conversion_signal triggers.
+		// Direct gtag conversion calls are removed to prevent double-counting when GTM is configured.
+		// If GTM is not available, conversions will not fire through this path - GTM is the canonical mechanism.
+
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
 	}
+
 
 	function trackClick(event) {
 		var target = event.target && typeof event.target.closest === 'function'
@@ -90,28 +125,44 @@
 			cta_marker: dataEvent || 'selector',
 		};
 
-		if (
-			target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
-			|| href.indexOf('/madrid/valoracion/') !== -1
-		) {
+		var isReserve = target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+			|| href.indexOf('/madrid/valoracion/') !== -1;
+		var isWhatsApp = target.matches('[data-gtag="click-whatsapp"]')
+			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href);
+		var isPhone = /^tel:/i.test(href);
+
+		// Track treatment-specific clicks for Google Ads conversion attribution.
+		// Emitted before the early-returning CTA branches so that treatment CTAs
+		// (reservation/WhatsApp/phone) still surface a treatment-scoped signal.
+		if (isReserve || isWhatsApp || isPhone) {
+			if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
+				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+			}
+			if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
+				emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+			}
+		}
+
+		// Track reservation clicks
+		if (isReserve) {
 			emit('reserve_click', Object.assign({ contact_method: 'reservation' }, common));
 			return;
 		}
 
-		if (
-			target.matches('[data-gtag="click-whatsapp"]')
-			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
-		) {
+		// Track WhatsApp clicks
+		if (isWhatsApp) {
 			emit('whatsapp_click', Object.assign({ contact_method: 'whatsapp' }, common));
 			return;
 		}
 
-		if (/^tel:/i.test(href)) {
+		// Track phone clicks
+		if (isPhone) {
 			emit('phone_click', {
 				contact_method: 'phone',
 				cta_region: regionFor(target),
 				cta_marker: dataEvent || 'tel_link',
 			});
+			return;
 		}
 	}
 

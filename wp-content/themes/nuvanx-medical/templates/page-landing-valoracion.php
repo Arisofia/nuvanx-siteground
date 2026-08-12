@@ -77,7 +77,7 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 							<?php esc_html_e( 'Definimos qué cambio buscas y qué resultado consideras proporcionado.', 'nuvanx-medical' ); ?>
 						</p>
 					</div>
-					
+
 					<div class="nvx-brand-card">
 						<div class="nvx-brand-card__number">02</div>
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Explorar', 'nuvanx-medical' ); ?></h3>
@@ -85,7 +85,7 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 							<?php esc_html_e( 'Revisamos estructura, grasa, laxitud, superficie, fototipo y antecedentes.', 'nuvanx-medical' ); ?>
 						</p>
 					</div>
-					
+
 					<div class="nvx-brand-card">
 						<div class="nvx-brand-card__number">03</div>
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Documentar', 'nuvanx-medical' ); ?></h3>
@@ -93,7 +93,7 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 							<?php esc_html_e( 'Explicamos técnica, fases, cuidados, seguimiento y presupuesto individualizado.', 'nuvanx-medical' ); ?>
 						</p>
 					</div>
-					
+
 					<div class="nvx-brand-card">
 						<div class="nvx-brand-card__number">04</div>
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Planificar', 'nuvanx-medical' ); ?></h3>

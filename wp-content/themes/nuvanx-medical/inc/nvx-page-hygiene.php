@@ -208,14 +208,17 @@ function nvx_superseded_legal_page_ids(): array {
 }
 
 /**
- * Publicly navigable legal pages that are intentionally excluded from organic
- * indexing. Callers that hide navigation should subtract these IDs rather than
- * treating every noindex page as non-navigable.
+ * Page IDs that are noindex but should remain navigable (e.g., cookie policy).
+ *
+ * These pages are excluded from sitemaps and search indexing but intentionally
+ * kept in navigation menus for legal compliance and user access.
  *
  * @return int[]
  */
-function nvx_navigable_noindex_page_ids(): array {
-	$ids              = array();
+function nvx_noindex_but_navigable_page_ids(): array {
+	$ids = array();
+
+	// Complianz EU cookie policy - noindex but navigable
 	$cookie_policy_id = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'politica-de-cookies-ue' )
 		: 0;
@@ -224,7 +227,21 @@ function nvx_navigable_noindex_page_ids(): array {
 		$ids[] = $cookie_policy_id;
 	}
 
-	return array_values( array_unique( $ids ) );
+	/**
+	 * Filter page IDs that are noindex but should remain navigable.
+	 *
+	 * @param int[] $ids Page IDs.
+	 */
+	return array_values( array_unique( array_map( 'intval', apply_filters( 'nvx_noindex_but_navigable_page_ids', $ids ) ) ) );
+}
+
+/**
+ * Backward compatibility alias for nvx_noindex_but_navigable_page_ids.
+ *
+ * @return int[]
+ */
+function nvx_navigable_noindex_page_ids(): array {
+	return nvx_noindex_but_navigable_page_ids();
 }
 
 /**
@@ -374,11 +391,11 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 		return $items;
 	}
 
-	$noindex_ids      = nvx_noindex_page_ids();
-	$navigable_ids    = nvx_navigable_noindex_page_ids();
+	$noindex_ids       = nvx_noindex_page_ids();
+	$navigable_ids     = nvx_noindex_but_navigable_page_ids();
 	$menu_excluded_ids = array_values( array_diff( $noindex_ids, $navigable_ids ) );
-	$cases_id         = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-	$cases_public     = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
+	$cases_id          = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+	$cases_public      = $cases_id > 0 && ! in_array( $cases_id, $noindex_ids, true );
 
 	foreach ( $items as $key => $item ) {
 		$is_blocked_post = isset( $item->type, $item->object_id )

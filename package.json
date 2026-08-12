@@ -1,0 +1,22 @@
+{
+  "name": "nuvanx-siteground",
+  "version": "1.0.0",
+  "description": "NUVANX Medical Aesthetics Website & Infrastructure",
+  "private": true,
+  "scripts": {
+    "lint:colors": "node scripts/lint/no-hardcoded-colors.mjs",
+    "lint:fontsize": "node scripts/lint/no-hardcoded-fontsize.mjs",
+    "lint:styles": "node scripts/lint/no-inline-layout-styles.mjs",
+    "lint:routes": "node scripts/lint/validate-routes-schema.mjs",
+    "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes",
+    "seo:nap-audit": "node scripts/seo/google-business-profile-audit.js"
+  },
+  "dependencies": {
+    "google-ads-api": "^24.1.0",
+    "google-auth-library": "^9.0.0",
+    "googleapis": "^140.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

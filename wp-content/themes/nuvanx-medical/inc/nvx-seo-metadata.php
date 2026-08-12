@@ -313,7 +313,7 @@ function nvx_seo_current_metadata_key(): ?string {
 
 	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
 		$routes = nvx_catalog_json_resolved( 'routes.json' );
-		if ( isset( $routes[ $path ]['seo_id'] ) ) {
+		if ( is_array( $routes ) && isset( $routes[ $path ] ) && is_array( $routes[ $path ] ) && isset( $routes[ $path ]['seo_id'] ) ) {
 			return $routes[ $path ]['seo_id'];
 		}
 	}
@@ -542,6 +542,9 @@ add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );
  */
 function nvx_seo_route_alias_destination( string $path ): ?string {
 	$routes = function_exists( 'nvx_catalog_json_resolved' ) ? nvx_catalog_json_resolved( 'routes.json' ) : array();
+	if ( ! is_array( $routes ) ) {
+		return null;
+	}
 	$target = ! empty( $routes[ $path ]['route_alias'] ) && is_string( $routes[ $path ]['route_alias'] )
 		? (string) $routes[ $path ]['route_alias']
 		: '';

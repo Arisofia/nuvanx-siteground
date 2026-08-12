@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * Lint script to detect dangerous inline styles in PHP files.
- * 
+ *
  * This script scans PHP files for:
  * - Inline style attributes with layout properties (margin, padding, font-size, color)
  * - style="..." patterns that should be in CSS classes instead
- * 
+ *
  * Violations are reported and the script exits with error code 1.
  */
 
@@ -63,9 +63,9 @@ async function scanFile(filePath) {
     const matches = line.matchAll(INLINE_STYLE_PATTERN);
     for (const match of matches) {
       const styleContent = match[1];
-      
+
       // Extract which dangerous properties are present
-      const foundProperties = DANGEROUS_PROPERTIES.filter(prop => 
+      const foundProperties = DANGEROUS_PROPERTIES.filter(prop =>
         styleContent.toLowerCase().includes(prop)
       );
 

@@ -255,6 +255,8 @@ require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-page-hygiene.php';
 require_once get_template_directory() . '/inc/nvx-retired-strategy-redirects.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
+require_once get_template_directory() . '/inc/nvx-gtm-integration.php';
+
 
 // 2. Data & SEO Governance
 require_once get_template_directory() . '/inc/nvx-catalog-json.php';
@@ -262,6 +264,7 @@ require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
+require_once get_template_directory() . '/inc/nvx-medical-clinic-schema.php';
 require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
 
 // 3. Core UI Components
@@ -284,6 +287,9 @@ require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-solutions-page.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
+require_once get_template_directory() . '/inc/nvx-contour-architecture-page.php';
+require_once get_template_directory() . '/inc/nvx-exion-page.php';
+require_once get_template_directory() . '/inc/nvx-profhilo-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
 require_once get_template_directory() . '/inc/nvx-co2-page.php';
 require_once get_template_directory() . '/inc/nvx-btl-detail-pages.php';

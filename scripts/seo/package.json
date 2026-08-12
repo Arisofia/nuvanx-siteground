@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "google-ads-api": "24.1.0",
-    "googleapis": "^140.0.0"
+    "googleapis": "^140.0.0",
+    "google-auth-library": "^9.0.0"
   },
   "engines": {
     "node": ">=18"

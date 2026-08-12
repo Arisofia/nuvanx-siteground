@@ -1,9 +1,9 @@
 <?php
 /**
- * Láser CO₂ fraccionado page — resurfacing, cicatrices, downtime.
+ * Láser CO₂ fraccionado page — editorial high-authority structure.
  *
- * Wire-frame: Hero → Ablación fraccionada → Indicaciones → Downtime → Tarifas PVP → CTA.
- * Does not repeat Endolift / Endoláser body or laser hub catalog.
+ * Wire-frame: Hero → Qué es → Indicaciones → vs peelings → Biofísica → Proceso → Postoperatorio → Tarifas → FAQ → CTA.
+ * Pattern-based (CO2 markers), not page-ID gated.
  *
  * @package nuvanx-medical
  */
@@ -56,16 +56,31 @@ function nvx_content_is_co2_page( string $content ): bool {
 }
 
 /**
+ * Linear process icons — Champagne Bronce stroke only (1.5px).
+ *
+ * @param string $name Icon key: assess|anesthesia|procedure|recover.
+ */
+function nvx_co2_process_icon( string $name ): string {
+	$icons = array(
+		'assess'     => '<svg class="nvx-co2-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="22" cy="22" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M30 30 40 40" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'anesthesia' => '<svg class="nvx-co2-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 8h12v8l4 6v18H14V22l4-6V8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 16h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'procedure'  => '<svg class="nvx-co2-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 34 28 8l10 6-18 26H10v-6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 14l10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'recover'    => '<svg class="nvx-co2-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 28c4-10 8-14 12-14s8 4 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 18c3-2 5-3 8-3s5 1 8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="30" r="3" stroke="currentColor" stroke-width="1.5"/></svg>',
+	);
+
+	return $icons[ $name ] ?? $icons['assess'];
+}
+
+/**
  * Builds the CO₂ laser treatment hero copy markup.
  *
  * @return string The escaped hero copy HTML.
  */
 function nvx_co2_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$data         = nvx_catalog_json_resolved( 'laser-co2-page.json' )['hero'] ?? array();
-	$price_facial = function_exists( 'nvx_co2_price_facial_eur' )
-		? nvx_format_price_eur( nvx_co2_price_facial_eur() )
-		: number_format_i18n( 330, 2 );
+	$data = nvx_catalog_json_resolved( 'laser-co2-page.json' )['hero'] ?? array();
+
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
@@ -80,9 +95,9 @@ function nvx_co2_hero_copy_markup(): string {
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ?? '' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
-			/* translators: %s: facial session PVP */
+			/* translators: %s: medical license number */
 			$data['description'] ?? '',
-			$price_facial
+			$colegiado
 		)
 	) . '</p>';
 
@@ -99,7 +114,7 @@ function nvx_co2_hero_copy_markup(): string {
 }
 
 /**
- * Builds the CO₂ laser treatment editorial body markup, including treatment information, recovery phases, and pricing.
+ * Builds the CO₂ laser treatment editorial body markup.
  *
  * @return string The generated editorial HTML.
  */
@@ -107,86 +122,26 @@ function nvx_co2_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'laser-co2-page.json' );
 
-	$catalog      = function_exists( 'nvx_tariff_catalog' ) ? nvx_tariff_catalog() : array();
-	$price_facial = ! empty( $catalog['laser_co2']['facial']['pvp'] )
-		? nvx_format_price_eur( $catalog['laser_co2']['facial']['pvp'] )
-		: number_format_i18n( 330, 2 );
-	$price_body   = ! empty( $catalog['laser_co2']['corporal']['pvp'] )
-		? nvx_format_price_eur( $catalog['laser_co2']['corporal']['pvp'] )
-		: number_format_i18n( 450, 2 );
+	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$review_label = defined( 'NVX_CO2_REVIEW_LABEL' ) ? NVX_CO2_REVIEW_LABEL : 'julio 2026';
+	$equipo_url   = home_url( '/equipo-medico/' );
 
-	$html = '<div class="nvx-co2-editorial nvx-brand-editorial">';
+	$html = '<div class="nvx-co2-editorial">';
 
-	// A. Science of fractional ablation.
-	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );
-	$html .= nvx_page_brand_section_heading_markup(
-		esc_html( $data['science']['kicker'] ?? '' ),
-		'nvx-co2-science-title',
-		esc_html( $data['science']['title'] ?? '' )
+	// Clinical review byline — E-E-A-T
+	$html .= '<p class="nvx-co2-reviewed">';
+	$html .= esc_html(
+		sprintf(
+			/* translators: 1: medical license number, 2: review month label */
+			$data['review']['text'] ?? '',
+			$colegiado,
+			$review_label
+		)
 	);
-	foreach ( $data['science']['body'] ?? array() as $paragraph ) {
-		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $paragraph ) . '</p>';
-	}
-	$html .= '</div></section>';
+	$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $equipo_url ) . '">' . esc_html( $data['review']['link'] ?? '' ) . '</a>';
+	$html .= '</p>';
 
-	// B. Indications.
-	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-indications', 'nvx-co2-ind-title' );
-	$html .= nvx_page_brand_section_heading_markup(
-		esc_html( $data['indications']['kicker'] ?? '' ),
-		'nvx-co2-ind-title',
-		esc_html( $data['indications']['title'] ?? '' )
-	);
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['indications']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-feature-zone-list" role="list">';
-	foreach ( (array) ( $data['indications']['items'] ?? array() ) as $ind ) {
-		$html .= '<li class="nvx-feature-zone">';
-		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $ind['title'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $ind['body'] ?? '' ) . '</p>';
-		$html .= '</li>';
-	}
-	$html .= '</ul></div></section>';
-
-	// C. Recovery timeline (unique — not on Endolift FAQ).
-	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-downtime', 'nvx-co2-down-title' );
-	$html .= nvx_page_brand_section_heading_markup(
-		esc_html( $data['downtime']['kicker'] ?? '' ),
-		'nvx-co2-down-title',
-		esc_html( $data['downtime']['title'] ?? '' )
-	);
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['downtime']['body'] ?? '' ) . '</p>';
-	$html .= '<ol class="nvx-treatment-process__steps">';
-	foreach ( $data['downtime']['phases'] ?? array() as $phase ) {
-		$html .= '<li class="nvx-treatment-process__step">';
-		$html .= '<h3 class="nvx-treatment-process__step-title">' . esc_html( $phase['title'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $phase['body'] ?? '' ) . '</p>';
-		$html .= '</li>';
-	}
-	$html .= '</ol></div></section>';
-
-	// D. PVP reference (clinic tariff — facial 330 / body 450).
-	$html .= nvx_page_brand_section_open_markup(
-		'nvx-co2-pricing',
-		'nvx-co2-price-title',
-		'',
-		array( 'id' => 'tarifas-co2' )
-	);
-	$html .= nvx_page_brand_section_heading_markup(
-		esc_html( $data['pricing']['kicker'] ?? '' ),
-		'nvx-co2-price-title',
-		esc_html( $data['pricing']['title'] ?? '' )
-	);
-	$html .= '<div class="nvx-endolift-price-table-wrap">';
-	$html .= '<table class="nvx-endolift-price-table">';
-	$html .= '<caption class="nvx-endolift-price-table__cap">' . esc_html( $data['pricing']['caption'] ?? '' ) . '</caption>';
-	$html .= '<thead><tr><th scope="col">' . esc_html( $data['pricing']['col_session'] ?? '' ) . '</th><th scope="col">' . esc_html( $data['pricing']['col_pvp'] ?? '' ) . '</th></tr></thead><tbody>';
-	$html .= '<tr><th scope="row">' . esc_html( $data['pricing']['row_facial'] ?? '' ) . '</th><td>' . esc_html( $price_facial ) . '&nbsp;€</td></tr>';
-	$html .= '<tr><th scope="row">' . esc_html( $data['pricing']['row_body'] ?? '' ) . '</th><td>' . esc_html( $price_body ) . '&nbsp;€</td></tr>';
-	$html .= '</tbody></table></div>';
-	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['pricing']['note'] ?? '' ) . '</em></p>';
-	$html .= '</div></section>';
-
-	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
-
+	$html .= nvx_render_generic_brand_treatment_page_body( $data, 'nvx-co2', 'nvx_co2_process_icon' );
 	$html .= '</div>';
 
 	return $html;

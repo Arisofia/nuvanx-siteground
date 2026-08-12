@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Lint script to detect hardcoded color values in CSS files.
- * 
+ *
  * This script scans CSS files for:
  * - Hex color codes (# followed by 3 or 6 hex digits)
  * - rgb() / rgba() function calls (except in shadows)
  * - Named colors that should use tokens instead
- * 
+ *
  * Violations are reported but the script exits with 0 unless --strict flag is used.
  */
 
@@ -66,7 +66,7 @@ async function scanFile(filePath) {
       const matches = checkLine.matchAll(pattern);
       for (const match of matches) {
         const matchedText = match[0];
-        
+
         // Skip "white" in "white-space" property
         if (matchedText === 'white' && /white-space/i.test(line)) continue;
 

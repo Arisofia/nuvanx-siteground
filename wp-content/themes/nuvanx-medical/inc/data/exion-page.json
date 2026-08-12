@@ -1,0 +1,131 @@
+{
+    "hero": {
+        "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+        "h1": "@nvx-t:EXION® BTL en Madrid: qué esperar tras el tratamiento de rejuvenecimiento",
+        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
+        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
+        "lead": "@nvx-t:Protocolo de rejuvenecimiento facial y corporal con EXION® Face, Body y Fractional RF. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
+        "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, protocolo personalizado según diagnóstico y recuperación realista — antes de decidir.",
+        "meta": "@nvx-t:EXION Face · EXION Body · Fractional RF · Chamberí · Salamanca–Goya"
+    },
+    "review": {
+        "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
+        "link": "@nvx-t:Ver equipo médico"
+    },
+    "what": {
+        "kicker": "@nvx-t:La tecnología",
+        "title": "@nvx-t:¿Qué es EXION® BTL y cómo funciona?",
+        "body": [
+            "@nvx-t:No es un cosmético tópico ni un tratamiento de calentamiento superficial. EXION® BTL combina tres tecnologías: microagujas RF (Fractional RF), RF monopolar (Face/Body) y ultrasonido microfocalizado. El objetivo es estimular colágeno nuevo, mejorar la calidad cutánea y remodelar el contorno desde dentro.",
+            "@nvx-t:El protocolo se personaliza según la anatomía: Fractional RF para poros, cicatrices y textura; Face para tensado facial y calidad de piel; Body para firmeza corporal y celulitis. No es un tratamiento estándar para todos, sino una combinación calibrada por diagnóstico médico."
+        ]
+    },
+    "diagnosis": {
+        "kicker": "@nvx-t:Indicaciones clínicas",
+        "title": "@nvx-t:Selección del paciente ideal",
+        "body": [
+            "@nvx-t:El protocolo está indicado en calidad cutánea deteriorada, poros dilatados, cicatrices de acné, flacidez leve–moderada y celulitis. Es adecuado para rostro, cuello, escote, abdomen, glúteos y muslos cuando se busca mejora sin cirugía invasiva.",
+            "@nvx-t:Se descarta en ptosis severa con exceso cutáneo marcado, infecciones activas cutáneas o afecciones autoinmunes en fase activa. En esos casos se deriva al especialista adecuado.",
+            "@nvx-t:Antes del tratamiento, se realiza un diagnóstico que evalúa tipo de piel, grado de fotodaño, elasticidad y objetivos. Eso calibra qué combinación de EXION® usar y qué parámetros aplicar."
+        ],
+        "panel_title": "@nvx-t:Diagnóstico diferencial",
+        "panel_items": [
+            { "title": "@nvx-t:Calidad cutánea", "body": "@nvx-t:Poros, textura, cicatrices y fotodaño superficial." },
+            { "title": "@nvx-t:Flacidez leve–moderada", "body": "@nvx-t:Pérdida de firmeza y turgencia en rostro o cuerpo." },
+            { "title": "@nvx-t:Combinación", "body": "@nvx-t:Protocolo mixto Fractional RF + Face/Body según diagnóstico." },
+            { "title": "@nvx-t:Exclusión", "body": "@nvx-t:Ptosis severa / infecciones activas: contraindicación temporal." }
+        ]
+    },
+    "compare": {
+        "kicker": "@nvx-t:Comparativa clínica",
+        "title": "@nvx-t:EXION® vs otros tratamientos de calidad cutánea",
+        "col_param": "@nvx-t:Parámetro",
+        "col_exion": "@nvx-t:EXION® BTL",
+        "col_other": "@nvx-t:Tratamientos superficiales",
+        "rows": [
+            { "param": "@nvx-t:Naturaleza", "exion": "@nvx-t:Microagujas RF + RF monopolar (estimulo profundo)", "other": "@nvx-t:Calentamiento superficial (dermis epidérmica)" },
+            { "param": "@nvx-t:Profundidad", "exion": "@nvx-t:Actúa en dermis reticular y septos profundos", "other": "@nvx-t:Limitado a capas superficiales de la piel" },
+            { "param": "@nvx-t:Estimulo colágeno", "exion": "@nvx-t:Neocolagénesis estructural y retracción tisular", "other": "@nvx-t:Estimulo transitorio y superficial" },
+            { "param": "@nvx-t:Recuperación", "exion": "@nvx-t:24–48 horas de enrojecimiento leve", "other": "@nvx-t:Sin baja social (efecto cosmético)" },
+            { "param": "@nvx-t:Duración efecto", "exion": "@nvx-t:12–18 meses con protocolo de mantenimiento", "other": "@nvx-t:3–6 meses (requiere sesiones muy frecuentes)" },
+            { "param": "@nvx-t:Resultados", "exion": "@nvx-t:Progresivos; consolidación 3–6 meses", "other": "@nvx-t:Inmediatos pero temporales" }
+        ]
+    },
+    "biophysics": {
+        "kicker": "@nvx-t:La biofísica",
+        "title": "@nvx-t:Microagujas RF + RF monopolar: estimulo controlado",
+        "body1": "@nvx-t:Fractional RF utiliza microagujas de 25–50 micras que penetran en dermis reticular, liberando energía RF directamente en el tejido. Esto crea microcanales de coagulación que estimulan neocolagénesis. Face/Body aplican RF monopolar para calentamiento volumétrico y retracción tisular.",
+        "caption": "@nvx-t:Combinación secuencial según diagnóstico: microagujas para textura, monopolar para firmeza.",
+        "body2": "@nvx-t:En rango térmico de 55–65 °C en dermis, se produce desnaturalización controlada del colágeno con estimulo de fibroblastos. El resultado es piel más firme, poros visiblemente reducidos y textura mejorada, con retracción progresiva del tejido."
+    },
+    "process": {
+        "kicker": "@nvx-t:El procedimiento en NUVANX",
+        "title": "@nvx-t:Ejecución paso a paso",
+        "body": "@nvx-t:Duración habitual 45–90 minutos según zonas y tecnologías. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de postoperatorio.",
+        "steps": [
+            { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de tipo de piel, calidad cutánea y objetivos. Definición de protocolo EXION®." },
+            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Preparación cutánea", "body": "@nvx-t:Limpieza y aplicación de anestésico tópico (opcional según zona)." },
+            { "icon": "procedure", "n": "03", "title": "@nvx-t:Aplicación EXION®", "body": "@nvx-t:Fractional RF, Face o Body según protocolo. Sensación de calor y pinchazos controlados." },
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Post-tratamiento inmediato", "body": "@nvx-t:Aplicación de serum calmante y protector solar. Ambulatorio sin baja laboral." }
+        ]
+    },
+    "postop": {
+        "kicker": "@nvx-t:Recuperación Transparente",
+        "title": "@nvx-t:Cómo es el postoperatorio real de EXION® BTL (sin idealizaciones)",
+        "body": "@nvx-t:A diferencia de procedimientos invasivos, EXION® no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:",
+        "items": [
+            { "title": "@nvx-t:Días 1 a 2 (Enrojecimiento inicial):", "body": "@nvx-t:Es normal notar la zona tratada enrojecida, ligeramente sensible y con sensación de calor. Con Fractional RF pueden aparecer microcostras que caen naturalmente en 3–5 días. El disconfort es leve y se controla con crema hidratante y protector solar." },
+            { "title": "@nvx-t:Días 3 a 5 (Recuperación Social):", "body": "@nvx-t:El enrojecimiento inicial cede considerablemente. Puedes retomar actividad laboral y social inmediatamente. La piel puede sentirse ligeramente seca o descamada; se recomienda hidratación intensiva y evitar exposición solar directa." },
+            { "title": "@nvx:t:Semanas 2 a 4 (Remodelación Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna. Notarás la piel visiblemente más luminosa, con poros más finos y textura mejorada. Las microcostras han caído completamente y la piel recupera su aspecto normal." },
+            { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neocolagénesis y la retracción tisular. La calidad cutánea tratada muestra su resultado clínico real: firmeza mejorada, poros reducidos y textura más uniforme." }
+        ],
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo de cuidados post-tratamiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu tipo de piel."
+    },
+    "investment": {
+        "kicker": "@nvx-t:Presupuesto médico",
+        "title": "@nvx-t:Valoración y presupuesto EXION® BTL en NUVANX Madrid",
+        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 250 €/sesión (Fractional RF), 350 €/sesión (Face), 400 €/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
+        "items": [
+            "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
+            "@nvx-t:Honorarios médicos de la intervención",
+            "@nvx-t:Material fungible de uso exclusivo (microagujas monouso)",
+            "@nvx-t:Revisiones clínicas protocolizadas (seguimiento según protocolo)",
+            "@nvx-t:Orientación de cuidados post-tratamiento y productos recomendados"
+        ],
+        "note": "@nvx-t:Presupuesto cerrado sin sorpresas tras la consulta de valoración."
+    },
+    "faq": {
+        "kicker": "@nvx-t:Base de conocimiento",
+        "title": "@nvx-t:Preguntas clínicas frecuentes",
+        "items": [
+            {
+                "q": "@nvx-t:¿Cuánto cuesta EXION® BTL en NUVANX Madrid?",
+                "a": "@nvx-t:Las tarifas de referencia parten desde 250 €/sesión (Fractional RF), 350 €/sesión (Face) y 400 €/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial."
+            },
+            {
+                "q": "@nvx-t:¿EXION® sirve para cualquier tipo de piel?",
+                "a": "@nvx-t:Es adecuado para la mayoría de tipos de piel, pero se evalúa individualmente. Piel muy fina, con rosácea activa o infecciones cutáneas requieren evaluación médica específica antes del tratamiento."
+            },
+            {
+                "q": "@nvx-t:¿Cuántas sesiones requieren?",
+                "a": "@nvx-t:Depende del protocolo. Fractional RF: 3–4 sesiones cada 4 semanas. Face/Body: 4–6 sesiones cada 2–3 semanas. El protocolo definitivo se define tras valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el efecto?",
+                "a": "@nvx-t:La neocolagénesis se mantiene entre 12 y 18 meses con protocolo de mantenimiento. Sesiones de refuerzo anuales o bianuales pueden prolongar el resultado según indicación médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",
+                "a": "@nvx-t:Sin baja laboral. 24–48 horas de enrojecimiento leve con Fractional RF. Face/Body: recuperación inmediata. Evitar exposición solar 2 semanas post-tratamiento."
+            },
+            {
+                "q": "@nvx-t:¿Cuáles son las contraindicaciones?",
+                "a": "@nvx-t:Embarazo, lactancia, infecciones activas cutáneas, historia de queloides, rosácea activa, tratamiento anticoagulante activo. Afecciones autoinmunes cutáneas requieren evaluación médica específica."
+            },
+            {
+                "q": "@nvx-t:¿Es doloroso el tratamiento?",
+                "a": "@nvx-t:Fractional RF puede requerir anestésico tópico; se percibe sensación de calor y pinchazos. Face/Body es generalmente bien tolerado sin anestesia (sensación de calor). En ambos casos, las molestias son moderadas y controladas."
+            }
+        ]
+    }
+}

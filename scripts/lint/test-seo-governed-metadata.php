@@ -45,6 +45,29 @@ function nvx_aesthetic_treatment_catalog() {
     );
 }
 
+function nvx_seo_blog_post_metadata_catalog() {
+    return array();
+}
+
+function nvx_catalog_json_resolved( $filename ) {
+    return array();
+}
+
+function nvx_seo_metadata_catalog() {
+    return array();
+}
+
+function wp_parse_url( $url, $component = -1 ) {
+    if ( 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/' === $url ) {
+        return array(
+            'scheme' => 'https',
+            'host'   => 'nuvanx.com',
+            'path'   => '/rinomodelacion-sin-cirugia-madrid/',
+        );
+    }
+    return false;
+}
+
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
 
 $actual   = nvx_seo_governed_metadata_for_post_id( 4242 );

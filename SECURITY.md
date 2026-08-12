@@ -29,10 +29,10 @@
 
 - **Incident Summary:** Detection of exposed credentials in historical git commits (`refs/pull/*/head` refs).
 - **Remediation Actions Taken:**
-  1. ⏳ **PENDIENTE** — Rotación de credenciales DB y claves SSH en SiteGround. Ver `docs/security/INCIDENT-2026-07-15-CLOSURE.md` para evidencia requerida.
+  1. ⏳ **PENDIENTE** — Rotación de credenciales DB y claves SSH en SiteGround.
   2. ✅ Externalized all production configurations and secrets from codebase tracking.
   3. ✅ Purged sensitive refs from `origin` repository.
-  4. ⏳ **PENDIENTE** — Submitted GitHub Support Ticket to purge cached `refs/pull/*/head` objects on GitHub servers. Ver `docs/security/INCIDENT-2026-07-15-CLOSURE.md` (ticket# y fecha pendientes).
+  4. ⏳ **PENDIENTE** — Submitted GitHub Support Ticket to purge cached `refs/pull/*/head` objects on GitHub servers.
 
 ### Secret Management
 

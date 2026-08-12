@@ -257,6 +257,10 @@ function nvx_seo_signature_yoast_presentation( $presentation, $context ) {
 
 	$post_id = 0;
 	if ( isset( $context->indexable ) && is_object( $context->indexable ) && isset( $context->indexable->object_id ) ) {
+		$object_type = isset( $context->indexable->object_type ) ? (string) $context->indexable->object_type : '';
+		if ( '' !== $object_type && 'post' !== $object_type ) {
+			return $presentation;
+		}
 		$post_id = (int) $context->indexable->object_id;
 	} elseif ( isset( $context->post ) && is_object( $context->post ) && isset( $context->post->ID ) ) {
 		$post_id = (int) $context->post->ID;

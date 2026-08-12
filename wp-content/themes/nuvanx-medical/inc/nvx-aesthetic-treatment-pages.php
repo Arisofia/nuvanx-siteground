@@ -83,7 +83,6 @@ function nvx_aesthetic_treatment_catalog(): array {
 			unset( $entry );
 		}
 
-
 		$catalog = nvx_catalog_filter_records(
 			$raw_catalog,
 			array(
@@ -117,10 +116,8 @@ function nvx_aesthetic_treatment_catalog(): array {
 		);
 	}
 
-
 	return $catalog;
 }
-
 
 /** Resolve a treatment key from slug or current singular page. */
 function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
@@ -249,16 +246,16 @@ function nvx_aesthetic_treatment_copy_section( string $title, string $copy ): st
  * @param array<string,mixed> $page Current treatment data.
  */
 function nvx_aesthetic_treatment_render( array $page ): void {
-	$schema    = is_array( $page['schema'] ?? null ) ? $page['schema'] : array();
-	$protocol  = is_array( $page['protocol'] ?? null ) ? $page['protocol'] : array();
-	$brands    = array_values( array_filter( array_map( 'strval', (array) ( $page['brands'] ?? array() ) ) ) );
+	$schema     = is_array( $page['schema'] ?? null ) ? $page['schema'] : array();
+	$protocol   = is_array( $page['protocol'] ?? null ) ? $page['protocol'] : array();
+	$brands     = array_values( array_filter( array_map( 'strval', (array) ( $page['brands'] ?? array() ) ) ) );
 	$techniques = array_values( array_filter( array_map( 'strval', (array) ( $page['techniques'] ?? array() ) ) ) );
-	$price     = (string) ( $page['price_range'] ?? $protocol['price_range'] ?? $schema['price_range'] ?? '' );
-	$duration  = (string) ( $page['duration'] ?? $protocol['duration_result'] ?? $schema['duration'] ?? '' );
-	$session   = (string) ( $page['session_time'] ?? $protocol['session_time'] ?? $schema['session_time'] ?? '' );
+	$price      = (string) ( $page['price_range'] ?? $protocol['price_range'] ?? $schema['price_range'] ?? '' );
+	$duration   = (string) ( $page['duration'] ?? $protocol['duration_result'] ?? $schema['duration'] ?? '' );
+	$session    = (string) ( $page['session_time'] ?? $protocol['session_time'] ?? $schema['session_time'] ?? '' );
 	$anesthesia = (string) ( $page['anesthesia'] ?? $protocol['anesthesia'] ?? $schema['anesthesia'] ?? '' );
-	$sessions  = (string) ( $page['sessions'] ?? $protocol['sessions'] ?? $schema['sessions'] ?? '' );
-	$downtime  = (string) ( $page['downtime'] ?? $protocol['downtime'] ?? $schema['downtime'] ?? '' );
+	$sessions   = (string) ( $page['sessions'] ?? $protocol['sessions'] ?? $schema['sessions'] ?? '' );
+	$downtime   = (string) ( $page['downtime'] ?? $protocol['downtime'] ?? $schema['downtime'] ?? '' );
 	?>
 	<article class="nvx-treatment-page" data-nvx-treatment-page>
 		<header class="nvx-treatment-page__hero">
@@ -271,7 +268,7 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Diagnóstico médico', 'nuvanx-medical' ); ?></h2><p><?php echo esc_html( (string) $page['diagnosis'] ); ?></p></section>
 		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Cuándo puede estar indicado', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['indications'] ) ); ?></section>
 		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo actúa', 'nuvanx-medical' ), (string) $page['mechanism'] ) ); ?>
-		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo es el tratamiento', 'nuvanx-medical' ), (string) $page['process'] ) ); ?>
+		<section class="nvx-treatment-page__section"><h2><?php esc_html_e( 'Cómo es el tratamiento', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['process'] ) ); ?></section>
 		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Evolución esperable', 'nuvanx-medical' ), (string) $page['evolution'] ) ); ?>
 
 		<?php if ( $price || $duration || $session || $anesthesia || $sessions || $downtime || $brands || $techniques ) : ?>
@@ -309,11 +306,22 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 	<?php
 }
 
+/** Declare theme ownership so the shared page shell never emits a second H1. */
+function nvx_aesthetic_treatment_page_owner( $owner ) {
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
+	return null !== nvx_aesthetic_treatment_current_key() ? 'nvx_aesthetic_treatment_pages' : $owner;
+}
+add_filter( 'nvx_page_owner', 'nvx_aesthetic_treatment_page_owner' );
+
 /** Render complete treatment page for governed slugs. */
 function nvx_aesthetic_treatment_page_content( string $content ): string {
-	if ( ! is_singular( 'page' ) || ! in_the_loop() || ! is_main_query() ) {
+	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
+	if ( 'nvx_aesthetic_treatment_pages' !== $owner || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
+
 	$page = nvx_aesthetic_treatment_current();
 	if ( null === $page ) {
 		return $content;
@@ -322,46 +330,36 @@ function nvx_aesthetic_treatment_page_content( string $content ): string {
 	nvx_aesthetic_treatment_render( $page );
 	return (string) ob_get_clean();
 }
-add_filter( 'the_content', 'nvx_aesthetic_treatment_page_content', NVX_HOOK_PRIO_CATALOG_CONTENT );
+add_filter( 'the_content', 'nvx_aesthetic_treatment_page_content', NVX_HOOK_PRIO_AESTHETIC_TREATMENT );
 
-/** Use a dedicated page template for governed aesthetic treatments. */
-function nvx_aesthetic_treatment_template( string $template ): string {
-	if ( ! nvx_is_aesthetic_treatment_page() ) {
-		return $template;
-	}
-	$custom = get_template_directory() . '/templates/page-aesthetic-treatment.php';
-	return is_readable( $custom ) ? $custom : $template;
-}
-add_filter( 'template_include', 'nvx_aesthetic_treatment_template', 50 );
-
-/** Seed governed pages on staging only; never mutate production automatically. */
+/** Seed governed pages on staging only; existing editorial records are never overwritten. */
 function nvx_aesthetic_treatment_seed_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;
 	}
-	if ( ! current_user_can( 'manage_options' ) && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
-		return;
-	}
+
 	foreach ( nvx_aesthetic_treatment_catalog() as $key => $page ) {
-		$slug = (string) $page['slug'];
-		$post = get_page_by_path( $slug, OBJECT, 'page' );
-		$data = array(
-			'post_title'   => wp_strip_all_tags( (string) $page['h1'] ),
-			'post_name'    => $slug,
-			'post_content' => '<div data-nvx-treatment="' . esc_attr( (string) $key ) . '"></div>',
-			'post_status'  => 'publish',
-			'post_type'    => 'page',
-		);
-		if ( $post instanceof WP_Post ) {
-			$data['ID'] = $post->ID;
-			$post_id    = wp_update_post( $data, true );
-		} else {
-			$post_id = wp_insert_post( $data, true );
+		$existing = get_page_by_path( (string) $page['slug'], OBJECT, 'page' );
+		if ( $existing instanceof WP_Post ) {
+			continue;
 		}
+
+		$post_id = wp_insert_post(
+			array(
+				'post_title'   => wp_strip_all_tags( (string) $page['h1'] ),
+				'post_name'    => (string) $page['slug'],
+				'post_excerpt' => (string) $page['description'],
+				'post_content' => '<div class="nvx-aesthetic-treatment-source" data-nvx-treatment="' . esc_attr( (string) $key ) . '"></div>',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			),
+			true
+		);
 		if ( is_wp_error( $post_id ) ) {
 			continue;
 		}
 		update_post_meta( (int) $post_id, '_nvx_aesthetic_treatment_key', (string) $key );
+		update_post_meta( (int) $post_id, '_nvx_medical_review_status', 'pending' );
 	}
 }
-add_action( 'admin_init', 'nvx_aesthetic_treatment_seed_pages', 30 );
+add_action( 'init', 'nvx_aesthetic_treatment_seed_pages', 30 );

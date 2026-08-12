@@ -113,6 +113,14 @@
 				cta_marker: dataEvent || 'tel_link',
 			});
 		}
+
+		// Track treatment-specific clicks for Google Ads conversion attribution
+		if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
+			emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
+		}
+		if (pagePath().indexOf('/btl-exilite-ipl-madrid/') !== -1) {
+			emit('exilite_treatment_click', Object.assign({ treatment_type: 'btl_exilite' }, common));
+		}
 	}
 
 	function submissionKey(formId) {

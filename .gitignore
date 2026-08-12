@@ -15,6 +15,9 @@ wp-config.php
 *.key
 id_*
 *.sql
+*-key.json
+*service-account*.json
+*credentials*.json
 
 # ============================================================
 # Archives / generated packages

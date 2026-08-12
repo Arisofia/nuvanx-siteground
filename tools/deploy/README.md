@@ -32,7 +32,7 @@ To prevent editorial content changes (e.g. H1 text) from triggering full rollbac
 - Pre-cutover: checks only non-migratable issues (legal page H1, missing pages) and fails fast on those
 - Post-migration: requires full AUDIT_CLEAN including string/regex hygiene rules after migration fixes them
 
-Note: The workflow no longer runs a separate migration step - the migration executes only inside deploy-to-prod.sh in the atomic window.
+**Important change:** The workflow step "Run shared content migration" has been removed. The migration now executes only once, inside deploy-to-prod.sh's atomic post-cutover window. This eliminates the unprotected second execution that previously ran outside the rollback transaction.
 
 ## Host-level emergency production operation
 

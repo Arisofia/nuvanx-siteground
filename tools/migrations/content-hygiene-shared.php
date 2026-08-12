@@ -49,24 +49,37 @@ printf( "Posts loaded  : %d\n\n", count( $posts ) );
 // ── Low-level mutation helpers ────────────────────────────────────────────────
 
 /**
- * Write a single post field to the database (or simulate in dry-run mode).
- * Returns true on success, false on DB error.
+ * Create the durable production rollback marker before the first database write.
  */
-$write_field = function( int $post_id, string $field, string $new_value ) use ( $wpdb, $dry_run ): bool {
+$arm_write_marker = function() use ( $dry_run ): bool {
     if ( $dry_run ) {
         return true;
     }
-    // Emit durable marker BEFORE first DB write for conservative rollback detection
-    // This ensures that any interruption between marker creation and DB write
-    // will conservatively assume DB was modified and trigger rollback.
+
     $marker_file = getenv( 'MIGRATION_WRITE_MARKER' );
-    if ( $marker_file && ! file_exists( $marker_file ) ) {
-        if ( ! touch( $marker_file ) ) {
-            fwrite( STDERR, "[FATAL] Failed to create migration write marker at {$marker_file}. Aborting to prevent silent DB rollback disable.\n" );
-            echo "Status: MIGRATION_FAIL\n";
-            exit( 1 );
-        }
-        echo "MIGRATION_WRITE_MARKER_CREATED at={$marker_file}\n";
+    if ( ! $marker_file || file_exists( $marker_file ) ) {
+        return true;
+    }
+
+    if ( ! touch( $marker_file ) ) {
+        fwrite( STDERR, "[FATAL] Failed to create migration write marker at {$marker_file}. Aborting to prevent silent DB rollback disable.\n" );
+        return false;
+    }
+
+    echo "MIGRATION_WRITE_MARKER_CREATED at={$marker_file}\n";
+    return true;
+};
+
+/**
+ * Write a single post field to the database (or simulate in dry-run mode).
+ * Returns true on success, false on DB error.
+ */
+$write_field = function( int $post_id, string $field, string $new_value ) use ( $wpdb, $dry_run, $arm_write_marker ): bool {
+    if ( $dry_run ) {
+        return true;
+    }
+    if ( ! $arm_write_marker() ) {
+        return false;
     }
     $result = $wpdb->update(
         $wpdb->posts,
@@ -86,7 +99,7 @@ $write_field = function( int $post_id, string $field, string $new_value ) use ( 
  * Apply a plain-string replacement to one post field.
  * Returns 'clean' | 'updated' | 'error'.
  *
- * Legal-page H1 integrity is a separate, verify-only gate (Block C and the
+ * Legal-page H1 integrity is a separate, verify-only gate (Block D and the
  * pre-cutover divergence audit). The replacement contract must stay identical
  * to audit-content-divergence.php: if the audit reports a string as migratable,
  * this function must be able to remove it.
@@ -227,9 +240,146 @@ foreach ( nvx_hygiene_regex_reps() as $rule ) {
 
 echo "\n";
 
-// ── Block C: Legal page H1 verification (verify-only, no writes) ──────────────
+// ── Block C: Retired strategy pages ───────────────────────────────────────────
 
-echo "--- Block C: Legal Page H1 Verification (verify-only) ---\n";
+echo "--- Block C: Retired Strategy Pages ---\n";
+
+$retired_errors = 0;
+
+if ( defined( 'EMPTY_TRASH_DAYS' ) && (int) EMPTY_TRASH_DAYS < 1 ) {
+    fwrite( STDERR, "[BLOCK FAIL] EMPTY_TRASH_DAYS < 1 would make wp_trash_post() delete permanently. Refusing retirement mutation.\n" );
+    $retired_errors++;
+} else {
+    foreach ( nvx_hygiene_retired_strategy_pages() as $slug => $contract ) {
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT ID, post_status, post_type
+                   FROM {$wpdb->posts}
+                  WHERE post_name = %s
+                    AND post_type NOT IN ('revision','nav_menu_item','attachment')
+                  ORDER BY ID ASC",
+                $slug
+            ),
+            ARRAY_A
+        );
+
+        if ( null === $rows ) {
+            fwrite( STDERR, "[BLOCK FAIL] Could not query retired slug /{$slug}/: {$wpdb->last_error}\n" );
+            $retired_errors++;
+            continue;
+        }
+
+        if ( empty( $rows ) ) {
+            printf( "[OK] /%s/ — no WordPress content record remains; HTTP redirect target %s\n", $slug, $contract['target'] );
+            continue;
+        }
+
+        foreach ( $rows as $row ) {
+            $post_id = (int) $row['ID'];
+            $status  = (string) $row['post_status'];
+
+            if ( 'trash' === $status ) {
+                printf( "[OK] /%s/ — ID %d already trash; redirect target %s\n", $slug, $post_id, $contract['target'] );
+                continue;
+            }
+
+            if ( $dry_run ) {
+                printf( "[DRY-RUN] Would trash retired page ID %d /%s/ (status=%s)\n", $post_id, $slug, $status );
+                continue;
+            }
+
+            if ( ! $arm_write_marker() ) {
+                $retired_errors++;
+                continue;
+            }
+
+            $trashed = wp_trash_post( $post_id );
+            if ( false === $trashed || 'trash' !== get_post_status( $post_id ) ) {
+                fwrite( STDERR, "[BLOCK FAIL] Could not trash retired page ID {$post_id} /{$slug}/.\n" );
+                $retired_errors++;
+                continue;
+            }
+
+            $total_updated++;
+            printf( "[RETIRED] ID %d /%s/ → trash; redirect target %s\n", $post_id, $slug, $contract['target'] );
+
+            // Remove object-linked nav menu items so the retired route cannot
+            // reappear in menus after its content record has been trashed.
+            $menu_item_ids = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT pm.post_id
+                       FROM {$wpdb->postmeta} pm
+                       JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+                      WHERE p.post_type = 'nav_menu_item'
+                        AND pm.meta_key = '_menu_item_object_id'
+                        AND pm.meta_value = %s",
+                    (string) $post_id
+                )
+            );
+
+            foreach ( array_map( 'intval', $menu_item_ids ?: [] ) as $menu_item_id ) {
+                if ( false === wp_delete_post( $menu_item_id, true ) ) {
+                    fwrite( STDERR, "[BLOCK FAIL] Could not remove nav menu item {$menu_item_id} for retired page ID {$post_id}.\n" );
+                    $retired_errors++;
+                } else {
+                    $total_updated++;
+                    printf( "[MENU RETIRED] nav_item=%d retired_page_id=%d\n", $menu_item_id, $post_id );
+                }
+            }
+        }
+    }
+}
+
+// Remove custom-link menu items whose URL path points directly at a retired slug.
+if ( 0 === $retired_errors ) {
+    $custom_items = $wpdb->get_results(
+        "SELECT pm.post_id, pm.meta_value
+           FROM {$wpdb->postmeta} pm
+           JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+          WHERE p.post_type = 'nav_menu_item'
+            AND pm.meta_key = '_menu_item_url'",
+        ARRAY_A
+    );
+
+    if ( null === $custom_items ) {
+        fwrite( STDERR, "[BLOCK FAIL] Could not query custom nav menu links: {$wpdb->last_error}\n" );
+        $retired_errors++;
+    } else {
+        $retired_slugs = array_keys( nvx_hygiene_retired_strategy_pages() );
+        foreach ( $custom_items as $item ) {
+            $path = trim( (string) wp_parse_url( (string) $item['meta_value'], PHP_URL_PATH ), '/' );
+            if ( ! in_array( $path, $retired_slugs, true ) ) {
+                continue;
+            }
+
+            $menu_item_id = (int) $item['post_id'];
+            if ( $dry_run ) {
+                printf( "[DRY-RUN] Would remove custom nav menu item %d → /%s/\n", $menu_item_id, $path );
+                continue;
+            }
+
+            if ( ! $arm_write_marker() || false === wp_delete_post( $menu_item_id, true ) ) {
+                fwrite( STDERR, "[BLOCK FAIL] Could not remove custom nav menu item {$menu_item_id} → /{$path}/.\n" );
+                $retired_errors++;
+            } else {
+                $total_updated++;
+                printf( "[MENU RETIRED] nav_item=%d custom_path=/%s/\n", $menu_item_id, $path );
+            }
+        }
+    }
+}
+
+if ( $retired_errors > 0 ) {
+    $blocks_fail++;
+} else {
+    $blocks_ok++;
+}
+
+echo "\n";
+
+// ── Block D: Legal page H1 verification (verify-only, no writes) ──────────────
+
+echo "--- Block D: Legal Page H1 Verification (verify-only) ---\n";
 
 foreach ( nvx_hygiene_legal_pages() as $slug => $expected ) {
     $page = get_page_by_path( $slug, OBJECT, 'page' );
@@ -248,17 +398,15 @@ foreach ( nvx_hygiene_legal_pages() as $slug => $expected ) {
             printf( "[OK] /%s/ — H1 \"%s\" correct (ID %d)\n", $slug, $expected, $page->ID );
             $blocks_ok++;
         } else {
-            // Mismatch: log as warning, do NOT overwrite — requires human review.
             fwrite( STDERR, sprintf(
                 "[WARN] /%s/ — H1 mismatch. Expected \"%s\", found \"%s\" (ID %d). Manual review required.\n",
                 $slug, $expected, $found, $page->ID
             ) );
-            // Soft warning: does not increment blocks_fail.
             $blocks_ok++;
         }
     } elseif ( 0 === $count ) {
         fwrite( STDERR, sprintf( "[WARN] /%s/ — no <h1> found (ID %d). Manual review required.\n", $slug, $page->ID ) );
-        $blocks_ok++; // Soft warning only — production already verified correct.
+        $blocks_ok++;
     } else {
         fwrite( STDERR, sprintf( "[WARN] /%s/ — %d <h1> tags (ID %d). Manual review required.\n", $slug, $count, $page->ID ) );
         $blocks_ok++;
@@ -267,9 +415,9 @@ foreach ( nvx_hygiene_legal_pages() as $slug => $expected ) {
 
 echo "\n";
 
-// ── Block D: Post-migration assertions ────────────────────────────────────────
+// ── Block E: Post-migration assertions ────────────────────────────────────────
 
-echo "--- Block D: Post-migration Assertions ---\n";
+echo "--- Block E: Post-migration Assertions ---\n";
 
 if ( $dry_run ) {
     echo "[DRY RUN] Skipping assertions.\n";
@@ -279,8 +427,8 @@ if ( $dry_run ) {
      * The 4 post IDs confirmed in production as of 2026-08-12 audit.
      * IDs are environment-specific — skip gracefully if not found.
      */
-    $known_ids    = [ 14, 1543, 2636, 2715 ];
-    $assert_fail  = false;
+    $known_ids   = [ 14, 1543, 2636, 2715 ];
+    $assert_fail = false;
 
     foreach ( $known_ids as $pid ) {
         $row = $wpdb->get_row(
@@ -314,6 +462,25 @@ if ( $dry_run ) {
 
         if ( $clean ) {
             printf( "[ASSERT OK] ID %d — no stale hygiene strings.\n", $pid );
+        }
+    }
+
+    foreach ( nvx_hygiene_retired_strategy_pages() as $slug => $contract ) {
+        $remaining = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*)
+                   FROM {$wpdb->posts}
+                  WHERE post_name = %s
+                    AND post_type NOT IN ('revision','nav_menu_item','attachment')
+                    AND post_status <> 'trash'",
+                $slug
+            )
+        );
+        if ( 0 !== $remaining ) {
+            fwrite( STDERR, "[ASSERT FAIL] /{$slug}/ still has {$remaining} non-trash WordPress record(s).\n" );
+            $assert_fail = true;
+        } else {
+            printf( "[ASSERT OK] /%s/ — no non-trash WordPress records; redirect=%s\n", $slug, $contract['target'] );
         }
     }
 

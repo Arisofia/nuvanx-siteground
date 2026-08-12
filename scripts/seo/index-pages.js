@@ -144,15 +144,23 @@ function simplifyInspection(url, inspectionResult) {
   };
 }
 
-async function inspectAllPages() {
+function createSearchConsoleAuth() {
   const credentialsPath = path.join(__dirname, 'credentials.json');
-  if (!fs.existsSync(credentialsPath)) throw new Error('credentials.json not found');
+  const options = { scopes: ['https://www.googleapis.com/auth/webmasters.readonly'] };
 
-  const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
-  });
+  if (fs.existsSync(credentialsPath)) {
+    options.credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    console.log('SEARCH_CONSOLE_AUTH=PRIVATE_JSON');
+  } else {
+    console.log('SEARCH_CONSOLE_AUTH=ADC');
+  }
+
+  return new google.auth.GoogleAuth(options);
+}
+
+async function inspectAllPages() {
+  const auth = createSearchConsoleAuth();
+  await auth.getClient();
   const searchconsole = google.searchconsole({ version: 'v1', auth });
   const urls = await discoverCanonicalUrls();
 

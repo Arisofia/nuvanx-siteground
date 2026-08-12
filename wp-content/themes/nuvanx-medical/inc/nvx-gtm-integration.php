@@ -119,15 +119,16 @@ function nvx_gtm_push_context(): void {
 	}
 
 	$client_context = nvx_gtm_client_context();
+	$json_flags     = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 	$data_layer     = wp_json_encode(
 		array(
 			'nvx_env'       => $client_context['env'],
 			'nvx_page_type' => nvx_gtm_context_page_type(),
 		),
-		JSON_UNESCAPED_UNICODE
+		$json_flags
 	);
-	$client_env     = wp_json_encode( $client_context['env'], JSON_UNESCAPED_UNICODE );
-	$client_forms   = wp_json_encode( $client_context['forms'], JSON_UNESCAPED_UNICODE );
+	$client_env     = wp_json_encode( $client_context['env'], $json_flags );
+	$client_forms   = wp_json_encode( $client_context['forms'], $json_flags );
 
 	if (
 		! is_string( $data_layer ) || '' === $data_layer
@@ -137,11 +138,13 @@ function nvx_gtm_push_context(): void {
 		return;
 	}
 
-	printf(
-		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=Object.assign({},window.nvxConversionEvents.forms||{},%s);</script>\n",
-		$data_layer, // wp_json_encode() returns executable JSON, not user-authored markup.
+	$script = sprintf(
+		'window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=Object.assign({},window.nvxConversionEvents.forms||{},%s);',
+		$data_layer,
 		$client_env,
 		$client_forms
 	);
+
+	wp_print_inline_script_tag( $script );
 }
 add_action( 'wp_head', 'nvx_gtm_push_context', 1 );

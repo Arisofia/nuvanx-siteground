@@ -76,6 +76,7 @@ PREVIOUS_THEME="$THEMES_ROOT/.nvx-prod-previous-${RUN_TOKEN}"
 FAILED_THEME="$THEMES_ROOT/.nvx-prod-failed-${RUN_TOKEN}"
 BACKUP_DIR="$PROD_ROOT/wp-content/backups-nuvanx/pre-prod-${RUN_TOKEN}-${SHA:0:12}"
 SWAPPED=0
+ROLLBACK_IN_PROGRESS=0
 
 cleanup_uncommitted_release() {
   if [[ "$SWAPPED" -eq 0 ]]; then
@@ -227,8 +228,12 @@ echo "ROLLBACK_SNAPSHOT=PASS path=$BACKUP_DIR"
 
 rollback_after_swap() {
   local rc=$?
-  trap - ERR
+  trap - ERR INT TERM HUP
   set +e
+  if [[ "$ROLLBACK_IN_PROGRESS" -eq 1 ]]; then
+    return
+  fi
+  ROLLBACK_IN_PROGRESS=1
   if [[ "$SWAPPED" -eq 1 ]]; then
     echo "ROLLBACK_TRIGGERED rc=$rc previous=$PREVIOUS_THEME" >&2
     rm -rf "$FAILED_THEME"
@@ -253,7 +258,7 @@ rollback_after_swap() {
   fi
   exit "$rc"
 }
-trap rollback_after_swap ERR
+trap rollback_after_swap ERR INT TERM HUP
 
 echo "== Directory cutover =="
 mv "$LIVE_THEME" "$PREVIOUS_THEME"
@@ -262,7 +267,7 @@ SWAPPED=1
 
 echo "== Verify exact production release on disk =="
 (
-  trap - ERR
+  trap - ERR INT TERM HUP
   cd "$PROD_ROOT"
   [[ "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" == "$SHA" ]]
   [[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]]
@@ -273,19 +278,21 @@ echo "== Verify exact production release on disk =="
 )
 
 echo "== Purge production caches =="
+purge_rc=0
 (
-  trap - ERR
+  trap - ERR INT TERM HUP
   cd "$PROD_ROOT"
-  wp cache flush
-  purge_siteground_dynamic_cache
+  wp cache flush || purge_rc=$?
+  purge_siteground_dynamic_cache || purge_rc=$?
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
   rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
-  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }'
-)
+  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+) || purge_rc=$?
+[[ "$purge_rc" -eq 0 ]] || echo "WARN: production cache purge reported a non-fatal error rc=$purge_rc" >&2
 
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
-trap - ERR
+trap - ERR INT TERM HUP
 rm -rf "$PREVIOUS_THEME" "$RELEASE_ROOT"
 SWAPPED=0
 trap - EXIT

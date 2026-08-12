@@ -79,6 +79,7 @@ function nvx_redirect_retired_strategy_slugs(): void {
 		'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/',
 		'tratamiento-retirado' => '/tratamientos/',
 		'v-lift-awake'         => '/endolift-facial-papada-mandibula/',
+		'rinomodelacion-sin-cirugia-madrid' => '/rinomodelacion-sin-cirugia-madrid-guia/',
 	);
 
 	// Check path-based redirect for top-level pages.

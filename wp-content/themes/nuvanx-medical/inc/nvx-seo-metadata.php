@@ -96,7 +96,88 @@ function nvx_seo_signature_metadata_for_post_id( int $post_id ): ?array {
 }
 
 /**
- * Normalize Yoast's complete presentation for governed Signature pages.
+ * Resolve governed metadata for a concrete WordPress object rather than the
+ * ambient HTTP request. This is essential for REST/headless responses, where
+ * request-condition helpers point at /wp-json/ instead of the represented post.
+ *
+ * @param int $post_id WordPress post ID represented by the Yoast indexable.
+ * @return array{title:string,description:string,canonical:string}|null
+ */
+function nvx_seo_governed_metadata_for_post_id( int $post_id ): ?array {
+	if ( $post_id <= 0 ) {
+		return null;
+	}
+
+	$signature = nvx_seo_signature_metadata_for_post_id( $post_id );
+	if ( null !== $signature ) {
+		return $signature;
+	}
+
+	$post_type = (string) get_post_type( $post_id );
+	$slug      = (string) get_post_field( 'post_name', $post_id );
+	$canonical = get_permalink( $post_id );
+	if ( '' === $slug || ! is_string( $canonical ) || '' === $canonical ) {
+		return null;
+	}
+
+	if ( 'page' === $post_type && function_exists( 'nvx_aesthetic_treatment_catalog' ) ) {
+		foreach ( nvx_aesthetic_treatment_catalog() as $entry ) {
+			if ( ! is_array( $entry ) || $slug !== (string) ( $entry['slug'] ?? '' ) ) {
+				continue;
+			}
+			$title       = trim( (string) ( $entry['seo_title'] ?? '' ) );
+			$description = trim( (string) ( $entry['description'] ?? '' ) );
+			if ( '' !== $title && '' !== $description ) {
+				return array(
+					'title'       => $title,
+					'description' => $description,
+					'canonical'   => $canonical,
+				);
+			}
+		}
+	}
+
+	if ( 'post' === $post_type ) {
+		$blog_catalog = nvx_seo_blog_post_metadata_catalog();
+		$blog_meta    = $blog_catalog[ $slug ] ?? null;
+		if ( is_array( $blog_meta ) ) {
+			$title       = trim( (string) ( $blog_meta['title'] ?? '' ) );
+			$description = trim( (string) ( $blog_meta['description'] ?? '' ) );
+			if ( '' !== $title && '' !== $description ) {
+				return array(
+					'title'       => $title,
+					'description' => $description,
+					'canonical'   => $canonical,
+				);
+			}
+		}
+	}
+
+	$path = (string) wp_parse_url( $canonical, PHP_URL_PATH );
+	$path = '' !== trim( $path, '/' ) ? '/' . trim( $path, '/' ) . '/' : '/';
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$routes = nvx_catalog_json_resolved( 'routes.json' );
+		$seo_id = isset( $routes[ $path ]['seo_id'] ) ? (string) $routes[ $path ]['seo_id'] : '';
+		if ( '' !== $seo_id ) {
+			$catalog     = nvx_seo_metadata_catalog();
+			$route_meta  = $catalog[ $seo_id ] ?? null;
+			$title       = is_array( $route_meta ) ? trim( (string) ( $route_meta['title'] ?? '' ) ) : '';
+			$description = is_array( $route_meta ) ? trim( (string) ( $route_meta['description'] ?? '' ) ) : '';
+			if ( '' !== $title && '' !== $description ) {
+				return array(
+					'title'       => $title,
+					'description' => $description,
+					'canonical'   => $canonical,
+				);
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Normalize Yoast's complete presentation for governed posts/pages.
  *
  * Yoast exposes the represented post through Meta_Tags_Context::indexable,
  * including REST/headless requests where WordPress conditional tags do not
@@ -119,7 +200,7 @@ function nvx_seo_signature_yoast_presentation( $presentation, $context ) {
 		$post_id = (int) $context->post->ID;
 	}
 
-	$metadata = nvx_seo_signature_metadata_for_post_id( $post_id );
+	$metadata = nvx_seo_governed_metadata_for_post_id( $post_id );
 	if ( null === $metadata ) {
 		return $presentation;
 	}

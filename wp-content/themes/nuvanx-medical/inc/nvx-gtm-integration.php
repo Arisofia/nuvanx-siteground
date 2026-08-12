@@ -1,23 +1,15 @@
 <?php
 /**
- * Google Tag Manager & Conversion Tracking Integration.
+ * NUVANX analytics context provider.
  *
- * ARCHITECTURE:
- *  - GTM container ID is read from NVX_GTM_ID (wp-config / server env).
- *  - Google Ads Conversion IDs are read from NVX_GADS_CONVERSION_ID_FORM
- *    and NVX_GADS_CONVERSION_ID_CALL (same pattern).
- *  - On staging2 the same GTM container fires but with a ?nvx_env=staging2
- *    debug param so Tags can be restricted by environment via GTM Variables.
- *  - Script is delayed via the existing nvx-integrations delay mechanism.
- *  - noscript iframe is injected immediately after <body> (required by GTM).
+ * Site Kit is the single owner of Google Tag / GTM / GA4 / Google Ads and
+ * Consent Mode snippets. This module never loads GTM, emits a GTM noscript
+ * iframe, or resolves Google Ads conversion-action IDs.
  *
- * HOW TO CONFIGURE (zero code needed after this deploy):
- *  1. Create a GTM container at tagmanager.google.com → copy GTM-XXXXXXX id.
- *  2. Set NVX_GTM_ID='GTM-XXXXXXX' in wp-config.php or server env.
- *  3. Set NVX_GADS_CONVERSION_ID_FORM and NVX_GADS_CONVERSION_ID_CALL
- *     from the Google Ads conversion action "Tag setup" screen.
- *  4. Deploy — GTM fires, dataLayer events from nvx-conversion-events.js
- *     are picked up by GTM triggers automatically.
+ * The theme owns only business context that GTM can consume from dataLayer.
+ * Keeping this push independent from the GTM loader means it is available
+ * before Site Kit's container executes, including when third-party scripts are
+ * delayed by the theme performance layer.
  *
  * @package nuvanx-medical
  */
@@ -26,189 +18,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 /**
- * Resolve GTM container ID from environment.
- * Accepts wp-config constant NVX_GTM_ID or server env NVX_GTM_ID.
+ * Resolve the canonical NUVANX analytics page type for the current request.
  */
-function nvx_gtm_container_id(): string {
-	static $id = null;
-	if ( is_string( $id ) ) {
-		return $id;
-	}
-
-	$id = '';
-
-	if ( defined( 'NVX_GTM_ID' ) && is_string( NVX_GTM_ID ) ) {
-		$id = NVX_GTM_ID;
-	} elseif ( is_string( getenv( 'NVX_GTM_ID' ) ) ) {
-		$id = (string) getenv( 'NVX_GTM_ID' );
-	}
-
-	// Validate format: GTM-XXXXXXX (alphanumeric after dash, 6-10 chars).
-	if ( ! preg_match( '/^GTM-[A-Z0-9]{6,10}$/', $id ) ) {
-		$id = '';
-	}
-
-	return $id;
-}
-
-/**
- * Whether GTM is configured for this environment.
- */
-function nvx_gtm_is_active(): bool {
-	return '' !== nvx_gtm_container_id() && ! is_admin();
-}
-
-/**
- * Resolve a Google Ads conversion ID from environment.
- * Validates format AW-XXXXXXXXXX/YYYYYYYYYYYY to prevent invalid/malicious input.
- */
-function nvx_gads_conversion_id( string $type ): string {
-	$key = 'NVX_GADS_CONVERSION_ID_' . strtoupper( $type );
-	$id  = '';
-	if ( defined( $key ) ) {
-		$id = (string) constant( $key );
-	} else {
-		$from_env = getenv( $key );
-		if ( is_string( $from_env ) ) {
-			$id = $from_env;
-		}
-	}
-
-	$id = trim( $id );
-	if ( '' !== $id && ! preg_match( '/^AW-[0-9]{8,12}\/[A-Za-z0-9_-]{10,40}$/', $id ) ) {
-		$id = '';
-	}
-
-	return $id;
-}
-
-// ---------------------------------------------------------------------------
-// GTM Snippet — <head> (dataLayer init + script loader)
-// ---------------------------------------------------------------------------
-
-/**
- * Inject GTM <head> snippet at priority 2 (after charset, before everything else).
- * The dataLayer push happens inline (no delay) so page-level data is available
- * to all tags. The GTM loader script itself is delayed by nvx-integrations.
- */
-function nvx_gtm_head_snippet(): void {
-	if ( ! nvx_gtm_is_active() ) {
-		return;
-	}
-
-	$container = esc_js( nvx_gtm_container_id() );
-	$env_label = nvx_environment_is_staging2() ? 'staging2' : 'production';
-
-	// Build initial dataLayer push with page metadata.
-	$page_type = 'other';
+function nvx_gtm_context_page_type(): string {
 	if ( is_front_page() ) {
-		$page_type = 'home';
-	} elseif ( is_singular( 'post' ) ) {
-		$page_type = 'blog';
-	} elseif ( is_page() ) {
-		$page_type = 'tratamiento';
-		// Detect valoracion page by slug or template.
+		return 'home';
+	}
+
+	if ( is_singular( 'post' ) ) {
+		return 'blog';
+	}
+
+	if ( is_page() ) {
 		if ( is_page( 'valoracion' ) || false !== strpos( (string) get_the_permalink(), '/valoracion/' ) ) {
-			$page_type = 'valoracion';
+			return 'valoracion';
 		}
-	} elseif ( is_archive() || is_category() ) {
-		$page_type = 'listado';
+
+		return 'tratamiento';
 	}
 
-	$conversion_form = nvx_gads_conversion_id( 'FORM' );
-	$conversion_call = nvx_gads_conversion_id( 'CALL' );
-
-	// Build initial dataLayer push with page metadata.
-	$data_layer = array(
-		'gtm.start' => (int) round( microtime( true ) * 1000 ),
-		'event' => 'gtm.js',
-		'nvx_env' => $env_label,
-		'nvx_page_type' => $page_type,
-	);
-
-	// Only add conversion IDs when they are configured (not empty strings)
-	if ( '' !== $conversion_form ) {
-		$data_layer['nvx_gads_conversion_form'] = esc_js( $conversion_form );
-	}
-	if ( '' !== $conversion_call ) {
-		$data_layer['nvx_gads_conversion_call'] = esc_js( $conversion_call );
+	if ( is_archive() || is_category() ) {
+		return 'listado';
 	}
 
-	?>
-<!-- Google Tag Manager -->
-<script>
-window.dataLayer = window.dataLayer || [];
-window.dataLayer.push(<?php echo wp_json_encode( $data_layer ); ?>);
-</script>
-<script type="text/delayed" data-src="https://www.googletagmanager.com/gtm.js?id=<?php echo esc_attr( $container ); ?>" defer></script>
-<!-- End Google Tag Manager -->
-	<?php
+	return 'other';
 }
-add_action( 'wp_head', 'nvx_gtm_head_snippet', 2 );
-
-// ---------------------------------------------------------------------------
-// GTM noscript — immediately after <body>
-// ---------------------------------------------------------------------------
 
 /**
- * GTM requires a <noscript> iframe immediately after <body>.
- * WordPress does not have a native "after body open" hook — we use
- * wp_body_open (WP 5.2+) with fallback via template_redirect buffer.
+ * Push NUVANX business context before Site Kit executes the GTM container.
  */
-function nvx_gtm_body_noscript(): void {
-	if ( ! nvx_gtm_is_active() ) {
+function nvx_gtm_push_context(): void {
+	if ( is_admin() ) {
 		return;
 	}
 
-	$container = esc_url( 'https://www.googletagmanager.com/ns.html?id=' . nvx_gtm_container_id() );
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	echo '<noscript><iframe src="' . $container . '" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>' . "\n";
-}
-add_action( 'wp_body_open', 'nvx_gtm_body_noscript', 1 );
-
-// ---------------------------------------------------------------------------
-// Inline config for nvx-conversion-events.js
-// ---------------------------------------------------------------------------
-
-/**
- * Pass conversion action IDs and form IDs to the front-end JS config object.
- * nvx-conversion-events.js reads window.nvxConversionEvents at init time.
- */
-function nvx_gtm_inline_js_config(): void {
-	if ( is_admin() || ! nvx_gtm_is_active() ) {
-		return;
-	}
-
-	$valoracion_form_id = defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' )
-		? (string) NVX_HUBSPOT_VALORACION_FORM_ID
-		: (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
-
-	$config = wp_json_encode(
+	$context = wp_json_encode(
 		array(
-			'gtmId'              => nvx_gtm_container_id(),
-			'gadsConversionForm' => nvx_gads_conversion_id( 'FORM' ),
-			'gadsConversionCall' => nvx_gads_conversion_id( 'CALL' ),
-			'forms'              => array(
-				'valoracion' => $valoracion_form_id,
-			),
-			'env'                => nvx_environment_is_staging2() ? 'staging2' : 'production',
+			'nvx_env'       => nvx_environment_is_staging2() ? 'staging2' : 'production',
+			'nvx_page_type' => nvx_gtm_context_page_type(),
 		),
-		JSON_UNESCAPED_UNICODE
+		JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 	);
 
-	if ( ! $config ) {
+	if ( ! is_string( $context ) || '' === $context ) {
 		return;
 	}
 
 	printf(
-		"<script>window.nvxConversionEvents = %s;</script>\n",
-		$config  // Already JSON-encoded, no further escaping needed.
+		"<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);</script>\n",
+		$context // wp_json_encode() returns executable JSON, not user-authored markup.
 	);
 }
-// Priority 1 so it runs before nvx-conversion-events.js is enqueued (priority 10).
-add_action( 'wp_head', 'nvx_gtm_inline_js_config', 1 );
+add_action( 'wp_head', 'nvx_gtm_push_context', 1 );

@@ -278,9 +278,6 @@ echo "== Verify exact production release on disk =="
   [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
   [[ "$(wp option get blog_public)" == '1' ]]
   [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
-)
-
-echo "== Purge production caches =="
 purge_rc=0
 (
   trap - ERR INT TERM HUP

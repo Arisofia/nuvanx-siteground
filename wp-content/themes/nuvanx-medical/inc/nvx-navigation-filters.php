@@ -25,6 +25,10 @@ function nvx_navigation_treatment_definitions(): array {
 	return apply_filters(
 		'nvx_navigation_treatment_definitions',
 		array(
+			'exilite'         => array(
+				'label' => 'BTL EXILITE™ IPL',
+				'slugs' => array( 'btl-exilite-ipl-madrid' ),
+			),
 			'exion-face'       => array(
 				'label' => 'EXION Face',
 				'slugs' => array( 'exion-face' ),

@@ -381,6 +381,22 @@ rollback_after_swap() {
       fi
     fi
 
+    # Re-verify production identity invariants after theme+DB restore
+    # This ensures a partial DB restore didn't corrupt production settings
+    (
+      cd "$PROD_ROOT" || exit 1
+      db="$(wp config get DB_NAME)"
+      siteurl="$(wp option get siteurl)"
+      home="$(wp option get home)"
+      blog_public="$(wp option get blog_public)"
+      theme="$(wp theme list --status=active --field=name)"
+      [[ "$db" == 'db0ecrycwv2tgb' ]] || { echo "ERROR: DB identity corrupted after rollback db=$db" >&2; rollback_ok=0; }
+      [[ "$siteurl" == "$PROD_URL" ]] || { echo "ERROR: siteurl corrupted after rollback siteurl=$siteurl" >&2; rollback_ok=0; }
+      [[ "$home" == "$PROD_URL" ]] || { echo "ERROR: home corrupted after rollback home=$home" >&2; rollback_ok=0; }
+      [[ "$blog_public" == '1' ]] || { echo "ERROR: blog_public corrupted after rollback blog_public=$blog_public" >&2; rollback_ok=0; }
+      [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme corrupted after rollback theme=$theme" >&2; rollback_ok=0; }
+    )
+
     if [[ "$rollback_ok" -eq 1 ]]; then
       echo "ROLLBACK_PRODUCTION=PASS scope=theme+db" >&2
       ROLLBACK_OK=1

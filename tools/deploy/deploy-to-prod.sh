@@ -344,7 +344,7 @@ rollback_after_swap() {
       echo "ROLLBACK_DB=RESTORED reason=write-marker-detected-db-was-modified" >&2
       if [[ -s "$BACKUP_DIR/db.sql" ]]; then
         (
-          cd "$PROD_ROOT" || return
+          cd "$PROD_ROOT" || exit 1
           wp db import "$BACKUP_DIR/db.sql" --allow-root
         ) || rollback_ok=0
       else
@@ -356,7 +356,7 @@ rollback_after_swap() {
     fi
 
     (
-      cd "$PROD_ROOT" || return
+      cd "$PROD_ROOT" || exit 1
       wp cache flush || true
       purge_siteground_dynamic_cache || true
       rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true

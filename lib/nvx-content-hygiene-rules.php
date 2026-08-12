@@ -17,11 +17,6 @@
 
 declare( strict_types = 1 );
 
-if ( ! defined( 'ABSPATH' ) ) {
-    fwrite( STDERR, "[nvx-rules] Must be run inside a WordPress context (wp eval-file).\n" );
-    exit( 1 );
-}
-
 /**
  * Plain-string replacements applied to wp_posts fields.
  *
@@ -77,13 +72,14 @@ function nvx_hygiene_str_reps(): array {
 function nvx_hygiene_regex_reps(): array {
     return [
         // Handles é/e, ó/o, í/i mixed with HTML entities or incorrect encoding
+        // Word boundaries (\b) prevent matching inside larger words
         [
-            'pattern'     => 'valoraci[oó]n\s+m[eé]dica\s+gratu[íi]ta',
+            'pattern'     => '\bvaloraci[oó]n\s+m[eé]dica\s+gratu[íi]ta\b',
             'replacement' => 'valoración médica',
             'flags'       => 'iu',
         ],
         [
-            'pattern'     => 'consulta\s+m[eé]dica\s+gratu[íi]ta',
+            'pattern'     => '\bconsulta\s+m[eé]dica\s+gratu[íi]ta\b',
             'replacement' => 'consulta médica',
             'flags'       => 'iu',
         ],

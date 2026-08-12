@@ -88,7 +88,7 @@ jobs:
           grep -Fq '.nvx-deploy-sha' tools/deploy/deploy-to-prod.sh
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
-          [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly production.yml and staging.yml; found: %s\n' "${workflows[*]}" >&2; exit 1; }
+          [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           echo 'PRODUCTION_TOOLING_STATIC=PASS workflows=2'
 
       - name: Configure strict Staging2 SSH and resolve live candidate
@@ -504,6 +504,7 @@ jobs:
       (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Search Console WIF exchanges GitHub's OIDC token for short-lived Google credentials.
     permissions:
       contents: read
       actions: read
@@ -520,8 +521,6 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: scripts/seo/package-lock.json
 
       - name: Install Search Console audit dependencies
         shell: bash
@@ -647,7 +646,6 @@ jobs:
             --property "$SEARCH_CONSOLE_PROPERTY" \
             --url "$BASE_URL" \
             --urls-file scripts/seo/artifacts/sitemap-urls.txt \
-            --max-urls 200 \
             2>&1 | tee scripts/seo/artifacts/url-inspection.log
           grep -Fq 'INSPECTION_COMPLETED=true' scripts/seo/artifacts/url-inspection.log
           total="$(sed -nE 's/^TOTAL_URLS=([0-9]+)$/\1/p' scripts/seo/artifacts/url-inspection.log | tail -n1)"

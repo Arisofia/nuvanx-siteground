@@ -12,7 +12,7 @@
  * NEVER add mutation logic here. Rule definitions only.
  *
  * @package NVX\Migrations
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 declare( strict_types = 1 );
@@ -110,5 +110,27 @@ function nvx_hygiene_legal_pages(): array {
     return [
         'politica-privacidad' => 'Política de privacidad',
         'aviso-legal'         => 'Aviso legal',
+    ];
+}
+
+/**
+ * Retired internal strategy/prototype pages that must never be public records.
+ *
+ * These slugs remain redirectable at the HTTP layer for legacy links, but any
+ * matching WordPress content record must be in trash so it cannot re-enter the
+ * published-page inventory, sitemap generation, navigation or Block C.
+ *
+ * @return array<string, array{target:string,status:string}>
+ */
+function nvx_hygiene_retired_strategy_pages(): array {
+    return [
+        'liposculpt-air' => [
+            'target' => '/remodelacion-corporal-laser-madrid/',
+            'status' => 'trash',
+        ],
+        'v-lift-awake' => [
+            'target' => '/papada-definicion-mandibular-madrid/',
+            'status' => 'trash',
+        ],
     ];
 }

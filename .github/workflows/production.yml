@@ -46,6 +46,9 @@ env:
   STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
   PROD_ROOT: /home/customer/www/nuvanx.com/public_html
   PROD_PARENT: /home/customer/www/nuvanx.com
+  STAGING_DB_NAME: dbshcocboodiwr
+  PROD_DB_NAME: db0ecrycwv2tgb
+  STAGING_URL: https://staging2.nuvanx.com
   BASE_URL: https://nuvanx.com
   EXPECTED_HOST: nuvanx.com
   SEARCH_CONSOLE_PROPERTY: https://nuvanx.com/
@@ -177,23 +180,23 @@ jobs:
           git cat-file -e "${staging_sha}:wp-content/themes/nuvanx-medical/functions.php"
           theme_tree="$(git rev-parse "${staging_sha}:wp-content/themes/nuvanx-medical")"
 
-          ssh nvx-staging-gate "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_SHA='$staging_sha' bash -se" <<'REMOTE'
+          ssh nvx-staging-gate "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_SHA='$staging_sha' STAGING_DB_NAME='$STAGING_DB_NAME' PROD_DB_NAME='$PROD_DB_NAME' STAGING_URL='$STAGING_URL' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           test "$STAGING_ROOT" != "$PROD_ROOT"
           cd "$STAGING_ROOT"
           test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$STAGING_SHA"
-          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
-          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp config get DB_NAME)" = "$STAGING_DB_NAME"
+          test "$(wp option get home)" = "$STAGING_URL"
+          test "$(wp option get siteurl)" = "$STAGING_URL"
           test "$(wp option get blog_public)" = '0'
           test "$(wp config get NVX_ENV)" = 'staging'
           test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
           wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
           cd "$PROD_ROOT"
-          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-          test "$(wp option get home)" = 'https://nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
+          test "$(wp option get home)" = "$BASE_URL"
+          test "$(wp option get siteurl)" = "$BASE_URL"
           test "$(wp option get blog_public)" = '1'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
           for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
@@ -235,7 +238,6 @@ jobs:
               continue
             fi
 
-            # Cheap source-run checks happen before downloading the potentially large ZIP.
             if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
               echo "Skipping artifact $artifact_id: unable to fetch source run $run_id" >&2
               continue
@@ -281,8 +283,6 @@ jobs:
             manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
             rm -f "$artifact_zip"
 
-            # Producer contract: staging.yml writes every field with jq --arg, so
-            # run_id/run_attempt intentionally remain JSON strings in schema 1.
             if ! manifest_fields="$(printf '%s' "$manifest" | jq -er '
               select(type == "object" and .schema == 1) |
               [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
@@ -320,10 +320,6 @@ jobs:
               continue
             fi
 
-            # A later rerun does not invalidate immutable evidence from this exact
-            # successful attempt. The release gate separately requires the live
-            # Staging marker/environment to still equal CANDIDATE_SHA, so a later
-            # mutation or rollback cannot be promoted from stale evidence.
             case "$manifest_event" in
               push)
                 [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: push manifest head is not candidate" >&2; continue; }
@@ -349,15 +345,23 @@ jobs:
           [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging attempt provides valid exact-candidate acceptance evidence for $CANDIDATE_SHA." >&2; exit 1; }
           echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name artifact_id=$accepted_artifact_id run_id=$accepted_run_id attempt=$accepted_attempt sha=$CANDIDATE_SHA event=$accepted_event run_head_sha=$accepted_head_sha conclusion=success"
 
-      - name: Materialize exact candidate from master history
+      - name: Materialize exact candidate and canonical master audit tooling
         shell: bash
         run: |
           set -euo pipefail
           CANDIDATE_ROOT="$RUNNER_TEMP/production-candidate-$CANDIDATE_SHA"
+          AUDIT_ROOT="$RUNNER_TEMP/production-audit-master"
           git worktree add --detach "$CANDIDATE_ROOT" "$CANDIDATE_SHA"
+          git worktree add --detach "$AUDIT_ROOT" "origin/$STAGING_ACCEPTANCE_BRANCH"
           test "$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)" = "$CANDIDATE_SHA"
           find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+          bash -n "$AUDIT_ROOT/scripts/production/document-head-title-audit.sh"
+          bash -n "$AUDIT_ROOT/scripts/production/seo-geo-origin-audit.sh"
+          bash -n "$AUDIT_ROOT/scripts/production/diagnose-title-emitters.sh"
+          bash -n "$AUDIT_ROOT/scripts/production/indexnow-submit-sitemap.sh"
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
+          echo "AUDIT_ROOT=$AUDIT_ROOT" >> "$GITHUB_ENV"
+          echo "CANONICAL_AUDIT_SHA=$(git -C "$AUDIT_ROOT" rev-parse HEAD)" >> "$GITHUB_ENV"
 
       - name: Destroy Staging gate SSH identity
         shell: bash
@@ -395,30 +399,60 @@ jobs:
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
+
+          classify_ssh_error() {
+            local file="$1"
+            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
+            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
+            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
+            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
+            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
+            else echo SSH_HANDSHAKE_OR_UNKNOWN
+            fi
+          }
+
+          if timeout 10 bash -c "exec 3<>/dev/tcp/$HOST/$SSH_PORT" 2>/dev/null; then
+            echo 'PRODUCTION_TCP_PROBE=PASS'
+          else
+            echo 'PRODUCTION_TCP_PROBE=NO_RESPONSE'
+          fi
+
           prod_connected=0
           retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          last_reason='UNKNOWN'
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-prod "test -d '$PROD_ROOT' && test -f '$PROD_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
-              prod_connected=1; break
+            ssh_error="$RUNNER_TEMP/production-ssh-attempt-${attempt}.err"
+            if ssh -n nvx-prod true 2>"$ssh_error"; then
+              prod_connected=1
+              echo "PRODUCTION_SSH_ATTEMPT=PASS attempt=$attempt"
+              break
             fi
+            last_reason="$(classify_ssh_error "$ssh_error")"
+            echo "PRODUCTION_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
+            tail -n 2 "$ssh_error" >&2 || true
             if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
               echo "Production SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
               sleep "$retry_delay"
               retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
             fi
           done
-          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_SSH=FAIL_TRANSPORT: could not reach SiteGround production after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo 'PRODUCTION_SSH=PASS'
 
       - name: Verify production preflight
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$PROD_ROOT"
-          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-          test "$(wp option get home)" = 'https://nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          command -v wp >/dev/null
+          command -v rsync >/dev/null
+          command -v php >/dev/null
+          command -v curl >/dev/null
+          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
+          test "$(wp option get home)" = "$BASE_URL"
+          test "$(wp option get siteurl)" = "$BASE_URL"
           test "$(wp option get blog_public)" = '1'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
           for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
@@ -456,16 +490,73 @@ jobs:
             sleep 10
           done
           test "$pass" = 1
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' bash -se" <<'REMOTE'
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$PROD_ROOT"
           test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$CANDIDATE_SHA"
-          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
-          test "$(wp option get home)" = 'https://nuvanx.com'
-          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
+          test "$(wp option get home)" = "$BASE_URL"
+          test "$(wp option get siteurl)" = "$BASE_URL"
           test "$(wp option get blog_public)" = '1'
           echo "PRODUCTION_DEPLOYED_SHA=$CANDIDATE_SHA"
           REMOTE
+
+      - name: Verify one document title across production sitemap on established SSH
+        id: document_title_audit
+        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p scripts/production/artifacts scripts/seo/artifacts
+          ssh nvx-prod "BASE_URL='$BASE_URL' bash -s" < "$AUDIT_ROOT/scripts/production/document-head-title-audit.sh" | tee scripts/production/artifacts/document-head-title-audit.log
+
+      - name: Run blocking SEO/GEO origin audit on established SSH
+        id: seo_geo_audit
+        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < "$AUDIT_ROOT/scripts/production/seo-geo-origin-audit.sh" | tee scripts/production/artifacts/seo-geo-origin-audit.log
+
+      - name: Materialize exact sitemap URL inventory from release origin audit
+        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          log='scripts/production/artifacts/seo-geo-origin-audit.log'
+          out='scripts/seo/artifacts/sitemap-urls.txt'
+          expected="$(sed -nE 's/^PASS SITEMAP_URL_COUNT count=([0-9]+)$/\1/p' "$log" | tail -n1)"
+          grep '^PASS URL_SEO url=' "$log" | sed -E 's/^PASS URL_SEO url=([^ ]+) .*/\1/' > "$out" || true
+          base_prefix="${BASE_URL%/}/"
+          base_host="$(node -e 'process.stdout.write(new URL(process.argv[1]).host)' "$BASE_URL")"
+          [[ -n "$base_prefix" && "$base_host" == "$EXPECTED_HOST" ]] || {
+            echo "GSC_URL_INVENTORY=FAIL base_url=$BASE_URL base_host=${base_host:-missing} expected_host=$EXPECTED_HOST" >&2
+            exit 1
+          }
+          actual="$(awk -v prefix="$base_prefix" 'index($0, prefix) == 1 { count++ } END { print count + 0 }' "$out")"
+          [[ "$expected" =~ ^[0-9]+$ && "$actual" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]] || {
+            echo "GSC_URL_INVENTORY=FAIL expected=${expected:-missing} actual=$actual" >&2
+            exit 1
+          }
+          [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]] || { echo 'GSC_URL_INVENTORY=FAIL duplicate_urls' >&2; exit 1; }
+          echo "GSC_URL_INVENTORY=PASS urls=$actual source=release-origin-audit"
+
+      - name: Submit production sitemap to IndexNow on established SSH
+        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < "$AUDIT_ROOT/scripts/production/indexnow-submit-sitemap.sh" | tee scripts/production/artifacts/indexnow-submit.log
+
+      - name: Diagnose title emitters after release audit failure
+        if: ${{ always() && (steps.document_title_audit.outcome == 'failure' || steps.seo_geo_audit.outcome == 'failure') }}
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < "$AUDIT_ROOT/scripts/production/diagnose-title-emitters.sh" | tee scripts/production/artifacts/title-emitter-diagnostic.log
+          fi
+          exit 0
 
       - name: Upload production boundary evidence
         if: always()
@@ -476,13 +567,27 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-      - name: Cleanup production release payload and identity
+      - name: Upload production origin audit evidence
+        if: ${{ always() && (github.event_name == 'push' || inputs.run_post_audits) }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-origin-audit-${{ env.CANDIDATE_SHA }}-attempt-${{ github.run_attempt }}
+          path: |
+            scripts/production/artifacts/*.log
+            scripts/seo/artifacts/sitemap-urls.txt
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 6
+
+      - name: Cleanup production release payload and identities
         if: always()
         shell: bash
         run: |
           set +e
           if [[ -n "${REMOTE_RELEASE:-}" && -f "$HOME/.ssh/config" ]]; then ssh nvx-prod "rm -rf '$REMOTE_RELEASE'" || true; fi
           rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/staging_gate_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+          [[ -z "${CANDIDATE_ROOT:-}" ]] || git worktree remove --force "$CANDIDATE_ROOT" 2>/dev/null || true
+          [[ -z "${AUDIT_ROOT:-}" ]] || git worktree remove --force "$AUDIT_ROOT" 2>/dev/null || true
 
       - name: Write release summary
         if: success()
@@ -494,9 +599,13 @@ jobs:
             echo "- Candidate source: current locked Staging2 deploy marker"
             echo "- Exact SHA: \`$CANDIDATE_SHA\`"
             echo "- Theme tree: \`$CANDIDATE_THEME_TREE\`"
+            echo "- Canonical audit tooling SHA: \`$CANONICAL_AUDIT_SHA\`"
             echo '- Staging acceptance: exact-SHA successful-attempt artifact verified.'
             echo '- Cross-environment concurrency: serialized; Staging cannot advance during this release.'
             echo '- Atomic production cutover + rollback contract: PASS.'
+            if [[ "$GITHUB_EVENT_NAME" == push || "${{ inputs.run_post_audits }}" == true ]]; then
+              echo '- Blocking document-title, SEO/GEO and IndexNow submission reused the established production SSH identity.'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:
@@ -508,7 +617,6 @@ jobs:
       (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # Search Console WIF exchanges GitHub's OIDC token for short-lived Google credentials.
     permissions:
       contents: read
       actions: read
@@ -530,7 +638,30 @@ jobs:
         shell: bash
         run: npm ci --prefix scripts/seo --ignore-scripts
 
-      - name: Configure strict production audit SSH
+      - name: Download release origin audit evidence
+        if: needs.release.result == 'success'
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: production-origin-audit-${{ needs.release.outputs.candidate_sha }}-attempt-${{ github.run_attempt }}
+          path: scripts
+
+      - name: Validate release origin evidence handoff
+        if: needs.release.result == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s scripts/production/artifacts/document-head-title-audit.log
+          test -s scripts/production/artifacts/seo-geo-origin-audit.log
+          test -s scripts/production/artifacts/indexnow-submit.log
+          test -s scripts/seo/artifacts/sitemap-urls.txt
+          grep -Fq 'DOCUMENT_HEAD_TITLE_AUDIT=PASS' scripts/production/artifacts/document-head-title-audit.log
+          grep -Fq 'SEO_GEO_ORIGIN_AUDIT=PASS' scripts/production/artifacts/seo-geo-origin-audit.log
+          grep -Fq 'INDEXNOW_SUBMIT=PASS' scripts/production/artifacts/indexnow-submit.log
+          echo "RELEASE_ORIGIN_EVIDENCE=PASS urls=$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
+
+      - name: Configure verification-only production audit SSH
+        id: verification_ssh
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
         shell: bash
         env:
           HOST: ${{ secrets.PROD_SSH_HOST }}
@@ -540,7 +671,7 @@ jobs:
           KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
           SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
           mkdir -p "$HOME/.ssh" scripts/production/artifacts scripts/seo/artifacts; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/prod_audit_key"; chmod 600 "$HOME/.ssh/prod_audit_key"
@@ -562,33 +693,64 @@ jobs:
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
+
+          classify_ssh_error() {
+            local file="$1"
+            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
+            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
+            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
+            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
+            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
+            else echo SSH_HANDSHAKE_OR_UNKNOWN
+            fi
+          }
+
+          if timeout 10 bash -c "exec 3<>/dev/tcp/$HOST/$SSH_PORT" 2>/dev/null; then
+            echo 'PRODUCTION_AUDIT_TCP_PROBE=PASS'
+          else
+            echo 'PRODUCTION_AUDIT_TCP_PROBE=NO_RESPONSE'
+          fi
+
           audit_connected=0
           retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          last_reason='UNKNOWN'
           for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-prod-audit "test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v curl >/dev/null && command -v php >/dev/null"; then
-              audit_connected=1; break
+            ssh_error="$RUNNER_TEMP/production-audit-ssh-attempt-${attempt}.err"
+            if ssh -n nvx-prod-audit true 2>"$ssh_error"; then
+              audit_connected=1
+              echo "PRODUCTION_AUDIT_SSH_ATTEMPT=PASS attempt=$attempt"
+              break
             fi
+            last_reason="$(classify_ssh_error "$ssh_error")"
+            echo "PRODUCTION_AUDIT_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
+            tail -n 2 "$ssh_error" >&2 || true
             if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
               echo "Production audit SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
               sleep "$retry_delay"
               retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
             fi
           done
-          [[ "$audit_connected" = 1 ]] || { echo 'PRODUCTION_AUDIT_SSH=FAIL_TRANSPORT' >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          [[ "$audit_connected" = 1 ]] || { echo "PRODUCTION_AUDIT_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo 'PRODUCTION_AUDIT_SSH=PASS mode=verification-only'
 
-      - name: Verify one document title across production sitemap
+      - name: Verify one document title across production sitemap in verification-only mode
+        id: verification_document_title_audit
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-prod-audit "BASE_URL='$BASE_URL' bash -s" < scripts/production/document-head-title-audit.sh | tee scripts/production/artifacts/document-head-title-audit.log
 
-      - name: Run blocking SEO/GEO origin audit
+      - name: Run blocking SEO/GEO origin audit in verification-only mode
+        id: verification_seo_geo_audit
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < scripts/production/seo-geo-origin-audit.sh | tee scripts/production/artifacts/seo-geo-origin-audit.log
 
-      - name: Materialize exact sitemap URL inventory from origin audit
+      - name: Materialize exact sitemap URL inventory in verification-only mode
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
         shell: bash
         run: |
           set -euo pipefail
@@ -608,7 +770,24 @@ jobs:
             exit 1
           }
           [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]] || { echo 'GSC_URL_INVENTORY=FAIL duplicate_urls' >&2; exit 1; }
-          echo "GSC_URL_INVENTORY=PASS urls=$actual source=origin-audit"
+          echo "GSC_URL_INVENTORY=PASS urls=$actual source=verification-origin-audit"
+
+      - name: Submit production sitemap to IndexNow in verification-only mode
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < scripts/production/indexnow-submit-sitemap.sh | tee scripts/production/artifacts/indexnow-submit.log
+
+      - name: Diagnose title emitters after verification-only audit failure
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.deploy == false && (steps.verification_document_title_audit.outcome == 'failure' || steps.verification_seo_geo_audit.outcome == 'failure') }}
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < scripts/production/diagnose-title-emitters.sh | tee scripts/production/artifacts/title-emitter-diagnostic.log
+          fi
+          exit 0
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         id: google_auth
@@ -696,19 +875,10 @@ jobs:
             echo 'GSC_CSV=SKIPPED no_indexing_results' >&2
           fi
 
-      - name: Diagnose title emitters after audit failure
-        if: failure()
-        shell: bash
-        run: |
-          set +e
-          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < scripts/production/diagnose-title-emitters.sh | tee scripts/production/artifacts/title-emitter-diagnostic.log
-          exit 0
-
-      - name: Submit production sitemap to IndexNow and verify key
+      - name: Verify public IndexNow key
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < scripts/production/indexnow-submit-sitemap.sh | tee scripts/production/artifacts/indexnow-submit.log
           actual="$(curl -fsS --max-time 20 "$BASE_URL/$INDEXNOW_KEY.txt")"
           test "$actual" = "$INDEXNOW_KEY"
           echo 'INDEXNOW_KEY_PUBLIC=PASS'
@@ -728,7 +898,7 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
 
-      - name: Destroy production audit identities and temporary credentials
+      - name: Destroy verification-only production audit identity and temporary credentials
         if: always()
         shell: bash
         run: |

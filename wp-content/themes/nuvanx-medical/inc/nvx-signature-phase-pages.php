@@ -218,32 +218,6 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
 	$html      .= nvx_signature_phase_details_section( $page );
 
-	// Add price display for profile-definition (papada) before final CTA
-	if ( 'papada-definicion-mandibular-madrid' === (string) ( $page['slug'] ?? '' ) ) {
-		$catalog = nvx_signature_phase_catalog();
-		$price_data = $catalog['profile-definition'] ?? array();
-		$price_range = $price_data['price_range'] ?? '';
-		$price_technology = $price_data['price_technology'] ?? '';
-		$price_note = $price_data['price_note'] ?? '';
-
-		if ( $price_range || $price_technology || $price_note ) {
-			$html .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
-			$html .= '<details class="nvx-price-details"><summary class="nvx-price-details__summary">' . esc_html__( 'Tarifa orientativa', 'nuvanx-medical' ) . '</summary>';
-			$html .= '<div class="nvx-price-details__content">';
-			if ( $price_range ) {
-				$html .= '<p class="nvx-prose"><strong>' . esc_html__( 'Precio:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $price_range ) . '</p>';
-			}
-			if ( $price_technology ) {
-				$html .= '<p class="nvx-prose"><strong>' . esc_html__( 'Tecnología habitual:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $price_technology ) . '</p>';
-			}
-			if ( $price_note ) {
-				$html .= '<p class="nvx-prose">' . esc_html( $price_note ) . '</p>';
-			}
-			$html .= '</div></details>';
-			$html .= '</div></section>';
-		}
-	}
-
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 
 	$html      .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos, expectativas y disponibilidad para cuidados. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';

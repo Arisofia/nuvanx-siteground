@@ -97,14 +97,128 @@ function nvx_catalog_transform_values(
  * @return array<string, callable>
  */
 function nvx_catalog_builtin_token_resolvers(): array {
+	$translate = static function ( string $payload ) {
+		return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
+	};
+
 	return array(
-		'@nvx-t:'   => static function ( string $payload ) {
-			return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
-		},
+		'@nvx-t:'   => $translate,
+		// Legacy typo accepted during hydration so an editorial token can never leak to HTML.
+		'@nvx:t:'   => $translate,
 		'@nvx-url:' => static function ( string $payload ) {
 			return home_url( $payload );
 		},
 	);
+}
+
+/**
+ * Return one canonical tariff as a display-ready euro amount.
+ */
+function nvx_catalog_tariff_display_price( array $tariffs, string $group, string $key ): string {
+	if ( ! isset( $tariffs[ $group ][ $key ]['pvp'] ) || ! is_numeric( $tariffs[ $group ][ $key ]['pvp'] ) ) {
+		return '';
+	}
+
+	$amount   = (float) $tariffs[ $group ][ $key ]['pvp'];
+	$decimals = abs( $amount - round( $amount ) ) < 0.005 ? 0 : 2;
+	return number_format( $amount, $decimals, ',', '.' ) . ' €';
+}
+
+/**
+ * Reconcile catalog copy that exposes prices with the canonical tariff catalog.
+ *
+ * The editorial JSON remains responsible for copy and structure; published PVPs
+ * are hydrated from tariff-catalog.json so hubs/FAQs cannot become a second
+ * source of truth.
+ *
+ * @param array<mixed> $catalog Resolved catalog.
+ * @return array<mixed>
+ */
+function nvx_catalog_apply_tariff_truth( array $catalog, string $filename ): array {
+	$safe_name = basename( $filename );
+
+	if ( 'exion-page.json' === $safe_name ) {
+		$tariffs    = nvx_catalog_json_load( 'tariff-catalog.json' );
+		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
+		$face       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_face_sesion' );
+		$body       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_body_sesion' );
+
+		if ( '' === $fractional || '' === $face || '' === $body ) {
+			nvx_catalog_log_error( 'Unable to hydrate EXION hub prices from tariff-catalog.json.' );
+			return $catalog;
+		}
+
+		if ( isset( $catalog['investment']['body'] ) ) {
+			$catalog['investment']['body'] = sprintf(
+				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
+				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
+				$fractional,
+				$face,
+				$body
+			);
+		}
+
+		if ( isset( $catalog['faq']['items'] ) && is_array( $catalog['faq']['items'] ) ) {
+			foreach ( $catalog['faq']['items'] as $index => $faq ) {
+				if ( ! is_array( $faq ) || empty( $faq['q'] ) || false === stripos( (string) $faq['q'], 'cuánto cuesta EXION' ) ) {
+					continue;
+				}
+				$catalog['faq']['items'][ $index ]['a'] = sprintf(
+					/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
+					__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
+					$fractional,
+					$face,
+					$body
+				);
+				break;
+			}
+		}
+	}
+
+	if ( 'endolaser-page.json' === $safe_name ) {
+		if ( isset( $catalog['planning']['body'] ) ) {
+			$catalog['planning']['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
+		}
+
+		if ( isset( $catalog['faq']['items'] ) && is_array( $catalog['faq']['items'] ) ) {
+			foreach ( $catalog['faq']['items'] as $index => $faq ) {
+				if ( ! is_array( $faq ) || empty( $faq['q'] ) || false === stripos( (string) $faq['q'], 'cuánto cuesta' ) ) {
+					continue;
+				}
+				$catalog['faq']['items'][ $index ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
+				break;
+			}
+		}
+	}
+
+	return $catalog;
+}
+
+/**
+ * Apply runtime governance corrections that depend on canonical code data.
+ *
+ * @param array<mixed> $catalog Resolved catalog.
+ * @return array<mixed>
+ */
+function nvx_catalog_apply_runtime_truth( array $catalog, string $filename ): array {
+	$safe_name = basename( $filename );
+	$catalog   = nvx_catalog_apply_tariff_truth( $catalog, $safe_name );
+
+	if ( 'equipo-medico-page.json' === $safe_name && isset( $catalog['rivera']['quote']['author'] ) ) {
+		$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+		$catalog['rivera']['quote']['author'] = sprintf( (string) $catalog['rivera']['quote']['author'], $colegiado );
+	}
+
+	if ( 'btl-detail-pages.json' === $safe_name ) {
+		if ( isset( $catalog['exion-face']['mechanism']['items'][2]['body'] ) ) {
+			$catalog['exion-face']['mechanism']['items'][2]['body'] = __( 'El sistema de IA monitoriza la impedancia cutánea y ajusta automáticamente la entrega de energía para limitar puntos calientes y mejorar el control térmico y el confort durante el procedimiento.', 'nuvanx-medical' );
+		}
+		if ( isset( $catalog['emfusion']['clinical_data']['downtime'] ) ) {
+			$catalog['emfusion']['clinical_data']['downtime'] = __( 'Recuperación habitualmente mínima; pueden aparecer reacciones cutáneas transitorias según sensibilidad y protocolo.', 'nuvanx-medical' );
+		}
+	}
+
+	return $catalog;
 }
 
 /**
@@ -206,12 +320,13 @@ function nvx_catalog_json_resolved(
 	$key                = $base_key . '|locale:' . $locale;
 
 	if ( ! array_key_exists( $key, $resolved ) ) {
-		$resolved[ $key ] = nvx_catalog_resolve_tokens(
+		$catalog = nvx_catalog_resolve_tokens(
 			nvx_catalog_json_load( $filename ),
 			$claim_resolver,
 			$custom_resolvers,
 			$object_resolvers
 		);
+		$resolved[ $key ] = nvx_catalog_apply_runtime_truth( $catalog, $filename );
 	}
 
 	return $resolved[ $key ];

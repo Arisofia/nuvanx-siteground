@@ -61,7 +61,7 @@
     "process": {
         "kicker": "@nvx-t:El procedimiento en NUVANX",
         "title": "@nvx-t:Ejecución paso a paso",
-        "body": "@nvx-t:Duración habitual 20–30 minutos. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de downtime.",
+        "body": "@nvx-t:Duración habitual 20–30 minutos. Procedimiento ambulatorio en consulta. Recuperación social y cuidados se detallan en la sección de downtime.",
         "steps": [
             { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de calidad de piel, flacidez y objetivos. Definición de puntos BAP." },
             { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia tópica", "body": "@nvx-t:Aplicación de crema anestésica 20–30 minutos antes del procedimiento." },
@@ -79,7 +79,7 @@
             { "title": "@nvx-t:Día 3 en adelante (Recuperación visual):", "body": "@nvx-t:La piel recupera su aspecto visual habitual. No hay descamación ni cambios de textura visibles. El producto comienza su acción bioremodeladora en profundidad." },
             { "title": "@nvx-t:Semanas 4 a 8 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la bioremodelación. La piel aparece más densa, luminosa y firme. El resultado clínico real se mantiene 6–9 meses con protocolo de mantenimiento." }
         ],
-        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo de cuidados post-tratamiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu caso."
+        "note": "@nvx-t:Antes del procedimiento, se entrega un protocolo escrito de cuidados post-tratamiento y pautas de seguimiento médico."
     },
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",

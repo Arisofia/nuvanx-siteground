@@ -55,32 +55,32 @@
     "biophysics": {
         "kicker": "@nvx-t:La tecnología",
         "title": "@nvx-t:Láser 1470 nm + radiofrecuencia bipolar",
-        "body1": "@nvx-t:El protocolo combina dos tecnologías complementarias. El láser intersticial a 1470 nm actúa en el tejido adiposo con alto coeficiente de absorción en agua y lípidos, produciendo laserlipólisis selectiva. La radiofrecuencia bipolar estimula el colágeno dérmico y mejora la firmeza cutánea.",
-        "caption": "@nvx-t:Combinación secuencial según diagnóstico: láser para grasa, RF para piel.",
-        "body2": "@nvx-t:En rango térmico controlado, se produce desnaturalización del colágeno (contracción) y lipólisis de adipocitos, con estimulación simultáneo de neocolagénesis. El resultado es remodelación del contorno con mejora de la calidad cutánea."
+        "body1": "@nvx-t:El protocolo combina láser intersticial a 1470 nm, que actúa en el tejido adiposo mediante laserlipólisis selectiva, con radiofrecuencia bipolar para estimular el colágeno dérmico y mejorar la firmeza.",
+        "caption": "@nvx-t:Combinación secuencial: láser para grasa, RF para piel.",
+        "body2": "@nvx-t:En rango térmico controlado, se produce desnaturalización del colágeno (contracción) y lipólisis de adipocitos con estimulación de neocolagénesis."
     },
     "process": {
-        "kicker": "@nvx-t:El procedimiento en NUVANX",
-        "title": "@nvx-t:Ejecución paso a paso",
-        "body": "@nvx-t:Duración habitual 90–120 minutos según zonas tratadas. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de postoperatorio.",
+        "kicker": "@nvx-t:El protocolo paso a paso",
+        "title": "@nvx-t:Cómo se ejecuta Contour Architecture™",
+        "body": "@nvx-t:Duración habitual 90–120 minutos. Procedimiento ambulatorio sin ingreso.",
         "steps": [
-            { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de distribución adiposa, calidad de piel y elasticidad. Definición de zonas y parámetros." },
-            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración en zonas a tratar para confort y seguridad durante el procedimiento." },
-            { "icon": "procedure", "n": "03", "title": "@nvx-t:Láser intersticial", "body": "@nvx-t:Microfibra a 1470 nm en patrón de abanico según mapa anatómico para reducción adiposa." },
-            { "icon": "recover", "n": "04", "title": "@nvx-t:Radiofrecuencia + alta", "body": "@nvx-t:RF bipolar para firmeza cutánea. Ambulatorio con faja compresiva. Revisiones protocolizadas." }
+            { "icon": "assess", "n": "01", "title": "@nvx-t:Mapeo anatómico", "body": "@nvx-t:Evaluación de zonas adiposas, calidad de la piel y definición de cuadrículas de tratamiento." },
+            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración tumescente en puntos de entrada para garantizar confort durante el procedimiento." },
+            { "icon": "procedure", "n": "03", "title": "@nvx-t:Láser intersticial + RF", "body": "@nvx-t:Paso de la fibra óptica láser para reducción adiposa y retracción tisular combinada." },
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Post-tratamiento y faja", "body": "@nvx-t:Colocación de faja compresiva y entrega de pauta de cuidados domiciliarios." }
         ]
     },
     "postop": {
-        "kicker": "@nvx-t:Recuperación Transparente",
-        "title": "@nvx-t:Cómo es el postoperatorio real de Contour Architecture™ (sin idealizaciones)",
-        "body": "@nvx-t:A diferencia de una liposucción quirúrgica tradicional, Contour Architecture™ no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:",
+        "kicker": "@nvx-t:Postoperatorio",
+        "title": "@nvx-t:Evolución tras Contour Architecture™",
+        "body": "@nvx-t:Contour Architecture™ no requiere quirófano ni anestesia general. Esta es la evolución clínica esperada:",
         "items": [
-            { "title": "@nvx-t:Días 1 a 5 (Inflamación inicial):", "body": "@nvx-t:Es normal sentir las zonas tratadas inflamadas, sensibles y con sensación de tirantez. La faja compresiva es obligatoria durante este periodo. Pueden aparecer pequeños hematomas en los puntos de entrada. El disconfort se controla con analgésicos orales estándar." },
-            { "title": "@nvx-t:Semana 1 a 2 (Recuperación Social):", "body": "@nvx-t:La inflamación inicial cede considerablemente. Puedes retomar actividad laboral sedentaria en 3–5 días y actividad física suave tras 7–10 días. La faja se sigue usando de forma discontinua según indicación médica." },
-            { "title": "@nvx-t:Semanas 3 a 6 (Remodelación Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna. Notarás la piel visiblemente más firme y el contorno más definido. Las molestias físicas desaparecen casi por completo. Se autoriza ejercicio progresivo según tolerancia." },
-            { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neocolagénesis y la remodelación adiposa. El contorno corporal tratado muestra su resultado clínico real, con mejora sostenida de la firmeza cutánea." }
+            { "title": "@nvx-t:Días 1 a 5 (Inflamación inicial):", "body": "@nvx-t:Inflamación, sensibilidad y tirantez. Faja compresiva obligatoria. Posibilidad de pequeños hematomas. Disconfort manejado con analgésicos estándar." },
+            { "title": "@nvx-t:Semana 1 a 2 (Recuperación Social):", "body": "@nvx-t:La inflamación cede. Retorno a actividad laboral sedentaria en 3–5 días y física suave tras 7–10 días. Uso discontinuo de faja según indicación." },
+            { "title": "@nvx-t:Semanas 3 a 6 (Remodelación Tisular):", "body": "@nvx-t:Inicio de remodelación interna. Mejora de la firmeza y contorno. Ejercicio progresivo según tolerancia." },
+            { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Consolidación de la neocolagénesis y resultado del contorno corporal." }
         ],
-        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía específica."
+        "note": "@nvx-t:Antes del procedimiento, se entrega un protocolo escrito con teléfono de seguimiento médico para resolver dudas evolutivas."
     },
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",

@@ -57,7 +57,7 @@
         "title": "@nvx-t:1470 nm: deposición térmica controlada",
         "body1": "@nvx-t:Microfibras monouso de silicio (200–300 micras) y emisión a 1470 nm, con alto coeficiente de absorción en agua y lípidos. La energía se modela como deposición local de calor en el tejido subdérmico:",
         "caption": "@nvx-t:Q: calor local; μₐ: coeficiente de absorción a 1470 nm; Φ: fluencia transmitida por la microfibra.",
-        "body2": "@nvx-t:La temperatura en dermis reticular y septos alcanza 60–80 °C. En ese rango se produce la desnaturalización del colágeno, que genera la contracción del SMAS. En paralelo, la energía produce laserlipólisis de adipocitos sin lesionar la epidermis."
+        "body2": "@nvx-t:La respuesta tisular depende de la fluencia y del protocolo individualizado. La energía depositada en plano subdérmico puede inducir neocolagénesis y remodelación dérmica cuando se ajustan los parámetros según las características del paciente."
     },
     "process": {
         "kicker": "@nvx-t:El procedimiento en NUVANX",

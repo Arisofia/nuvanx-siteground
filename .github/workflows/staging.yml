@@ -163,6 +163,9 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: true
       max-parallel: 1
@@ -180,9 +183,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
-          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          artifact_name="staging2-deploy-complete-${candidate}"
+          source tools/deploy/sha-validate.sh "$CANDIDATE_SHA"
+          artifact_name="staging2-deploy-complete-${NORMALIZED_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           response="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${artifact_name}&per_page=100")"
           count="$(printf '%s' "$response" | jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length')"
           if (( count > 0 )); then
@@ -205,15 +207,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CANDIDATE_SHA="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
-          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          source tools/deploy/sha-validate.sh "$CANDIDATE_SHA"
           git fetch --no-tags origin master
-          git cat-file -e "${CANDIDATE_SHA}^{commit}"
-          git merge-base --is-ancestor "$CANDIDATE_SHA" origin/master || { echo 'Refusing SHA outside origin/master.' >&2; exit 1; }
-          git checkout --detach "$CANDIDATE_SHA"
-          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
-          echo "CANDIDATE_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
-          echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+          git cat-file -e "${NORMALIZED_SHA}^{commit}"
+          git merge-base --is-ancestor "$NORMALIZED_SHA" origin/master || { echo 'Refusing SHA outside origin/master.' >&2; exit 1; }
+          git checkout --detach "$NORMALIZED_SHA"
+          test "$(git rev-parse HEAD)" = "$NORMALIZED_SHA"
+          echo "CANDIDATE_SHA=$NORMALIZED_SHA" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$NORMALIZED_SHA" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         if: ${{ steps.prior_completion.outputs.complete != 'true' }}
@@ -274,18 +275,7 @@ jobs:
           fi
 
           cat "$ssh_err" >&2 || true
-          status='ssh_other'
-          transport_retry='false'
-          if [[ "$ssh_rc" -ne 255 ]]; then
-            status='remote_env'
-          elif grep -Eqi 'Connection timed out|Operation timed out|Connection refused|Connection reset by peer|No route to host|Network is unreachable|Could not resolve hostname|Temporary failure in name resolution|Name or service not known|kex_exchange_identification:.*(Connection closed|Connection reset)|Connection closed by .* port' "$ssh_err"; then
-            status='transport'
-            transport_retry='true'
-          elif grep -Eqi 'Permission denied|Authentication failed|Too many authentication failures|No more authentication methods to try' "$ssh_err"; then
-            status='auth'
-          elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED|No .* host key is known' "$ssh_err"; then
-            status='hostkey'
-          fi
+          eval "$(tools/deploy/ssh-error-classify.sh "$ssh_err" "$ssh_rc")"
 
           echo 'connected=false' >> "$GITHUB_OUTPUT"
           echo "transport_retry=$transport_retry" >> "$GITHUB_OUTPUT"
@@ -585,7 +575,7 @@ jobs:
         if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: staging2-deploy-complete-${{ env.CANDIDATE_SHA }}
+          name: staging2-deploy-complete-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.STAGING_COMPLETION_MARKER }}
           retention-days: 2
           if-no-files-found: error
@@ -637,11 +627,14 @@ jobs:
       - name: Clean remote payload, snapshot and SSH identity
         if: always()
         shell: bash
+        env:
+          SSH_CONNECTED: ${{ steps.ssh_preflight.outputs.connected }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           set +e
-          if [[ "${{ steps.ssh_preflight.outputs.connected }}" == 'true' && -f "$HOME/.ssh/config" ]]; then
+          if [[ "$SSH_CONNECTED" == 'true' && -f "$HOME/.ssh/config" ]]; then
             [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
-            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
+            if [[ "$JOB_STATUS" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
           fi
           rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
@@ -677,6 +670,9 @@ jobs:
     if: ${{ always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
     env:
       CANDIDATE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha }}
       RUNNER_MATRIX_RESULT: ${{ needs.deploy_staging_runners.result }}
@@ -689,13 +685,12 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$RUNNER_MATRIX_RESULT" == 'success' ]] || { echo "STAGING_RUNNER_MATRIX=FAIL result=$RUNNER_MATRIX_RESULT" >&2; exit 1; }
-          candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
-          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          artifact_name="staging2-deploy-complete-${candidate}"
+          source tools/deploy/sha-validate.sh "$CANDIDATE_SHA"
+          artifact_name="staging2-deploy-complete-${NORMALIZED_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           response="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${artifact_name}&per_page=100")"
           count="$(printf '%s' "$response" | jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length')"
-          (( count >= 1 )) || { echo "STAGING_SSH=FAIL_TRANSPORT all 3 fresh runners exhausted without a completed deployment for $candidate" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo "STAGING_FRESH_RUNNER_GATE=PASS artifact=$artifact_name count=$count sha=$candidate"
+          (( count >= 1 )) || { echo "STAGING_SSH=FAIL_TRANSPORT all 3 fresh runners exhausted without a completed deployment for $NORMALIZED_SHA" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo "STAGING_FRESH_RUNNER_GATE=PASS artifact=$artifact_name count=$count sha=$NORMALIZED_SHA"
 
   pr_preview:
     name: Labeled same-repo PR preview on Staging2

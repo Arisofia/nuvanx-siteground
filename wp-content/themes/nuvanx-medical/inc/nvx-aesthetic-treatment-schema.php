@@ -72,11 +72,6 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
-	// Add medical reviewer attribution using director physician.
-	$physician_id = home_url( '/equipo-medico/#physician-rivera-tejeda' );
-	$node['reviewedBy'] = array( '@id' => $physician_id );
-	$node['performer'] = array( '@id' => $physician_id );
-
 	// Extract numeric price from price_range string for schema.org Offer.
 	// Spanish tariffs use '.' as thousands separator and ',' as decimal
 	// (e.g. "1.200,50 €"), so strip thousands dots before casting to float
@@ -114,7 +109,6 @@ function nvx_aesthetic_schema_procedure_node(
 				'description'   => $price_text,
 			);
 
-			// Use priceSpecification for ranges or starting prices ("Desde")
 			if ( null !== $high_price && $high_price > $numeric_price ) {
 				$offer['priceSpecification'] = array(
 					'@type'         => 'PriceSpecification',
@@ -135,15 +129,9 @@ function nvx_aesthetic_schema_procedure_node(
 			$node['offers'] = $offer;
 		}
 	}
-	// Duration should be expressed as a duration value or omitted (not valid on MedicalProcedure/Service)
-	// ISO 8601 duration format could be used but is not standard for MedicalProcedure
-
-
-
 
 	return $node;
 }
-
 
 /**
  * Build FAQ Question nodes for a treatment key.
@@ -218,9 +206,6 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 		$organization_id
 	);
 	$graph           = nvx_aesthetic_schema_upsert_node( $graph, $procedure );
-
-	// FAQPage is now emitted by the global nvx_schema_faq_node() in nvx-structured-data.php
-	// which uses the centralized FAQ catalog. This prevents duplicate @id collisions.
 
 	$graph = nvx_aesthetic_schema_link_webpage_main_entity( $graph, $permalink, $procedure['@id'] );
 

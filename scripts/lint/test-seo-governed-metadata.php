@@ -10,6 +10,35 @@
 
 define( 'ABSPATH', __DIR__ . '/' );
 
+/** Fail the blocking static gate when any governed data JSON is malformed. */
+function nvx_test_governed_json_integrity(): void {
+    $data_dir = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
+    $failures = array();
+
+    foreach ( glob( $data_dir . '/*.json' ) ?: array() as $path ) {
+        $raw = file_get_contents( $path );
+        if ( false === $raw ) {
+            $failures[] = 'Unreadable JSON: ' . $path;
+            continue;
+        }
+
+        json_decode( $raw, true );
+        if ( JSON_ERROR_NONE !== json_last_error() ) {
+            $failures[] = 'Malformed JSON: ' . $path . ' — ' . json_last_error_msg();
+        }
+    }
+
+    if ( array() !== $failures ) {
+        fwrite( STDERR, 'GOVERNED_JSON_INTEGRITY_TEST=FAIL' . PHP_EOL );
+        fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );
+        exit( 1 );
+    }
+
+    echo 'GOVERNED_JSON_INTEGRITY_TEST=PASS' . PHP_EOL;
+}
+
+nvx_test_governed_json_integrity();
+
 function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
     unset( $hook_name, $callback, $priority, $accepted_args );
     return true;

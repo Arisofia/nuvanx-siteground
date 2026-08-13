@@ -232,6 +232,40 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		}
 	}
 
+	if ( 'aesthetic-medicine-page.json' === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate aesthetic medicine hub prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
+		}
+
+		$labios = nvx_catalog_tariff_display_price( $tariffs, 'labios_ha', 'perfilado_hidratacion' );
+		$rino   = nvx_catalog_tariff_display_price( $tariffs, 'rinomodelacion_ha', 'rinomodelacion' );
+		$ojeras = nvx_catalog_tariff_display_price( $tariffs, 'ojeras_ha', 'surco_lagrimal' );
+
+		if ( isset( $catalog['treatments'][0] ) && '' !== $labios ) {
+			$catalog['treatments'][0]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s', 'nuvanx-medical' ),
+				$labios
+			);
+		}
+		if ( isset( $catalog['treatments'][1] ) && '' !== $rino ) {
+			$catalog['treatments'][1]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s', 'nuvanx-medical' ),
+				$rino
+			);
+		}
+		if ( isset( $catalog['treatments'][2] ) && '' !== $ojeras ) {
+			$catalog['treatments'][2]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s (según diagnóstico y técnica)', 'nuvanx-medical' ),
+				$ojeras
+			);
+		}
+	}
+
 	return $catalog;
 }
 

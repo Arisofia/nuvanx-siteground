@@ -220,7 +220,7 @@ function nvx_signature_phase_markup( array $page ): string {
 	}
 
 	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></div>';
-	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
+	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'Valoración presencial en nuestras clínicas de Madrid: Chamberí (Reg. Sanitario CS20144) y Salamanca–Goya (Reg. Sanitario CS20073). La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
 	$html      .= nvx_signature_phase_list( 'Qué se valora', (array) $page['assessment'] );
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Cómo se decide el plan', 'nuvanx-medical' ) . '</h2>';
 	$html      .= '<p>' . esc_html__( 'El médico identifica el componente predominante, revisa zonas contiguas y descarta problemas que no deben abordarse con medicina estética. Solo entonces se selecciona una modalidad y se documentan alternativas, cuidados y seguimiento.', 'nuvanx-medical' ) . '</p>';

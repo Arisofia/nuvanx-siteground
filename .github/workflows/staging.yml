@@ -157,17 +157,43 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
 
-  deploy_staging:
-    name: Deploy exact master SHA and run acceptance
+  deploy_staging_runners:
+    name: Staging SSH runner ${{ matrix.runner_attempt }}/3
     needs: quality
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        runner_attempt: [1, 2, 3]
     env:
       CANDIDATE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha }}
       RUN_ACCEPTANCE: ${{ github.event_name == 'push' || inputs.run_acceptance }}
+      RUNNER_ATTEMPT_NO: ${{ matrix.runner_attempt }}
     steps:
+      - name: Check for completion by an earlier fresh runner
+        id: prior_completion
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          artifact_name="staging2-deploy-complete-${candidate}"
+          response="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${artifact_name}&per_page=100")"
+          count="$(printf '%s' "$response" | jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length')"
+          if (( count > 0 )); then
+            echo 'complete=true' >> "$GITHUB_OUTPUT"
+            echo "STAGING_FRESH_RUNNER=SKIP already_complete artifact=$artifact_name"
+          else
+            echo 'complete=false' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check out master history
+        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: master
@@ -175,6 +201,7 @@ jobs:
           persist-credentials: false
 
       - name: Resolve immutable candidate
+        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -189,13 +216,16 @@ jobs:
           echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
+        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Configure strict Staging2 SSH
+      - name: Configure strict Staging2 SSH and classify preflight
+        id: ssh_preflight
+        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
         shell: bash
         env:
           HOST: ${{ secrets.STAGING2_SSH_HOST }}
@@ -227,26 +257,79 @@ jobs:
             ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
-          connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
-              connected=1; break
-            fi
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Staging SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'STAGING_SSH=PASS'
+
+          ssh_err="$RUNNER_TEMP/staging-ssh-preflight.err"
+          : > "$ssh_err"
+          set +e
+          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null" 2>"$ssh_err"
+          ssh_rc=$?
+          set -e
+
+          if [[ "$ssh_rc" -eq 0 ]]; then
+            echo 'connected=true' >> "$GITHUB_OUTPUT"
+            echo 'transport_retry=false' >> "$GITHUB_OUTPUT"
+            echo 'status=pass' >> "$GITHUB_OUTPUT"
+            echo 'STAGING_SSH=PASS'
+            exit 0
+          fi
+
+          cat "$ssh_err" >&2 || true
+          status='ssh_other'
+          transport_retry='false'
+          if [[ "$ssh_rc" -ne 255 ]]; then
+            status='remote_env'
+          elif grep -Eqi 'Connection timed out|Operation timed out|Connection refused|Connection reset by peer|No route to host|Network is unreachable|Could not resolve hostname|Temporary failure in name resolution|Name or service not known|kex_exchange_identification:.*(Connection closed|Connection reset)|Connection closed by .* port' "$ssh_err"; then
+            status='transport'
+            transport_retry='true'
+          elif grep -Eqi 'Permission denied|Authentication failed|Too many authentication failures|No more authentication methods to try' "$ssh_err"; then
+            status='auth'
+          elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED|No .* host key is known' "$ssh_err"; then
+            status='hostkey'
+          fi
+
+          echo 'connected=false' >> "$GITHUB_OUTPUT"
+          echo "transport_retry=$transport_retry" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "STAGING_SSH_CLASSIFICATION=$status rc=$ssh_rc fresh_runner=$RUNNER_ATTEMPT_NO/3" >&2
+
+      - name: Gate SSH preflight result
+        if: ${{ steps.prior_completion.outputs.complete != 'true' && steps.ssh_preflight.outputs.connected != 'true' }}
+        shell: bash
+        env:
+          SSH_STATUS: ${{ steps.ssh_preflight.outputs.status }}
+          TRANSPORT_RETRY: ${{ steps.ssh_preflight.outputs.transport_retry }}
+        run: |
+          set -euo pipefail
+          case "$SSH_STATUS" in
+            transport)
+              [[ "$TRANSPORT_RETRY" == 'true' ]]
+              echo "STAGING_SSH=RETRY_FRESH_RUNNER current=$RUNNER_ATTEMPT_NO/3 no_snapshot=1 no_mutation=1"
+              exit 0
+              ;;
+            auth)
+              echo 'STAGING_SSH=FAIL_AUTH; fresh-runner retry forbidden.' >&2
+              exit 1
+              ;;
+            hostkey)
+              echo 'STAGING_SSH=FAIL_HOSTKEY; fresh-runner retry forbidden.' >&2
+              exit 1
+              ;;
+            remote_env)
+              echo 'STAGING_SSH=FAIL_REMOTE_ENV; transport succeeded but remote prerequisites failed.' >&2
+              exit 1
+              ;;
+            *)
+              echo "STAGING_SSH=FAIL_OTHER status=${SSH_STATUS:-missing}; unclassified SSH failure is not retryable." >&2
+              exit 1
+              ;;
+          esac
 
       - name: Create full rollback snapshot before any runtime mutation
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
-          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}"
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${CANDIDATE_SHA}-runner-${RUNNER_ATTEMPT_NO}"
           [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
           echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
           ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
@@ -277,6 +360,7 @@ jobs:
           echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
 
       - name: Verify environment isolation and normalize runtime
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -308,10 +392,11 @@ jobs:
           REMOTE
 
       - name: Upload immutable payload
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
-          REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-runner-${RUNNER_ATTEMPT_NO}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/tools/migrations' '$REMOTE_RELEASE/lib'"
           rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
@@ -321,6 +406,7 @@ jobs:
           rsync -az tools/migrations/ "nvx-staging2:$REMOTE_RELEASE/tools/migrations/"
 
       - name: Deploy theme, required MU plugins and content hygiene
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -350,6 +436,7 @@ jobs:
           echo 'STAGING_CONTENT_MIGRATION=PASS audit=clean'
 
       - name: Purge caches and verify exact Staging2 identity
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -376,6 +463,7 @@ jobs:
           REMOTE
 
       - name: Verify public Staging2 boundary
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         env:
           BASE_URL: https://staging2.nuvanx.com
@@ -391,6 +479,7 @@ jobs:
           test "$pass" = 1
 
       - name: Validate WordPress page templates from origin
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -406,7 +495,7 @@ jobs:
           echo 'STAGING_TEMPLATE_INTEGRITY=PASS'
 
       - name: Install browser acceptance dependencies
-        if: ${{ env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -415,7 +504,7 @@ jobs:
           ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Run canonical Block C and valoración placement
-        if: ${{ env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
         shell: bash
         env:
           BASE_URL: https://staging2.nuvanx.com
@@ -428,6 +517,7 @@ jobs:
           echo 'STAGING_BLOCK_C=PASS'
 
       - name: Verify production unchanged read-only
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -443,7 +533,7 @@ jobs:
           REMOTE
 
       - name: Write immutable Staging acceptance manifest
-        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -462,7 +552,7 @@ jobs:
           echo "STAGING_ACCEPTANCE_MANIFEST=PASS sha=$CANDIDATE_SHA run_id=$GITHUB_RUN_ID"
 
       - name: Upload production-eligible acceptance evidence
-        if: ${{ success() && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-block-c-${{ env.CANDIDATE_SHA }}
@@ -474,11 +564,38 @@ jobs:
           if-no-files-found: error
           compression-level: 6
 
-      - name: Upload failed Staging diagnostic evidence
-        if: ${{ failure() && env.RUN_ACCEPTANCE == 'true' }}
+      - name: Write fresh-runner completion marker
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker="$RUNNER_TEMP/staging-deploy-complete.json"
+          jq -n \
+            --arg candidate_sha "$CANDIDATE_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg runner_attempt "$RUNNER_ATTEMPT_NO" \
+            --arg run_acceptance "$RUN_ACCEPTANCE" \
+            '{schema:1,candidate_sha:$candidate_sha,run_id:$run_id,run_attempt:$run_attempt,runner_attempt:$runner_attempt,run_acceptance:$run_acceptance}' \
+            > "$marker"
+          jq -e --arg sha "$CANDIDATE_SHA" '.schema == 1 and .candidate_sha == $sha' "$marker" >/dev/null
+          echo "STAGING_COMPLETION_MARKER=$marker" >> "$GITHUB_ENV"
+
+      - name: Upload fresh-runner completion marker
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: staging2-block-c-diagnostic-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          name: staging2-deploy-complete-${{ env.CANDIDATE_SHA }}
+          path: ${{ env.STAGING_COMPLETION_MARKER }}
+          retention-days: 2
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload failed Staging diagnostic evidence
+        if: ${{ failure() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging2-block-c-diagnostic-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}-runner-${{ matrix.runner_attempt }}
           path: |
             scripts/staging2/artifacts/
             scripts/staging2/block-c-artifacts/
@@ -522,24 +639,62 @@ jobs:
         shell: bash
         run: |
           set +e
-          if [[ -f "$HOME/.ssh/config" ]]; then
+          if [[ "${{ steps.ssh_preflight.outputs.connected }}" == 'true' && -f "$HOME/.ssh/config" ]]; then
             [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
             if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
           fi
           rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
-      - name: Write staging summary
-        if: success()
+      - name: Write staging success summary
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           {
-            echo '## Staging PASS'
+            echo '## Staging runner PASS'
             echo
             echo "- Exact SHA: \`$CANDIDATE_SHA\`"
+            echo "- Fresh runner: \`$RUNNER_ATTEMPT_NO/3\`"
             echo '- Single workflow owns static gates, deployment, rollback and acceptance.'
             echo '- Staging/Production mutations are serialized through one repository-wide concurrency group.'
             echo "- Block C production eligibility: \`$RUN_ACCEPTANCE\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write transport retry summary
+        if: ${{ success() && steps.ssh_preflight.outputs.transport_retry == 'true' }}
+        shell: bash
+        run: |
+          {
+            echo '## Staging SSH transport retry'
+            echo
+            echo "- Fresh runner \`$RUNNER_ATTEMPT_NO/3\` could not establish TCP/SSH transport."
+            echo '- No rollback snapshot or runtime mutation was started.'
+            echo '- The next matrix entry receives a new GitHub-hosted runner.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy_staging:
+    name: Deploy exact master SHA and run acceptance
+    needs: [quality, deploy_staging_runners]
+    if: ${{ always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CANDIDATE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha }}
+      RUNNER_MATRIX_RESULT: ${{ needs.deploy_staging_runners.result }}
+    steps:
+      - name: Require a completed fresh-runner deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$RUNNER_MATRIX_RESULT" == 'success' ]] || { echo "STAGING_RUNNER_MATRIX=FAIL result=$RUNNER_MATRIX_RESULT" >&2; exit 1; }
+          candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          artifact_name="staging2-deploy-complete-${candidate}"
+          response="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${artifact_name}&per_page=100")"
+          count="$(printf '%s' "$response" | jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length')"
+          (( count >= 1 )) || { echo "STAGING_SSH=FAIL_TRANSPORT all 3 fresh runners exhausted without a completed deployment for $candidate" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo "STAGING_FRESH_RUNNER_GATE=PASS artifact=$artifact_name count=$count sha=$candidate"
 
   pr_preview:
     name: Labeled same-repo PR preview on Staging2

@@ -1502,41 +1502,59 @@ figure.nvx-equipo-portrait{
   border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
   background: var(--nvx-surface-base, var(--nvx-color-paper));
   box-shadow: var(--nvx-shadow-min, 0 1px 2px var(--nvx-surface-soft));
-  justify-self: start}
+  justify-self: start;
+}
 
-.nvx-laser-focus-grid{
+.nvx-laser-focus-grid {
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-4);
+}
 
-.nvx-aes-focus-grid{
+.nvx-aes-focus-grid {
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-4);
+}
 
-.nvx-aes-card-grid{
+.nvx-aes-card-grid {
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-4);
+}
 
-.nvx-aes-regen__grid{
+.nvx-aes-regen__grid {
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4);
-  align-items: start}
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-4);
+  align-items: start;
+}
 
-.nvx-dr-rivera-avatar{ width: calc(var(--nvx-space-10) * 2); height: calc(var(--nvx-space-10) * 2); border-radius: 50%; object-fit: cover; margin: 0 auto var(--nvx-space-3) auto;box-shadow:var(--nvx-shadow-medium); border: calc(var(--nvx-space-1) / 2) solid var(--nvx-light);border-color:var(--nvx-light)}
+.nvx-dr-rivera-avatar {
+  width: calc(var(--nvx-space-10) * 2);
+  height: calc(var(--nvx-space-10) * 2);
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto var(--nvx-space-3) auto;
+  box-shadow: var(--nvx-shadow-medium);
+  border: calc(var(--nvx-space-1) / 2) solid var(--nvx-light);
+  border-color: var(--nvx-light);
+}
 
-.nvx-que-exigir-hr{ margin: var(--nvx-space-6) 0; border: 0; border-top: 1px solid var(--nvx-border-soft);border-top-color:var(--nvx-color-line)}
+.nvx-que-exigir-hr {
+  margin: var(--nvx-space-6) 0;
+  border: 0;
+  border-top: 1px solid var(--nvx-border-soft);
+  border-top-color: var(--nvx-color-line);
+}
 
-
-
-.nvx-logo__img{
+.nvx-logo__img {
   display: block;
   width: auto;
-    height: var(--nvx-logo-height-mobile);
-    max-width: var(--nvx-logo-width-mobile);
-  object-fit: contain}
+  height: var(--nvx-logo-height-mobile);
+  max-width: var(--nvx-logo-width-mobile);
+  object-fit: contain;
+}
 
 .custom-logo{
   display: block;

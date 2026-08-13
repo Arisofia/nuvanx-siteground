@@ -28,6 +28,12 @@ function nvx_test_governed_json_integrity(): void {
         }
     }
 
+    if ( ! is_dir( $data_dir ) ) {
+        fwrite( STDERR, 'GOVERNED_JSON_INTEGRITY_TEST=FAIL' . PHP_EOL );
+        fwrite( STDERR, 'Missing governed data directory: ' . $data_dir . PHP_EOL );
+        exit( 1 );
+    }
+
     if ( array() !== $failures ) {
         fwrite( STDERR, 'GOVERNED_JSON_INTEGRITY_TEST=FAIL' . PHP_EOL );
         fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );

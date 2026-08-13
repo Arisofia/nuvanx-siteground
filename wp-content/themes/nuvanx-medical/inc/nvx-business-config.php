@@ -44,7 +44,7 @@ function nvx_get_clinics_config(): array {
 			'longitude'     => -3.693425,
 		),
 		'goya'     => array(
-			'name'          => 'Centro Clínico NUVANX Salamanca / Goya',
+			'name'          => 'Centro Clínico NUVANX Salamanca–Goya',
 			'reg'           => 'CS20073',
 			'address'       => 'Calle de Fernán González, 26',
 			'postal_code'   => '28009',

@@ -23,19 +23,23 @@ ob_start();
 		<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>" aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid">
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 		</video>
-		<div class="nvx-home-hero__copy">
-			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">En NUVANX, si no hay indicación, no se trata. Madrid.</h1>
+		<div class="nvx-home-hero__content nvx-home-hero__copy">
+			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">En NUVANX, si no hay indicación, no se trata.<span class="nvx-hero-title-location"> Madrid.</span></h1>
 			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
 			<div class="nvx-brand-actions">
 				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
 			</div>
 		</div>
+		<a href="#nvx-home-philosophy-title" class="nvx-home-hero__scroll-cue" aria-label="<?php esc_attr_e( 'Desplazarse al contenido', 'nuvanx-medical' ); ?>">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+		</a>
 	</section>
 
 	<section class="nvx-home-philosophy" aria-labelledby="nvx-home-philosophy-title">
 		<div class="nvx-home-philosophy__inner">
-			<p class="nvx-home-philosophy__title" id="nvx-home-philosophy-title">No tratamos una imagen aislada. Tratamos a una persona, con su historia y sus prioridades.</p>
-			<p class="nvx-home-philosophy__lead">Cada protocolo comienza con una valoración médica individual. Si no está indicado para ti, te lo diremos con la misma claridad.</p>
+			<p class="nvx-home-philosophy__kicker">Filosofía médica</p>
+			<h2 class="nvx-home-philosophy__lead" id="nvx-home-philosophy-title">No tratamos una imagen aislada. Tratamos a una persona, con su historia y sus prioridades.</h2>
+			<p class="nvx-home-philosophy__text">Cada protocolo comienza con una valoración médica individual. Si no está indicado para ti, te lo diremos con la misma claridad.</p>
 		</div>
 	</section>
 

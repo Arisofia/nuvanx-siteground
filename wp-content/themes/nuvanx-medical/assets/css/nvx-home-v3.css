@@ -82,13 +82,14 @@
 	padding-inline: var(--nvx-gutter-inner);
 }
 
+.nvx-home-philosophy__kicker,
 .nvx-home-philosophy__title {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-caption);
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	color: var(--nvx-text-muted);
-	margin-bottom: var(--nvx-space-6);
+	margin-bottom: var(--nvx-space-4);
 }
 
 .nvx-home-philosophy__lead {
@@ -97,6 +98,15 @@
 	font-weight: 300;
 	line-height: 1.4;
 	color: var(--nvx-ink);
+	margin-bottom: var(--nvx-space-4);
+}
+
+.nvx-home-philosophy__text {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	color: var(--nvx-text-muted);
+	max-width: var(--nvx-measure);
+	margin: 0 auto;
 }
 
 /* =========================================================

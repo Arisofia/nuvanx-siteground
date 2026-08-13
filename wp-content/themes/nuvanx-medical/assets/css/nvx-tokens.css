@@ -37,6 +37,9 @@
   --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
   --nvx-border-on-dark: rgba(247, 247, 245, 0.45);
   --nvx-accent-success: #25d366;
+  --nvx-accent-error: #c53030;
+  --nvx-accent-warning: #d69e2e;
+  --nvx-accent-info: #4a5568;
   --nvx-ink-muted: rgba(17, 17, 17, 0.82);
 
   /* Form-stage */
@@ -62,7 +65,9 @@
   --nvx-space-4: 32px;
   --nvx-space-5: 40px;
   --nvx-space-6: 48px;
+  --nvx-space-7: 56px;
   --nvx-space-8: 64px;
+  --nvx-space-9: 72px;
   --nvx-space-10: 80px;
   --nvx-space-12: 96px;
 
@@ -214,5 +219,21 @@
 --nvx-catalog-width: 900px;
 --nvx-section-tight-width: 800px;
 --nvx-modal-min-height: 120px;
+
+/* ========== MOTION & TRANSITIONS ========== */
+--nvx-duration-instant: 80ms;
+--nvx-duration-fast: 160ms;
+--nvx-duration-normal: 240ms;
+--nvx-duration-slow: 320ms;
+--nvx-duration-slower: 480ms;
+
+--nvx-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+--nvx-ease-in: cubic-bezier(0.3, 0, 1, 1);
+--nvx-ease-out: cubic-bezier(0, 0, 0.2, 1);
+--nvx-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+--nvx-transition-fast: var(--nvx-duration-fast) var(--nvx-ease-standard);
+--nvx-transition-normal: var(--nvx-duration-normal) var(--nvx-ease-standard);
+--nvx-transition-slow: var(--nvx-duration-slow) var(--nvx-ease-standard);
 
 }

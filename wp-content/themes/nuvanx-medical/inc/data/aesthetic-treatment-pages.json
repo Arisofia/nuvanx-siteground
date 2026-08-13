@@ -473,5 +473,173 @@
                 "Arrugas de expresión dinámicas"
             ]
         }
+<<<<<<< HEAD
+=======
+    },
+    "bridal_protocol": {
+        "slug": "protocolo-novias-madrid",
+        "h1": "Protocolo de Novias en Madrid | Medicina Estética para el Gran Día",
+        "seo_title": "Protocolo Novias Madrid | Tratamientos Estéticos Boda · NUVANX Chamberí",
+        "description": "Protocolo médico-estético personalizado para novias en Madrid. Cronograma de 6 a 12 meses con Endolift, EXION BTL, mesoterapia y neuromoduladores. Clínica NUVANX Chamberí. Primera valoración gratuita.",
+        "kicker": "Medicina estética · Chamberí, Madrid",
+        "lead": "El día de tu boda merece una piel en su mejor versión. Diseñamos un cronograma médico personalizado según tu fecha, tu piel y tus objetivos, combinando las tecnologías más avanzadas disponibles en nuestra clínica de Chamberí. Primera valoración sin coste. Plan desde 350 €.",
+        "brands": ["BTL EXION RF", "Neuromodulador (Bocouture® / Azzalure®)", "Ácido hialurónico no reticulado", "Polinucleótidos (PDRN)", "Endolift"],
+        "techniques": [
+            "Cronograma personalizado por fases (6-12 meses)",
+            "Diagnóstico de piel con evaluación clínica",
+            "Neuromoduladores de expresión (Botox®)",
+            "Mesoterapia vitamínica y skinbooster",
+            "Peelings médicos suaves",
+            "Bioestimulación con polinucleótidos",
+            "Endolift (flacidez y contorno)",
+            "EXION BTL (firmeza sin cirugía)",
+            "Protocolo flash semana de boda"
+        ],
+        "protocol": {
+            "sessions": "Variable según cronograma. Plan mínimo: 3 sesiones en 3 meses. Plan completo: 6-10 sesiones en 6-12 meses.",
+            "downtime": "Los tratamientos se seleccionan para que sean compatibles con tu vida diaria. Los procedimientos más intensivos (Endolift, EXION) se programan en fases tempranas para que cualquier efímero enrojecimiento haya desaparecido mucho antes del gran día.",
+            "duration_result": "Resultados progresivos y acumulativos. El efecto óptimo se alcanza en la semana de la boda.",
+            "price_range": "Desde 350 €",
+            "products_used": ["Neuromodulador botulínico", "Ácido hialurónico no reticulado", "Polinucleótidos (PDRN/PRPF)", "BTL EXION RF", "Peeling médico suave"]
+        },
+        "diagnosis": "La primera consulta del Protocolo de Novias es una valoración médica integral, no un listado de tratamientos. Analizamos el estado actual de tu piel (hidratación, firmeza, tono, expresión), tu fecha de boda y el tiempo disponible para diseñar un cronograma realista. El objetivo no es transformar tus rasgos, sino que llegues al altar con la mejor versión natural de tu piel.",
+        "mechanism": "El protocolo actúa en tres niveles simultáneos. Primero corregimos la calidad cutánea de base (hidratación, luminosidad, textura) con mesoterapia y bioestimuladores. Después abordamos firmeza y contorno si está indicado (Endolift, EXION BTL). Por último, en la recta final, refinamos con peelings suaves y neuromoduladores para que el maquillaje de novia luzca impecable y dure toda la celebración.",
+        "indications": [
+            "Piel con falta de luminosidad o tono irregular que se quiere mejorar antes de la boda.",
+            "Arrugas de expresión leves que la novia desea suavizar de forma natural.",
+            "Pérdida de firmeza del óvalo facial que puede tratarse sin cirugía.",
+            "Ojeras o signos de fatiga que afectan a la frescura del rostro en fotos.",
+            "Manchas superficiales o textura irregular tratable con peelings en el tiempo disponible.",
+            "Deseo de llegar a la boda con la piel hidratada, firme y descansada sin cambios radicales."
+        ],
+        "precautions": [
+            "El cronograma se adapta a la fecha de boda: cuanto antes se inicie, más opciones hay disponibles.",
+            "Los tratamientos más intensivos (Endolift, EXION, peelings medios) se programan con al menos 4-6 meses de antelación.",
+            "En el último mes únicamente se realizan tratamientos de bajo riesgo y resultado inmediato. No se inician tratamientos nuevos.",
+            "Embarazo, lactancia, alergias conocidas, enfermedades activas o medicación relevante deben comunicarse en la primera valoración.",
+            "Los neuromoduladores se aplican con al menos 6-8 semanas de antelación para revisión y retoque si fuera necesario.",
+            "No se recomienda combinar procedimientos intensivos próximos entre sí sin período de recuperación evaluado."
+        ],
+        "process": [
+            "Primera valoración médica gratuita: análisis de piel, fecha de boda y objetivos. Se diseña el cronograma completo.",
+            "Fases tempranas (6-12 meses antes): tratamientos de base que requieren más tiempo para mostrar su efecto óptimo.",
+            "Fases intermedias (2-4 meses antes): neuromoduladores, skinboosters, bioestimuladores.",
+            "Recta final (2-4 semanas antes): protocolo flash de luminosidad e hidratación intensa.",
+            "Seguimiento continuo: canal de contacto directo entre sesiones para cualquier duda o ajuste."
+        ],
+        "evolution": "Los resultados del protocolo son progresivos y acumulativos. Cada sesión mejora la base de la anterior. Es normal que los primeros cambios sean sutiles y que el efecto más llamativo se perciba en los dos últimos meses. Cualquier reacción inesperada entre sesiones tiene atención prioritaria.",
+        "risks": [
+            "Enrojecimiento o sensibilidad transitoria tras cada sesión, habitualmente resuelto en 24-48 horas.",
+            "Hematomas puntuales en zonas de inyección, especialmente con anticoagulantes.",
+            "Reacción alérgica al producto: se revisan antecedentes en la valoración inicial.",
+            "Resultado asimétrico o insuficiente en zonas con anatomía compleja: se corrige en la revisión.",
+            "Los riesgos específicos de cada tecnología (Endolift, EXION, neuromoduladores) se explican de forma individual antes de cada procedimiento."
+        ],
+        "combinations": [
+            "El protocolo integra tecnologías complementarias según diagnóstico: no se aplica todo a la vez.",
+            "Endolift y EXION BTL se programan en fases tempranas; mesoterapia y neuromoduladores en fases intermedias; protocolo flash en la recta final.",
+            "El protocolo de la novia puede extenderse al grupo: novio, madres, testigos. Cada persona recibe su propia valoración y cronograma."
+        ],
+        "bridal_timeline": [
+            {
+                "phase": "6–12 meses antes",
+                "title": "Cimientos de piel",
+                "description": "Diagnóstico médico completo y tratamientos que necesitan más tiempo para mostrar su mejor resultado: Endolift para firmeza del óvalo y contorno, EXION BTL para textura y colágeno profundo, inicio de rutina cosmética activa personalizada y tratamiento de manchas si están presentes.",
+                "treatments": ["Diagnóstico y plan personalizado", "Endolift (flacidez y óvalo)", "EXION BTL (firmeza sin cirugía)", "Tratamiento de manchas si procede"]
+            },
+            {
+                "phase": "3–6 meses antes",
+                "title": "Hidratación y luminosidad",
+                "description": "Protocolos para mejorar la calidad de la piel de forma progresiva: mesoterapia vitamínica, bioestimulación con polinucleótidos (PDRN) para regeneración celular y peelings médicos suaves para renovación y afinado de poros.",
+                "treatments": ["Mesoterapia con vitaminas y ácido hialurónico no reticulado", "Bioestimulación con polinucleótidos (PDRN)", "Peelings médicos suaves"]
+            },
+            {
+                "phase": "4–8 semanas antes",
+                "title": "Suavizado de expresión",
+                "description": "Neuromoduladores para suavizar líneas de expresión con naturalidad (frente, entrecejo, patas de gallo). Se aplican con suficiente antelación para incluir una sesión de revisión y retoque antes del gran día si fuera necesario.",
+                "treatments": ["Neuromoduladores (frente, entrecejo, patas de gallo)", "Revisión y retoque a los 14-21 días"]
+            },
+            {
+                "phase": "Última semana",
+                "title": "Protocolo Flash",
+                "description": "Sesión de hidratación intensa y efecto luminosidad para que el maquillaje de novia luzca impecable y dure toda la celebración. Solo tratamientos de bajo riesgo y resultado inmediato.",
+                "treatments": ["Hidratación intensiva con ácido hialurónico no reticulado", "Limpieza médica profunda", "Protocolo de luminosidad flash"]
+            }
+        ],
+        "bridal_group": [
+            {
+                "profile": "El novio",
+                "description": "Un protocolo discreto y sin signos de tratamiento: suavizado de arrugas de expresión si lo desea, mejora de textura cutánea e hidratación. El objetivo es que luzca descansado y fresco en las fotos sin que se note ninguna intervención.",
+                "treatments": ["Neuromoduladores (opcional)", "Mesoterapia de hidratación", "Peeling suave"]
+            },
+            {
+                "profile": "Las madres",
+                "description": "Protocolo adaptado a su piel y sus objetivos: firmeza, luminosidad, suavizado de arrugas. Muchas empiezan el tratamiento junto a la novia para acompañarse en el proceso y estar igual de radiantes el día de la boda.",
+                "treatments": ["Endolift (firmeza y contorno)", "Neuromoduladores", "Skinbooster / hidratación"]
+            },
+            {
+                "profile": "Testigos y acompañantes",
+                "description": "Para el resto del grupo, ofrecemos consultas individuales con su propio diagnóstico y cronograma ajustado al tiempo disponible y al presupuesto de cada persona.",
+                "treatments": ["Valoración médica individual", "Cronograma personalizado", "Tratamientos según diagnóstico"]
+            }
+        ],
+        "faqs": [
+            {
+                "q": "¿Cuándo debo empezar el protocolo de novias?",
+                "a": "Lo ideal es iniciar la valoración médica entre 6 y 12 meses antes de la boda. Así tenemos tiempo para tratamientos de base como Endolift o EXION BTL, que requieren varias semanas para mostrar su mejor resultado. Si la boda está más próxima, adaptamos el plan al tiempo disponible priorizando los tratamientos de mayor impacto inmediato."
+            },
+            {
+                "q": "¿Qué tratamientos incluye el protocolo de novias de NUVANX?",
+                "a": "El protocolo se personaliza en la primera valoración médica. Incluye tecnologías como Endolift, EXION BTL, mesoterapia vitamínica, bioestimulación con polinucleótidos, peelings médicos suaves, neuromoduladores y un protocolo flash la semana de la boda. No se aplican todos: solo los que están indicados para cada paciente según diagnóstico."
+            },
+            {
+                "q": "¿El protocolo de novias incluye también al novio y a las madres?",
+                "a": "Sí. En NUVANX ofrecemos valoración individual para el novio, las madres y el resto del grupo que quiera llegar radiante a la celebración. Cada persona recibe su propio diagnóstico y cronograma personalizado, sin paquetes prediseñados."
+            },
+            {
+                "q": "¿Cuánto cuesta el protocolo de novias en Madrid?",
+                "a": "La primera valoración médica es gratuita y en ella diseñamos el plan completo. El coste depende de los tratamientos indicados para tu piel y el tiempo disponible. El plan parte desde 350 € y se puede estructurar por sesiones a lo largo del cronograma."
+            },
+            {
+                "q": "¿Los tratamientos dejan marcas visibles antes de la boda?",
+                "a": "El cronograma se diseña precisamente para evitar cualquier signo visible en fechas próximas a la boda. Los tratamientos más intensivos (Endolift, EXION, peelings) se programan en fases tempranas. En el último mes solo realizamos procedimientos de bajo riesgo y recuperación inmediata."
+            },
+            {
+                "q": "¿Qué diferencia al protocolo de novias de NUVANX del de otras clínicas?",
+                "a": "En NUVANX disponemos de tecnología BTL EXION y Endolift, que pocas clínicas en Chamberí ofrecen dentro de un protocolo nupcial. El plan lo diseña un médico, no un comercial: cada tratamiento responde a un diagnóstico, no a un menú cerrado. Y lo extendemos al grupo de la novia con valoraciones individuales para el novio, las madres y los acompañantes."
+            },
+            {
+                "q": "¿Puedo hacerme el protocolo de novias si nunca me he hecho medicina estética?",
+                "a": "Sí, y es además el momento ideal para empezar: la planificación anticipada permite tratamientos progresivos y suaves que dan los mejores resultados sin apresurarnos. La valoración médica inicial sirve para entender qué está indicado para ti y qué no, sin ningún compromiso."
+            },
+            {
+                "q": "¿Dónde está la clínica NUVANX para el protocolo de novias?",
+                "a": "NUVANX está ubicada en el barrio de Chamberí, Madrid. Puedes solicitar una primera valoración gratuita directamente desde nuestra web. Si prefieres, contacta por WhatsApp para consultar disponibilidad."
+            }
+        ],
+        "schema": {
+            "name": "Protocolo de Novias — Medicina Estética",
+            "alternateName": [
+                "Programa novias Madrid",
+                "Tratamientos estéticos para novias Chamberí",
+                "Protocolo nupcial medicina estética"
+            ],
+            "bodyLocation": "Rostro, cuello y áreas corporales según diagnóstico",
+            "procedureType": "https://schema.org/MinimallyInvasiveProcedure",
+            "preparation": "Valoración médica inicial gratuita con análisis de piel, fecha de boda y objetivos. Diseño de cronograma personalizado.",
+            "howPerformed": "Combinación de técnicas médico-estéticas seleccionadas según diagnóstico individual: neuromoduladores, mesoterapia, bioestimuladores, peelings médicos, Endolift y/o EXION BTL. Cada sesión va precedida de una evaluación.",
+            "followup": "Seguimiento continuo entre sesiones con canal de contacto directo. Revisión tras neuromoduladores a los 14-21 días. Protocolo flash en la última semana previa a la boda.",
+            "indications": [
+                "Preparación cutánea integral para boda",
+                "Mejora de luminosidad y tono",
+                "Suavizado de arrugas de expresión",
+                "Firmeza y contorno facial"
+            ],
+            "conditions": [
+                "Piel con signos de fatiga o deshidratación",
+                "Arrugas de expresión leves",
+                "Flacidez incipiente del óvalo facial"
+            ]
+        }
     }
 }

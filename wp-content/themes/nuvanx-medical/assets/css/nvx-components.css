@@ -1872,3 +1872,179 @@ figure.nvx-equipo-portrait{
     max-height: none;
   }
 }
+
+/* Endolift comparison table — responsive */
+.nvx-endolift-compare-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nvx-endolift-compare-wrap:focus-visible {
+  outline: 2px solid var(--nvx-accent-muted, #4a4a4a);
+  outline-offset: 2px;
+}
+.nvx-endolift-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--nvx-type-small, 0.875rem);
+  min-width: 480px;
+}
+.nvx-endolift-compare-table th,
+.nvx-endolift-compare-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--nvx-color-line, rgba(17, 17, 17, 0.16));
+  vertical-align: top;
+}
+.nvx-endolift-compare-table thead th {
+  font-weight: 600;
+  background: var(--nvx-surface-soft, #e5e5e3);
+  white-space: nowrap;
+}
+@media (max-width: 680px) {
+  .nvx-endolift-compare-wrap {
+    margin-inline: calc(-1 * var(--nvx-pad-section, 3rem));
+    padding-inline: var(--nvx-pad-section, 3rem);
+  }
+}
+
+/* Bridal protocol timeline */
+.nvx-bridal-timeline__list {
+  list-style: none;
+  padding: 0;
+  counter-reset: bridal-step;
+}
+.nvx-bridal-timeline__step {
+  counter-increment: bridal-step;
+<<<<<<< HEAD
+  border-left: 2px solid var(--nvx-accent-muted, #4a4a4a);
+=======
+  border-left: 2px solid var(--nvx-accent, #b08d74);
+>>>>>>> master
+  padding: 0 0 1.5rem 1.5rem;
+  position: relative;
+}
+.nvx-bridal-timeline__step::before {
+  content: counter(bridal-step);
+  position: absolute;
+  left: -1rem;
+  top: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--nvx-surface-base);
+<<<<<<< HEAD
+  border: 2px solid var(--nvx-accent-muted, #4a4a4a);
+=======
+  border: 2px solid var(--nvx-accent, #b08d74);
+>>>>>>> master
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.nvx-bridal-timeline__phase {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nvx-text-muted);
+  margin-bottom: 0.25rem;
+}
+.nvx-bridal-timeline__title {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+/* Bridal group */
+.nvx-bridal-group__list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+<<<<<<< HEAD
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.nvx-bridal-group__card {
+  padding: 1.5rem;
+  border: 1px solid var(--nvx-border-light);
+  border-radius: var(--nvx-radius-md);
+  background: var(--nvx-surface-elevated);
+}
+.nvx-bridal-group__profile {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--nvx-ink);
+}
+
+/* Mobile improvements for bridal timeline */
+@media (max-width: 480px) {
+  .nvx-bridal-timeline__step {
+    padding-left: 1rem;
+  }
+  .nvx-bridal-timeline__step::before {
+    left: -0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.65rem;
+  }
+  .nvx-bridal-timeline__title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Price details collapsible component */
+.nvx-price-details {
+  margin: var(--nvx-space-3) 0;
+  border: 1px solid var(--nvx-border-light);
+  border-radius: var(--nvx-radius-md);
+  background: var(--nvx-surface-elevated);
+}
+.nvx-price-details__summary {
+  padding: var(--nvx-space-3);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--nvx-ink);
+  list-style: none;
+  position: relative;
+  padding-right: 2.5rem;
+}
+.nvx-price-details__summary::-webkit-details-marker {
+  display: none;
+}
+.nvx-price-details__summary::after {
+  content: '+';
+  position: absolute;
+  right: var(--nvx-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  font-weight: 300;
+  transition: transform 0.2s ease;
+}
+.nvx-price-details[open] .nvx-price-details__summary::after {
+  content: '−';
+  transform: translateY(-50%) rotate(0deg);
+}
+.nvx-price-details__content {
+  padding: 0 var(--nvx-space-3) var(--nvx-space-3);
+  border-top: 1px solid var(--nvx-border-light);
+}
+.nvx-price-details__content .nvx-prose {
+  margin: var(--nvx-space-3) 0 0 0;
+}
+.nvx-price-details__content .nvx-prose:first-child {
+  margin-top: var(--nvx-space-3);
+=======
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .nvx-bridal-group__list { grid-template-columns: repeat(2, 1fr); }
+}
+.nvx-bridal-group__member {
+  border: 1px solid var(--nvx-border-subtle, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 1rem;
+>>>>>>> master
+}
+>>>>>>> forensic-code-review

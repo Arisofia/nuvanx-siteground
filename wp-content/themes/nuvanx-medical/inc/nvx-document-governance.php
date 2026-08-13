@@ -33,6 +33,102 @@ function nvx_document_governance_suppress_yoast_canonical( $canonical ) {
 add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical', PHP_INT_MAX );
 
 /**
+ * Normalized path from the actual HTTP request, independent of the global post.
+ */
+function nvx_document_governance_request_path(): string {
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$path = wp_parse_url( $uri, PHP_URL_PATH );
+	$path = is_string( $path ) && '' !== $path ? $path : '/';
+	$path = '/' . trim( $path, '/' );
+
+	return '/' === $path ? '/' : $path . '/';
+}
+
+/**
+ * Resolve governed journal metadata by the requested slug rather than a mutable
+ * global query object. This is the final head-contract guard against a stale
+ * Yoast/indexable/global-post context leaking metadata from a neighbouring post.
+ *
+ * @return array{slug:string,path:string,metadata:array<string,mixed>}|null
+ */
+function nvx_document_governance_governed_blog_request(): ?array {
+	if ( is_admin() || wp_doing_ajax() || is_404() || is_search() || is_feed() || is_preview() ) {
+		return null;
+	}
+
+	if ( ! function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
+		return null;
+	}
+
+	$path = nvx_document_governance_request_path();
+	$slug = trim( $path, '/' );
+	if ( '' === $slug || false !== strpos( $slug, '/' ) ) {
+		return null;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
+		return null;
+	}
+
+	return array(
+		'slug'     => $slug,
+		'path'     => '/' . $slug . '/',
+		'metadata' => $catalog[ $slug ],
+	);
+}
+
+/** Final governed journal title from the requested public route. */
+function nvx_document_governance_governed_blog_title( $title ) {
+	$request = nvx_document_governance_governed_blog_request();
+	if ( null === $request ) {
+		return $title;
+	}
+
+	$value = trim( (string) ( $request['metadata']['title'] ?? '' ) );
+	return '' !== $value ? $value : $title;
+}
+add_filter( 'wpseo_title', 'nvx_document_governance_governed_blog_title', PHP_INT_MAX );
+add_filter( 'pre_get_document_title', 'nvx_document_governance_governed_blog_title', PHP_INT_MAX );
+add_filter( 'wpseo_opengraph_title', 'nvx_document_governance_governed_blog_title', PHP_INT_MAX );
+add_filter( 'wpseo_twitter_title', 'nvx_document_governance_governed_blog_title', PHP_INT_MAX );
+
+/** Final governed journal description from the requested public route. */
+function nvx_document_governance_governed_blog_description( $description ) {
+	$request = nvx_document_governance_governed_blog_request();
+	if ( null === $request ) {
+		return $description;
+	}
+
+	$value = trim( (string) ( $request['metadata']['description'] ?? '' ) );
+	return '' !== $value ? $value : $description;
+}
+add_filter( 'wpseo_metadesc', 'nvx_document_governance_governed_blog_description', PHP_INT_MAX );
+add_filter( 'wpseo_opengraph_desc', 'nvx_document_governance_governed_blog_description', PHP_INT_MAX );
+add_filter( 'wpseo_twitter_description', 'nvx_document_governance_governed_blog_description', PHP_INT_MAX );
+
+/**
+ * Final Open Graph URL for governed journal routes.
+ *
+ * Staging remains noindex and intentionally advertises the production URL for
+ * social previews; production emits its own self URL. Both are derived from the
+ * requested route, never from a mutable queried-object/indexable context.
+ */
+function nvx_document_governance_governed_blog_opengraph_url( $url ) {
+	$request = nvx_document_governance_governed_blog_request();
+	if ( null === $request ) {
+		return $url;
+	}
+
+	if ( function_exists( 'nvx_seo_is_nonproduction_environment' ) && nvx_seo_is_nonproduction_environment() ) {
+		return 'https://nuvanx.com' . $request['path'];
+	}
+
+	return home_url( $request['path'] );
+}
+add_filter( 'wpseo_opengraph_url', 'nvx_document_governance_governed_blog_opengraph_url', PHP_INT_MAX );
+
+/**
  * Whether the current strategy route is approved for publication.
  */
 function nvx_document_governance_is_approved_strategy_route(): bool {
@@ -105,6 +201,11 @@ add_filter( 'wpseo_opengraph_url', 'nvx_document_governance_nonproduction_opengr
  * document never ships without a canonical link.
  */
 function nvx_document_governance_canonical_url(): string {
+	$request = nvx_document_governance_governed_blog_request();
+	if ( null !== $request ) {
+		return home_url( $request['path'] );
+	}
+
 	$url = '';
 
 	if ( ! is_404() && function_exists( 'nvx_seo_current_canonical_url' ) ) {

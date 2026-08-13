@@ -219,10 +219,9 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= nvx_signature_phase_details_section( $page );
 
 	// Add price display for profile-definition (papada) before final CTA
-	$current_key = nvx_signature_phase_current_key();
-	if ( 'profile-definition' === $current_key ) {
+	if ( 'papada-definicion-mandibular-madrid' === (string) ( $page['slug'] ?? '' ) ) {
 		$catalog = nvx_signature_phase_catalog();
-		$price_data = $catalog[ $current_key ] ?? array();
+		$price_data = $catalog['profile-definition'] ?? array();
 		$price_range = $price_data['price_range'] ?? '';
 		$price_technology = $price_data['price_technology'] ?? '';
 		$price_note = $price_data['price_note'] ?? '';

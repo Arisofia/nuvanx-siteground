@@ -119,15 +119,26 @@ function isTransientFailure(result) {
   if (navigationNoResponseOnly) return true;
 
   const expectedDocumentUrl = `${baseUrl}${String(result.route || '')}`;
-  const retryAbortOnly =
+  const networkIssueOnly =
     result.status === 'FIX' &&
     blockers.length === 0 &&
     issues.length > 0 &&
     issues.every((message) => /^\d+ same-origin network error\(s\)$/i.test(message)) &&
-    networkErrors.length > 0 &&
+    networkErrors.length > 0;
+
+  const retryAbortOnly =
+    networkIssueOnly &&
     networkErrors.every((message) => message === `${expectedDocumentUrl}: net::ERR_ABORTED`);
 
-  return retryAbortOnly;
+  const siteGroundCaptchaRequestAbortOnly =
+    networkIssueOnly &&
+    networkErrors.every(
+      (message) =>
+        message.startsWith(`${baseUrl}/.well-known/sgcaptcha/`) &&
+        message.endsWith(': net::ERR_ABORTED')
+    );
+
+  return retryAbortOnly || siteGroundCaptchaRequestAbortOnly;
 }
 
 async function failedResultsAreTransient() {

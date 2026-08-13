@@ -67,6 +67,35 @@
 	max-width: var(--nvx-measure);
 }
 
+.nvx-hero-title-location {
+	font-weight: 300;
+	opacity: 0.85;
+	white-space: nowrap;
+}
+
+/* Hero scroll cue */
+.nvx-home-hero__scroll-cue {
+	position: absolute;
+	bottom: var(--nvx-space-6);
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	color: var(--nvx-light);
+	opacity: 0.7;
+	transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.nvx-home-hero__scroll-cue:hover,
+.nvx-home-hero__scroll-cue:focus-visible {
+	opacity: 1;
+	transform: translateX(-50%) translateY(2px);
+}
+
 /* =========================================================
    SECCIÓN 02: LA FILOSOFÍA
    ========================================================= */

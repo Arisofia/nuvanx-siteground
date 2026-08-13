@@ -70,6 +70,9 @@ function nvx_signature_phase_resolve_token( $value ) {
 	if ( 'contour_mixed' === $value ) {
 		return nvx_signature_contour_label();
 	}
+	if ( 'Contour Architecture™' === $value ) {
+		return 'CONTOUR ARCHITECTURE™';
+	}
 	return $value;
 }
 

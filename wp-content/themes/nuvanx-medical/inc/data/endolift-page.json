@@ -62,7 +62,7 @@
     "process": {
         "kicker": "@nvx-t:El procedimiento en NUVANX",
         "title": "@nvx-t:Ejecución paso a paso",
-        "body": "@nvx-t:Duración habitual 60–90 minutos. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la FAQ.",
+        "body": "@nvx-t:Duración habitual 60–90 minutos. Procedimiento ambulatorio sin ingreso. Recuperación social y dolor se detallan en la FAQ.",
         "steps": [
             { "icon": "assess", "n": "01", "title": "@nvx-t:Planimetría y marcaje", "body": "@nvx-t:Mapeo de líneas de tensión y compartimentos grasos; definición de vectores y parámetros antes de la fibra." },
             { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración en puntos de entrada para confort. Sensación de calor y presión, no dolor agudo." },
@@ -72,7 +72,7 @@
     },
     "postop": {
         "kicker": "@nvx-t:Recuperación Transparente",
-        "title": "@nvx-t:Cómo es el postoperatorio real del Endolift® en Madrid (sin clichés)",
+        "title": "@nvx-t:Recuperación real del Endolift® en Madrid",
         "body": "@nvx-t:A diferencia de una cirugía invasiva (como una liposucción tradicional o un lifting), el Endolift® no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:",
         "items": [
             { "title": "@nvx-t:Días 1 a 3 (Inflamación):", "body": "@nvx-t:Es normal sentir la zona tratada inflamada, ligeramente acartonada y sensible al tacto. Pueden aparecer pequeños hematomas en los puntos de entrada de la fibra láser. No minimizamos el proceso: el disconfort existe, pero se controla con nuestra pauta analgésica oral estandarizada." },
@@ -80,7 +80,7 @@
             { "title": "@nvx-t:Semanas 2 a 4 (Retracción Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna profunda. Las molestias físicas desaparecen casi por completo y empiezas a notar la piel visiblemente más firme y adherida al plano profundo." },
             { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neo-colagénesis y la retracción tisular. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real." }
         ],
-        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía."
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento."
     },
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",

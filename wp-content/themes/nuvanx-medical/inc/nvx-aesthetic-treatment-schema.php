@@ -72,11 +72,6 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
-	// Add medical reviewer attribution using director physician.
-	$physician_id = home_url( '/equipo-medico/#physician-rivera-tejeda' );
-	$node['reviewedBy'] = array( '@id' => $physician_id );
-	$node['performer'] = array( '@id' => $physician_id );
-
 	// Extract numeric price from price_range string for schema.org Offer.
 	// Spanish tariffs use '.' as thousands separator and ',' as decimal
 	// (e.g. "1.200,50 €"), so strip thousands dots before casting to float

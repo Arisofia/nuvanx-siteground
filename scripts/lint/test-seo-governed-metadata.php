@@ -15,26 +15,31 @@ function nvx_test_governed_json_integrity(): void {
     $data_dir = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
     $failures = array();
 
-    // Recursively scan all JSON files in the data directory
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator( $data_dir, RecursiveDirectoryIterator::SKIP_DOTS )
-    );
+    // Check if data directory exists and is readable
+    if ( ! is_dir( $data_dir ) || ! is_readable( $data_dir ) ) {
+        $failures[] = 'Data directory not accessible: ' . $data_dir;
+    } else {
+        // Recursively scan all JSON files in the data directory
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator( $data_dir, RecursiveDirectoryIterator::SKIP_DOTS )
+        );
 
-    foreach ( $iterator as $file ) {
-        if ( 'json' !== $file->getExtension() ) {
-            continue;
-        }
+        foreach ( $iterator as $file ) {
+            if ( 'json' !== $file->getExtension() ) {
+                continue;
+            }
 
-        $path = $file->getPathname();
-        $raw = file_get_contents( $path );
-        if ( false === $raw ) {
-            $failures[] = 'Unreadable JSON: ' . $path;
-            continue;
-        }
+            $path = $file->getPathname();
+            $raw = file_get_contents( $path );
+            if ( false === $raw ) {
+                $failures[] = 'Unreadable JSON: ' . $path;
+                continue;
+            }
 
-        json_decode( $raw, true );
-        if ( JSON_ERROR_NONE !== json_last_error() ) {
-            $failures[] = 'Malformed JSON: ' . $path . ' — ' . json_last_error_msg();
+            json_decode( $raw, true );
+            if ( JSON_ERROR_NONE !== json_last_error() ) {
+                $failures[] = 'Malformed JSON: ' . $path . ' — ' . json_last_error_msg();
+            }
         }
     }
 
@@ -48,6 +53,56 @@ function nvx_test_governed_json_integrity(): void {
 }
 
 nvx_test_governed_json_integrity();
+
+/** Fail the blocking static gate when any merge conflict markers exist in the codebase. */
+function nvx_test_merge_conflict_integrity(): void {
+    $repo_root = dirname( __DIR__, 2 );
+    $failures = array();
+
+    // Search for merge conflict markers in all text files
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator( $repo_root, RecursiveDirectoryIterator::SKIP_DOTS )
+    );
+
+    foreach ( $iterator as $file ) {
+        // Skip common binary/vcs directories
+        $path = $file->getPathname();
+        if ( strpos( $path, '.git' ) !== false || strpos( $path, 'node_modules' ) !== false || strpos( $path, 'vendor' ) !== false ) {
+            continue;
+        }
+
+        // Only check text files
+        if ( ! $file->isFile() ) {
+            continue;
+        }
+
+        $ext = $file->getExtension();
+        if ( ! in_array( $ext, array( 'php', 'js', 'mjs', 'json', 'css', 'md', 'txt', 'yml', 'yaml' ), true ) ) {
+            continue;
+        }
+
+        $raw = file_get_contents( $path );
+        if ( false === $raw ) {
+            continue;
+        }
+
+        // Check for merge conflict markers
+        if ( preg_match( '/^<<<<<<<|^=======|^>>>>>>>|^>>>>>>>/m', $raw ) ) {
+            $rel_path = str_replace( $repo_root . '/', '', $path );
+            $failures[] = 'Merge conflict markers found: ' . $rel_path;
+        }
+    }
+
+    if ( array() !== $failures ) {
+        fwrite( STDERR, 'MERGE_CONFLICT_INTEGRITY_TEST=FAIL' . PHP_EOL );
+        fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );
+        exit( 1 );
+    }
+
+    echo 'MERGE_CONFLICT_INTEGRITY_TEST=PASS' . PHP_EOL;
+}
+
+nvx_test_merge_conflict_integrity();
 
 function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
     unset( $hook_name, $callback, $priority, $accepted_args );

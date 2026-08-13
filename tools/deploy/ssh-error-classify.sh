@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # SSH error classification helper
 # Returns classification status and transport_retry flag
-# Usage: ssh-error-classify.sh <error_log_file>
+# Usage: ssh-error-classify.sh <error_log_file> <ssh_exit_code>
 # Outputs: status=<classification> transport_retry=<true|false>
 
 set -euo pipefail
 
 SSH_ERR_FILE="${1:?}"
+SSH_RC="${2:-0}"
 [[ -f "$SSH_ERR_FILE" ]] || { echo "status=ssh_other transport_retry=false"; exit 0; }
+
+# If SSH exit code is not 255, it's a remote environment error
+if [[ "$SSH_RC" -ne 255 ]]; then
+  echo "status=remote_env transport_retry=false"
+  exit 0
+fi
 
 # SSH error classification patterns
 TRANSPORT_PATTERNS=(

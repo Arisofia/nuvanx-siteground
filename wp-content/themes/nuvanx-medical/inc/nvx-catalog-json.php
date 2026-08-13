@@ -131,7 +131,7 @@ function nvx_catalog_governance_config(): array {
 			'investment_key'  => 'investment',
 		),
 		'endolaser' => array(
-			'price_faq_index' => 0,
+			'price_faq_index' => 7,
 			'planning_key'   => 'planning',
 		),
 	);
@@ -225,8 +225,8 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 			$catalog[ $plan_key ]['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
 		}
 
-		// The Endoláser catalog schema reserves FAQ item 0 for the pricing question.
-		$faq_idx = $config['endolaser']['price_faq_index'] ?? 0;
+		// The Endoláser catalog schema reserves FAQ item 7 for the pricing question.
+		$faq_idx = $config['endolaser']['price_faq_index'] ?? 7;
 		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) ) {
 			$catalog['faq']['items'][ $faq_idx ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
 		}

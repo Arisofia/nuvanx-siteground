@@ -6,7 +6,7 @@
         "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
         "lead": "@nvx-t:Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
         "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, protocolo personalizado y recuperación realista — antes de decidir.",
-        "meta": "@nvx-t:Papada · Marcación mandibular · Óvalo facial · Chamberí · Salamanca–Goya"
+        "meta": "@nvx-t:Papada · Marcación mandibular · Óvalo facial · Chamberí (CS20144) · Salamanca–Goya (CS20073)"
     },
     "review": {
         "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
@@ -24,7 +24,7 @@
         "kicker": "@nvx-t:Indicaciones clínicas",
         "title": "@nvx-t:Selección rigurosa del paciente ideal",
         "body": [
-            "@nvx-t:El resultado depende sobre todo de una indicación correcta. Está orientado a flacidez leve–moderada del tercio inferior y cuello, y a grasa submentoniana moderada, cuando se busca remodelación estructural sin los riesgos y la baja de un lifting cérvicofacial.",
+            "@nvx-t:El resultado depende sobre todo de una indicación correcta. Está orientado a flacidez leve–moderada del tercio inferior y cuello, y a grasa submentoniana moderada, cuando se busca remodelación estructural sin los riesgos y la baja de un lifting cérvicofacial. Para valoración integral del perfil mandibular y papada, consulta NUVANX Profile Definition™.",
             "@nvx-t:Se descarta en ptosis severa con pliegues marcados y exceso cutáneo evidente: la retracción térmica no sustituye a la resección quirúrgica. En ese caso se deriva a cirugía plástica.",
             "@nvx-t:Antes de programar, el diagnóstico diferencial separa laxitud del SMAS, adiposidad localizada o la combinación de ambas —eso calibra energía y vectores de la microfibra."
         ],
@@ -85,7 +85,7 @@
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",
         "title": "@nvx-t:Valoración y presupuesto Endolift® en NUVANX Madrid",
-        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 798 € (ojeras), 1.064,80 € (papada o marcación mandibular cada una). El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en más del 90% de los casos, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:",
+        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 798 € (ojeras), 1.064,80 € (papada o marcación mandibular cada una), 1.197,90 € (cuello). Combos frecuentes como papada+cuello (1.331 €) o full face (1.694 €) se valoran según indicación. El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en la mayoría de indicaciones, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:",
         "items": [
             "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
             "@nvx-t:Honorarios médicos de la intervención",
@@ -109,11 +109,11 @@
             },
             {
                 "q": "@nvx-t:¿Cuántas sesiones de Endolift® se necesitan?",
-                "a": "@nvx-t:El procedimiento se realiza en 1 sola sesión en más del 90% de los casos. Para casos complejos que requieren retoques o combinaciones con otras tecnologías, se planifica un protocolo complementario tras la valoración médica."
+                "a": "@nvx-t:En la mayoría de indicaciones, el procedimiento se realiza en 1 sola sesión. Para casos complejos que requieren retoques o combinaciones con otras tecnologías, se planifica un protocolo complementario tras la valoración médica."
             },
             {
                 "q": "@nvx-t:¿Cuánto dura el efecto del Endolift®?",
-                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen entre 2 y 3 años tras el procedimiento. El resultado evoluciona progresivamente, con la consolidación máxima del nuevo colágeno entre los 3 y 6 meses."
+                "a": "@nvx-t:La neocolagénesis y la retracción tisular se mantienen a medio plazo orientativo 2–3 años tras el procedimiento. La duración real es variable según edad, peso, hábitos y metabolismo individual; no es permanente. El resultado evoluciona progresivamente, con la consolidación máxima del nuevo colágeno entre los 3 y 6 meses."
             },
             {
                 "q": "@nvx-t:¿Cuál es el tiempo de recuperación?",

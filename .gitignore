@@ -80,4 +80,6 @@ scratch/
 *.tmp
 *.swp
 *~
-wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+/.nvx-deploy-sha
+/wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+

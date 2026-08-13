@@ -1519,6 +1519,63 @@ figure.nvx-equipo-portrait{
     grid-template-columns: 1fr;
     gap: var(--nvx-space-4)}
 
+/* Tabla comparativa Endolift vs Lifting */
+.nvx-endolift-compare-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: var(--nvx-space-6);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card, 12px);
+  background: var(--nvx-light, #faf9f6);
+}
+
+.nvx-endolift-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.9375rem);
+}
+
+.nvx-endolift-compare-table th,
+.nvx-endolift-compare-table td {
+  padding: var(--nvx-space-4) var(--nvx-space-5);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.nvx-endolift-compare-table thead th {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-body, 1.0625rem);
+  font-weight: var(--nvx-fw-medium, 500);
+  color: var(--nvx-ink, #171717);
+  background: var(--nvx-surface-base, #f4f2ee);
+  border-bottom: 2px solid var(--nvx-color-line);
+}
+
+.nvx-endolift-compare-table tbody th[scope="row"] {
+  font-weight: var(--nvx-fw-medium, 500);
+  color: var(--nvx-ink, #171717);
+  width: 25%;
+}
+
+.nvx-endolift-compare-table tbody td {
+  color: var(--nvx-text-muted, #524f4a);
+  width: 37.5%;
+}
+
+.nvx-endolift-compare-table tbody td:first-of-type {
+  color: var(--nvx-ink, #171717);
+  font-weight: var(--nvx-fw-medium, 500);
+  background: rgba(212, 175, 55, 0.04);
+}
+
+.nvx-endolift-compare-table tbody tr:last-child th,
+.nvx-endolift-compare-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .nvx-aes-regen__grid{
   display: grid;
     grid-template-columns: 1fr;

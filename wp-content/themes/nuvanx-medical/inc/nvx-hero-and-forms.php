@@ -342,16 +342,17 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 		$wa_url      = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : 'https://wa.me/34689317399';
 
 		$skeleton_html = '<style>
-			.nvx-skeleton-wrapper { display: flex; flex-direction: column; gap: 14px; padding: 12px 0; width: 100%; max-width: 600px; animation: nvx-pulse-anim 1.5s infinite ease-in-out; }
-			.nvx-skeleton-field { height: 44px; background-color: rgba(0,0,0,0.05); border-radius: 4px; width: 100%; }
-			.nvx-skeleton-field.short { width: 60%; }
-			.nvx-skeleton-button { height: 48px; background-color: rgba(0,0,0,0.1); border-radius: 999px; width: 220px; margin-top: 12px; }
+			.nvx-skeleton-wrapper { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; width: 100%; max-width: 520px; animation: nvx-pulse-anim 1.5s infinite ease-in-out; }
+			.nvx-skeleton-field { height: 38px; background-color: rgba(0,0,0,0.05); border-radius: 4px; width: 100%; }
+			.nvx-skeleton-field.short { width: 50%; }
+			.nvx-skeleton-button { height: 44px; background-color: rgba(0,0,0,0.1); border-radius: 999px; width: 200px; margin-top: 6px; }
 			@keyframes nvx-pulse-anim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-skeleton-wrapper { display: none; }
-			#nvx-hubspot-native-form:has(iframe) .nvx-skeleton-wrapper { display: none; }
+			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-skeleton-wrapper,
+			#nvx-hubspot-native-form:has(iframe) .nvx-skeleton-wrapper,
+			.nvx-hubspot-native-form-v2:has(.hbspt-form) .nvx-skeleton-wrapper,
+			.nvx-hubspot-native-form-v2:has(iframe) .nvx-skeleton-wrapper { display: none; }
 		</style>
 		<div class="nvx-skeleton-wrapper" aria-hidden="true">
-			<div class="nvx-skeleton-field"></div>
 			<div class="nvx-skeleton-field"></div>
 			<div class="nvx-skeleton-field"></div>
 			<div class="nvx-skeleton-field short"></div>

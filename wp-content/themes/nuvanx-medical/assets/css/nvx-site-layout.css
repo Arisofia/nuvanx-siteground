@@ -199,8 +199,7 @@
   isolation: isolate;
   width: 100%;
   margin: 0;
-  padding-block: clamp(56px, 8vw, calc(var(--nvx-space-1) * 13))
-    clamp(var(--nvx-space-8), 9vw, 120px);
+  padding-block: var(--nvx-pad-section-tight);
   padding-inline: 0;
   overflow: hidden;
   scroll-margin-top: var(--nvx-space-12);

@@ -53,6 +53,9 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 					<a href="<?php echo esc_url( $chamberi_wa ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
 						<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
 					</a>
+					<a href="tel:<?php echo esc_attr( preg_replace( '/\s+/', '', $chamberi_phone ) ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary">
+						<?php echo esc_html( sprintf( __( 'Llamar: %s', 'nuvanx-medical' ), $chamberi_phone ) ); ?>
+					</a>
 				</div>
 				<p class="nvx-brand-meta">
 					<?php esc_html_e( 'Diagnóstico individual · Indicación proporcionada · Seguimiento médico', 'nuvanx-medical' ); ?>

@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  // Prevent duplicate floating chat widgets from colliding with Joinchat / WhatsApp
+  window.hsConversationsSettings = {
+    loadImmediately: false,
+  };
+
   const config = window.nvxRuntimeGovernance || {};
 
   function setInert(element, inert) {

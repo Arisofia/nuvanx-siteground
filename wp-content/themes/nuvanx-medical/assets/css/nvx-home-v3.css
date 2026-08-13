@@ -493,9 +493,19 @@
 .nvx-home-seo__list li {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
-	line-height: 1.4;
+	line-height: 1.6;
 	color: var(--nvx-text-muted);
 	max-width: var(--nvx-measure);
+}
+
+.nvx-home-seo__list .nvx-text-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding-block: var(--nvx-space-1);
+	color: var(--nvx-ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 
 .nvx-home-seo__list li strong {
@@ -566,7 +576,11 @@
 }
 
 .nvx-home-location__link {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding-block: var(--nvx-space-1);
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
 	color: var(--nvx-accent-gold-text);

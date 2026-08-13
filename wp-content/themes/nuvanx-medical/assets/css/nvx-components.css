@@ -598,8 +598,15 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   transform: translateY(-1px);
 }
 
+.nvx-brand-inline-link,
 .nvx-hubspot-form-section .nvx-text-link,
-.nvx-hs-native-box .nvx-text-link {
+.nvx-hs-native-box .nvx-text-link,
+.nvx-doctoralia-proof a,
+.nvx-hubspot-privacy a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: var(--nvx-space-1);
   color: var(--nvx-ink);
   text-decoration: underline;
   text-decoration-thickness: var(--nvx-border-hairline);
@@ -2156,3 +2163,67 @@ figure.nvx-equipo-portrait{
     max-height: none;
   }
 }
+
+/* Prevent duplicate floating chat widgets overlapping in bottom-right corner */
+#hubspot-messages-iframe-container,
+.hs-messages-widget-open,
+#hs-conversations-screen-wrapper,
+#hubspot-conversations-inline-parent,
+iframe[id^="hubspot-messages-iframe"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Compact non-intrusive bottom cookie banner */
+.cmplz-cookiebanner,
+#cmplz-cookiebanner-container,
+.cmplz-banner {
+  max-width: min(720px, calc(100vw - var(--nvx-space-4) * 2)) !important;
+  margin: 0 auto var(--nvx-space-3) !important;
+  left: var(--nvx-space-3) !important;
+  right: var(--nvx-space-3) !important;
+  bottom: var(--nvx-space-3) !important;
+  padding: var(--nvx-space-3) var(--nvx-space-4) !important;
+  border-radius: var(--nvx-radius-card) !important;
+  border: var(--nvx-border-hairline) solid var(--nvx-border-soft) !important;
+  background: var(--nvx-light) !important;
+  color: var(--nvx-text-body) !important;
+  box-shadow: var(--nvx-shadow-medium) !important;
+  font-family: var(--nvx-sans) !important;
+  font-size: var(--nvx-type-caption) !important;
+  line-height: var(--nvx-lh-caption) !important;
+  z-index: 99999 !important;
+}
+
+.cmplz-cookiebanner .cmplz-header,
+.cmplz-cookiebanner .cmplz-title {
+  font-size: var(--nvx-type-small) !important;
+  font-weight: var(--nvx-fw-medium) !important;
+  margin-bottom: var(--nvx-space-1) !important;
+}
+
+.cmplz-cookiebanner .cmplz-message {
+  font-size: var(--nvx-type-caption) !important;
+  margin-bottom: var(--nvx-space-2) !important;
+  max-height: 80px !important;
+  overflow-y: auto !important;
+}
+
+.cmplz-cookiebanner .cmplz-buttons {
+  display: flex !important;
+  gap: var(--nvx-space-2) !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+.cmplz-cookiebanner .cmplz-btn {
+  min-height: 38px !important;
+  padding: var(--nvx-space-1) var(--nvx-space-3) !important;
+  border-radius: var(--nvx-radius-button) !important;
+  font-size: var(--nvx-type-caption) !important;
+  font-weight: var(--nvx-fw-medium) !important;
+  text-transform: uppercase !important;
+  letter-spacing: var(--nvx-track-button) !important;
+}
+

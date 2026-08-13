@@ -101,7 +101,7 @@
   display: inline-flex;
   min-height: var(--nvx-control-size);
   align-items: center;
-  padding-inline: var(--nvx-space-2);
+  padding-inline: calc(var(--nvx-space-1) * 1.25);
   padding-block: var(--nvx-space-2);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav-compact);
@@ -113,7 +113,7 @@
   text-decoration: none;
   white-space: nowrap;
   border-radius: var(--nvx-radius-button);
-  transition: background-color 160ms ease, color 160ms ease;
+  transition: background-color var(--nvx-transition-fast), color var(--nvx-transition-fast);
 }
 
 .nvx-nav__link:hover,

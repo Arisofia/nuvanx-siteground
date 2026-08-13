@@ -10,8 +10,26 @@ const catalog = JSON.parse(await fs.readFile('wp-content/themes/nuvanx-medical/i
 const norm = (value) => `${String(value).split(/[?#]/, 1)[0].replace(/\/$/, '')}/`;
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ ignoreHTTPSErrors: true });
+
+async function gotoStable(page, url) {
+  let last = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
+      const headers = response?.headers() || {};
+      last = response;
+      if (response && response.status() !== 202 && !headers['sg-captcha']) return response;
+    } catch (error) {
+      if (attempt === 4) throw error;
+    }
+    if (attempt < 4) await page.waitForTimeout(2200 * attempt);
+  }
+  return last;
+}
+
 const rest = await context.newPage();
-await rest.goto(`${base}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,slug`, { waitUntil: 'domcontentloaded', timeout: 40000 });
+const restResponse = await gotoStable(rest, `${base}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,slug`);
+if (!restResponse || restResponse.status() !== 200) throw new Error(`Staging2 posts REST returned HTTP ${restResponse?.status() || 0}`);
 const posts = JSON.parse(await rest.locator('body').innerText());
 await rest.close();
 
@@ -22,7 +40,7 @@ let failures = 0;
 for (const post of governed) {
   const page = await context.newPage();
   const expected = `${base}/${post.slug}/`;
-  const response = await page.goto(expected, { waitUntil: 'domcontentloaded', timeout: 40000 });
+  const response = await gotoStable(page, expected);
   const title = (await page.title()).trim();
   const canonical = await page.locator('link[rel="canonical"]').evaluateAll((nodes) => nodes.map((node) => node.href));
   const og = await page.locator('meta[property="og:url"]').evaluateAll((nodes) => nodes.map((node) => node.content));

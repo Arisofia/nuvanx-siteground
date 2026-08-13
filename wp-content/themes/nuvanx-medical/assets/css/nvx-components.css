@@ -1505,14 +1505,16 @@ figure.nvx-equipo-portrait{
   justify-self: start}
 
 .nvx-endolift-compare-wrap,
-.nvx-exion-compare-wrap {
+.nvx-exion-compare-wrap,
+.nvx-co2-compare-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin-block: var(--nvx-space-6);
 }
 
 .nvx-endolift-compare-table,
-.nvx-exion-compare-table {
+.nvx-exion-compare-table,
+.nvx-co2-compare-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--nvx-type-small, 0.875rem);
@@ -1522,7 +1524,9 @@ figure.nvx-equipo-portrait{
 .nvx-endolift-compare-table th,
 .nvx-endolift-compare-table td,
 .nvx-exion-compare-table th,
-.nvx-exion-compare-table td {
+.nvx-exion-compare-table td,
+.nvx-co2-compare-table th,
+.nvx-co2-compare-table td {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--nvx-border-subtle, #e5e7eb);
@@ -1530,7 +1534,8 @@ figure.nvx-equipo-portrait{
 }
 
 .nvx-endolift-compare-table thead th,
-.nvx-exion-compare-table thead th {
+.nvx-exion-compare-table thead th,
+.nvx-co2-compare-table thead th {
   font-family: var(--nvx-font-serif, Georgia, serif);
   font-weight: 500;
   font-size: var(--nvx-type-body, 1rem);
@@ -1540,19 +1545,22 @@ figure.nvx-equipo-portrait{
 }
 
 .nvx-endolift-compare-table tbody th,
-.nvx-exion-compare-table tbody th {
+.nvx-exion-compare-table tbody th,
+.nvx-co2-compare-table tbody th {
   font-weight: 500;
   color: var(--nvx-ink, #171717);
   white-space: nowrap;
 }
 
 .nvx-endolift-compare-table tbody td,
-.nvx-exion-compare-table tbody td {
+.nvx-exion-compare-table tbody td,
+.nvx-co2-compare-table tbody td {
   color: var(--nvx-text-muted, #524f4a);
 }
 
 .nvx-endolift-compare-table tbody td:first-of-type,
-.nvx-exion-compare-table tbody td:first-of-type {
+.nvx-exion-compare-table tbody td:first-of-type,
+.nvx-co2-compare-table tbody td:first-of-type {
   color: var(--nvx-ink, #171717);
   font-weight: 500;
   background: rgba(212, 175, 55, 0.04);
@@ -1561,13 +1569,16 @@ figure.nvx-equipo-portrait{
 .nvx-endolift-compare-table tbody tr:last-child th,
 .nvx-endolift-compare-table tbody tr:last-child td,
 .nvx-exion-compare-table tbody tr:last-child th,
-.nvx-exion-compare-table tbody tr:last-child td {
+.nvx-exion-compare-table tbody tr:last-child td,
+.nvx-co2-compare-table tbody tr:last-child th,
+.nvx-co2-compare-table tbody tr:last-child td {
   border-bottom: none;
 }
 
 @media (max-width: 680px) {
   .nvx-endolift-compare-wrap,
-  .nvx-exion-compare-wrap {
+  .nvx-exion-compare-wrap,
+  .nvx-co2-compare-wrap {
     margin-inline: calc(-1 * var(--nvx-pad-page, 1.25rem));
     padding-inline: var(--nvx-pad-page, 1.25rem);
   }

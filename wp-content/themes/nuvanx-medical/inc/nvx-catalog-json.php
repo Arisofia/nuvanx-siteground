@@ -266,6 +266,37 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		}
 	}
 
+	if ( 'laser-co2-page.json' === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate laser CO2 prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
+		}
+
+		$facial   = nvx_catalog_tariff_display_price( $tariffs, 'laser_co2', 'facial' );
+		$corporal = nvx_catalog_tariff_display_price( $tariffs, 'laser_co2', 'corporal' );
+
+		$inv_key = $config['laser_co2']['investment_key'] ?? 'investment';
+		if ( isset( $catalog[ $inv_key ]['body'] ) && '' !== $facial && '' !== $corporal ) {
+			$catalog[ $inv_key ]['body'] = sprintf(
+				/* translators: 1: facial price, 2: corporal price */
+				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (facial), %2$s/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
+				$facial,
+				$corporal
+			);
+		}
+
+		$faq_idx = $config['laser_co2']['price_faq_index'] ?? 0;
+		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) && '' !== $facial && '' !== $corporal ) {
+			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
+				/* translators: 1: facial price, 2: corporal price */
+				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (facial) y %2$s/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
+				$facial,
+				$corporal
+			);
+		}
+	}
+
 	return $catalog;
 }
 

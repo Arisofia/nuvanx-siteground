@@ -190,7 +190,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	// C. Comparativa vs lifting (new — not elsewhere on page).
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-compare', 'nvx-endolift-compare-title' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['compare']['kicker'] ?? '' ), 'nvx-endolift-compare-title', esc_html( $data['compare']['title'] ?? '' ) );
-	$html .= '<div class="nvx-endolift-compare-wrap">';
+	$html .= '<div class="nvx-endolift-compare-wrap" role="region" aria-label="' . esc_attr__( 'Tabla comparativa de Endolift y lifting quirúrgico', 'nuvanx-medical' ) . '" tabindex="0">';
 	$html .= '<table class="nvx-endolift-compare-table">';
 	$html .= '<thead><tr>';
 	$html .= '<th scope="col">' . esc_html( $data['compare']['col_param'] ?? '' ) . '</th>';

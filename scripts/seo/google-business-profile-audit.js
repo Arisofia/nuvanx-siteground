@@ -28,7 +28,7 @@ const CLINICS = {
     targetPage: 'https://nuvanx.com/medicina-estetica-chamberi/'
   },
   goya: {
-    name: 'Centro Clínico NUVANX Salamanca / Goya',
+    name: 'Centro Clínico NUVANX Salamanca–Goya',
     reg: 'CS20073',
     address: 'Calle de Fernán González, 26',
     postalCode: '28009',

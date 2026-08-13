@@ -1710,6 +1710,76 @@ figure.nvx-equipo-portrait{
   color: var(--nvx-ink);
 }
 
+/* Standardized Endolift comparison table */
+.nvx-endolift-compare-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--nvx-space-6) 0;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+}
+
+.nvx-endolift-compare-table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body-sm);
+  line-height: var(--nvx-lh-body-sm);
+  color: var(--nvx-ink);
+}
+
+.nvx-endolift-compare-table th,
+.nvx-endolift-compare-table td {
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  vertical-align: top;
+}
+
+.nvx-endolift-compare-table thead th {
+  background: var(--nvx-surface-soft, var(--nvx-color-soft));
+  font-weight: var(--nvx-fw-semibold);
+  text-align: left;
+  letter-spacing: var(--nvx-track-wide);
+  color: var(--nvx-ink);
+}
+
+.nvx-endolift-compare-table tbody th[scope="row"] {
+  font-weight: var(--nvx-fw-medium);
+  color: var(--nvx-ink);
+  text-align: left;
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+}
+
+.nvx-endolift-compare-table tbody td {
+  color: var(--nvx-ink-muted);
+}
+
+.nvx-endolift-compare-table tbody tr:last-child th,
+.nvx-endolift-compare-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Bridal Protocol Timeline & Groups */
+.nvx-bridal-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-6);
+  margin: var(--nvx-space-6) 0;
+}
+
+.nvx-bridal-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-3);
+  padding: var(--nvx-space-4);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+}
+
 /* Standardized recovery timeline component */
 .nvx-recovery-timeline {
   margin: var(--nvx-space-4) 0;

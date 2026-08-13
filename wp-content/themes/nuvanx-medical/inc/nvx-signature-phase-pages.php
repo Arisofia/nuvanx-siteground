@@ -218,6 +218,14 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
 	$html      .= nvx_signature_phase_details_section( $page );
 
+	// Add price display for profile-definition (papada) before final CTA
+	$current_key = nvx_signature_phase_current_key();
+	if ( 'profile-definition' === $current_key ) {
+		$html .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+		$html .= '<p class="nvx-prose"><strong>Tarifa orientativa:</strong> desde 1.064,80 €. Tecnología habitual para esta indicación: Endolift®. El presupuesto definitivo se documenta tras valoración presencial.</p>';
+		$html .= '</div></section>';
+	}
+
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 
 	$html      .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos, expectativas y disponibilidad para cuidados. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';

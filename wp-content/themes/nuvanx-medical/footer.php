@@ -86,7 +86,6 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 					<?php foreach ( $nvx_col_two as $nvx_treatment ) : ?>
 						<a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a>
 					<?php endforeach; ?>
-					<a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">BTL EXILITE™ IPL</a>
 				</div>
 			</div>
 

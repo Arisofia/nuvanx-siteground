@@ -249,7 +249,7 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 		),
 		array(
 			'url'      => home_url( '/protocolos-signature/' ),
-			'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
+			'label'    => __( 'Protocolos médicos', 'nuvanx-medical' ),
 			'children' => $signature_children,
 		),
 		array(

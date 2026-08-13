@@ -70,7 +70,7 @@ ob_start();
 
 	<section class="nvx-home-portfolio" aria-labelledby="nvx-home-portfolio-title">
 		<header class="nvx-home-portfolio__header">
-			<p id="nvx-home-portfolio-title" class="nvx-home-portfolio__title">Arquitectura anatómica</p>
+			<h2 id="nvx-home-portfolio-title" class="nvx-home-portfolio__title">Protocolos principales y tecnologías de referencia</h2>
 		</header>
 		<div class="nvx-home-portfolio__list">
 			<article class="nvx-home-portfolio__item">

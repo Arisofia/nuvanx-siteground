@@ -1584,6 +1584,19 @@ figure.nvx-equipo-portrait{
   }
 }
 
+/* Signature Hub Hero Price Tag */
+.nvx-brand-hero__price {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.9375rem);
+  line-height: var(--nvx-lh-body, 1.5);
+  color: var(--nvx-ink, #171717);
+  background: var(--nvx-surface-base, #f4f2ee);
+  border-left: 3px solid var(--nvx-accent-gold-text, #c5a059);
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  margin-block: var(--nvx-space-4);
+  border-radius: 0 var(--nvx-radius-card, 6px) var(--nvx-radius-card, 6px) 0;
+}
+
 .nvx-aes-regen__grid{
   display: grid;
     grid-template-columns: 1fr;

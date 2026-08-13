@@ -24,7 +24,10 @@
     ],
     "seo_title": "Papada y definición mandibular Madrid | NUVANX",
     "seo_desc": "Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.",
-    "protocol": "NUVANX Profile Definition™"
+    "protocol": "NUVANX Profile Definition™",
+    "price_range": "desde 1.064,80 €",
+    "price_technology": "Endolift®",
+    "price_note": "El presupuesto definitivo se documenta tras valoración presencial."
   },
   "skin-architecture": {
     "phase": 1,
@@ -134,7 +137,7 @@
     "seo_desc": "Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.",
     "protocol": "contour_mixed",
     "price_range": "1.200 € – 1.800 € (Endoláser abdominal)",
-    "sessions": "1 sesión única Endoláser · Revisiones protocolizadas a 4 y 8 semanas",
+    "sessions": "1 sesión única Endoláser · Revisiones protocolizadas a 4 semanas, 3 meses y 6 meses",
     "timeline": "Cambios visibles semanas 4-6; consolidación meses 3-6",
     "post_care": "Faja compresiva 2-4 semanas; drenajes linfáticos recomendados",
     "comparison": "Endoláser (mínimamente invasivo) vs Criolipólisis (no invasiva) vs Cirugía",

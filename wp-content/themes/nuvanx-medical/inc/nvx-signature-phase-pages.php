@@ -208,6 +208,17 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<h1 id="nvx-signature-title" class="nvx-brand-hero__title">' . esc_html( (string) $page['title'] ) . '</h1>';
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
 	$html      .= '<p class="nvx-brand-hero__lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
+
+	if ( ! empty( $page['price_range'] ) ) {
+		$html .= '<p class="nvx-brand-hero__price"><strong>' . esc_html__( 'Tarifa orientativa:', 'nuvanx-medical' ) . '</strong> '
+			. esc_html( (string) $page['price_range'] ) . '. '
+			. ( ! empty( $page['price_technology'] )
+				? esc_html__( 'Tecnología habitual: ', 'nuvanx-medical' ) . esc_html( (string) $page['price_technology'] ) . '. '
+				: '' )
+			. esc_html( (string) ( $page['price_note'] ?? '' ) )
+			. '</p>';
+	}
+
 	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></div>';
 	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
 	$html      .= nvx_signature_phase_list( 'Qué se valora', (array) $page['assessment'] );

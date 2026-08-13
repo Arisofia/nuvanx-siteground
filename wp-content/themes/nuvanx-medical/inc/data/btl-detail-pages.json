@@ -468,5 +468,136 @@
                 "a": "@nvx-t:El resultado es progresivo y se mantiene 3–6 meses tras el protocolo inicial. Se recomienda ciclo de mantenimiento 1–2 veces por año según calidad de piel."
             }
         ]
+    },
+    "exilite": {
+        "path": "/btl-exilite-ipl-madrid/",
+        "key": "exilite",
+        "kicker": "@nvx-t:BTL EXILITE™ IPL · NUVANX Madrid",
+        "h1": "@nvx-t:BTL EXILITE™ IPL en Madrid: fotorejuvenecimiento",
+        "lead": "@nvx-t:Sistema de luz pulsada intensa (IPL) para indicaciones pigmentarias, vasculares y calidad cutánea según diagnóstico, fototipo y valoración médica.",
+        "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación tras valoración",
+        "aria": "@nvx-t:BTL EXILITE IPL NUVANX",
+        "marker": "nvx-exilite",
+        "yoast_title": "BTL EXILITE™ IPL Madrid | Manchas y Rojeces | NUVANX",
+        "yoast_desc": "BTL EXILITE™ IPL en Madrid: fotorejuvenecimiento para manchas, rojeces y calidad cutánea según diagnóstico y fototipo. Chamberí y Salamanca–Goya.",
+        "focuskw": "EXILITE IPL Madrid",
+        "hub": "@nvx-url:/laser-medicina-estetica/",
+        "schema_name": "BTL EXILITE™ IPL en Madrid",
+        "schema_type": "Protocolo médico de IPL con BTL EXILITE™",
+        "schema_desc": "Tratamiento de fotorejuvenecimiento con BTL EXILITE™ IPL en NUVANX Madrid: manchas, rojeces y calidad cutánea según diagnóstico médico.",
+        "clinical_data": {
+            "technology": "Luz pulsada intensa (IPL) con filtros selectivos",
+            "target": "Alteraciones pigmentarias (léntigos, manchas solares), vasculares (telangiectasias, rojeces) y calidad cutánea",
+            "sessions": "1–3 sesiones para pigmentación leve; 2–4 para vascular mixto; 3–4 para fotodaño moderado",
+            "downtime": "Eritema transitorio 1–2 horas. Posible leve oscurecimiento de manchas antes de descamar (3–7 días).",
+            "price_range": "Cara completa desde 295€ · Escote desde 245€ · Manos desde 195€",
+            "duration_result": "Mejora progresiva. Resultado consolidado 4–6 semanas tras última sesión.",
+            "contraindications": ["Bronceado reciente o exposición solar intensa", "Embarazo y lactancia", "Fármacos fotosensibles", "Infecciones activas en zona", "Lesiones pigmentarias no diagnosticadas", "Melasma activo sin control"]
+        },
+        "mechanism": {
+            "title": "@nvx-t:Cómo funciona BTL EXILITE™ IPL",
+            "body": [
+                "@nvx-t:Emite luz policromática que es absorbida selectivamente por cromóforos diana: melanina (manchas) y hemoglobina (vasos). La energía se convierte en calor, produciendo fototermólisis selectiva sin ablación.",
+                "@nvx-t:El sistema permite ajustar longitud de onda, pulso y tiempo de retraso para adaptarse al fototipo y al objetivo. La indicación médica define los parámetros seguros para cada paciente."
+            ],
+            "items": [
+                {
+                    "title": "@nvx-t:Acción sobre melanina (manchas)",
+                    "body": "@nvx-t:La luz es absorbida por el pigmento y fragmenta los agregados de melanina, que se eliminan progresivamente mediante descamación natural. No es “quitar manchas en una sesión”: el protocolo depende del tipo, profundidad y estabilidad de la lesión."
+                },
+                {
+                    "title": "@nvx-t:Acción sobre hemoglobina (rojeces)",
+                    "body": "@nvx-t:La luz actúa sobre vasos sanguíneos superficiales, coagulándolos y reduciendo telangiectasias y eritema difuso. La respuesta varía según calibre, profundidad y tipo de vascularización."
+                },
+                {
+                    "title": "@nvx-t:Estimulación de colágeno",
+                    "body": "@nvx-t:El calentamiento dérmico secundario puede estimular la síntesis de colágeno, mejorando textura y calidad cutánea de forma progresiva. Este efecto es complementario, no el objetivo principal."
+                }
+            ]
+        },
+        "indications": [
+            {
+                "title": "@nvx-t:Léntigos solares y manchas actínicas",
+                "body": "@nvx-t:Manchas superficiales por exposición solar acumulada. Se valora estabilidad, fototipo y riesgo de repigmentación o PIH."
+            },
+            {
+                "title": "@nvx-t:Rojeces difusas y telangiectasias",
+                "body": "@nvx-t:Eritema facial, cuperosis y vasos finos en mejillas o nariz cuando no hay contraindicación vascular ni rosácea activa no controlada."
+            },
+            {
+                "title": "@nvx-t:Fotodaño solar leve–moderado",
+                "body": "@nvx-t:Piel con tono irregular, textura rugosa y múltiples léntigos. La IPL puede mejorar uniformidad y luminosidad en fototipos bajos–medios."
+            },
+            {
+                "title": "@nvx-t:Acné inflamatorio activo (seleccionado)",
+                "body": "@nvx-t:La acción sobre P. acnes y el componente inflamatorio puede ayudar en casos seleccionados, pero no sustituye el tratamiento médico del acné cuando este es la patología principal."
+            },
+            {
+                "title": "@nvx-t:Manos y escote",
+                "body": "@nvx-t:Fotodaño crónico en zonas expuestas. El protocolo se adapta a la finura de la piel y a la frecuencia de exposición solar."
+            }
+        ],
+        "compare": {
+            "title": "@nvx-t:IPL vs láser: diferencias clave",
+            "body": "@nvx-t:Tone Correction™ es el protocolo de decisión: valora si IPL, láser, medicina inyectable o derivación a dermatología es la vía adecuada. EXILITE es la tecnología IPL concreta que se indica cuando el diagnóstico lo justifica."
+        },
+        "process": [
+            {
+                "title": "@nvx-t:Valoración y diagnóstico",
+                "body": "@nvx-t:Se revisan lesiones pigmentarias (tipificando léntigos, melasma y lesiones sospechosas), componente vascular, fototipo, medicación fotosensible y exposición solar. No se trata una lesión no diagnosticada."
+            },
+            {
+                "title": "@nvx-t:Melasma y fototipos altos",
+                "body": "@nvx-t:El melasma requiere control prolongado y expectativas realistas: la IPL puede agravarlo si no se selecciona con criterio. En fototipos altos se evalúa riesgo de PIH y se planifican parámetros conservadores."
+            },
+            {
+                "title": "@nvx-t:Sesiones y cuidados",
+                "body": "@nvx-t:Rangos orientativos según caso. Fotoprotección estricta SPF 50+ durante 4 semanas previas y posteriores. Evitar bronceado. No exfoliar ni usar activos irritantes antes/después de la sesión."
+            },
+            {
+                "title": "@nvx-t:Contraindicaciones",
+                "body": "@nvx-t:Bronceado reciente, embarazo/lactancia, fármacos fotosensibles, infecciones activas, antecedentes de queloides, lesiones no diagnosticadas. La indicación es siempre médica."
+            }
+        ],
+        "related": [
+            {
+                "url": "@nvx-url:/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/",
+                "label": "@nvx-t:Tone Correction™ (protocolo de decisión para manchas y rojeces)"
+            }
+        ],
+        "faqs": [
+            {
+                "q": "@nvx-t:¿Es IPL lo mismo que láser?",
+                "a": "@nvx-t:No. El IPL emite luz policromática en un rango de longitudes de onda; el láser es monocromático. La IPL es menos agresiva pero también menos específica que ciertos láseres. La elección se hace por diagnóstico, no por nombre de tecnología."
+            },
+            {
+                "q": "@nvx-t:¿Cuántas sesiones necesito?",
+                "a": "@nvx-t:Depende del tipo de lesión, fototipo y objetivo. Léntigos superficiales: a menudo 1–3. Vascular mixto: 2–4. Fotodaño moderado: 3–4. El número exacto se define en valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Duele?",
+                "a": "@nvx-t:La sensación es de calor y pequeño “golpecito” de goma. Se puede usar frío o anestésico tópico según sensibilidad. La mayoría de pacientes toleran el procedimiento sin problemas."
+            },
+            {
+                "q": "@nvx-t:¿Puedo hacerlo si tengo melasma?",
+                "a": "@nvx-t:El melasma es complejo y puede empeorar con IPL si no se evalúa correctamente. En casos seleccionados se puede usar con parámetros muy conservadores y control estricto, pero la indicación requiere valoración dermatológica y expectativas realistas de control, no de “cura”."
+            },
+            {
+                "q": "@nvx-t:¿Qué pasa si me bronceo antes?",
+                "a": "@nvx-t:El bronceado reciente aumenta el riesgo de quemaduras, PIH y resultados irregulares. Se exige fotoprotección rigurosa y ausencia de bronceado durante al menos 4 semanas antes de la sesión."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto cuesta BTL EXILITE™ IPL en Madrid?",
+                "a": "@nvx-t:El precio en NUVANX parte de 295€ por sesión cara completa, 245€ para escote y 195€ para manos. El número de sesiones depende del diagnóstico y se confirma en valoración médica."
+            },
+            {
+                "q": "@nvx-t:¿Cuánto dura el resultado?",
+                "a": "@nvx-t:Las manchas tratadas pueden no reaparecer en la misma zona si se mantiene fotoprotección, pero nuevas lesiones pueden aparecer con exposición solar. El rojez vascular tiende a recidivar si la causa subyacente persiste. Es un tratamiento de control, no una vacuna solar."
+            },
+            {
+                "q": "@nvx-t:¿Qué es Tone Correction™?",
+                "a": "@nvx-t:Tone Correction™ es el protocolo médico de NUVANX para manchas, rojeces y fotodaño. No es una tecnología, sino una ruta de diagnóstico que decide entre IPL, láser, medicina inyectable o derivación a dermatología según el tipo de lesión."
+            }
+        ]
     }
 }

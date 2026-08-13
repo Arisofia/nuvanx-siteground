@@ -1,6 +1,6 @@
 <?php
 /**
- * BTL detail treatment pages: EXION Face / Body / Fractional RF + EMFUSION.
+ * BTL detail treatment pages: EXION Face / Body / Fractional RF + EMFUSION + EXILITE IPL.
  *
  * Same editorial pattern as IPL EXILITE / CO₂: Hero → Mecanismo → Indicaciones →
  * Comparativa breve → Procedimiento → FAQ → CTA.
@@ -11,6 +11,7 @@
  *   /exion-body/
  *   /exion-fractional/
  *   /emfusion/
+ *   /btl-exilite-ipl-madrid/
  *
  * @package nuvanx-medical
  */

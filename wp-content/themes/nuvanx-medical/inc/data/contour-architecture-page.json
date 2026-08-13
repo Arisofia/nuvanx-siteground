@@ -85,7 +85,7 @@
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",
         "title": "@nvx-t:Valoración y presupuesto Contour Architecture™ en NUVANX Madrid",
-        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 1.200 € (abdomen), 1.500 € (flancos), 1.800 € (piernas completas). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
+        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí (CS20144) o Salamanca–Goya (CS20073). Tarifas de referencia por zona anatómica: abdomen 1.694 €, flancos 1.573 €, brazos o cara interna de muslos 1.331 € (combo abdomen + flancos 2.395,80 €). El presupuesto definitivo se documenta por escrito tras valoración anatómica presencial. El protocolo incluye:",
         "items": [
             "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
             "@nvx-t:Honorarios médicos de la intervención",
@@ -101,7 +101,7 @@
         "items": [
             {
                 "q": "@nvx-t:¿Cuánto cuesta Contour Architecture™ en NUVANX Madrid?",
-                "a": "@nvx-t:Las tarifas de referencia parten desde 1.200 € (abdomen), 1.500 € (flancos) y 1.800 € (piernas completas). El presupuesto definitivo se documenta tras valoración anatómica presencial."
+                "a": "@nvx-t:Las tarifas de referencia se estructuran por zona anatómica según catálogo (p. ej. abdomen 1.694 €; flancos 1.573 €; brazos o cara interna de muslos 1.331 €; combo abdomen + flancos 2.395,80 €). El presupuesto definitivo y la indicación se confirman tras valoración médica presencial en Chamberí (CS20144) o Salamanca–Goya (CS20073)."
             },
             {
                 "q": "@nvx-t:¿Contour Architecture™ sirve para cualquier tipo de grasa?",

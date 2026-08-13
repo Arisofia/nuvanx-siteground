@@ -66,7 +66,7 @@
     "planning": {
         "kicker": "@nvx-t:Inversión y planificación",
         "title": "@nvx-t:Precios orientativos por zona y seguimiento",
-        "body": "@nvx-t:Presupuesto orientativo por zona: Abdomen/Flancos 1.200 € – 1.800 €; Rodillas/Brazos 900 € – 1.300 €. Se realiza medición ecográfica previa del tejido adiposo para cuantificar el grosor del panículo. Procedimiento en 1 sesión única con resultados progresivos a las 3 semanas (máximo a los 4-6 meses). Incluye pauta de compresión post-procedimiento (1-4 semanas según zona) y revisiones médicas a las 4 semanas, 3 meses y 6 meses.",
+        "body": "@nvx-t:Tarifas de referencia según zona anatómica (p. ej. abdomen 1.694 €; flancos 1.573 €; brazos o cara interna de muslos 1.331 €; combo abdomen + flancos 2.395,80 €). Se realiza medición ecográfica previa del tejido adiposo para cuantificar el grosor del panículo. Procedimiento ambulatorio en 1 sesión única con resultados progresivos a partir de las 3 semanas (máximo a los 4–6 meses). Incluye pauta de compresión post-procedimiento (1–4 semanas según zona) y revisiones médicas de seguimiento.",
         "items": [
             "@nvx-t:Valoración de zonas, flacidez y estabilidad de peso",
             "@nvx-t:Medición ecográfica pre-tratamiento del tejido adiposo",
@@ -111,7 +111,7 @@
             },
             {
                 "q": "@nvx-t:¿Cuánto cuesta el Endoláser corporal en Madrid?",
-                "a": "@nvx-t:En NUVANX el precio del Endoláser corporal varía según la zona y la superficie a tratar. Las tarifas se informan en valoración médica presencial. Habitualmente una zona oscila entre 1.200€ y 1.800€ según plan médico."
+                "a": "@nvx-t:Las tarifas de referencia se establecen por zona anatómica según catálogo (p. ej. abdomen 1.694 €; flancos 1.573 €; brazos o cara interna de muslos 1.331 €; combo abdomen + flancos 2.395,80 €). El presupuesto definitivo y la indicación se confirman tras valoración médica presencial en Chamberí (CS20144) o Salamanca–Goya (CS20073)."
             }
         ]
     },

@@ -37,7 +37,7 @@
         "procedureType": "https://schema.org/PercutaneousProcedure",
         "description": "Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica. Endoláser corporal Chamberí y Goya Madrid.",
         "additionalFields": {
-            "priceRange": "Desde 1.200€ (orientativo)",
+            "priceRange": "Tarifas por zona: abdomen 1.694 €, flancos 1.573 €, brazos/muslos 1.331 €",
             "provider": {
                 "@type": "MedicalOrganization",
                 "name": "NUVANX",

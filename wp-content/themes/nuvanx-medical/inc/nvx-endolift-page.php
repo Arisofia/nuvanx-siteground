@@ -262,6 +262,9 @@ function nvx_endolift_editorial_body_markup(): string {
 	}
 	$html .= '</ul>';
 	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['investment']['note'] ?? '' ) . '</em></p>';
+	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
+		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
+	}
 	$html .= '</div></section>';
 
 	// G. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolift_facial).

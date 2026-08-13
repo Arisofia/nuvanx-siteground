@@ -154,6 +154,14 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   height: var(--nvx-icon-md);
 }
 
+.nvx-brand-btn .icon-whatsapp,
+.nvx-button .icon-whatsapp,
+.nvx-btn .icon-whatsapp {
+  width: var(--nvx-icon-sm, 20px);
+  height: var(--nvx-icon-sm, 20px);
+  flex-shrink: 0;
+}
+
 /* Numerales globales para tarjetas (no solo landing-valoracion) */
 .nvx-brand-card__number {
   display: inline-flex;
@@ -1112,6 +1120,7 @@ article.nvx-page > .nvx-page-hero{
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--nvx-space-1, 8px);
   width: var(--button-width);
   min-height: var(--nvx-control-size, 48px);
   margin: var(--button-margin);

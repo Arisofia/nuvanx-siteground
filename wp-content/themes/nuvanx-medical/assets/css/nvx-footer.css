@@ -108,55 +108,68 @@
   opacity: 1;
 }
 
-/* Clinic structured blocks */
-.nvx-footer__clinic-group {
+/* ── Clínicas agrupadas (NAP legible) ─────────────────────── */
+.nvx-footer__clinics {
   display: flex;
   flex-direction: column;
-  gap: var(--nvx-space-4);
+  gap: var(--nvx-space-5);
 }
 
 .nvx-footer__clinic {
   display: flex;
   flex-direction: column;
-  gap: var(--nvx-space-1);
+  gap: 0.2rem;
+  min-width: 0;
 }
 
 .nvx-footer__clinic-name {
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-medium);
-  color: var(--nvx-on-dark);
+  color: var(--nvx-on-dark-88);
+  line-height: 1.35;
   text-decoration: none;
-  transition: color 160ms ease;
 }
 
 .nvx-footer__clinic-name:hover {
-  color: var(--nvx-accent-gold-text);
+  color: var(--nvx-on-dark);
 }
 
 .nvx-footer__clinic-phone {
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small);
-  font-weight: var(--nvx-fw-regular);
+  font-weight: var(--nvx-fw-medium);
   color: var(--nvx-on-dark-88);
+  line-height: 1.35;
   text-decoration: none;
-  transition: color 160ms ease;
 }
 
 .nvx-footer__clinic-phone:hover {
   color: var(--nvx-on-dark);
 }
 
-/* Direcciones físicas (NAP) */
 .nvx-footer__address {
-  margin: 0;
+  display: block;
+  margin: 0.15rem 0 0 0;
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-regular);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-on-dark-72);
   font-style: normal;
-  max-width: 28ch;
+  line-height: 1.45;
+  color: var(--nvx-on-dark-72);
+  max-width: 26ch;
+}
+
+.nvx-footer__clinics-all {
+  margin-top: var(--nvx-space-1);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  color: var(--nvx-on-dark-72);
+  text-decoration: none;
+}
+
+.nvx-footer__clinics-all:hover {
+  color: var(--nvx-on-dark);
 }
 
 /* Social media links */

@@ -24,7 +24,9 @@
   "/equipo-medico/": {
     "seo_id": "equipo"
   },
-  "/contacto/": {},
+  "/contacto/": {
+    "seo_id": "contacto"
+  },
   "/blog/": {
     "seo_id": "blog"
   },

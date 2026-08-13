@@ -215,6 +215,56 @@ function nvx_catalog_apply_runtime_truth( array $catalog, string $filename ): ar
 }
 
 /**
+ * Prevent the legacy EXION content filter from overwriting the canonical,
+ * tariff-hydrated investment block produced by the governed page renderer.
+ */
+function nvx_catalog_disable_legacy_exion_investment_override(): void {
+	if ( function_exists( 'nvx_content_ensure_exion_investment' ) ) {
+		remove_filter( 'the_content', 'nvx_content_ensure_exion_investment', 126 );
+	}
+}
+add_action( 'wp', 'nvx_catalog_disable_legacy_exion_investment_override', 1 );
+
+/**
+ * Retire the temporary Bridal seed on staging when it was created by the
+ * aesthetic-page seeder. Editorial pages without the governed meta/marker are
+ * never modified.
+ */
+function nvx_catalog_retire_unapproved_bridal_seed(): void {
+	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
+		return;
+	}
+
+	$page = get_page_by_path( 'protocolo-novias-madrid', OBJECT, 'page' );
+	if ( ! ( $page instanceof WP_Post ) ) {
+		return;
+	}
+
+	$seed_key = (string) get_post_meta( $page->ID, '_nvx_aesthetic_treatment_key', true );
+	$content  = (string) $page->post_content;
+	$is_seed  = 'bridal_protocol' === $seed_key
+		|| false !== strpos( $content, 'data-nvx-treatment="bridal_protocol"' )
+		|| false !== strpos( $content, "data-nvx-treatment='bridal_protocol'" );
+
+	if ( ! $is_seed || 'draft' === $page->post_status || 'trash' === $page->post_status ) {
+		return;
+	}
+
+	$result = wp_update_post(
+		array(
+			'ID'          => $page->ID,
+			'post_status' => 'draft',
+		),
+		true
+	);
+
+	if ( is_wp_error( $result ) ) {
+		nvx_catalog_log_error( 'Unable to retire the staging Bridal seed.' );
+	}
+}
+add_action( 'init', 'nvx_catalog_retire_unapproved_bridal_seed', 40 );
+
+/**
  * Resolve a single catalog string token via prefix resolvers and claim tokens.
  *
  * @param array<string, callable> $resolvers Prefix => resolver map (longest first).

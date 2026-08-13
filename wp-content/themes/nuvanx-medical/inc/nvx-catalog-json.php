@@ -220,15 +220,38 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 	}
 
 	if ( 'endolaser-page.json' === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate endolaser prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
+		}
+
+		$rodillas = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'rodillas' );
+		$brazos   = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'brazos' );
+		$flancos  = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'flancos' );
+		$abdomen  = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'abdomen' );
+
 		$plan_key = $config['endolaser']['planning_key'] ?? 'planning';
-		if ( isset( $catalog[ $plan_key ]['body'] ) ) {
-			$catalog[ $plan_key ]['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
+		if ( isset( $catalog[ $plan_key ]['body'] ) && '' !== $rodillas && '' !== $abdomen ) {
+			$catalog[ $plan_key ]['body'] = sprintf(
+				/* translators: 1: rodillas price, 2: brazos price, 3: flancos price, 4: abdomen price */
+				__( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. Tarifas de referencia vigentes: desde %1$s (rodillas), %2$s (brazos o cara interna de muslos), %3$s (flancos) y %4$s (abdomen completo). Procedimiento en 1 sesión única con medición ecográfica previa y revisiones clínicas a 4 semanas, 3 y 6 meses. Incluye pauta de compresión post-procedimiento.', 'nuvanx-medical' ),
+				$rodillas,
+				$brazos,
+				$flancos,
+				$abdomen
+			);
 		}
 
 		// The Endoláser catalog schema reserves FAQ item 7 for the pricing question.
 		$faq_idx = $config['endolaser']['price_faq_index'] ?? 7;
-		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) ) {
-			$catalog['faq']['items'][ $faq_idx ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
+		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) && '' !== $rodillas && '' !== $abdomen ) {
+			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
+				/* translators: 1: rodillas price, 2: abdomen price */
+				__( 'En NUVANX las tarifas de referencia vigentes de Endoláser corporal parten desde %1$s (zonas focalizadas como rodillas) hasta %2$s (abdomen completo), según extensión, plan médico y anatomía. El presupuesto definitivo se documenta tras la valoración médica presencial.', 'nuvanx-medical' ),
+				$rodillas,
+				$abdomen
+			);
 		}
 	}
 

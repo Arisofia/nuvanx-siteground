@@ -5,11 +5,11 @@
         "kicker": "@nvx-t:EXION® Face · NUVANX Madrid",
         "h1": "@nvx-t:EXION® Face en Madrid: radiofrecuencia y ultrasonido",
         "lead": "@nvx-t:Aplicador de radiofrecuencia y ultrasonido para protocolos de calidad cutánea cuando existe indicación médica. La elección valora zona, tipo de piel, antecedentes y expectativas.",
-        "meta": "@nvx-t:Chamberí · Goya · Indicación médica personalizada",
+        "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada",
         "aria": "@nvx-t:EXION Face NUVANX",
         "marker": "nvx-exion-face",
-        "yoast_title": "EXION® Face en Madrid | RF y ultrasonido | NUVANX",
-        "yoast_desc": "EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.",
+        "yoast_title": "EXION® Face Madrid | Tratamiento Facial y Cuello | NUVANX",
+        "yoast_desc": "EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "focuskw": "EXION Face Madrid",
         "hub": "@nvx-url:/exion-btl/",
         "schema_name": "EXION® Face en Madrid",
@@ -21,7 +21,7 @@
             "collagen_stimulation": "Aumento histológico de colágeno demostrado a 12 semanas",
             "sessions": "4 sesiones protocolo estándar, separadas 2–4 semanas",
             "downtime": "Sin downtime. Eritema transitorio 1–2 horas tras la sesión.",
-            "price_range": "Desde 395€/sesión",
+            "price_range": "Desde 395€/sesión · Pack 4 sesiones 1.395€",
             "duration_result": "Mejora progresiva visible a partir de la 2ª sesión. Resultado maduro 8–12 semanas.",
             "contraindications": ["Marcapasos o dispositivos electrónicos implantados", "Embarazo", "Implantes metálicos en zona de tratamiento", "Activos cutáneos graves no estabilizados"]
         },
@@ -93,6 +93,12 @@
             {
                 "title": "@nvx-t:Contraindicaciones relativas",
                 "body": "@nvx-t:Implantes metálicos faciales relevantes, embarazo/lactancia (precisión clínica), fármacos fotosensibles de alto impacto, infecciones activas de piel. Fototipos altos: perfil habitualmente favorable; la indicación es siempre médica."
+            }
+        ],
+        "related": [
+            {
+                "url": "@nvx-url:/calidad-piel-firmeza-luminosidad-madrid/",
+                "label": "@nvx-t:Skin Architecture™ (protocolo de decisión para calidad de piel)"
             }
         ],
         "faqs": [

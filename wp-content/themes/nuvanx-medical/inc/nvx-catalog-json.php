@@ -242,6 +242,7 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		$labios = nvx_catalog_tariff_display_price( $tariffs, 'labios_ha', 'perfilado_hidratacion' );
 		$rino   = nvx_catalog_tariff_display_price( $tariffs, 'rinomodelacion_ha', 'rinomodelacion' );
 		$ojeras = nvx_catalog_tariff_display_price( $tariffs, 'ojeras_ha', 'surco_lagrimal' );
+		$bio    = nvx_catalog_tariff_display_price( $tariffs, 'bioestimuladores', 'polynucleotides_cara' );
 
 		if ( isset( $catalog['treatments'][0] ) && '' !== $labios ) {
 			$catalog['treatments'][0]['price'] = sprintf(
@@ -262,6 +263,13 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 				/* translators: %s: formatted price */
 				__( 'Desde %s (según diagnóstico y técnica)', 'nuvanx-medical' ),
 				$ojeras
+			);
+		}
+		if ( isset( $catalog['treatments'][3] ) && '' !== $bio ) {
+			$catalog['treatments'][3]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s (según principio activo y zona)', 'nuvanx-medical' ),
+				$bio
 			);
 		}
 	}

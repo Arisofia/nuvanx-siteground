@@ -653,6 +653,33 @@ function nvx_schema_faq_load_map_catalog_with_resolver( string $file, callable $
 	return nvx_schema_faq_load_map_catalog_impl( $file, $resolver );
 }
 
+/** Load FAQ items from Signature Phase catalog JSON. */
+function nvx_schema_faq_load_signature_phase(): array {
+	$json = nvx_catalog_json_resolved( 'nvx-signature-phase-catalog.json' );
+	$catalog = array();
+	if ( ! is_array( $json ) ) {
+		return $catalog;
+	}
+	foreach ( $json as $key => $entry ) {
+		if ( ! is_array( $entry ) || empty( $entry['faq'] ) || ! is_array( $entry['faq'] ) ) {
+			continue;
+		}
+		$items = array();
+		foreach ( $entry['faq'] as $item ) {
+			if ( ! empty( $item['q'] ) && ! empty( $item['a'] ) ) {
+				$items[] = array(
+					'q' => (string) $item['q'],
+					'a' => (string) $item['a'],
+				);
+			}
+		}
+		if ( ! empty( $items ) ) {
+			$catalog[ $key ] = $items;
+		}
+	}
+	return $catalog;
+}
+
 /** Implementation for FAQ catalog loading from mapped JSON files. */
 function nvx_schema_faq_load_map_catalog_impl( string $file, ?callable $resolver ): array {
 	if ( null === $resolver ) {
@@ -718,6 +745,9 @@ function nvx_schema_faq_catalog() {
 			}
 		}
 		$catalog = array_merge( $catalog, $aesthetic_faqs );
+		// Load Signature Phase FAQs
+		$signature_faqs = nvx_schema_faq_load_signature_phase();
+		$catalog = array_merge( $catalog, $signature_faqs );
 	}
 
 	// Replace hardcoded Endolift prices with dynamic tariff constants in FAQ answers
@@ -769,6 +799,32 @@ function nvx_schema_faq_catalog() {
 			array(
 				'q' => '¿Es necesaria prenda de compresión?',
 				'a' => 'Sí, se utiliza faja compresiva o malla elastodrenante durante 1-2 semanas post-tratamiento para optimizar la retracción tisular y el drenaje linfático.',
+			),
+		);
+	}
+
+	// Post-Maternity hub FAQs (PHP-based, not in JSON)
+	if ( empty( $catalog['post-maternity'] ) ) {
+		$catalog['post-maternity'] = array(
+			array(
+				'q' => '¿Puedo tratarme en lactancia?',
+				'a' => 'Solo tras valoración individual. En muchos casos se espera o se limita el plan; no hay calendario mágico "a los X meses" igual para todas.',
+			),
+			array(
+				'q' => '¿Corrige la diástasis de rectos?',
+				'a' => 'La diástasis se evalúa antes de indicar. Un protocolo de contorno no sustituye la reparación quirúrgica cuando esta es la vía adecuada.',
+			),
+			array(
+				'q' => '¿Es una abdominoplastia sin cirugía?',
+				'a' => 'No. No se promete el resultado de una cirugía de contorno. El objetivo es mejorar grasa y/o calidad tisular si hay indicación y el momento es seguro.',
+			),
+			array(
+				'q' => '¿Cuándo tiene sentido valorar?',
+				'a' => 'Cuando hay queja localizada (abdomen, flancos, calidad de piel), expectativas realistas y condiciones clínicas que permitan un plan seguro.',
+			),
+			array(
+				'q' => '¿Dónde?',
+				'a' => 'Valoración en Chamberí (CS20144) y Salamanca–Goya (CS20073), con plan documentado si procede.',
 			),
 		);
 	}

@@ -237,6 +237,7 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= nvx_signature_phase_list( 'Tecnologías que pueden formar parte del plan', (array) $page['technology'] );
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
 	$html      .= nvx_signature_phase_details_section( $page );
+	$html      .= nvx_signature_faq_section( isset( $page['faq'] ) && is_array( $page['faq'] ) ? $page['faq'] : array() );
 
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 
@@ -577,11 +578,35 @@ function nvx_signature_hub_markup( array $hub ): string {
 		$html   .= nvx_signature_phase_list(
 			'Límites y cuándo esperamos o derivamos',
 			array(
-				'No es un protocolo de “recuperar el cuerpo de antes” en un plazo fijo.',
+				'No es un protocolo de "recuperar el cuerpo de antes" en un plazo fijo.',
 				'La grasa visceral y la diástasis con indicación quirúrgica no se resuelven con un tratamiento estético focal.',
 				'Si el momento clínico no es adecuado, se propone espera o derivación en lugar de intervenir.',
 			),
 			'nvx-strategy-checklist nvx-strategy-checklist--no'
+		);
+		$html .= nvx_signature_faq_section(
+			array(
+				array(
+					'q' => '¿Puedo tratarme en lactancia?',
+					'a' => 'Solo tras valoración individual. En muchos casos se espera o se limita el plan; no hay calendario mágico "a los X meses" igual para todas.',
+				),
+				array(
+					'q' => '¿Corrige la diástasis de rectos?',
+					'a' => 'La diástasis se evalúa antes de indicar. Un protocolo de contorno no sustituye la reparación quirúrgica cuando esta es la vía adecuada.',
+				),
+				array(
+					'q' => '¿Es una abdominoplastia sin cirugía?',
+					'a' => 'No. No se promete el resultado de una cirugía de contorno. El objetivo es mejorar grasa y/o calidad tisular si hay indicación y el momento es seguro.',
+				),
+				array(
+					'q' => '¿Cuándo tiene sentido valorar?',
+					'a' => 'Cuando hay queja localizada (abdomen, flancos, calidad de piel), expectativas realistas y condiciones clínicas que permitan un plan seguro.',
+				),
+				array(
+					'q' => '¿Dónde?',
+					'a' => 'Valoración en Chamberí (CS20144) y Salamanca–Goya (CS20073), con plan documentado si procede.',
+				),
+			)
 		);
 		$related = array(
 			array(
@@ -855,3 +880,32 @@ add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );
 add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
 add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 90 );
+
+/**
+ * Render FAQ Signature from catalog items: [ ['q' => '', 'a' => ''], ... ]
+ *
+ * @param array $items FAQ items with 'q' and 'a' keys.
+ * @return string Rendered HTML section, or empty string if no items.
+ */
+function nvx_signature_faq_section( array $items ): string {
+	if ( array() === $items ) {
+		return '';
+	}
+	$html  = '<section class="nvx-brand-section nvx-signature-faq" aria-labelledby="nvx-signature-faq-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<h2 id="nvx-signature-faq-title">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-faq">';
+	foreach ( $items as $item ) {
+		$q = isset( $item['q'] ) ? (string) $item['q'] : '';
+		$a = isset( $item['a'] ) ? (string) $item['a'] : '';
+		if ( '' === $q || '' === $a ) {
+			continue;
+		}
+		$html .= '<details class="nvx-faq__item">';
+		$html .= '<summary class="nvx-faq__q">' . esc_html( $q ) . '</summary>';
+		$html .= '<div class="nvx-faq__a"><p>' . esc_html( $a ) . '</p></div>';
+		$html .= '</details>';
+	}
+	$html .= '</div></div></section>';
+	return $html;
+}

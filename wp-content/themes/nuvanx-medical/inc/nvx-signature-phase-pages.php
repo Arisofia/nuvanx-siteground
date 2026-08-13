@@ -265,7 +265,7 @@ function nvx_signature_hub_catalog(): array {
 			'kicker'    => 'NUVANX · Protocolos Signature · Madrid',
 			'h1'        => 'Protocolos Signature: medicina estética de diagnóstico.',
 			'lead'      => 'Cada protocolo organiza la decisión clínica alrededor de un objetivo. No son paquetes cerrados ni combinaciones automáticas: la tecnología se elige después de valorar anatomía, tejido y expectativas.',
-			'intro'     => 'Los Protocolos Signature conectan diagnóstico, modalidad y seguimiento. El nombre del protocolo ordena la conversación; la indicación, el número de sesiones, la recuperación y el presupuesto se confirman en consulta.',
+			'intro'     => 'Los Protocolos Signature conectan diagnóstico, modalidad y seguimiento. El nombre del protocolo ordena la conversación; la indicación, el número de sesiones, la recuperación y el presupuesto se confirman en consulta. Chamberí (CS20144) · Salamanca–Goya (CS20073).',
 			'seo_title' => 'Protocolos Signature Madrid | NUVANX',
 			'seo_desc'  => 'Protocolos Signature NUVANX en Madrid: rutas clínicas de diagnóstico para contorno, calidad de piel, textura, tono y perfil facial.',
 		),
@@ -370,7 +370,8 @@ function nvx_signature_published_url( string $slug ): string {
 /**
  * Card grid markup for Signature hub listings.
  *
- * @param array<int, array{kicker?:string,title:string,body:string,url:string,cta?:string}> $cards
+ * @param array<int, array{kicker?:string,title:string,body:string,url:string,cta?:string,price?:string}> $cards
+ * @return string
  */
 function nvx_signature_hub_cards_markup( array $cards, string $section_title, string $section_kicker = '' ): string {
 	$html  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="' . esc_attr( $section_title ) . '">';
@@ -395,6 +396,9 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 		}
 		$html .= '<h3 id="' . esc_attr( $card_id ) . '" class="nvx-brand-card__title">' . esc_html( $title ) . '</h3>';
 		$html .= '<p class="nvx-brand-card__body">' . esc_html( $body ) . '</p>';
+		if ( ! empty( $card['price'] ) ) {
+			$html .= '<p class="nvx-brand-card__price">' . esc_html( (string) $card['price'] ) . '</p>';
+		}
 		$html .= '<a class="nvx-brand-card__cta" href="' . esc_url( $url ) . '" aria-label="' . esc_attr( $cta . ': ' . $title ) . '">' . esc_html( $cta ) . '</a>';
 		$html .= '</article>';
 	}
@@ -405,7 +409,7 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 /**
  * Cards for Phase 1 facial / skin Signature protocols from the catalog.
  *
- * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string}>
+ * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string,price?:string}>
  */
 function nvx_signature_hub_phase1_cards(): array {
 	$cards = array();
@@ -417,13 +421,17 @@ function nvx_signature_hub_phase1_cards(): array {
 		if ( '' === $slug ) {
 			continue;
 		}
-		$cards[] = array(
+		$card = array(
 			'kicker' => (string) ( $page['protocol'] ?? $page['kicker'] ?? '' ),
 			'title'  => (string) ( $page['title'] ?? '' ),
 			'body'   => (string) ( $page['lead'] ?? '' ),
 			'url'    => nvx_signature_published_url( $slug ),
 			'cta'    => __( 'Explorar protocolo', 'nuvanx-medical' ),
 		);
+		if ( ! empty( $page['price_range'] ) ) {
+			$card['price'] = (string) $page['price_range'];
+		}
+		$cards[] = $card;
 	}
 	return $cards;
 }

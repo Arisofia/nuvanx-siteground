@@ -143,12 +143,11 @@ function nvx_signature_phase_current_key(): ?string {
  * @return string The rendered HTML section.
  */
 function nvx_signature_phase_list( string $title, array $items, string $class = '' ): string {
-	$html           = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><div class="nvx-brand-section__inner">';
-	$html          .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
-	$roman_numerals = array( 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X' );
-	$idx            = 0;
+	$html  = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
+	$idx   = 1;
 	foreach ( $items as $item ) {
-		$number = isset( $roman_numerals[ $idx ] ) ? $roman_numerals[ $idx ] : ( $idx + 1 );
+		$number = sprintf( '%02d', $idx );
 		$html  .= '<li><span class="nvx-signature-list-number" aria-hidden="true">' . esc_html( $number ) . '</span> ' . esc_html( (string) $item ) . '</li>';
 		++$idx;
 	}
@@ -235,14 +234,6 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;
 }
-add_action(
-	'after_setup_theme',
-	function () {
-		if ( function_exists( 'nvx_register_catalog_content_filter' ) ) {
-			nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
-		}
-	}
-);
 
 /**
  * Signature architecture hubs (index + Contour + Post-Maternity).

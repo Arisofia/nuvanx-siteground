@@ -1949,13 +1949,77 @@ figure.nvx-equipo-portrait{
   list-style: none;
   padding: 0;
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
-@media (min-width: 640px) {
-  .nvx-bridal-group__list { grid-template-columns: repeat(2, 1fr); }
+.nvx-bridal-group__card {
+  padding: 1.5rem;
+  border: 1px solid var(--nvx-border-light);
+  border-radius: var(--nvx-radius-md);
+  background: var(--nvx-surface-elevated);
 }
-.nvx-bridal-group__member {
-  border: 1px solid var(--nvx-border-subtle, #e5e7eb);
-  border-radius: 0.5rem;
-  padding: 1rem;
+.nvx-bridal-group__profile {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--nvx-ink);
+}
+
+/* Mobile improvements for bridal timeline */
+@media (max-width: 480px) {
+  .nvx-bridal-timeline__step {
+    padding-left: 1rem;
+  }
+  .nvx-bridal-timeline__step::before {
+    left: -0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.65rem;
+  }
+  .nvx-bridal-timeline__title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Price details collapsible component */
+.nvx-price-details {
+  margin: var(--nvx-space-3) 0;
+  border: 1px solid var(--nvx-border-light);
+  border-radius: var(--nvx-radius-md);
+  background: var(--nvx-surface-elevated);
+}
+.nvx-price-details__summary {
+  padding: var(--nvx-space-3);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--nvx-ink);
+  list-style: none;
+  position: relative;
+  padding-right: 2.5rem;
+}
+.nvx-price-details__summary::-webkit-details-marker {
+  display: none;
+}
+.nvx-price-details__summary::after {
+  content: '+';
+  position: absolute;
+  right: var(--nvx-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  font-weight: 300;
+  transition: transform 0.2s ease;
+}
+.nvx-price-details[open] .nvx-price-details__summary::after {
+  content: '−';
+  transform: translateY(-50%) rotate(0deg);
+}
+.nvx-price-details__content {
+  padding: 0 var(--nvx-space-3) var(--nvx-space-3);
+  border-top: 1px solid var(--nvx-border-light);
+}
+.nvx-price-details__content .nvx-prose {
+  margin: var(--nvx-space-3) 0 0 0;
+}
+.nvx-price-details__content .nvx-prose:first-child {
+  margin-top: var(--nvx-space-3);
 }

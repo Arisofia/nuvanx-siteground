@@ -846,6 +846,10 @@ function nvx_schema_faq_catalog() {
 			),
 		);
 	}
+	// Alias for routes.json schema_id 'postpartum' → same FAQs as 'post-maternity'.
+	if ( ! empty( $catalog['post-maternity'] ) && empty( $catalog['postpartum'] ) ) {
+		$catalog['postpartum'] = $catalog['post-maternity'];
+	}
 
 	$catalogs[ $locale ] = $catalog;
 	return $catalog;

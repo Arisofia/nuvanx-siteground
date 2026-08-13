@@ -288,7 +288,7 @@
 }
 
 .nvx-home-evidence__image-col {
-	min-height: 50vh;
+	min-height: clamp(280px, 35vh, 450px);
 	background-color: var(--nvx-charcoal);
 }
 

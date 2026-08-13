@@ -147,8 +147,8 @@ ob_start();
 				<?php
 				$cases_id       = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
 				$cases_ready    = $cases_id > 0 && '1' === (string) get_post_meta( $cases_id, '_nvx_cases_publication_ready', true );
-				$evidence_url   = $cases_ready ? home_url( '/casos-de-pacientes/' ) : home_url( '/equipo-medico/' );
-				$evidence_label = $cases_ready ? __( 'Ver casos clínicos de seguimiento', 'nuvanx-medical' ) : __( 'Ver criterio del equipo médico', 'nuvanx-medical' );
+				$evidence_url   = $cases_ready ? home_url( '/casos-de-pacientes/' ) : home_url( '/por-que-nuvanx/' );
+				$evidence_label = $cases_ready ? __( 'Ver casos clínicos de seguimiento', 'nuvanx-medical' ) : __( 'Conocer el método NUVANX', 'nuvanx-medical' );
 				?>
 				<a href="<?php echo esc_url( $evidence_url ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php echo esc_html( $evidence_label ); ?></a>
 			</div>

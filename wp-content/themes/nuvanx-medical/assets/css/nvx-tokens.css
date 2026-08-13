@@ -155,10 +155,10 @@
   --nvx-type-small: 0.875rem;
   --nvx-type-caption: 0.75rem;
   --nvx-type-kicker: 0.75rem;
-  --nvx-type-button: 0.75rem;
-  --nvx-type-nav: 0.72rem;
-  --nvx-type-nav-compact: 0.68rem;
-  --nvx-type-nav-submenu: 0.84rem;
+  --nvx-type-button: 0.8125rem;
+  --nvx-type-nav: 0.8125rem;
+  --nvx-type-nav-compact: 0.75rem;
+  --nvx-type-nav-submenu: 0.875rem;
   --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
   --nvx-type-micro:    0.6875rem;
   --nvx-type-caption2: 0.8125rem;

@@ -142,11 +142,11 @@
         "kicker": "@nvx-t:EXION® Body · NUVANX Madrid",
         "h1": "@nvx-t:EXION® Body en Madrid: contorno corporal y calidad cutánea",
         "lead": "@nvx-t:Radiofrecuencia monopolar con refrigeración activa para protocolos de contorno corporal y calidad cutánea cuando el diagnóstico lo permite.",
-        "meta": "@nvx-t:Chamberí · Goya · Contorno corporal con criterio médico",
+        "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Contorno corporal con criterio médico",
         "aria": "@nvx-t:EXION Body NUVANX",
         "marker": "nvx-exion-body",
-        "yoast_title": "EXION Body Madrid | Grasa localizada y tensado | NUVANX",
-        "yoast_desc": "EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí y Goya.",
+        "yoast_title": "EXION® Body Madrid | Grasa Localizada y Laxitud | NUVANX",
+        "yoast_desc": "EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "focuskw": "EXION Body Madrid",
         "hub": "@nvx-url:/exion-btl/",
         "schema_name": "EXION® Body en Madrid",
@@ -228,10 +228,26 @@
             },
             {
                 "title": "@nvx-t:Contraindicaciones y límites",
-                "body": "@nvx-t:Embarazo/lactancia, marcapasos u otros implantes relevantes, infecciones activas, hernias no controladas en zona, expectativas de pérdida de peso global. No sustituye cirugía cuando el exceso cutáneo o graso lo exige."
+                "body": "@nvx-t:Embarazo/lactancia, marcapasos u otros implantes relevantes, infecciones activas, hernias no controladas en zona, expectativas de pérdida de peso global. No sustituye cirugía cuando el exceso cutáneo o graso lo exige. No trata grasa visceral (grasa detrás del músculo)."
             }
         ],
         "related": [
+            {
+                "url": "@nvx-url:/remodelacion-corporal-laser-madrid/",
+                "label": "@nvx-t:Contour Architecture™ (protocolo de decisión por zonas)"
+            },
+            {
+                "url": "@nvx-url:/grasa-localizada-abdomen-flancos-madrid/",
+                "label": "@nvx-t:Abdomen y flancos"
+            },
+            {
+                "url": "@nvx-url:/flacidez-grasa-localizada-brazos-madrid/",
+                "label": "@nvx-t:Brazos"
+            },
+            {
+                "url": "@nvx-url:/flacidez-muslos-internos-subgluteo-madrid/",
+                "label": "@nvx-t:Muslos internos"
+            },
             {
                 "url": "@nvx-url:/endolaser-corporal-grasa-localizada/",
                 "label": "@nvx-t:Endoláser corporal (adiposidad de mayor espesor)"
@@ -278,10 +294,10 @@
         "kicker": "@nvx-t:EXION® Fractional RF · NUVANX Madrid",
         "h1": "@nvx-t:EXION® Fractional RF en Madrid: arrugas profundas, cicatrices y textura",
         "lead": "@nvx-t:Radiofrecuencia fraccionada con microagujas y control de impedancia para protocolos de textura, poros y cicatrices según diagnóstico y fototipo.",
-        "meta": "@nvx-t:Chamberí · Goya · Textura y remodelado dérmico",
+        "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Textura y remodelado dérmico",
         "aria": "@nvx-t:EXION Fractional NUVANX",
         "marker": "nvx-exion-fractional",
-        "yoast_title": "EXION Fractional RF Madrid | Textura y cicatrices | NUVANX",
+        "yoast_title": "EXION® Fractional RF Madrid | Textura y cicatrices | NUVANX",
         "yoast_desc": "EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.",
         "focuskw": "EXION Fractional Madrid",
         "hub": "@nvx-url:/exion-btl/",
@@ -301,7 +317,8 @@
             "title": "@nvx-t:Cómo funciona EXION® Fractional RF y su control de profundidad",
             "body": [
                 "@nvx-t:Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.",
-                "@nvx-t:Profundidad de acción ajustable (0,5–4 mm en zona facial; hasta 8 mm en cuerpo combinando inserción mecánica y gradiente térmico por RF monopolar). El algoritmo de IA (AI-driven RF) mide la impedancia en tiempo real para personalizar la energía en cada microdisparo.",
+                "@nvx-t:Profundidad de acción ajustable (0,5–4 mm en zona facial; hasta 8 mm en cuerpo combinando inserción mecánica y gradiente térmico por RF monopolar, solo cuando hay indicación médica específica). El algoritmo de IA (AI-driven RF) mide la impedancia en tiempo real para personalizar la energía en cada microdisparo.",
+                "@nvx-t:EXION Surface Renewal es el hub de decisión clínica: evalúa si el paciente requiere fraccionado (Fractional RF), CO₂ ablativo u otra tecnología según diagnóstico y objetivos.",
                 "@nvx-t:Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista."
             ]
         },
@@ -357,7 +374,7 @@
             },
             {
                 "q": "@nvx-t:¿EXION® Fractional deja cicatriz?",
-                "a": "@nvx-t:El riesgo de cicatriz residual es mínimo al utilizar microagujas de penetración controlada cuyos microcanales reepitelizan en pocas horas. Sin embargo, el cumplimiento de los cuidados post-tratamiento y la fotoprotección son fundamentales, y está contraindicado en presencia de cicatrización queloide activa o infecciones locales."
+                "a": "@nvx-t:El riesgo de cicatriz residual es bajo con técnica adecuada y cuidados post-tratamiento; no es cero. Los microcanales reepitelizan en pocas horas, pero el cumplimiento de los cuidados y la fotoprotección son fundamentales. Está contraindicado en presencia de cicatrización queloide activa o infecciones locales."
             },
             {
                 "q": "@nvx-t:¿Cuántas sesiones son necesarias con EXION® Fractional?",

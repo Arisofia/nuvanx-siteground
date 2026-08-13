@@ -179,18 +179,18 @@ ob_start();
 				<div class="nvx-home-seo__col">
 					<h3 class="nvx-home-seo__col-title">Corporal</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Abdomen y flancos:</strong> valoración de grasa localizada y firmeza.</li>
-						<li><strong>Caderas y muslos:</strong> planificación del contorno según anatomía.</li>
-						<li><strong>Brazos, rodillas y espalda:</strong> protocolos ajustados al tejido.</li>
-						<li><strong>Calidad cutánea corporal:</strong> selección de tecnología según diagnóstico.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/grasa-localizada-abdomen-flancos-madrid/' ) ); ?>" class="nvx-text-link">Abdomen y flancos:</a></strong> valoración de grasa localizada y firmeza.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/flacidez-muslos-internos-subgluteo-madrid/' ) ); ?>" class="nvx-text-link">Caderas y muslos:</a></strong> planificación del contorno según anatomía.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/flacidez-grasa-localizada-brazos-madrid/' ) ); ?>" class="nvx-text-link">Brazos, rodillas y espalda:</a></strong> protocolos ajustados al tejido.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>" class="nvx-text-link">Calidad cutánea corporal:</a></strong> selección de tecnología según diagnóstico.</li>
 					</ul>
 				</div>
 				<div class="nvx-home-seo__col">
 					<h3 class="nvx-home-seo__col-title">Facial</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Tercio inferior:</strong> mandíbula, cuello y papada.</li>
-						<li><strong>Armonización:</strong> planificación conservadora de proporciones y soporte.</li>
-						<li><strong>Calidad de piel:</strong> textura, poros, cicatrices y fotodaño.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/papada-definicion-mandibular-madrid/' ) ); ?>" class="nvx-text-link">Tercio inferior:</a></strong> mandíbula, cuello y papada.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/medicina-estetica/' ) ); ?>" class="nvx-text-link">Armonización:</a></strong> planificación conservadora de proporciones y soporte.</li>
+						<li><strong><a href="<?php echo esc_url( home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ) ); ?>" class="nvx-text-link">Calidad de piel:</a></strong> textura, poros, cicatrices y fotodaño.</li>
 					</ul>
 				</div>
 			</div>

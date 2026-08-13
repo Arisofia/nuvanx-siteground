@@ -414,6 +414,13 @@
 	gap: var(--nvx-space-8);
 }
 
+@media (min-width: 768px) {
+	.nvx-home-seo__grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--nvx-space-12);
+	}
+}
+
 .nvx-home-seo__col-title {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);

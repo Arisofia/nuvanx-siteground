@@ -304,6 +304,73 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 				<?php endforeach; ?>
 			</section>
 		<?php endif; ?>
+
+		<?php
+		// -----------------------------------------------------------------------
+		// Bridal protocol: cronograma por fases (solo para bridal_protocol).
+		// -----------------------------------------------------------------------
+		$bridal_timeline = is_array( $page['bridal_timeline'] ?? null ) ? $page['bridal_timeline'] : array();
+		if ( ! empty( $bridal_timeline ) ) :
+			?>
+			<section class="nvx-prose nvx-bridal-timeline" aria-label="<?php esc_attr_e( 'Cronograma del protocolo de novias', 'nuvanx-medical' ); ?>">
+				<h2><?php esc_html_e( 'Cronograma: cuándo hacer cada tratamiento', 'nuvanx-medical' ); ?></h2>
+				<p><?php esc_html_e( 'El protocolo se estructura en fases para que cada tratamiento esté en su momento óptimo y llegues al gran día sin ningún signo visible de procedimiento.', 'nuvanx-medical' ); ?></p>
+				<ol class="nvx-bridal-timeline__list">
+				<?php foreach ( $bridal_timeline as $step ) :
+					$step_phase    = esc_html( (string) ( $step['phase'] ?? '' ) );
+					$step_title    = esc_html( (string) ( $step['title'] ?? '' ) );
+					$step_desc     = esc_html( (string) ( $step['description'] ?? '' ) );
+					$step_treats   = array_values( array_filter( array_map( 'strval', (array) ( $step['treatments'] ?? array() ) ) ) );
+					?>
+					<li class="nvx-bridal-timeline__step">
+						<span class="nvx-bridal-timeline__phase"><?php echo $step_phase; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+						<strong class="nvx-bridal-timeline__title"><?php echo $step_title; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></strong>
+						<p><?php echo $step_desc; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+						<?php if ( ! empty( $step_treats ) ) : ?>
+							<ul>
+								<?php foreach ( $step_treats as $t ) : ?>
+									<li><?php echo esc_html( $t ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
+					</li>
+				<?php endforeach; ?>
+				</ol>
+			</section>
+		<?php endif; ?>
+
+		<?php
+		// -----------------------------------------------------------------------
+		// Bridal protocol: protocolo para el grupo de la novia.
+		// -----------------------------------------------------------------------
+		$bridal_group = is_array( $page['bridal_group'] ?? null ) ? $page['bridal_group'] : array();
+		if ( ! empty( $bridal_group ) ) :
+			?>
+			<section class="nvx-prose nvx-bridal-group" aria-label="<?php esc_attr_e( 'Protocolo para el grupo de la novia', 'nuvanx-medical' ); ?>">
+				<h2><?php esc_html_e( 'El protocolo se extiende a todo el grupo', 'nuvanx-medical' ); ?></h2>
+				<p><?php esc_html_e( 'En NUVANX no solo preparamos a la novia. Ofrecemos valoraciones individuales para el novio, las madres y los acompañantes que quieran llegar radiantes al gran día.', 'nuvanx-medical' ); ?></p>
+				<ul class="nvx-bridal-group__list">
+				<?php foreach ( $bridal_group as $member ) :
+					$member_profile = esc_html( (string) ( $member['profile'] ?? '' ) );
+					$member_desc    = esc_html( (string) ( $member['description'] ?? '' ) );
+					$member_treats  = array_values( array_filter( array_map( 'strval', (array) ( $member['treatments'] ?? array() ) ) ) );
+					?>
+					<li class="nvx-bridal-group__member">
+						<strong><?php echo $member_profile; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></strong>
+						<p><?php echo $member_desc; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+						<?php if ( ! empty( $member_treats ) ) : ?>
+							<ul>
+								<?php foreach ( $member_treats as $t ) : ?>
+									<li><?php echo esc_html( $t ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
+					</li>
+				<?php endforeach; ?>
+				</ul>
+			</section>
+		<?php endif; ?>
+
 	</article>
 	<?php
 }

@@ -74,29 +74,39 @@ ob_start();
 		</header>
 		<div class="nvx-home-portfolio__list">
 			<article class="nvx-home-portfolio__item">
-				<span class="nvx-home-portfolio__number" aria-hidden="true">01</span>
-				<h3 class="nvx-home-portfolio__name">Endolift® Facial</h3>
-				<p class="nvx-home-portfolio__desc">Retracción tisular y definición del contorno mandibular mediante láser subdérmico.</p>
+				<a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>" class="nvx-home-portfolio__link">
+					<span class="nvx-home-portfolio__number" aria-hidden="true">01</span>
+					<h3 class="nvx-home-portfolio__name">Endolift® Facial</h3>
+					<p class="nvx-home-portfolio__desc">Retracción tisular y definición del contorno mandibular mediante láser subdérmico.</p>
+				</a>
 			</article>
 			<article class="nvx-home-portfolio__item">
-				<span class="nvx-home-portfolio__number" aria-hidden="true">02</span>
-				<h3 class="nvx-home-portfolio__name">Endoláser Corporal</h3>
-				<p class="nvx-home-portfolio__desc">Lipólisis láser focalizada para depósitos adiposos y flacidez.</p>
+				<a href="<?php echo esc_url( home_url( '/endolaser-corporal-grasa-localizada/' ) ); ?>" class="nvx-home-portfolio__link">
+					<span class="nvx-home-portfolio__number" aria-hidden="true">02</span>
+					<h3 class="nvx-home-portfolio__name">Endoláser Corporal</h3>
+					<p class="nvx-home-portfolio__desc">Lipólisis láser focalizada para depósitos adiposos y flacidez.</p>
+				</a>
 			</article>
 			<article class="nvx-home-portfolio__item">
-				<span class="nvx-home-portfolio__number" aria-hidden="true">03</span>
-				<h3 class="nvx-home-portfolio__name">Láser CO₂ Fraccionado</h3>
-				<p class="nvx-home-portfolio__desc">Renovación fraccionada para abordar fotodaño, cicatrices y textura según parámetros médicos.</p>
+				<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>" class="nvx-home-portfolio__link">
+					<span class="nvx-home-portfolio__number" aria-hidden="true">03</span>
+					<h3 class="nvx-home-portfolio__name">Láser CO₂ Fraccionado</h3>
+					<p class="nvx-home-portfolio__desc">Renovación fraccionada para abordar fotodaño, cicatrices y textura según parámetros médicos.</p>
+				</a>
 			</article>
 			<article class="nvx-home-portfolio__item">
-				<span class="nvx-home-portfolio__number" aria-hidden="true">04</span>
-				<h3 class="nvx-home-portfolio__name">Medicina Estética Facial</h3>
-				<p class="nvx-home-portfolio__desc">Planificación conservadora que respeta la identidad y las proporciones naturales.</p>
+				<a href="<?php echo esc_url( home_url( '/medicina-estetica/' ) ); ?>" class="nvx-home-portfolio__link">
+					<span class="nvx-home-portfolio__number" aria-hidden="true">04</span>
+					<h3 class="nvx-home-portfolio__name">Medicina Estética Facial</h3>
+					<p class="nvx-home-portfolio__desc">Planificación conservadora que respeta la identidad y las proporciones naturales.</p>
+				</a>
 			</article>
 			<article class="nvx-home-portfolio__item">
-				<span class="nvx-home-portfolio__number" aria-hidden="true">05</span>
-				<h3 class="nvx-home-portfolio__name">EXION® y tecnologías BTL</h3>
-				<p class="nvx-home-portfolio__desc">Protocolos para calidad cutánea, firmeza y tratamiento facial o corporal tras diagnóstico.</p>
+				<a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>" class="nvx-home-portfolio__link">
+					<span class="nvx-home-portfolio__number" aria-hidden="true">05</span>
+					<h3 class="nvx-home-portfolio__name">EXION® y tecnologías BTL</h3>
+					<p class="nvx-home-portfolio__desc">Protocolos para calidad cutánea, firmeza y tratamiento facial o corporal tras diagnóstico.</p>
+				</a>
 			</article>
 		</div>
 		<div class="nvx-home-portfolio__action">

@@ -106,28 +106,23 @@
       "label": "Cartucheras y cara interna de muslos",
       "pvp": 1815.00,
       "group": "corporal"
+    },
+    "cartucheras_subgluteos_muslos": {
+      "label": "Cartucheras, subglúteos y cara interna de muslos",
+      "pvp": 2286.90,
+      "group": "corporal"
     }
   },
   "laser_co2": {
-    "cara_completa": {
-      "label": "Cara completa",
-      "pvp": 695.50,
+    "facial": {
+      "label": "Sesión Láser CO₂ facial",
+      "pvp": 330.00,
       "group": "facial"
     },
-    "papada": {
-      "label": "Papada",
-      "pvp": 498.20,
-      "group": "facial"
-    },
-    "cuello": {
-      "label": "Cuello",
-      "pvp": 498.20,
-      "group": "facial"
-    },
-    "manos": {
-      "label": "Manos",
-      "pvp": 498.20,
-      "group": "facial"
+    "corporal": {
+      "label": "Sesión Láser CO₂ corporal",
+      "pvp": 450.00,
+      "group": "corporal"
     }
   },
   "labios_ha": {

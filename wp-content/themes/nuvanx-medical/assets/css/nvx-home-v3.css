@@ -531,7 +531,7 @@
    SECCIÓN 09: CIERRE / FOOTER-PRE
    ========================================================= */
 .nvx-home-closure {
-	padding-block: clamp(120px, 12vw, 200px);
+	padding-block: clamp(70px, 7vw, 110px);
 	background-color: var(--nvx-ink);
 	color: var(--nvx-light);
 	text-align: center;

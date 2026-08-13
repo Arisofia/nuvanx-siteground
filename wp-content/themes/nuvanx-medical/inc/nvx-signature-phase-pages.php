@@ -67,6 +67,9 @@ function nvx_signature_phase_resolve_token( $value ) {
 	if ( 'contour_upper' === $value ) {
 		return 'CONTOUR ARCHITECTURE™';
 	}
+	if ( 'contour_lower' === $value ) {
+		return 'CONTOUR ARCHITECTURE™';
+	}
 	if ( 'contour_mixed' === $value ) {
 		return nvx_signature_contour_label();
 	}

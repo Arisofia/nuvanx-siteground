@@ -8,9 +8,9 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Técnica con microfibra láser subdérmica para abordar flacidez facial, papada y definición mandibular según valoración médica. Endolift Chamberí y Goya Madrid.",
+        "description": "Láser subdérmico mínimamente invasivo para retracción tisular y definición facial o corporal, indicado tras exploración médica. Endolift® Chamberí y Goya Madrid.",
         "additionalFields": {
-            "priceRange": "Desde 798€",
+            "priceRange": "Desde 798,60€",
             "provider": {
                 "@type": "MedicalOrganization",
                 "name": "NUVANX",

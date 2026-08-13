@@ -85,7 +85,7 @@
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",
         "title": "@nvx-t:Valoración y presupuesto Endolift® en NUVANX Madrid",
-        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 798 € (ojeras), 1.064,80 € (papada o marcación mandibular cada una), 1.197,90 € (cuello). Combos frecuentes como papada+cuello (1.331 €) o full face (1.694 €) se valoran según indicación. El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en la mayoría de indicaciones, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:",
+        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 798,60 € (ojeras), 1.064,80 € (papada o marcación mandibular cada una), 1.197,90 € (cuello). Combos frecuentes como papada+cuello (1.331 €) o full face (1.694 €) se valoran según indicación. El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en la mayoría de indicaciones, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:",
         "items": [
             "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
             "@nvx-t:Honorarios médicos de la intervención",
@@ -101,7 +101,7 @@
         "items": [
             {
                 "q": "@nvx-t:¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?",
-                "a": "@nvx-t:La tarifa de referencia parte desde 798 € (ojeras). Papada y marcación mandibular: 1.064,80 € cada una. El presupuesto definitivo se documenta tras valoración anatómica presencial."
+                "a": "@nvx-t:La tarifa de referencia parte desde 798,60 € (ojeras). Papada y marcación mandibular: 1.064,80 € cada una. El presupuesto definitivo se documenta tras valoración anatómica presencial."
             },
             {
                 "q": "@nvx-t:¿Endolift® es para cualquier papada o flacidez?",

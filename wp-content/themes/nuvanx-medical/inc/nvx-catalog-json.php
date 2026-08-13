@@ -281,6 +281,7 @@ function nvx_catalog_resolve_token_value(
 			$resolved = $resolver( substr( $value, strlen( $prefix ) ) );
 			break;
 		}
+	}
 
 	if ( $resolved === $value && null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim-key:' ) ) {
 		$resolved = $claim_resolver( substr( $value, strlen( '@nvx-claim-key:' ) ) );

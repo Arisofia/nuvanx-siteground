@@ -1915,7 +1915,11 @@ figure.nvx-equipo-portrait{
 }
 .nvx-bridal-timeline__step {
   counter-increment: bridal-step;
+<<<<<<< HEAD
   border-left: 2px solid var(--nvx-accent-muted, #4a4a4a);
+=======
+  border-left: 2px solid var(--nvx-accent, #b08d74);
+>>>>>>> master
   padding: 0 0 1.5rem 1.5rem;
   position: relative;
 }
@@ -1928,7 +1932,11 @@ figure.nvx-equipo-portrait{
   height: 1.75rem;
   border-radius: 50%;
   background: var(--nvx-surface-base);
+<<<<<<< HEAD
   border: 2px solid var(--nvx-accent-muted, #4a4a4a);
+=======
+  border: 2px solid var(--nvx-accent, #b08d74);
+>>>>>>> master
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1953,6 +1961,7 @@ figure.nvx-equipo-portrait{
   list-style: none;
   padding: 0;
   display: grid;
+<<<<<<< HEAD
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
@@ -2026,4 +2035,15 @@ figure.nvx-equipo-portrait{
 }
 .nvx-price-details__content .nvx-prose:first-child {
   margin-top: var(--nvx-space-3);
+=======
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .nvx-bridal-group__list { grid-template-columns: repeat(2, 1fr); }
+}
+.nvx-bridal-group__member {
+  border: 1px solid var(--nvx-border-subtle, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 1rem;
+>>>>>>> master
 }

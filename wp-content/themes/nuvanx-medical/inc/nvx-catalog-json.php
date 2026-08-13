@@ -131,7 +131,7 @@ function nvx_catalog_governance_config(): array {
 			'investment_key'  => 'investment',
 		),
 		'endolaser' => array(
-			'price_faq_index' => 0,
+			'price_faq_index' => 7,
 			'planning_key'   => 'planning',
 		),
 	);
@@ -186,9 +186,9 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 			return $catalog;
 		}
 
-		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
 		$face       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_face_sesion' );
 		$body       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_body_sesion' );
+		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
 
 		if ( '' === $fractional || '' === $face || '' === $body ) {
 			nvx_catalog_log_error( 'Unable to hydrate EXION hub prices from tariff-catalog.json.' );
@@ -198,11 +198,11 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		$inv_key = $config['exion']['investment_key'] ?? 'investment';
 		if ( isset( $catalog[ $inv_key ]['body'] ) ) {
 			$catalog[ $inv_key ]['body'] = sprintf(
-				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
-				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
-				$fractional,
+				/* translators: 1: EXION Face price, 2: EXION Body price, 3: Fractional RF price. */
+				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (EXION® Face), %2$s/sesión (EXION® Body) y %3$s (EXION® Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
 				$face,
-				$body
+				$body,
+				$fractional
 			);
 		}
 
@@ -210,25 +210,121 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		$faq_idx = $config['exion']['price_faq_index'] ?? 0;
 		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) ) {
 			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
-				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
-				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
-				$fractional,
+				/* translators: 1: EXION Face price, 2: EXION Body price, 3: Fractional RF price. */
+				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (EXION® Face), %2$s/sesión (EXION® Body) y %3$s (EXION® Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
 				$face,
-				$body
+				$body,
+				$fractional
 			);
 		}
 	}
 
 	if ( 'endolaser-page.json' === $safe_name ) {
-		$plan_key = $config['endolaser']['planning_key'] ?? 'planning';
-		if ( isset( $catalog[ $plan_key ]['body'] ) ) {
-			$catalog[ $plan_key ]['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate endolaser prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
 		}
 
-		// The Endoláser catalog schema reserves FAQ item 0 for the pricing question.
-		$faq_idx = $config['endolaser']['price_faq_index'] ?? 0;
-		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) ) {
-			$catalog['faq']['items'][ $faq_idx ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
+		$rodillas = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'rodillas' );
+		$brazos   = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'brazos' );
+		$flancos  = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'flancos' );
+		$abdomen  = nvx_catalog_tariff_display_price( $tariffs, 'endolift', 'abdomen' );
+
+		$plan_key = $config['endolaser']['planning_key'] ?? 'planning';
+		if ( isset( $catalog[ $plan_key ]['body'] ) && '' !== $rodillas && '' !== $abdomen ) {
+			$catalog[ $plan_key ]['body'] = sprintf(
+				/* translators: 1: rodillas price, 2: brazos price, 3: flancos price, 4: abdomen price */
+				__( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. Tarifas de referencia vigentes: desde %1$s (rodillas), %2$s (brazos o cara interna de muslos), %3$s (flancos) y %4$s (abdomen completo). Procedimiento en 1 sesión única con medición ecográfica previa y revisiones clínicas a 4 semanas, 3 y 6 meses. Incluye pauta de compresión post-procedimiento.', 'nuvanx-medical' ),
+				$rodillas,
+				$brazos,
+				$flancos,
+				$abdomen
+			);
+		}
+
+		// The Endoláser catalog schema reserves FAQ item 7 for the pricing question.
+		$faq_idx = $config['endolaser']['price_faq_index'] ?? 7;
+		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) && '' !== $rodillas && '' !== $abdomen ) {
+			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
+				/* translators: 1: rodillas price, 2: abdomen price */
+				__( 'En NUVANX las tarifas de referencia vigentes de Endoláser corporal parten desde %1$s (zonas focalizadas como rodillas) hasta %2$s (abdomen completo), según extensión, plan médico y anatomía. El presupuesto definitivo se documenta tras la valoración médica presencial.', 'nuvanx-medical' ),
+				$rodillas,
+				$abdomen
+			);
+		}
+	}
+
+	if ( 'aesthetic-medicine-page.json' === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate aesthetic medicine hub prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
+		}
+
+		$labios = nvx_catalog_tariff_display_price( $tariffs, 'labios_ha', 'perfilado_hidratacion' );
+		$rino   = nvx_catalog_tariff_display_price( $tariffs, 'rinomodelacion_ha', 'rinomodelacion' );
+		$ojeras = nvx_catalog_tariff_display_price( $tariffs, 'ojeras_ha', 'surco_lagrimal' );
+		$bio    = nvx_catalog_tariff_display_price( $tariffs, 'bioestimuladores', 'polynucleotides_cara' );
+
+		if ( isset( $catalog['treatments'][0] ) && '' !== $labios ) {
+			$catalog['treatments'][0]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s', 'nuvanx-medical' ),
+				$labios
+			);
+		}
+		if ( isset( $catalog['treatments'][1] ) && '' !== $rino ) {
+			$catalog['treatments'][1]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s', 'nuvanx-medical' ),
+				$rino
+			);
+		}
+		if ( isset( $catalog['treatments'][2] ) && '' !== $ojeras ) {
+			$catalog['treatments'][2]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s (según diagnóstico y técnica)', 'nuvanx-medical' ),
+				$ojeras
+			);
+		}
+		if ( isset( $catalog['treatments'][3] ) && '' !== $bio ) {
+			$catalog['treatments'][3]['price'] = sprintf(
+				/* translators: %s: formatted price */
+				__( 'Desde %s (según principio activo y zona)', 'nuvanx-medical' ),
+				$bio
+			);
+		}
+	}
+
+	if ( 'laser-co2-page.json' === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate laser CO2 prices: tariff-catalog.json is unavailable.' );
+			return $catalog;
+		}
+
+		$facial   = nvx_catalog_tariff_display_price( $tariffs, 'laser_co2', 'facial' );
+		$corporal = nvx_catalog_tariff_display_price( $tariffs, 'laser_co2', 'corporal' );
+
+		$inv_key = $config['laser_co2']['investment_key'] ?? 'investment';
+		if ( isset( $catalog[ $inv_key ]['body'] ) && '' !== $facial && '' !== $corporal ) {
+			$catalog[ $inv_key ]['body'] = sprintf(
+				/* translators: 1: facial price, 2: corporal price */
+				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (facial), %2$s/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
+				$facial,
+				$corporal
+			);
+		}
+
+		$faq_idx = $config['laser_co2']['price_faq_index'] ?? 0;
+		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) && '' !== $facial && '' !== $corporal ) {
+			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
+				/* translators: 1: facial price, 2: corporal price */
+				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (facial) y %2$s/sesión (corporal). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
+				$facial,
+				$corporal
+			);
 		}
 	}
 

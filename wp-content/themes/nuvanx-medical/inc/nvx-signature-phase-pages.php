@@ -143,12 +143,11 @@ function nvx_signature_phase_current_key(): ?string {
  * @return string The rendered HTML section.
  */
 function nvx_signature_phase_list( string $title, array $items, string $class = '' ): string {
-	$html           = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><div class="nvx-brand-section__inner">';
-	$html          .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
-	$roman_numerals = array( 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X' );
-	$idx            = 0;
+	$html  = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
+	$idx   = 1;
 	foreach ( $items as $item ) {
-		$number = isset( $roman_numerals[ $idx ] ) ? $roman_numerals[ $idx ] : ( $idx + 1 );
+		$number = sprintf( '%02d', $idx );
 		$html  .= '<li><span class="nvx-signature-list-number" aria-hidden="true">' . esc_html( $number ) . '</span> ' . esc_html( (string) $item ) . '</li>';
 		++$idx;
 	}
@@ -208,8 +207,19 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<h1 id="nvx-signature-title" class="nvx-brand-hero__title">' . esc_html( (string) $page['title'] ) . '</h1>';
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
 	$html      .= '<p class="nvx-brand-hero__lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
+
+	if ( ! empty( $page['price_range'] ) ) {
+		$html .= '<p class="nvx-brand-hero__price"><strong>' . esc_html__( 'Tarifa orientativa:', 'nuvanx-medical' ) . '</strong> '
+			. esc_html( (string) $page['price_range'] ) . '. '
+			. ( ! empty( $page['price_technology'] )
+				? esc_html__( 'Tecnología habitual: ', 'nuvanx-medical' ) . esc_html( (string) $page['price_technology'] ) . '. '
+				: '' )
+			. esc_html( (string) ( $page['price_note'] ?? '' ) )
+			. '</p>';
+	}
+
 	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></div>';
-	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
+	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'Valoración presencial en nuestras clínicas de Madrid: Chamberí (Reg. Sanitario CS20144) y Salamanca–Goya (Reg. Sanitario CS20073). La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
 	$html      .= nvx_signature_phase_list( 'Qué se valora', (array) $page['assessment'] );
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Cómo se decide el plan', 'nuvanx-medical' ) . '</h2>';
 	$html      .= '<p>' . esc_html__( 'El médico identifica el componente predominante, revisa zonas contiguas y descarta problemas que no deben abordarse con medicina estética. Solo entonces se selecciona una modalidad y se documentan alternativas, cuidados y seguimiento.', 'nuvanx-medical' ) . '</p>';
@@ -224,14 +234,6 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;
 }
-add_action(
-	'after_setup_theme',
-	function () {
-		if ( function_exists( 'nvx_register_catalog_content_filter' ) ) {
-			nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
-		}
-	}
-);
 
 /**
  * Signature architecture hubs (index + Contour + Post-Maternity).

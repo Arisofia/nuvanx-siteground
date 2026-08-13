@@ -6,7 +6,7 @@
         "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
         "lead": "@nvx-t:Protocolo de rejuvenecimiento facial y corporal con EXION® Face, Body y Fractional RF. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
         "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, protocolo personalizado según diagnóstico y recuperación realista — antes de decidir.",
-        "meta": "@nvx-t:EXION Face · EXION Body · Fractional RF · Chamberí · Salamanca–Goya"
+        "meta": "@nvx-t:EXION Face · EXION Body · Fractional RF · Chamberí (CS20144) · Salamanca–Goya (CS20073)"
     },
     "review": {
         "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
@@ -61,7 +61,7 @@
     "process": {
         "kicker": "@nvx-t:El procedimiento en NUVANX",
         "title": "@nvx-t:Ejecución paso a paso",
-        "body": "@nvx-t:Duración habitual 45–90 minutos según zonas y tecnologías. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la sección de postoperatorio.",
+        "body": "@nvx-t:Duración habitual 45–90 minutos según zonas y tecnologías. El procedimiento se realiza de forma ambulatoria. Recuperación social y evolución se detallan en la sección de postoperatorio.",
         "steps": [
             { "icon": "assess", "n": "01", "title": "@nvx-t:Valoración anatómica", "body": "@nvx-t:Diagnóstico de tipo de piel, calidad cutánea y objetivos. Definición de protocolo EXION®." },
             { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Preparación cutánea", "body": "@nvx-t:Limpieza y aplicación de anestésico tópico (opcional según zona)." },
@@ -76,15 +76,15 @@
         "items": [
             { "title": "@nvx-t:Días 1 a 2 (Enrojecimiento inicial):", "body": "@nvx-t:Es normal notar la zona tratada enrojecida, ligeramente sensible y con sensación de calor. Con Fractional RF pueden aparecer microcostras que caen naturalmente en 3–5 días. El disconfort es leve y se controla con crema hidratante y protector solar." },
             { "title": "@nvx-t:Días 3 a 5 (Recuperación Social):", "body": "@nvx-t:El enrojecimiento inicial cede considerablemente. Puedes retomar actividad laboral y social inmediatamente. La piel puede sentirse ligeramente seca o descamada; se recomienda hidratación intensiva y evitar exposición solar directa." },
-            { "title": "@nvx:t:Semanas 2 a 4 (Remodelación Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna. Notarás la piel visiblemente más luminosa, con poros más finos y textura mejorada. Las microcostras han caído completamente y la piel recupera su aspecto normal." },
+            { "title": "@nvx-t:Semanas 2 a 4 (Remodelación Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna. Notarás la piel visiblemente más luminosa, con poros más finos y textura mejorada. Las microcostras han caído completamente y la piel recupera su aspecto normal." },
             { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neocolagénesis y la retracción tisular. La calidad cutánea tratada muestra su resultado clínico real: firmeza mejorada, poros reducidos y textura más uniforme." }
         ],
-        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo de cuidados post-tratamiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu tipo de piel."
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo de cuidados post-tratamiento personalizado según las características de tu piel."
     },
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",
         "title": "@nvx-t:Valoración y presupuesto EXION® BTL en NUVANX Madrid",
-        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 250 €/sesión (Fractional RF), 350 €/sesión (Face), 400 €/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
+        "body": "@nvx-t:El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia: desde 395 €/sesión (Face), 445 €/sesión (Body) y 595 € (Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:",
         "items": [
             "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
             "@nvx-t:Honorarios médicos de la intervención",
@@ -100,7 +100,7 @@
         "items": [
             {
                 "q": "@nvx-t:¿Cuánto cuesta EXION® BTL en NUVANX Madrid?",
-                "a": "@nvx-t:Las tarifas de referencia parten desde 250 €/sesión (Fractional RF), 350 €/sesión (Face) y 400 €/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial."
+                "a": "@nvx-t:Las tarifas de referencia vigentes parten desde 395 €/sesión (EXION® Face), 445 €/sesión (EXION® Body) y 595 € (EXION® Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial."
             },
             {
                 "q": "@nvx-t:¿EXION® sirve para cualquier tipo de piel?",

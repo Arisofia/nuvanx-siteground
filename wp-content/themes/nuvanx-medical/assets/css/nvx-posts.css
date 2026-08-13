@@ -478,7 +478,7 @@
   padding: var(--nvx-space-6);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border-radius: var(--nvx-radius-card, 4px);
+  border-radius: var(--nvx-radius-card);
 }
 
 .nvx-blog-article__cta .nvx-brand-kicker {

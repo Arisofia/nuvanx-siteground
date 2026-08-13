@@ -495,7 +495,7 @@
         ],
         "protocol": {
             "sessions": "Variable según cronograma. Plan mínimo: 3 sesiones en 3 meses. Plan completo: 6-10 sesiones en 6-12 meses.",
-            "downtime": "Los tratamientos se seleccionan para que sean compatibles con tu vida diaria. Los procedimientos más intensivos (Endolift, EXION) se programan en fases tempranas para que cualquier efimero enrojecimiento haya desaparecido mucho antes del gran día.",
+            "downtime": "Los tratamientos se seleccionan para que sean compatibles con tu vida diaria. Los procedimientos más intensivos (Endolift, EXION) se programan en fases tempranas para que cualquier efímero enrojecimiento haya desaparecido mucho antes del gran día.",
             "duration_result": "Resultados progresivos y acumulativos. El efecto óptimo se alcanza en la semana de la boda.",
             "price_range": "Desde 350 €",
             "products_used": ["Neuromodulador botulínico", "Ácido hialurónico no reticulado", "Polinucleótidos (PDRN/PRPF)", "BTL EXION RF", "Peeling médico suave"]
@@ -627,6 +627,7 @@
             "preparation": "Valoración médica inicial gratuita con análisis de piel, fecha de boda y objetivos. Diseño de cronograma personalizado.",
             "howPerformed": "Combinación de técnicas médico-estéticas seleccionadas según diagnóstico individual: neuromoduladores, mesoterapia, bioestimuladores, peelings médicos, Endolift y/o EXION BTL. Cada sesión va precedida de una evaluación.",
             "followup": "Seguimiento continuo entre sesiones con canal de contacto directo. Revisión tras neuromoduladores a los 14-21 días. Protocolo flash en la última semana previa a la boda.",
+            "reviewedBy": "/equipo-medico/#physician-rivera-tejeda",
             "indications": [
                 "Preparación cutánea integral para boda",
                 "Mejora de luminosidad y tono",

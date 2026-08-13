@@ -46,27 +46,22 @@ ob_start();
 		</header>
 		<div class="nvx-home-standard__grid">
 			<div class="nvx-home-feature">
-				<span class="nvx-home-feature__number" aria-hidden="true">I</span>
 				<h3 class="nvx-home-feature__title">Abordajes sin incisiones quirúrgicas amplias</h3>
 				<p class="nvx-home-feature__desc">Determinadas indicaciones pueden abordarse mediante microcánulas o fibra óptica, siempre tras exploración médica.</p>
 			</div>
 			<div class="nvx-home-feature">
-				<span class="nvx-home-feature__number" aria-hidden="true">II</span>
 				<h3 class="nvx-home-feature__title">Recuperación según el procedimiento</h3>
 				<p class="nvx-home-feature__desc">El tiempo de reincorporación depende del tratamiento, la zona, los parámetros utilizados y la respuesta individual.</p>
 			</div>
 			<div class="nvx-home-feature">
-				<span class="nvx-home-feature__number" aria-hidden="true">III</span>
 				<h3 class="nvx-home-feature__title">Anestesia adaptada a la indicación</h3>
 				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local y seguimiento médico personalizado.</p>
 			</div>
 			<div class="nvx-home-feature">
-				<span class="nvx-home-feature__number" aria-hidden="true">IV</span>
 				<h3 class="nvx-home-feature__title">Tratamiento combinado del contorno</h3>
 				<p class="nvx-home-feature__desc">La reducción adiposa y la mejora de la firmeza pueden integrarse en un mismo plan cuando existe indicación.</p>
 			</div>
 			<div class="nvx-home-feature">
-				<span class="nvx-home-feature__number" aria-hidden="true">V</span>
 				<h3 class="nvx-home-feature__title">Evolución progresiva y seguimiento</h3>
 				<p class="nvx-home-feature__desc">La evolución se revisa en consulta y varía según el tratamiento, el tejido y los hábitos de cada paciente.</p>
 			</div>
@@ -201,7 +196,7 @@ ob_start();
 
 	<section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
 		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">En NUVANX, si no hay indicación, no se trata</h2>
-		<p class="nvx-home-closure__desc">Presupuesto y plan documentado por escrito en la primera visita. 2–5 días de recuperación en la mayoría de protocolos.</p>
+		<p class="nvx-home-closure__desc">Presupuesto y plan documentado por escrito en la primera visita. Tiempos de recuperación informados según el protocolo.</p>
 		<div class="nvx-home-closure__actions">
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Definir mi plan clínico</a>
 			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>

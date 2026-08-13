@@ -186,9 +186,9 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 			return $catalog;
 		}
 
-		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
 		$face       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_face_sesion' );
 		$body       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_body_sesion' );
+		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
 
 		if ( '' === $fractional || '' === $face || '' === $body ) {
 			nvx_catalog_log_error( 'Unable to hydrate EXION hub prices from tariff-catalog.json.' );
@@ -198,11 +198,11 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		$inv_key = $config['exion']['investment_key'] ?? 'investment';
 		if ( isset( $catalog[ $inv_key ]['body'] ) ) {
 			$catalog[ $inv_key ]['body'] = sprintf(
-				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
-				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
-				$fractional,
+				/* translators: 1: EXION Face price, 2: EXION Body price, 3: Fractional RF price. */
+				__( 'El plan y presupuesto se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia vigentes: desde %1$s/sesión (EXION® Face), %2$s/sesión (EXION® Body) y %3$s (EXION® Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial. El protocolo incluye:', 'nuvanx-medical' ),
 				$face,
-				$body
+				$body,
+				$fractional
 			);
 		}
 
@@ -210,11 +210,11 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name, ?arr
 		$faq_idx = $config['exion']['price_faq_index'] ?? 0;
 		if ( isset( $catalog['faq']['items'][ $faq_idx ] ) && is_array( $catalog['faq']['items'][ $faq_idx ] ) ) {
 			$catalog['faq']['items'][ $faq_idx ]['a'] = sprintf(
-				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
-				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
-				$fractional,
+				/* translators: 1: EXION Face price, 2: EXION Body price, 3: Fractional RF price. */
+				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (EXION® Face), %2$s/sesión (EXION® Body) y %3$s (EXION® Fractional RF). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
 				$face,
-				$body
+				$body,
+				$fractional
 			);
 		}
 	}

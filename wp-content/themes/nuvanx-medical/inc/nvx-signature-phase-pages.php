@@ -88,6 +88,11 @@ function nvx_signature_phase_resolve_token( $value ) {
 function nvx_signature_phase_hydrate_entry( array $spec ): array {
 	$entry = array();
 	foreach ( $spec as $key => $value ) {
+		if ( 'faq' === $key && is_array( $value ) ) {
+			// FAQ items are arrays of {q, a} — preserve nested structure.
+			$entry[ $key ] = $value;
+			continue;
+		}
 		if ( is_array( $value ) ) {
 			$entry[ $key ] = array_map( 'nvx_signature_phase_resolve_token', $value );
 			continue;
@@ -880,6 +885,30 @@ add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );
 add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
 add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 90 );
+
+/**
+ * Resolve the Signature catalog key for the current page (for schema/FAQ look-up).
+ *
+ * Returns the raw catalog key (e.g. 'profile-definition', 'abdomen-flancos',
+ * 'post-maternity') or null when the current request is not a Signature page.
+ *
+ * @return string|null
+ */
+function nvx_signature_phase_current_faq_key(): ?string {
+	$phase_key = nvx_signature_phase_current_key();
+	if ( null !== $phase_key ) {
+		return $phase_key;
+	}
+	$hub_key = nvx_signature_hub_current_key();
+	if ( null !== $hub_key ) {
+		// Map hub keys to FAQ catalog keys.
+		$hub_faq_map = array(
+			'post-maternity' => 'post-maternity',
+		);
+		return $hub_faq_map[ $hub_key ] ?? null;
+	}
+	return null;
+}
 
 /**
  * Render FAQ Signature from catalog items: [ ['q' => '', 'a' => ''], ... ]

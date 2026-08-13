@@ -853,6 +853,12 @@ function nvx_schema_faq_node( $page_id ) {
 		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
 			$key = nvx_btl_detail_current_key( '' );
 		}
+		// Signature phase and hub pages (profile-definition, tone-correction,
+		// surface-renewal, abdomen-flancos, post-maternity) are not in the
+		// treatment registry but have FAQ items in nvx_schema_faq_catalog().
+		if ( null === $key && function_exists( 'nvx_signature_phase_current_faq_key' ) ) {
+			$key = nvx_signature_phase_current_faq_key();
+		}
 		// Aesthetic treatment pages (rhinomodeling_ha, tear_trough_ha, biostimulators,
 		// neuromodulators, lips_ha) have their keys mapped in nvx_schema_faq_catalog()
 		// so nvx_schema_faq_node() centrally handles FAQPage emission for all treatments.

@@ -477,7 +477,7 @@
   margin-bottom: var(--nvx-space-6);
   padding: var(--nvx-space-6);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
+  background: var(--nvx-surface-soft);
   border-radius: var(--nvx-radius-card);
 }
 

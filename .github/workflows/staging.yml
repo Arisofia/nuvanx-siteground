@@ -680,6 +680,7 @@ jobs:
     env:
       CANDIDATE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha }}
       RUNNER_MATRIX_RESULT: ${{ needs.deploy_staging_runners.result }}
+      SSH_TRANSPORT_EXIT_CODE: 255
     steps:
       - name: Require a completed fresh-runner deployment
         shell: bash

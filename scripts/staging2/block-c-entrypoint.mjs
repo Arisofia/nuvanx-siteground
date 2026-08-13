@@ -13,6 +13,9 @@ const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.me
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
 const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
 
+// Provider-specific paths for transient failure detection
+const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+
 async function prepareTrustedPagesPreload() {
   const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
   if (!pagesFile) {
@@ -80,6 +83,64 @@ async function runAttempt(attempt) {
   });
 }
 
+// Helper functions for transient failure detection
+function isAntiBotOnly(result, blockers, issues, status) {
+  return (
+    result.status === 'BLOCKED' &&
+    blockers.length > 0 &&
+    blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
+    issues.length === 0 &&
+    [202, 429, 503].includes(status)
+  );
+}
+
+function isSiteGroundChallengeAbortOnly(networkErrors) {
+  return (
+    networkErrors.length === 0 ||
+    networkErrors.every(
+      (message) =>
+        message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) &&
+        message.endsWith(': net::ERR_ABORTED')
+    )
+  );
+}
+
+function isNavigationNoResponseOnly(result, blockers, issues, networkErrors, status) {
+  return (
+    result.status === 'BLOCKED' &&
+    status === 0 &&
+    result.geometry == null &&
+    blockers.length > 0 &&
+    blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
+    issues.length === 0 &&
+    isSiteGroundChallengeAbortOnly(networkErrors) &&
+    typeof result.finalUrl === 'string' &&
+    result.finalUrl.startsWith(`${baseUrl}/`)
+  );
+}
+
+function isNetworkIssueOnly(result, blockers, issues, networkErrors) {
+  return (
+    result.status === 'FIX' &&
+    blockers.length === 0 &&
+    issues.length > 0 &&
+    issues.every((message) => /^\d+ same-origin network error\(s\)$/i.test(message)) &&
+    networkErrors.length > 0
+  );
+}
+
+function isRetryAbortOnly(networkErrors, expectedDocumentUrl) {
+  return networkErrors.every((message) => message === `${expectedDocumentUrl}: net::ERR_ABORTED`);
+}
+
+function isSiteGroundCaptchaRequestAbortOnly(networkErrors) {
+  return networkErrors.every(
+    (message) =>
+      message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) &&
+      message.endsWith(': net::ERR_ABORTED')
+  );
+}
+
 function isTransientFailure(result) {
   if (!result || result.status === 'PASS') return true;
 
@@ -88,57 +149,24 @@ function isTransientFailure(result) {
   const networkErrors = Array.isArray(result.networkErrors) ? result.networkErrors.map(String) : [];
   const status = Number(result.httpStatus || 0);
 
-  const antiBotOnly =
-    result.status === 'BLOCKED' &&
-    blockers.length > 0 &&
-    blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
-    issues.length === 0 &&
-    [202, 429, 503].includes(status);
+  // Check 1: SiteGround Antibot challenge only
+  if (isAntiBotOnly(result, blockers, issues, status)) return true;
 
-  if (antiBotOnly) return true;
+  // Check 2: Navigation with no HTTP response due to SiteGround challenge
+  if (isNavigationNoResponseOnly(result, blockers, issues, networkErrors, status)) return true;
 
-  const siteGroundChallengeAbortOnly =
-    networkErrors.length === 0 ||
-    networkErrors.every(
-      (message) =>
-        message.startsWith(`${baseUrl}/.well-known/sgcaptcha/`) &&
-        message.endsWith(': net::ERR_ABORTED')
-    );
-
-  const navigationNoResponseOnly =
-    result.status === 'BLOCKED' &&
-    status === 0 &&
-    result.geometry == null &&
-    blockers.length > 0 &&
-    blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
-    issues.length === 0 &&
-    siteGroundChallengeAbortOnly &&
-    typeof result.finalUrl === 'string' &&
-    result.finalUrl.startsWith(`${baseUrl}/`);
-
-  if (navigationNoResponseOnly) return true;
-
+  // Check 3: Network issues with abort errors (either retry or captcha-related)
   const expectedDocumentUrl = `${baseUrl}${String(result.route || '')}`;
-  const networkIssueOnly =
-    result.status === 'FIX' &&
-    blockers.length === 0 &&
-    issues.length > 0 &&
-    issues.every((message) => /^\d+ same-origin network error\(s\)$/i.test(message)) &&
-    networkErrors.length > 0;
+  const networkIssueOnly = isNetworkIssueOnly(result, blockers, issues, networkErrors);
 
-  const retryAbortOnly =
-    networkIssueOnly &&
-    networkErrors.every((message) => message === `${expectedDocumentUrl}: net::ERR_ABORTED`);
+  if (networkIssueOnly) {
+    const retryAbortOnly = isRetryAbortOnly(networkErrors, expectedDocumentUrl);
+    const siteGroundCaptchaRequestAbortOnly = isSiteGroundCaptchaRequestAbortOnly(networkErrors);
 
-  const siteGroundCaptchaRequestAbortOnly =
-    networkIssueOnly &&
-    networkErrors.every(
-      (message) =>
-        message.startsWith(`${baseUrl}/.well-known/sgcaptcha/`) &&
-        message.endsWith(': net::ERR_ABORTED')
-    );
+    return retryAbortOnly || siteGroundCaptchaRequestAbortOnly;
+  }
 
-  return retryAbortOnly || siteGroundCaptchaRequestAbortOnly;
+  return false;
 }
 
 async function failedResultsAreTransient() {

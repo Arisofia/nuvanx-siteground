@@ -18,6 +18,9 @@ const routes = [
   '/endolift-primeras-72-horas-que-esperar/',
 ];
 
+// Provider-specific paths for captcha detection
+const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+
 let baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
 try {
   const parsed = new URL(baseUrl);
@@ -136,7 +139,7 @@ function verifyViaSiteGroundOrigin(route) {
     'effective="${result#*|}"',
     'test "$code" = \'200\'',
     'case "$effective" in "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;; *) echo "ORIGIN_BOUNDARY_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;; esac',
-    '! grep -Fq \'/.well-known/sgcaptcha/\' "$body"',
+    '! grep -Fq \'${SITEGROUND_CAPTCHA_PATH}\' "$body"',
     '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
     'extract_meta_content() {',
     String.raw`  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\bname\s*=\s*(?:\x22([^\x22]+)\x22|\x27([^\x27]+)\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\bcontent\s*=\s*(?:\x22([^\x22]*)\x22|\x27([^\x27]*)\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
@@ -154,7 +157,7 @@ function verifyViaSiteGroundOrigin(route) {
     '',
   ].join('\n');
 
-  const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
+  const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} bash -se`;
   const result = spawnSync(
     sshBin,
     ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '-o', 'ConnectionAttempts=1', '--', originSshAlias, remoteCommand],

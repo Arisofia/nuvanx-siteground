@@ -19,6 +19,9 @@ const routes = [
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
 ];
 
+// Provider-specific paths for captcha detection
+const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
   process.exit(1);
@@ -88,7 +91,7 @@ do
     https://nuvanx.com/*|https://nuvanx.com) ;;
     *) echo "PRODUCTION_ORIGIN_FAIL route=$route final=$effective" >&2; rm -f "$headers" "$body"; exit 1 ;;
   esac
-  ! grep -Fq '/.well-known/sgcaptcha/' "$body"
+  ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"
   ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"
   grep -Fq "$EXPECTED_SHA" "$body"
 
@@ -134,7 +137,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA routes=8"
     '/usr/bin/ssh',
     [
       'nvx-prod',
-      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} bash -se`,
+      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} bash -se`,
     ],
     {
       input: remoteScript,

@@ -339,6 +339,14 @@
 	gap: var(--nvx-space-8);
 }
 
+@media (min-width: 960px) {
+	.nvx-home-team__inner {
+		grid-template-columns: 1fr 1.6fr;
+		gap: var(--nvx-space-12);
+		align-items: start;
+	}
+}
+
 .nvx-home-team__title {
 	font-family: var(--nvx-serif);
 	font-size: var(--nvx-type-h1);

@@ -677,8 +677,26 @@ function nvx_schema_faq_load_signature_phase(): array {
 			$catalog[ $key ] = $items;
 		}
 	}
+
+	// Add aliases for routes.json schema_id values that differ from catalog keys.
+	// This ensures nvx_schema_faq_node() can look up FAQs when the treatment
+	// registry resolves a schema_id like 'double_chin' instead of 'profile-definition'.
+	$schema_id_map = array(
+		'double_chin'      => 'profile-definition',
+		'acne_scars'       => 'surface-renewal',
+		'pigmentation'     => 'tone-correction',
+		'local_fat_abdomen'=> 'abdomen-flancos',
+		'postpartum'       => 'post-maternity',
+	);
+	foreach ( $schema_id_map as $schema_id => $catalog_key ) {
+		if ( ! empty( $catalog[ $catalog_key ] ) ) {
+			$catalog[ $schema_id ] = $catalog[ $catalog_key ];
+		}
+	}
+
 	return $catalog;
 }
+
 
 /** Implementation for FAQ catalog loading from mapped JSON files. */
 function nvx_schema_faq_load_map_catalog_impl( string $file, ?callable $resolver ): array {

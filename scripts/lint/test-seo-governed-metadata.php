@@ -174,5 +174,106 @@ if ( $taxonomy_result !== $presentation || 'Taxonomy title' !== $taxonomy_result
     exit( 1 );
 }
 
+// -----------------------------------------------------------------------------
+// Test FAQPage Schema Gate: Ensure FAQPage is never emitted without visible FAQs
+// -----------------------------------------------------------------------------
+
+$GLOBALS['test_is_front_page'] = true;
+$GLOBALS['test_queried_id']     = 0;
+
+function is_front_page() {
+    return ! empty( $GLOBALS['test_is_front_page'] );
+}
+
+function is_admin() {
+    return false;
+}
+
+function is_feed() {
+    return false;
+}
+
+function get_queried_object_id() {
+    return (int) ( $GLOBALS['test_queried_id'] ?? 0 );
+}
+
+function home_url( $path = '' ) {
+    return 'https://nuvanx.com' . $path;
+}
+
+function get_template_directory() {
+    return dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical';
+}
+
+require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php';
+
+// Test 1: Front page must report NO visible FAQ and return null for FAQ node
+$GLOBALS['test_is_front_page'] = true;
+$GLOBALS['test_queried_id']     = 0;
+
+if ( nvx_schema_page_has_visible_faq() !== false ) {
+    fwrite( STDERR, 'FAQ_GATE_FRONT_PAGE_TEST=FAIL (has_visible_faq must be false on front page)' . PHP_EOL );
+    exit( 1 );
+}
+
+if ( null !== nvx_schema_faq_node( 0 ) ) {
+    fwrite( STDERR, 'FAQ_GATE_FRONT_PAGE_NODE_TEST=FAIL (faq node must be null on front page)' . PHP_EOL );
+    exit( 1 );
+}
+
+// Test 2: Gate filter must strip standalone and composite FAQPage on pages without visible FAQs
+$orphan_graph = array(
+    array(
+        '@type' => 'FAQPage',
+        '@id'   => 'https://nuvanx.com/#faq',
+        'mainEntity' => array(
+            array(
+                '@type' => 'Question',
+                'name'  => 'Orphan question?',
+                'acceptedAnswer' => array( '@type' => 'Answer', 'text' => 'Orphan answer.' ),
+            ),
+        ),
+    ),
+    array(
+        '@type' => array( 'WebPage', 'FAQPage' ),
+        '@id'   => 'https://nuvanx.com/#webpage',
+        'url'   => 'https://nuvanx.com/',
+        'mainEntity' => array(
+            array(
+                '@type' => 'Question',
+                'name'  => 'Composite orphan?',
+                'acceptedAnswer' => array( '@type' => 'Answer', 'text' => 'Composite answer.' ),
+            ),
+        ),
+    ),
+    array(
+        '@type' => 'WebSite',
+        '@id'   => 'https://nuvanx.com/#website',
+    ),
+);
+
+$sanitized = nvx_schema_gate_faq_emission( $orphan_graph );
+
+foreach ( $sanitized as $node ) {
+    $types = (array) ( $node['@type'] ?? array() );
+    if ( in_array( 'FAQPage', $types, true ) ) {
+        fwrite( STDERR, 'FAQ_GATE_STRIP_TEST=FAIL (FAQPage type found in sanitized graph)' . PHP_EOL );
+        exit( 1 );
+    }
+    if ( isset( $node['mainEntity'] ) && is_array( $node['mainEntity'] ) ) {
+        $first = reset( $node['mainEntity'] );
+        if ( is_array( $first ) && ( $first['@type'] ?? '' ) === 'Question' ) {
+            fwrite( STDERR, 'FAQ_GATE_ORPHAN_MAIN_ENTITY_TEST=FAIL (Orphan Question mainEntity remained)' . PHP_EOL );
+            exit( 1 );
+        }
+    }
+}
+
+if ( count( $sanitized ) !== 2 ) {
+    fwrite( STDERR, 'FAQ_GATE_NODE_COUNT_TEST=FAIL (Expected 2 nodes after removing standalone FAQPage, got ' . count( $sanitized ) . ')' . PHP_EOL );
+    exit( 1 );
+}
+
 echo 'SEO_GOVERNED_METADATA_TEST=PASS' . PHP_EOL;
 echo 'SEO_TAXONOMY_ISOLATION_TEST=PASS' . PHP_EOL;
+echo 'FAQ_SCHEMA_GATE_TEST=PASS' . PHP_EOL;

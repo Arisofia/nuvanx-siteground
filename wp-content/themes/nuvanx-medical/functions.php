@@ -282,7 +282,6 @@ require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php
 require_once get_template_directory() . '/inc/nvx-blog-system.php';
 require_once get_template_directory() . '/inc/nvx-medical-review.php';
 require_once get_template_directory() . '/inc/nvx-btl-clinical-governance.php';
-require_once get_template_directory() . '/inc/nvx-faq-content-v2.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-solutions-page.php';

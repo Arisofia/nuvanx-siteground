@@ -856,43 +856,74 @@ function nvx_schema_faq_catalog() {
 }
 
 /**
+ * Determine whether a page renders visible FAQ content to the user.
+ *
+ * Google Search Essentials and Schema.org guidelines mandate that FAQPage
+ * structured data must mirror visible on-page FAQs. Emitting FAQPage on pages
+ * without visible FAQ content (such as the front page or non-treatment pages)
+ * constitutes structured data spam.
+ *
+ * @param int|null $page_id Optional page ID. Defaults to current queried object ID.
+ * @return bool True if the page has visible FAQ content, false otherwise.
+ */
+function nvx_schema_page_has_visible_faq( ?int $page_id = null ): bool {
+	if ( is_front_page() ) {
+		return false;
+	}
+
+	$target_id = null !== $page_id ? $page_id : (int) get_queried_object_id();
+
+	$key = nvx_schema_resolve_treatment_key( $target_id );
+	if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
+		$key = nvx_btl_detail_current_key( '' );
+	}
+	if ( null === $key && function_exists( 'nvx_signature_phase_current_faq_key' ) ) {
+		$key = nvx_signature_phase_current_faq_key();
+	}
+
+	if ( null === $key ) {
+		return false;
+	}
+
+	$catalog = nvx_schema_faq_catalog();
+	return ! empty( $catalog[ $key ] ) && is_array( $catalog[ $key ] );
+}
+
+/**
  * Return an FAQPage node that exactly mirrors visible page content.
+ *
+ * Emits null on any page without visible FAQ content (including the front page).
  *
  * @param int $page_id Current page ID.
  * @return array|null
  */
 function nvx_schema_faq_node( $page_id ) {
-	$questions = array();
+	if ( ! nvx_schema_page_has_visible_faq( $page_id ) ) {
+		return null;
+	}
+
+	$key = nvx_schema_resolve_treatment_key( $page_id );
+	if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
+		$key = nvx_btl_detail_current_key( '' );
+	}
+	if ( null === $key && function_exists( 'nvx_signature_phase_current_faq_key' ) ) {
+		$key = nvx_signature_phase_current_faq_key();
+	}
+
+	if ( null === $key ) {
+		return null;
+	}
+
+	$catalog = nvx_schema_faq_catalog();
+	if ( empty( $catalog[ $key ] ) ) {
+		return null;
+	}
+
+	$questions = $catalog[ $key ];
 	$faq_id    = get_permalink( $page_id ) . '#faq';
 	$faq_url   = get_permalink( $page_id );
 
-	if ( is_front_page() && function_exists( 'nvx_home_faq_v2_catalog' ) ) {
-		$questions = nvx_home_faq_v2_catalog();
-		$faq_id    = home_url( '/#faq' );
-		$faq_url   = home_url( '/' );
-	} else {
-		$key = nvx_schema_resolve_treatment_key( $page_id );
-		if ( null === $key && function_exists( 'nvx_btl_detail_current_key' ) ) {
-			$key = nvx_btl_detail_current_key( '' );
-		}
-		// Signature phase and hub pages (profile-definition, tone-correction,
-		// surface-renewal, abdomen-flancos, post-maternity) are not in the
-		// treatment registry but have FAQ items in nvx_schema_faq_catalog().
-		if ( null === $key && function_exists( 'nvx_signature_phase_current_faq_key' ) ) {
-			$key = nvx_signature_phase_current_faq_key();
-		}
-		// Aesthetic treatment pages (rhinomodeling_ha, tear_trough_ha, biostimulators,
-		// neuromodulators, lips_ha) have their keys mapped in nvx_schema_faq_catalog()
-		// so nvx_schema_faq_node() centrally handles FAQPage emission for all treatments.
-
-		$catalog = nvx_schema_faq_catalog();
-		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
-			$questions = $catalog[ $key ];
-		}
-	}
-
 	$entities = array();
-
 
 	foreach ( $questions as $q ) {
 		if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
@@ -1833,6 +1864,77 @@ function nvx_extend_yoast_schema_graph( $graph ) {
 	return $graph;
 }
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 1 );
+
+/**
+ * Gate filter to enforce that FAQPage structured data is never emitted on
+ * pages without visible FAQs. Purges orphan FAQPage nodes, removes 'FAQPage'
+ * from composite @type arrays, unsets orphan Question entities, and drops
+ * invalid FAQPage nodes with empty mainEntity.
+ *
+ * @param array $graph Yoast Schema graph.
+ * @return array Sanitized Schema graph.
+ */
+function nvx_schema_gate_faq_emission( $graph ) {
+	if ( ! is_array( $graph ) || is_admin() || is_feed() ) {
+		return $graph;
+	}
+
+	$has_visible_faq = nvx_schema_page_has_visible_faq();
+
+	foreach ( $graph as $index => $node ) {
+		if ( ! is_array( $node ) || ! isset( $node['@type'] ) ) {
+			continue;
+		}
+
+		$types       = is_array( $node['@type'] ) ? $node['@type'] : array( $node['@type'] );
+		$is_faq_node = in_array( 'FAQPage', $types, true );
+
+		if ( ! $is_faq_node ) {
+			continue;
+		}
+
+		if ( ! $has_visible_faq ) {
+			// Page has NO visible FAQ: purge FAQPage node or remove type.
+			if ( count( $types ) === 1 ) {
+				unset( $graph[ $index ] );
+			} else {
+				$remaining = array_values( array_diff( $types, array( 'FAQPage' ) ) );
+				$graph[ $index ]['@type'] = count( $remaining ) === 1 ? $remaining[0] : $remaining;
+				if ( isset( $graph[ $index ]['mainEntity'] ) && is_array( $graph[ $index ]['mainEntity'] ) ) {
+					$first_entity = reset( $graph[ $index ]['mainEntity'] );
+					if ( is_array( $first_entity ) && ( $first_entity['@type'] ?? '' ) === 'Question' ) {
+						unset( $graph[ $index ]['mainEntity'] );
+					}
+				}
+			}
+			continue;
+		}
+
+		// Page HAS visible FAQ: ensure mainEntity contains valid non-empty questions.
+		$has_valid_entities = false;
+		if ( ! empty( $node['mainEntity'] ) && is_array( $node['mainEntity'] ) ) {
+			foreach ( $node['mainEntity'] as $entity ) {
+				if ( is_array( $entity ) && ( $entity['@type'] ?? '' ) === 'Question' && ! empty( $entity['name'] ) ) {
+					$has_valid_entities = true;
+					break;
+				}
+			}
+		}
+
+		if ( ! $has_valid_entities ) {
+			if ( count( $types ) === 1 ) {
+				unset( $graph[ $index ] );
+			} else {
+				$remaining = array_values( array_diff( $types, array( 'FAQPage' ) ) );
+				$graph[ $index ]['@type'] = count( $remaining ) === 1 ? $remaining[0] : $remaining;
+				unset( $graph[ $index ]['mainEntity'] );
+			}
+		}
+	}
+
+	return array_values( $graph );
+}
+add_filter( 'wpseo_schema_graph', 'nvx_schema_gate_faq_emission', PHP_INT_MAX - 1, 1 );
 
 /**
  * Deduplicate Schema.org @id entries across the graph.

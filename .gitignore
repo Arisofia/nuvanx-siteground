@@ -83,3 +83,4 @@ scratch/
 /.nvx-deploy-sha
 /wp-content/themes/nuvanx-medical/.nvx-deploy-sha
 
+scripts/seo/raw-ads-audit-data.json

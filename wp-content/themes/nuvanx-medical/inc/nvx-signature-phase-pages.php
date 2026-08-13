@@ -274,11 +274,11 @@ function nvx_signature_hub_catalog(): array {
 			'marker'    => 'NUVANX_PROTOCOL_PAGE:contour-architecture',
 			'kind'      => 'contour',
 			'kicker'    => $contour,
-			'h1'        => 'Remodelación corporal láser diseñada según tu anatomía.',
+			'h1'        => 'Remodelación corporal láser en Madrid: contorno según tu anatomía.',
 			'lead'      => $short . ' evalúa grasa localizada, laxitud y continuidad entre zonas antes de indicar una tecnología. El plan se diseña por anatomía, no por una lista de aparatos.',
-			'intro'     => 'Abdomen, flancos, brazos, espalda, muslos, rodillas o contorno masculino pueden formar parte del mismo marco de decisión. Cada zona se presupuesta solo si tiene indicación documentada tras la exploración.',
-			'seo_title' => 'Remodelación corporal láser Madrid | ' . $short,
-			'seo_desc'  => 'Remodelación corporal láser en Madrid con ' . $contour . ': valoración por zonas de grasa, laxitud y continuidad anatómica.',
+			'intro'     => 'Abdomen, flancos, brazos, espalda, muslos, rodillas o contorno masculino pueden formar parte del mismo marco de decisión. Cada zona se presupuesta solo si tiene indicación documentada tras la exploración. Chamberí (CS20144) · Salamanca–Goya (CS20073) · Presupuesto por zona tras valoración.',
+			'seo_title' => 'Remodelación Corporal Láser Madrid | Contorno por Zonas | NUVANX',
+			'seo_desc'  => 'Contour Architecture™ en Madrid: abdomen, flancos, brazos, espalda, muslos y rodillas. Valoración de grasa y laxitud en Chamberí (CS20144) y Goya (CS20073).',
 		),
 		'post-maternity'       => array(
 			'slug'      => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
@@ -439,7 +439,7 @@ function nvx_signature_hub_phase1_cards(): array {
 /**
  * Cards for Contour Architecture body zones (Phase 2 catalog + nav labels).
  *
- * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string}>
+ * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string,price?:string}>
  */
 function nvx_signature_hub_contour_cards(): array {
 	$by_slug = array();
@@ -465,13 +465,17 @@ function nvx_signature_hub_contour_cards(): array {
 		}
 		$page    = $by_slug[ $slug ] ?? null;
 		$body    = is_array( $page ) ? (string) ( $page['lead'] ?? $page['intro'] ?? '' ) : '';
-		$cards[] = array(
+		$card    = array(
 			'kicker' => $kicker,
 			'title'  => $label,
 			'body'   => $body,
 			'url'    => nvx_signature_published_url( $slug ),
 			'cta'    => __( 'Valorar esta zona', 'nuvanx-medical' ),
 		);
+		if ( is_array( $page ) && ! empty( $page['price_range'] ) ) {
+			$card['price'] = (string) $page['price_range'];
+		}
+		$cards[] = $card;
 	}
 	return $cards;
 }

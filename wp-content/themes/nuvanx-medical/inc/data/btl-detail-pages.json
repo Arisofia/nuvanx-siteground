@@ -23,7 +23,8 @@
             "downtime": "Sin downtime. Eritema transitorio 1–2 horas tras la sesión.",
             "price_range": "Desde 395€/sesión · Pack 4 sesiones 1.395€",
             "duration_result": "Mejora progresiva visible a partir de la 2ª sesión. Resultado maduro 8–12 semanas.",
-            "contraindications": ["Marcapasos o dispositivos electrónicos implantados", "Embarazo", "Implantes metálicos en zona de tratamiento", "Activos cutáneos graves no estabilizados"]
+            "contraindications": ["Marcapasos o dispositivos electrónicos implantados", "Embarazo", "Implantes metálicos en zona de tratamiento", "Activos cutáneos graves no estabilizados"],
+            "cta_skin_architecture": "@nvx-t:Para valoración integral de calidad de piel, consulta NUVANX Skin Architecture™."
         },
         "mechanism": {
             "title": "@nvx-t:Cómo funciona EXION® Face: doble acción biomecánica con IA",
@@ -158,8 +159,9 @@
             "sessions": "4–6 sesiones protocolo estándar, separadas 2–4 semanas",
             "downtime": "Sin downtime. Calor residual en zona tratada 1–2 horas.",
             "price_range": "Desde 445€/sesión",
-            "duration_result": "Mejoras visibles a partir de la 3ª sesión. Mantenimiento recomendado a los 6 meses.",
-            "differentiation": "EXION Body combina apoptosis de adipocitos y tensado dérmico en una sola plataforma no invasiva. Para depósitos de grasa de mayor espesor o fibrosis, el Endoláser corporal actúa como láser subdérmico intervencionista."
+            "duration_result": "Mejoras visibles a partir de la 3ª sesión (orientativo; variable según respuesta individual). Mantenimiento recomendado a los 6 meses.",
+            "differentiation": "EXION Body combina apoptosis de adipocitos y tensado dérmico en una sola plataforma no invasiva. Para depósitos de grasa de mayor espesor o fibrosis, el Endoláser corporal actúa como láser subdérmico intervencionista. EXION Body no trata grasa visceral.",
+            "cta_contour_architecture": "@nvx-t:Para valoración por zona específica (abdomen/flancos/brazos/muslos), consulta NUVANX Contour Architecture™."
         },
         "mechanism": {
             "title": "@nvx-t:Cómo funciona EXION® Body con datos técnicos BTL",
@@ -392,12 +394,13 @@
         "kicker": "@nvx-t:EMFUSION® · NUVANX Madrid",
         "h1": "@nvx-t:EMFUSION® en Madrid: hidratación profunda y luminosidad cutánea",
         "lead": "@nvx-t:Tecnología DYNAMiQ™ de microcanales acústicos para apoyar la aplicación de activos, la hidratación y la barrera cutánea cuando existe indicación médica.",
-        "meta": "@nvx-t:Chamberí · Goya · Well-aging y piel sensible",
+        "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Well-aging y piel sensible",
         "aria": "@nvx-t:EMFUSION NUVANX",
         "marker": "nvx-emfusion",
-        "yoast_title": "EMFUSION Madrid | Barrera cutánea e infusión | NUVANX",
-        "yoast_desc": "EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.",
+        "yoast_title": "EMFUSION™ Madrid | Microcanales Acústicos | NUVANX",
+        "yoast_desc": "EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea, sin sistemas de succión. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "focuskw": "EMFUSION Madrid",
+        "hub": "@nvx-url:/exion-btl/",
         "schema_name": "EMFUSION® en Madrid",
         "schema_type": "Protocolo de infusión cutánea EMFUSION®",
         "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
@@ -405,10 +408,12 @@
             "technology": "Transductor sónico DYNAMiQ™ (ondas de choque mecánicas y microcanales acústicos)",
             "target": "Calidad cutánea global: luminosidad, hidratación, tono uniforme",
             "sessions": "4 sesiones protocolo inicial, separadas 1 semana",
-            "downtime": "Sin downtime. No produce eritema ni descamación.",
+            "downtime": "Downtime mínimo. Eritema leve transitorio posible en algunos pacientes.",
             "price_range": "Desde 345€/sesión",
             "duration_result": "Mejora progresiva de luminosidad y textura a partir de la 2ª sesión.",
-            "differentiation": "EMFUSION no sustituye a un facial cosmético: trabaja en planos más profundos. El resultado no es inmediato ni superficial."
+            "differentiation": "EMFUSION no sustituye a un facial cosmético: trabaja en planos más profundos. El resultado no es inmediato ni superficial.",
+            "contraindications": ["Infección activa en zona de tratamiento", "Heridas abiertas o lesiones cutáneas no cicatrizadas", "Alergia conocida a componentes del protocolo", "Embarazo (según política clínica)"],
+            "cta_skin_architecture": "@nvx-t:Para valoración integral de calidad de piel, consulta NUVANX Skin Architecture™."
         },
         "mechanism": {
             "title": "@nvx-t:Cómo funciona EMFUSION® (DYNAMiQ™) en 4 fases",
@@ -484,7 +489,7 @@
             },
             {
                 "q": "@nvx-t:¿Para qué tipo de piel es EMFUSION®?",
-                "a": "@nvx-t:EMFUSION® no tiene restricción por fototipo. Está indicado para mejorar luminosidad, textura e hidratación en pieles maduras, sensibles o con tono irregular. La indicación específica se confirma en valoración."
+                "a": "@nvx-t:EMFUSION® no tiene exclusión por fototipo; la indicación es individual según diagnóstico. Está indicado para mejorar luminosidad, textura e hidratación en pieles maduras, sensibles o con tono irregular. La indicación específica se confirma en valoración."
             },
             {
                 "q": "@nvx-t:¿Cuánto dura el efecto de EMFUSION®?",

@@ -287,9 +287,9 @@ function nvx_signature_hub_catalog(): array {
 			'kicker'    => 'NUVANX Post-Maternity Contour™',
 			'h1'        => 'Tratamiento postparto: abdomen y contorno corporal en Madrid.',
 			'lead'      => 'Lectura respetuosa de abdomen, flancos y calidad del tejido después del embarazo. Se separa grasa subcutánea, laxitud, diástasis y expectativas realistas antes de proponer cualquier modalidad.',
-			'intro'     => 'El postparto no es un protocolo estándar. La valoración considera lactancia, tiempo desde el parto, pared abdominal, cicatrices y disponibilidad de recuperación. Si no hay indicación proporcionada, se explica la alternativa o la espera.',
-			'seo_title' => 'Tratamiento postparto abdomen y contorno Madrid | NUVANX',
-			'seo_desc'  => 'Valoración postparto de abdomen y contorno corporal en Madrid: grasa, laxitud y pared abdominal con criterio clínico antes de indicar tratamiento.',
+			'intro'     => 'El postparto no es un protocolo estándar. La valoración considera lactancia, tiempo desde el parto, pared abdominal, cicatrices y disponibilidad de recuperación. Si no hay indicación proporcionada, se explica la alternativa o la espera. Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación solo tras valoración.',
+			'seo_title' => 'Tratamiento Postparto Abdomen Madrid | Contorno tras el Embarazo | NUVANX',
+			'seo_desc'  => 'Post-Maternity Contour™ en Madrid: valoración de grasa, laxitud y pared abdominal tras el embarazo. Diástasis y lactancia se evalúan antes de indicar. Chamberí (CS20144) y Salamanca–Goya (CS20073).',
 		),
 	);
 }

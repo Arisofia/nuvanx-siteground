@@ -108,21 +108,55 @@
   opacity: 1;
 }
 
-/* Teléfonos: más peso elegante */
-.nvx-footer__links-compact a[href^="tel:"] {
+/* Clinic structured blocks */
+.nvx-footer__clinic-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-4);
+}
+
+.nvx-footer__clinic {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-1);
+}
+
+.nvx-footer__clinic-name {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-medium);
+  color: var(--nvx-on-dark);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.nvx-footer__clinic-name:hover {
+  color: var(--nvx-accent-gold-text);
+}
+
+.nvx-footer__clinic-phone {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  font-weight: var(--nvx-fw-regular);
   color: var(--nvx-on-dark-88);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.nvx-footer__clinic-phone:hover {
+  color: var(--nvx-on-dark);
 }
 
 /* Direcciones físicas (NAP) */
 .nvx-footer__address {
-  margin: var(--nvx-space-2) 0 0 0;
+  margin: 0;
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-body);
   color: var(--nvx-on-dark-72);
   font-style: normal;
+  max-width: 28ch;
 }
 
 /* Social media links */

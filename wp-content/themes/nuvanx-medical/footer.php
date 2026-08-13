@@ -89,16 +89,19 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 				</div>
 			</div>
 
-			<div class="nvx-footer__section">
+			<div class="nvx-footer__section nvx-footer__section--clinics">
 				<p class="nvx-footer__section-title">Clínicas</p>
-				<div class="nvx-footer__links-compact">
-					<a href="<?php echo esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/' ) ); ?>">Nuestras clínicas</a>
-					<a href="<?php echo esc_url( home_url( '/medicina-estetica-chamberi/' ) ); ?>">Chamberí</a>
-					<a href="<?php echo esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ); ?>">Salamanca–Goya</a>
-					<a href="tel:+34669319836">Chamberí · 669 319 836</a>
-					<a href="tel:+34647505107">Goya · 647 505 107</a>
-					<address class="nvx-footer__address">Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid</address>
-					<address class="nvx-footer__address">Calle de Fernán González, 26, 28009 Madrid</address>
+				<div class="nvx-footer__clinic-group">
+					<div class="nvx-footer__clinic">
+						<a href="<?php echo esc_url( home_url( '/medicina-estetica-chamberi/' ) ); ?>" class="nvx-footer__clinic-name">Chamberí</a>
+						<a href="tel:+34669319836" class="nvx-footer__clinic-phone">669 319 836</a>
+						<address class="nvx-footer__address">Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid</address>
+					</div>
+					<div class="nvx-footer__clinic">
+						<a href="<?php echo esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ); ?>" class="nvx-footer__clinic-name">Salamanca–Goya</a>
+						<a href="tel:+34647505107" class="nvx-footer__clinic-phone">647 505 107</a>
+						<address class="nvx-footer__address">Calle de Fernán González, 26, 28009 Madrid</address>
+					</div>
 				</div>
 			</div>
 

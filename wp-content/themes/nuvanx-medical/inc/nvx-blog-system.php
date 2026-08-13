@@ -191,6 +191,18 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	$content = $head . $tail;
 
+	// Strip redundant trailing reviewer lines or markdown dividers at the end of post content.
+	$content = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:\*|_)?\s*(?:Revisado por|Autor|Fuente)\s*:[^<]{0,200}(?:\*|_)?\s*<\/p>\s*$/iu',
+		'',
+		$content
+	);
+	$content = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:\*{3,}|_{3,}|-{3,}|##\s*[^<]*)\s*<\/p>\s*$/iu',
+		'',
+		$content
+	);
+
 	// Collapse excess leading whitespace after strips.
 	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;)+/iu', '', $content );
 

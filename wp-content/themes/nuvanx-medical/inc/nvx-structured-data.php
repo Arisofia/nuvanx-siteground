@@ -1469,7 +1469,7 @@ function nvx_schema_offer_catalog( $organization_id ) {
  * @return bool
  */
 function nvx_schema_should_emit_physician( $page_id ) {
-	if ( is_front_page() || null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
+	if ( is_front_page() || is_singular( 'post' ) || null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
 		return true;
 	}
 
@@ -1616,7 +1616,7 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
  * @return string[]
  */
 function nvx_schema_clinic_keys_for_page( int $page_id ): array {
-	if ( is_front_page() ) {
+	if ( is_front_page() || is_singular( 'post' ) ) {
 		return array( 'chamberi', 'goya' );
 	}
 
@@ -1626,6 +1626,29 @@ function nvx_schema_clinic_keys_for_page( int $page_id ): array {
 	}
 
 	return nvx_schema_resolve_clinic_keys( $page_id );
+}
+
+/**
+ * Enriches Article / BlogPosting nodes in Yoast Schema graph with E-E-A-T authorship and MedicalOrganization publisher.
+ */
+function nvx_schema_enrich_article( array &$graph, int $post_id, string $org_id, ?array $physician ): void {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	$author_id = ( null !== $physician && ! empty( $physician['@id'] ) )
+		? $physician['@id']
+		: home_url( '/equipo-medico/#physician-rivera-tejeda' );
+
+	foreach ( $graph as $index => $node ) {
+		$types = isset( $node['@type'] ) ? (array) $node['@type'] : array();
+		if ( in_array( 'Article', $types, true ) || in_array( 'BlogPosting', $types, true ) || in_array( 'NewsArticle', $types, true ) ) {
+			$graph[ $index ]['publisher']  = array( '@id' => $org_id );
+			$graph[ $index ]['author']     = array( '@id' => $author_id );
+			$graph[ $index ]['reviewedBy'] = array( '@id' => $author_id );
+			$graph[ $index ]['inLanguage'] = 'es';
+		}
+	}
 }
 
 /**
@@ -1732,6 +1755,11 @@ function nvxSchemaLinkWebpageMainEntity( array $graph, string $pageUrl, string $
  * Attaches treatment and FAQ nodes to schema graph when applicable.
  */
 function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, string $org_id, ?array $physician ): void {
+	if ( is_singular( 'post' ) ) {
+		nvx_schema_enrich_article( $graph, $page_id, $org_id, $physician );
+		return;
+	}
+
 	$treatment = nvx_schema_treatment_node( $page_id, $org_id );
 	if ( null !== $treatment ) {
 		if ( null !== $physician ) {
@@ -1757,7 +1785,7 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
  * @return array
  */
 function nvx_extend_yoast_schema_graph( $graph ) {
-	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
+	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() && ! is_singular( 'post' ) ) ) {
 		return $graph;
 	}
 

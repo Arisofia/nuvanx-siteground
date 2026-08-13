@@ -113,6 +113,17 @@ while ( have_posts() ) :
 					?>
 				</div>
 
+				<section class="nvx-blog-article__cta" aria-label="<?php esc_attr_e( 'Valoración médica personalizada en Madrid', 'nuvanx-medical' ); ?>">
+					<div class="nvx-blog-article__cta-inner">
+						<p class="nvx-brand-kicker"><?php esc_html_e( 'Diagnóstico médico presencial', 'nuvanx-medical' ); ?></p>
+						<h2 class="nvx-blog-article__cta-title"><?php esc_html_e( 'Plan individualizado en nuestras clínicas de Madrid', 'nuvanx-medical' ); ?></h2>
+						<p class="nvx-blog-article__cta-text"><?php esc_html_e( 'Cada tratamiento se pauta tras la exploración clínica de anatomía, tejido y objetivos. Sedes autorizadas: Chamberí (CS20144) y Salamanca–Goya (CS20073).', 'nuvanx-medical' ); ?></p>
+						<?php if ( function_exists( 'nvx_cta_pair_markup' ) ) : ?>
+							<?php echo nvx_cta_pair_markup( 'nvx-blog-article__actions' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php endif; ?>
+					</div>
+				</section>
+
 				<footer class="nvx-blog-article__footer">
 					<p class="nvx-blog-article__notice"><?php esc_html_e( 'Contenido informativo. La indicación, los parámetros y el plan de tratamiento deben confirmarse mediante valoración médica individual.', 'nuvanx-medical' ); ?></p>
 

@@ -471,6 +471,43 @@
   margin-block: var(--nvx-space-6);
 }
 
+/* Article in-content closing CTA */
+.nvx-blog-article__cta {
+  margin-top: var(--nvx-space-8);
+  margin-bottom: var(--nvx-space-6);
+  padding: var(--nvx-space-6);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  background: var(--nvx-color-soft, #f7f6f2);
+  border-radius: var(--nvx-radius-card, 4px);
+}
+
+.nvx-blog-article__cta .nvx-brand-kicker {
+  margin: 0 0 var(--nvx-space-1);
+}
+
+.nvx-blog-article__cta-title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
+.nvx-blog-article__cta-text {
+  margin: 0 0 var(--nvx-space-4);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-blog-article__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2);
+  align-items: center;
+}
+
 /* Article taxonomy and adjacent navigation */
 .nvx-blog-article__footer {
   margin-top: var(--nvx-space-10);

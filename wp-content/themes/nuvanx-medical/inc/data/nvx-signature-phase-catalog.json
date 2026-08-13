@@ -27,7 +27,29 @@
     "protocol": "NUVANX Profile Definition™",
     "price_range": "desde 1.064,80 €",
     "price_technology": "Endolift®",
-    "price_note": "El presupuesto definitivo se documenta tras valoración presencial."
+    "price_note": "El presupuesto definitivo se documenta tras valoración presencial.",
+    "faq": [
+      {
+        "q": "¿Toda papada se trata igual?",
+        "a": "No. Se diferencia grasa localizada, laxitud cutánea y componente óseo o postural. Cada uno orienta a una modalidad distinta o a no tratar con energía."
+      },
+      {
+        "q": "¿Endolift® siempre es la primera opción?",
+        "a": "Solo si tras la exploración hay indicación de grasa y/o laxitud tratable. Si predomina el hueso o el exceso de piel es severo, se explica otra vía o derivación quirúrgica."
+      },
+      {
+        "q": "¿Se promete una mandíbula \"de catálogo\"?",
+        "a": "No. No se ofrece una línea mandibular estándar ni el mismo cambio en todas las personas. El plan respeta anatomía e identidad facial."
+      },
+      {
+        "q": "¿Cuánto cuesta orientativamente?",
+        "a": "La tarifa de referencia de zonas como papada o marcación mandibular parte de 1.064,80 €. El presupuesto definitivo se documenta tras la valoración presencial."
+      },
+      {
+        "q": "¿Dónde se valora en Madrid?",
+        "a": "En Chamberí (CS20144) y Salamanca–Goya (CS20073), con plan escrito si hay indicación."
+      }
+    ]
   },
   "skin-architecture": {
     "phase": 1,
@@ -85,7 +107,29 @@
     "seo_desc": "Surface Renewal™ en Madrid: cicatrices, poros y textura con CO₂ fraccionado o EXION® Fractional según fototipo y downtime. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
     "protocol": "NUVANX Surface Renewal™",
     "price_range": "desde 330 €",
-    "price_technology": "Láser CO₂ fraccionado facial"
+    "price_technology": "Láser CO₂ fraccionado facial",
+    "faq": [
+      {
+        "q": "¿CO₂ o radiofrecuencia fraccionada?",
+        "a": "Depende de profundidad de la cicatriz, fototipo y tiempo de recuperación aceptable. El CO₂ fraccionado es ablativo; EXION® Fractional coagula con microagujas y suele implicar otro perfil de downtime."
+      },
+      {
+        "q": "¿Se eliminan del todo cicatrices y poros?",
+        "a": "No se garantiza la eliminación completa. El objetivo es mejorar textura de forma medible y realista."
+      },
+      {
+        "q": "¿Cuándo se pospone el tratamiento?",
+        "a": "Si hay infección, inflamación activa u otra contraindicación. Las cicatrices muy profundas pueden requerir plan combinado o derivación."
+      },
+      {
+        "q": "¿Tarifa orientativa?",
+        "a": "Desde 330 € según modalidad y extensión (referencia CO₂ facial en tarifa). Presupuesto tras valoración."
+      },
+      {
+        "q": "¿Puedo combinarlo el mismo día con rellenos?",
+        "a": "En la misma zona, de entrada no. Los intervalos los marca el plan médico (a menudo semanas), no una agenda comercial."
+      }
+    ]
   },
   "tone-correction": {
     "phase": 1,
@@ -114,7 +158,29 @@
     "seo_desc": "Tone Correction™ en Madrid: IPL EXILITE™ solo tras diferenciar léntigos, rojeces, melasma y lesiones que requieren dermatología. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
     "protocol": "NUVANX Tone Correction™",
     "price_range": "desde 295 €",
-    "price_technology": "BTL EXILITE™ IPL cara completa"
+    "price_technology": "BTL EXILITE™ IPL cara completa",
+    "faq": [
+      {
+        "q": "¿La IPL sirve para cualquier mancha?",
+        "a": "No. Primero se clasifica el tipo de pigmento o enrojecimiento. Una lesión no diagnosticada no se trata con luz ni láser como si fuera solo un problema estético."
+      },
+      {
+        "q": "¿Y el melasma?",
+        "a": "El melasma suele requerir control prolongado y a menudo no se resuelve con un número fijo de sesiones de IPL. Se valora con criterio; a veces el plan es de mantenimiento y protección, no de \"borrar\"."
+      },
+      {
+        "q": "¿Cuántas sesiones harán falta?",
+        "a": "No se fija un número estándar antes de la valoración. Depende del diagnóstico, fototipo y respuesta."
+      },
+      {
+        "q": "¿Qué tarifa de referencia hay?",
+        "a": "Orientativamente desde 295 € según zona y protocolo (p. ej. cara con EXILITE™). El importe exacto se confirma en consulta."
+      },
+      {
+        "q": "¿Se puede tratar con bronceado reciente?",
+        "a": "En general no. La piel bronceada y la falta de fotoprotección aumentan el riesgo; se reprograma cuando el criterio médico lo permita."
+      }
+    ]
   },
   "abdomen-flancos": {
     "phase": 2,
@@ -147,7 +213,29 @@
     "timeline": "Cambios visibles semanas 4-6; consolidación meses 3-6",
     "post_care": "Faja compresiva 2-4 semanas; drenajes según indicación médica",
     "comparison": "Endoláser (mínimamente invasivo) vs Criolipólisis (no invasiva) vs Cirugía",
-    "first_visit": "Valoración médica presencial"
+    "first_visit": "Valoración médica presencial",
+    "faq": [
+      {
+        "q": "¿Sirve para adelgazar?",
+        "a": "No. No sustituye pérdida de peso ni trata la grasa visceral. Actúa sobre depósitos focales y, si procede, sobre calidad tisular."
+      },
+      {
+        "q": "¿Endoláser o EXION® Body?",
+        "a": "Endoláser cuando hay grasa focal susceptible; EXION® Body cuando el acento está en calidad cutánea o laxitud leve–moderada. A veces se combinan en fases; nunca por defecto."
+      },
+      {
+        "q": "¿Y si hay diástasis o hernia?",
+        "a": "Se evalúan antes de indicar. Pueden exigir derivación o un plan que no sea solo estético focal."
+      },
+      {
+        "q": "¿Por qué no hay un precio fijo en la página?",
+        "a": "Porque el presupuesto es por zona y por indicación tras la exploración. Publicar un rango genérico no refleja el plan real."
+      },
+      {
+        "q": "¿Dónde se hace la valoración?",
+        "a": "Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+      }
+    ]
   },
   "brazos": {
     "phase": 2,

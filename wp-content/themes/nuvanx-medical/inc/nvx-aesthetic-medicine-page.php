@@ -305,10 +305,10 @@ function nvx_aesthetic_faq_section_markup(): string {
 	$html .= '<h2 id="nvx-aes-faq-title" class="nvx-aes-heading">' . esc_html__( 'Rigor científico sobre inyectables y regeneración', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-aes-faq-list">';
 
-	$html .= '<details class="nvx-brand-faq-item" open>';
+	$html .= '<details class="nvx-brand-faq-item">';
 	$html .= '<summary><span>' . esc_html__( '¿Cómo influye la reología del ácido hialurónico en el éxito de una armonización facial y cómo se elige el producto adecuado?', 'nuvanx-medical' ) . '</span></summary>';
 	$html .= '<div class="nvx-brand-faq-content">';
-	$html .= '<p>' . esc_html__( 'La reología es el estudio de la deformación y el flujo de la materia. En medicina estética, las propiedades viscoelásticas de un gel de ácido hialurónico determinan su capacidad para proyectar tejidos o integrarse en zonas móviles. El comportamiento del gel bajo un esfuerzo mecánico se define mediante el módulo de elasticidad complejo (G*), compuesto por el módulo de almacenamiento elástico (G′) y el módulo de pérdida viscoso (G″):', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'En términos sencillos: la reología mide la firmeza y elasticidad del producto para elegir el gel exacto según la zona (firmeza para estructurar pómulos o mentón, y flexibilidad para zonas móviles como labios u ojeras). Clínicamente, el comportamiento del gel se define mediante el módulo de elasticidad complejo (G*), compuesto por el módulo de almacenamiento elástico (G′) y el módulo de pérdida viscoso (G″):', 'nuvanx-medical' ) . '</p>';
 	$html .= '<figure class="nvx-aes-formula" aria-label="' . esc_attr__( 'Módulo de almacenamiento elástico G′', 'nuvanx-medical' ) . '">';
 	$html .= '<p class="nvx-aes-formula__eq" role="math"><span class="nvx-aes-formula__g">G′</span> = <span class="nvx-aes-formula__frac"><span class="nvx-aes-formula__num">σ<sub>0</sub></span><span class="nvx-aes-formula__den">γ<sub>0</sub></span></span> cos(δ)</p>';
 	$html .= '<figcaption class="nvx-aes-formula__cap">' . esc_html__( 'Donde σ₀ representa la amplitud del esfuerzo mecánico aplicado, γ₀ es la amplitud de la deformación resultante, y δ corresponde al ángulo de fase del gel. Un gel con alto G′ ofrece gran resistencia a la deformación y capacidad de elevación: lo indicamos en planos profundos y supraperiosteales (mandíbula, pómulos). En labios u ojeras seleccionamos G′ bajo y alta cohesividad para integración imperceptible sin migración.', 'nuvanx-medical' ) . '</figcaption>';

@@ -67,7 +67,7 @@
             { "icon": "assess", "n": "01", "title": "@nvx-t:Planimetría y marcaje", "body": "@nvx-t:Mapeo de líneas de tensión y compartimentos grasos; definición de vectores y parámetros antes de la fibra." },
             { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración en puntos de entrada para confort. Sensación de calor y presión, no dolor agudo." },
             { "icon": "procedure", "n": "03", "title": "@nvx-t:Vectorización láser", "body": "@nvx-t:Patrón subdérmico en abanico con microfibra monouso a 1470 nm según el mapa clínico." },
-            { "icon": "recover", "n": "04", "title": "@nvx-t:Alta y seguimiento", "body": "@nvx-t:Ambulatorio. Edema 3–7 días habitual; reincorporación típica en menos de 24 h. Revisiones protocolizadas (p. ej. semanas 4 y 8)." }
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Alta y seguimiento", "body": "@nvx-t:Ambulatorio. Edema 3–7 días habitual; reincorporación típica en 24-48 horas. Revisiones protocolizadas (p. ej. semanas 4 y 8)." }
         ]
     },
     "postop": {

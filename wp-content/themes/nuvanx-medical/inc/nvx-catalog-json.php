@@ -17,6 +17,33 @@ function nvx_catalog_log_error( string $message ): void {
 }
 
 /**
+ * Central runtime-governance map for catalog-specific corrections.
+ *
+ * @return array<string,array<string,mixed>>
+ */
+function nvx_catalog_governance_config(): array {
+	return array(
+		'btldetail' => array(
+			'file' => 'btl-detail-pages.json',
+		),
+		'endolaser' => array(
+			'file'            => 'endolaser-page.json',
+			'price_faq_index' => 7,
+		),
+		'equipo' => array(
+			'file' => 'equipo-medico-page.json',
+		),
+		'exion' => array(
+			'file'            => 'exion-page.json',
+			'price_faq_index' => 0,
+		),
+		'tariff' => array(
+			'file' => 'tariff-catalog.json',
+		),
+	);
+}
+
+/**
  * Load and cache a JSON catalog from inc/data.
  *
  * @return array<mixed>
@@ -115,7 +142,14 @@ function nvx_catalog_builtin_token_resolvers(): array {
  * Return one canonical tariff as a display-ready euro amount.
  */
 function nvx_catalog_tariff_display_price( array $tariffs, string $group, string $key ): string {
-	if ( ! isset( $tariffs[ $group ][ $key ]['pvp'] ) || ! is_numeric( $tariffs[ $group ][ $key ]['pvp'] ) ) {
+	if (
+		! isset( $tariffs[ $group ] )
+		|| ! is_array( $tariffs[ $group ] )
+		|| ! isset( $tariffs[ $group ][ $key ] )
+		|| ! is_array( $tariffs[ $group ][ $key ] )
+		|| ! isset( $tariffs[ $group ][ $key ]['pvp'] )
+		|| ! is_numeric( $tariffs[ $group ][ $key ]['pvp'] )
+	) {
 		return '';
 	}
 
@@ -131,12 +165,15 @@ function nvx_catalog_tariff_display_price( array $tariffs, string $group, string
  * are hydrated from tariff-catalog.json so hubs/FAQs cannot become a second
  * source of truth.
  *
- * @param array<mixed> $catalog Resolved catalog.
+ * @param array<mixed> $catalog   Resolved catalog.
+ * @param string       $safe_name Basename of the catalog file being resolved.
  * @return array<mixed>
  */
 function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name ): array {
-	if ( 'exion-page.json' === $safe_name ) {
-		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+	$config = nvx_catalog_governance_config();
+
+	if ( $config['exion']['file'] === $safe_name ) {
+		$tariffs = nvx_catalog_json_load( (string) $config['tariff']['file'] );
 		if ( ! empty( $tariffs['_error'] ) || ! isset( $tariffs['exion'] ) || ! is_array( $tariffs['exion'] ) ) {
 			nvx_catalog_log_error( 'Unable to hydrate EXION hub prices: tariff-catalog.json is unavailable or malformed.' );
 			return $catalog;
@@ -161,9 +198,9 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name ): ar
 			);
 		}
 
-		// The EXION catalog schema reserves FAQ item 0 for the pricing question.
-		if ( isset( $catalog['faq']['items'][0] ) && is_array( $catalog['faq']['items'][0] ) ) {
-			$catalog['faq']['items'][0]['a'] = sprintf(
+		$price_faq_index = (int) $config['exion']['price_faq_index'];
+		if ( isset( $catalog['faq']['items'][ $price_faq_index ] ) && is_array( $catalog['faq']['items'][ $price_faq_index ] ) ) {
+			$catalog['faq']['items'][ $price_faq_index ]['a'] = sprintf(
 				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
 				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
 				$fractional,
@@ -173,14 +210,14 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name ): ar
 		}
 	}
 
-	if ( 'endolaser-page.json' === $safe_name ) {
+	if ( $config['endolaser']['file'] === $safe_name ) {
 		if ( isset( $catalog['planning']['body'] ) ) {
 			$catalog['planning']['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
 		}
 
-		// The Endoláser catalog schema reserves FAQ item 0 for the pricing question.
-		if ( isset( $catalog['faq']['items'][0] ) && is_array( $catalog['faq']['items'][0] ) ) {
-			$catalog['faq']['items'][0]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
+		$price_faq_index = (int) $config['endolaser']['price_faq_index'];
+		if ( isset( $catalog['faq']['items'][ $price_faq_index ] ) && is_array( $catalog['faq']['items'][ $price_faq_index ] ) ) {
+			$catalog['faq']['items'][ $price_faq_index ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
 		}
 	}
 
@@ -190,19 +227,21 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name ): ar
 /**
  * Apply runtime governance corrections that depend on canonical code data.
  *
- * @param array<mixed> $catalog Resolved catalog.
+ * @param array<mixed> $catalog  Resolved catalog.
+ * @param string       $filename Catalog filename before basename normalization.
  * @return array<mixed>
  */
 function nvx_catalog_apply_runtime_truth( array $catalog, string $filename ): array {
+	$config    = nvx_catalog_governance_config();
 	$safe_name = basename( $filename );
 	$catalog   = nvx_catalog_apply_tariff_truth( $catalog, $safe_name );
 
-	if ( 'equipo-medico-page.json' === $safe_name && isset( $catalog['rivera']['quote']['author'] ) ) {
+	if ( $config['equipo']['file'] === $safe_name && isset( $catalog['rivera']['quote']['author'] ) ) {
 		$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 		$catalog['rivera']['quote']['author'] = str_replace( '%s', $colegiado, (string) $catalog['rivera']['quote']['author'] );
 	}
 
-	if ( 'btl-detail-pages.json' === $safe_name ) {
+	if ( $config['btldetail']['file'] === $safe_name ) {
 		if ( isset( $catalog['exion-face']['mechanism']['items'][2]['body'] ) ) {
 			$catalog['exion-face']['mechanism']['items'][2]['body'] = __( 'El sistema de IA monitoriza la impedancia cutánea y ajusta automáticamente la entrega de energía para limitar puntos calientes y mejorar el control térmico y el confort durante el procedimiento.', 'nuvanx-medical' );
 		}

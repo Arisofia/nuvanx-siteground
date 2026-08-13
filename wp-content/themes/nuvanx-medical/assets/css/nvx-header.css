@@ -79,7 +79,7 @@
   flex: 0 1 auto;
   min-width: 0;
   align-items: center;
-  gap: var(--nvx-space-1);
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -101,7 +101,7 @@
   display: inline-flex;
   min-height: var(--nvx-control-size);
   align-items: center;
-  padding-inline: calc(var(--nvx-space-1) * 1.25);
+  padding-inline: calc(var(--nvx-space-1) * 0.75);
   padding-block: var(--nvx-space-2);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav-compact);

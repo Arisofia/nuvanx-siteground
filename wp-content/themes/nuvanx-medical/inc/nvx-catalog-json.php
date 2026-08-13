@@ -134,11 +134,14 @@ function nvx_catalog_tariff_display_price( array $tariffs, string $group, string
  * @param array<mixed> $catalog Resolved catalog.
  * @return array<mixed>
  */
-function nvx_catalog_apply_tariff_truth( array $catalog, string $filename ): array {
-	$safe_name = basename( $filename );
-
+function nvx_catalog_apply_tariff_truth( array $catalog, string $safe_name ): array {
 	if ( 'exion-page.json' === $safe_name ) {
-		$tariffs    = nvx_catalog_json_load( 'tariff-catalog.json' );
+		$tariffs = nvx_catalog_json_load( 'tariff-catalog.json' );
+		if ( ! empty( $tariffs['_error'] ) || ! isset( $tariffs['exion'] ) || ! is_array( $tariffs['exion'] ) ) {
+			nvx_catalog_log_error( 'Unable to hydrate EXION hub prices: tariff-catalog.json is unavailable or malformed.' );
+			return $catalog;
+		}
+
 		$fractional = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_fractional_cara' );
 		$face       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_face_sesion' );
 		$body       = nvx_catalog_tariff_display_price( $tariffs, 'exion', 'exion_body_sesion' );
@@ -158,20 +161,15 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $filename ): arr
 			);
 		}
 
-		if ( isset( $catalog['faq']['items'] ) && is_array( $catalog['faq']['items'] ) ) {
-			foreach ( $catalog['faq']['items'] as $index => $faq ) {
-				if ( ! is_array( $faq ) || empty( $faq['q'] ) || false === stripos( (string) $faq['q'], 'cuánto cuesta EXION' ) ) {
-					continue;
-				}
-				$catalog['faq']['items'][ $index ]['a'] = sprintf(
-					/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
-					__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
-					$fractional,
-					$face,
-					$body
-				);
-				break;
-			}
+		// The EXION catalog schema reserves FAQ item 0 for the pricing question.
+		if ( isset( $catalog['faq']['items'][0] ) && is_array( $catalog['faq']['items'][0] ) ) {
+			$catalog['faq']['items'][0]['a'] = sprintf(
+				/* translators: 1: Fractional RF price, 2: EXION Face price, 3: EXION Body price. */
+				__( 'Las tarifas de referencia vigentes parten desde %1$s/sesión (Fractional RF), %2$s/sesión (Face) y %3$s/sesión (Body). El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ),
+				$fractional,
+				$face,
+				$body
+			);
 		}
 	}
 
@@ -180,14 +178,9 @@ function nvx_catalog_apply_tariff_truth( array $catalog, string $filename ): arr
 			$catalog['planning']['body'] = __( 'El presupuesto se calcula por zona o combinación de zonas según el tarifario vigente y se documenta tras la valoración médica presencial. La planificación incluye valoración de extensión, calidad cutánea y seguimiento clínico según el protocolo indicado.', 'nuvanx-medical' );
 		}
 
-		if ( isset( $catalog['faq']['items'] ) && is_array( $catalog['faq']['items'] ) ) {
-			foreach ( $catalog['faq']['items'] as $index => $faq ) {
-				if ( ! is_array( $faq ) || empty( $faq['q'] ) || false === stripos( (string) $faq['q'], 'cuánto cuesta' ) ) {
-					continue;
-				}
-				$catalog['faq']['items'][ $index ]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
-				break;
-			}
+		// The Endoláser catalog schema reserves FAQ item 0 for the pricing question.
+		if ( isset( $catalog['faq']['items'][0] ) && is_array( $catalog['faq']['items'][0] ) ) {
+			$catalog['faq']['items'][0]['a'] = __( 'El presupuesto depende de la zona o combinación de zonas indicada. NUVANX aplica el tarifario vigente y entrega el presupuesto documentado tras la valoración médica presencial.', 'nuvanx-medical' );
 		}
 	}
 
@@ -206,7 +199,7 @@ function nvx_catalog_apply_runtime_truth( array $catalog, string $filename ): ar
 
 	if ( 'equipo-medico-page.json' === $safe_name && isset( $catalog['rivera']['quote']['author'] ) ) {
 		$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-		$catalog['rivera']['quote']['author'] = sprintf( (string) $catalog['rivera']['quote']['author'], $colegiado );
+		$catalog['rivera']['quote']['author'] = str_replace( '%s', $colegiado, (string) $catalog['rivera']['quote']['author'] );
 	}
 
 	if ( 'btl-detail-pages.json' === $safe_name ) {

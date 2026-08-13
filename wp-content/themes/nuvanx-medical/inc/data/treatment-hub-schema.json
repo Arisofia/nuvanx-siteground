@@ -8,7 +8,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Láser subdérmico mínimamente invasivo para retracción tisular y definición facial o corporal, indicado tras exploración médica. Endolift® Chamberí y Goya Madrid.",
+        "description": "Láser subdérmico mínimamente invasivo para retracción tisular y definición facial o corporal, indicado tras exploración médica. Endolift® en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Desde 798,60€",
             "provider": {
@@ -35,7 +35,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica. Endoláser corporal Chamberí y Goya Madrid.",
+        "description": "Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica. Endoláser corporal en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Tarifas por zona: abdomen 1.694 €, flancos 1.573 €, brazos/muslos 1.331 €",
             "provider": {
@@ -62,7 +62,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/NoninvasiveProcedure",
-        "description": "Resurfacing fraccionado para textura, cicatrices, poros y fotodaño con parámetros y recuperación definidos por el médico. Láser CO2 Salamanca Madrid, Chamberí y Goya.",
+        "description": "Resurfacing fraccionado para textura, cicatrices, poros y fotodaño con parámetros y recuperación definidos por el médico. Láser CO₂ en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Desde 498€",
             "provider": {
@@ -197,7 +197,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Tratamiento con neuromodulador para expresión facial según valoración médica individual. Neuromodulador Chamberí y Goya Madrid, Barrio Salamanca.",
+        "description": "Tratamiento con neuromodulador para expresión facial según valoración médica individual. Neuromodulador en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Desde 198€ (zona)",
             "provider": {
@@ -224,7 +224,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Relleno con ácido hialurónico para volumen y contorno facial según diagnóstico. Ácido hialurónico Chamberí, Goya y Salamanca Madrid.",
+        "description": "Relleno con ácido hialurónico para volumen y contorno facial según diagnóstico. Ácido hialurónico en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Desde 290€",
             "provider": {
@@ -251,7 +251,7 @@
             "Service"
         ],
         "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Rinomodelación no quirúrgica con ácido hialurónico según anatomía nasal y valoración médica. Rinomodelación en Chamberí y Salamanca–Goya, Madrid.",
+        "description": "Rinomodelación no quirúrgica con ácido hialurónico según anatomía nasal y valoración médica. Rinomodelación en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
         "additionalFields": {
             "priceRange": "Desde 598€",
             "provider": {

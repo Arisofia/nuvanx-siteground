@@ -15,7 +15,17 @@ function nvx_test_governed_json_integrity(): void {
     $data_dir = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
     $failures = array();
 
-    foreach ( glob( $data_dir . '/*.json' ) ?: array() as $path ) {
+    // Recursively scan all JSON files in the data directory
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator( $data_dir, RecursiveDirectoryIterator::SKIP_DOTS )
+    );
+
+    foreach ( $iterator as $file ) {
+        if ( 'json' !== $file->getExtension() ) {
+            continue;
+        }
+
+        $path = $file->getPathname();
         $raw = file_get_contents( $path );
         if ( false === $raw ) {
             $failures[] = 'Unreadable JSON: ' . $path;

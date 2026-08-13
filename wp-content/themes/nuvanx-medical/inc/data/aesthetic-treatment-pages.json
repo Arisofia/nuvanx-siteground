@@ -65,7 +65,11 @@
             "howPerformed": "Inyección médica de ácido hialurónico mediante técnica, plano y cantidad individualizados para la anatomía labial.",
             "followup": "Cuidados posteriores y revisión clínica tras la fase inicial de inflamación; atención inmediata ante síntomas inesperados.",
             "indications": ["Pérdida de definición labial","Deshidratación labial","Asimetría labial seleccionada"],
-            "conditions": ["Pérdida de volumen labial relacionada con la edad","Asimetría labial"]
+            "conditions": ["Pérdida de volumen labial relacionada con la edad","Asimetría labial"],
+            "reviewer": {
+                "id": "/equipo-medico/#physician-rivera-tejeda",
+                "name": "Dr. Manuel Rivera Tejeda"
+            }
         }
     },
     "rhinomodeling_ha": {

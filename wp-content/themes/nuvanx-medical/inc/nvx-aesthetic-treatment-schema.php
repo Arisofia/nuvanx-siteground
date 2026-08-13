@@ -72,6 +72,22 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
+	// Add reviewer attribution from governed JSON data if available
+	if ( isset( $schema['reviewer'] ) && is_array( $schema['reviewer'] ) && isset( $schema['reviewer']['id'] ) ) {
+		$node['reviewedBy'] = array( '@id' => home_url( $schema['reviewer']['id'] ) );
+		if ( isset( $schema['reviewer']['name'] ) ) {
+			$node['reviewedBy']['name'] = $schema['reviewer']['name'];
+		}
+	}
+
+	// Add performer attribution from governed JSON data if available
+	if ( isset( $schema['performer'] ) && is_array( $schema['performer'] ) && isset( $schema['performer']['id'] ) ) {
+		$node['performer'] = array( '@id' => home_url( $schema['performer']['id'] ) );
+		if ( isset( $schema['performer']['name'] ) ) {
+			$node['performer']['name'] = $schema['performer']['name'];
+		}
+	}
+
 	// Extract numeric price from price_range string for schema.org Offer.
 	// Spanish tariffs use '.' as thousands separator and ',' as decimal
 	// (e.g. "1.200,50 €"), so strip thousands dots before casting to float

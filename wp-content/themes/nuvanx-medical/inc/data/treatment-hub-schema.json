@@ -191,7 +191,7 @@
     {
         "key": "neuromodulador",
         "name": "Neuromodulador",
-        "path": "/neuromodulador-botox-madrid/",
+        "path": "/neuromoduladores-botox-madrid/",
         "types": [
             "MedicalProcedure",
             "Service"

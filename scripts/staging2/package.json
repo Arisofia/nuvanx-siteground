@@ -5,7 +5,7 @@
   "description": "Canonical browser acceptance harness for NUVANX Staging2",
   "type": "module",
   "scripts": {
-    "test": "cd ../.. && node scripts/staging2/block-c-matrix.mjs && node scripts/staging2/valoracion-placement.mjs"
+    "test": "cd ../.. && node scripts/staging2/block-c-matrix.mjs && node scripts/staging2/valoracion-placement.mjs && node scripts/staging2/governed-blog-head-contract.mjs"
   },
   "dependencies": {
     "playwright": "^1.62.1"

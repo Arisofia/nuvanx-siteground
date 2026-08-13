@@ -72,7 +72,7 @@
    ========================================================= */
 .nvx-home-philosophy {
 	background: var(--nvx-light);
-	padding-block: clamp(160px, 15vw, 240px);
+	padding-block: clamp(90px, 8vw, 140px);
 	text-align: center;
 }
 
@@ -140,6 +140,8 @@
 	flex-direction: column;
 	gap: var(--nvx-space-2);
 	max-width: var(--nvx-measure);
+	border-left: 2px solid var(--nvx-accent-gold-text);
+	padding-left: var(--nvx-space-4);
 }
 
 .nvx-home-feature__number {

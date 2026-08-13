@@ -50,22 +50,27 @@ ob_start();
 		</header>
 		<div class="nvx-home-standard__grid">
 			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">01</span>
 				<h3 class="nvx-home-feature__title">Abordajes sin incisiones quirúrgicas amplias</h3>
 				<p class="nvx-home-feature__desc">Determinadas indicaciones pueden abordarse mediante microcánulas o fibra óptica, siempre tras exploración médica.</p>
 			</div>
 			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">02</span>
 				<h3 class="nvx-home-feature__title">Recuperación según el procedimiento</h3>
 				<p class="nvx-home-feature__desc">El tiempo de reincorporación depende del tratamiento, la zona, los parámetros utilizados y la respuesta individual.</p>
 			</div>
 			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">03</span>
 				<h3 class="nvx-home-feature__title">Anestesia adaptada a la indicación</h3>
 				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local y seguimiento médico personalizado.</p>
 			</div>
 			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">04</span>
 				<h3 class="nvx-home-feature__title">Tratamiento combinado del contorno</h3>
 				<p class="nvx-home-feature__desc">La reducción adiposa y la mejora de la firmeza pueden integrarse en un mismo plan cuando existe indicación.</p>
 			</div>
 			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">05</span>
 				<h3 class="nvx-home-feature__title">Evolución progresiva y seguimiento</h3>
 				<p class="nvx-home-feature__desc">La evolución se revisa en consulta y varía según el tratamiento, el tejido y los hábitos de cada paciente.</p>
 			</div>

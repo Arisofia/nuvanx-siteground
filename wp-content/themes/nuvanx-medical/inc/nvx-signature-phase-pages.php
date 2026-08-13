@@ -180,6 +180,7 @@ function nvx_signature_phase_details_section( array $page ): string {
 		'first_visit'   => __( 'Primera consulta:', 'nuvanx-medical' ),
 		'financing'     => __( 'Financiación:', 'nuvanx-medical' ),
 		'anatomy_note'  => __( 'Nota anatómica:', 'nuvanx-medical' ),
+		'anatomy_diff'  => __( 'Diferenciación anatómica:', 'nuvanx-medical' ),
 		'gynecomastia'  => __( 'Descarte de ginecomastia:', 'nuvanx-medical' ),
 	);
 

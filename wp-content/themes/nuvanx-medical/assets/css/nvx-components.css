@@ -1881,25 +1881,25 @@ figure.nvx-equipo-portrait{
 .nvx-endolift-compare-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--nvx-text-sm, 0.875rem);
+  font-size: var(--nvx-type-small, 0.875rem);
   min-width: 480px;
 }
 .nvx-endolift-compare-table th,
 .nvx-endolift-compare-table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--nvx-border-subtle, #e5e7eb);
+  border-bottom: 1px solid var(--nvx-color-line, rgba(17, 17, 17, 0.16));
   vertical-align: top;
 }
 .nvx-endolift-compare-table thead th {
   font-weight: 600;
-  background: var(--nvx-surface-alt, #f9fafb);
+  background: var(--nvx-surface-soft, #e5e5e3);
   white-space: nowrap;
 }
 @media (max-width: 680px) {
   .nvx-endolift-compare-wrap {
-    margin-inline: calc(-1 * var(--nvx-pad-page, 1.25rem));
-    padding-inline: var(--nvx-pad-page, 1.25rem);
+    margin-inline: calc(-1 * var(--nvx-pad-section, 3rem));
+    padding-inline: var(--nvx-pad-section, 3rem);
   }
 }
 
@@ -1911,7 +1911,7 @@ figure.nvx-equipo-portrait{
 }
 .nvx-bridal-timeline__step {
   counter-increment: bridal-step;
-  border-left: 2px solid var(--nvx-accent, #b08d74);
+  border-left: 2px solid var(--nvx-accent-muted, #4a4a4a);
   padding: 0 0 1.5rem 1.5rem;
   position: relative;
 }
@@ -1924,7 +1924,7 @@ figure.nvx-equipo-portrait{
   height: 1.75rem;
   border-radius: 50%;
   background: var(--nvx-surface-base);
-  border: 2px solid var(--nvx-accent, #b08d74);
+  border: 2px solid var(--nvx-accent-muted, #4a4a4a);
   display: flex;
   align-items: center;
   justify-content: center;

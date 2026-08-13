@@ -607,6 +607,69 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   text-align: center;
 }
 
+/* Direct contact bar under valoración form header */
+.nvx-valoracion-direct-contact {
+  margin: var(--nvx-space-4) 0 var(--nvx-space-6);
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  background: var(--nvx-surface-soft);
+  border: var(--nvx-border-hairline) solid var(--nvx-border-soft);
+  border-radius: var(--nvx-radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-2);
+  align-items: flex-start;
+}
+
+@media (min-width: 640px) {
+  .nvx-valoracion-direct-contact {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.nvx-valoracion-direct-contact__label {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  font-weight: var(--nvx-fw-medium);
+  color: var(--nvx-ink);
+}
+
+.nvx-valoracion-direct-contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nvx-space-2);
+}
+
+/* Robust HubSpot form fallback */
+.nvx-hubspot-fallback {
+  margin: var(--nvx-space-4) 0;
+  padding: var(--nvx-space-5) var(--nvx-space-4);
+  background: var(--nvx-light);
+  border: var(--nvx-border-hairline) solid var(--nvx-border-soft);
+  border-radius: var(--nvx-radius-card);
+  text-align: center;
+}
+
+.nvx-hubspot-fallback__msg {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  color: var(--nvx-text-body);
+  margin-bottom: var(--nvx-space-4);
+  max-width: var(--nvx-measure);
+  margin-inline: auto;
+}
+
+.nvx-hubspot-fallback__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--nvx-space-3);
+}
+
 /* Textarea elegante */
 .nvx-hubspot-form-section textarea.hs-input {
   min-height: 120px;

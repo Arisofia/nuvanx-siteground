@@ -358,7 +358,9 @@
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
 
       if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
-        const frames = document.querySelectorAll('.hs-form-frame[data-form-id][data-portal-id]');
+        const frames = document.querySelectorAll(
+          '.hs-form-frame[data-form-id][data-portal-id], #nvx-hubspot-native-form[data-form-id][data-portal-id], [data-nvx-hubspot-native="1"][data-form-id][data-portal-id]'
+        );
         frames.forEach(function(frame, index) {
           if (frame.dataset.hsInitialized === '1') return;
 
@@ -385,6 +387,17 @@
               formId: frame.dataset.formId || config.hubspotFormId,
               target: '#' + frame.id,
               onFormReady: function ($form) {
+                const wrapper = frame.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || frame.parentElement;
+                if (wrapper) {
+                  const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
+                  if (sk) sk.style.display = 'none';
+                  const fb = wrapper.querySelector('.nvx-hubspot-fallback');
+                  if (fb) fb.style.display = 'none';
+                }
+                const ifr = frame.querySelector('iframe');
+                if (ifr && (!ifr.getAttribute('title') || ifr.getAttribute('title') === 'Form')) {
+                  ifr.setAttribute('title', 'Formulario de solicitud de valoración médica');
+                }
                 invokeLegacyAttributionHook('onFormReady', $form, frame.dataset.formId);
               },
               onBeforeFormSubmit: function ($form) {
@@ -397,10 +410,33 @@
           } catch (error) {
             delete frame.dataset.hsInitialized;
             if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
+            const wrapper = frame.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || frame.parentElement;
+            if (wrapper) {
+              const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
+              if (sk) sk.style.display = 'none';
+              const fb = wrapper.querySelector('.nvx-hubspot-fallback');
+              if (fb) fb.style.display = 'block';
+            }
             reportHubSpotInitError(error, frame.dataset.formId);
           }
         });
       }
+
+      // Schedule fallback check in case script is blocked or network times out
+      setTimeout(function () {
+        const uninitialized = document.querySelectorAll('.hs-form-frame, #nvx-hubspot-native-form');
+        uninitialized.forEach(function (f) {
+          if (!f.querySelector('.hbspt-form') && !f.querySelector('iframe')) {
+            const wrapper = f.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || f.parentElement;
+            if (wrapper) {
+              const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
+              if (sk) sk.style.display = 'none';
+              const fb = wrapper.querySelector('.nvx-hubspot-fallback');
+              if (fb) fb.style.display = 'block';
+            }
+          }
+        });
+      }, 5500);
     }
 
     function loadHubSpot() {
@@ -427,6 +463,10 @@
           }, { once: true });
           existing.addEventListener('error', function () {
             existing.remove();
+            const fallbacks = document.querySelectorAll('.nvx-hubspot-fallback');
+            fallbacks.forEach(function(fb) { fb.style.display = 'block'; });
+            const skeletons = document.querySelectorAll('.nvx-skeleton-wrapper');
+            skeletons.forEach(function(sk) { sk.style.display = 'none'; });
             reject(new Error('Existing HubSpot form embed failed to load.'));
           }, { once: true });
           return;
@@ -444,6 +484,10 @@
         script.addEventListener('error', function () {
           script.remove();
           if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
+          const fallbacks = document.querySelectorAll('.nvx-hubspot-fallback');
+          fallbacks.forEach(function(fb) { fb.style.display = 'block'; });
+          const skeletons = document.querySelectorAll('.nvx-skeleton-wrapper');
+          skeletons.forEach(function(sk) { sk.style.display = 'none'; });
           reject(new Error('HubSpot form embed failed to load.'));
         }, { once: true });
         document.head.appendChild(script);
@@ -452,6 +496,10 @@
       promise.catch(function (error) {
         // Allow a later retry. The modal retains its full-page fallback link.
         promise = null;
+        const fallbacks = document.querySelectorAll('.nvx-hubspot-fallback');
+        fallbacks.forEach(function(fb) { fb.style.display = 'block'; });
+        const skeletons = document.querySelectorAll('.nvx-skeleton-wrapper');
+        skeletons.forEach(function(sk) { sk.style.display = 'none'; });
         reportHubSpotError('HubSpot form runtime failed to load', error);
       });
       return promise;

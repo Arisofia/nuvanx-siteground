@@ -54,6 +54,16 @@ function nvx_valoracion_managed_intro_markup(): string {
 	}
 	$html .= '</div></section>';
 
+	$wa_url = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : 'https://wa.me/34689317399';
+	$html  .= '<section class="nvx-home-closure" aria-labelledby="nvx-valoracion-closure-title">';
+	$html  .= '<div class="nvx-container">';
+	$html  .= '<h2 id="nvx-valoracion-closure-title" class="nvx-home-closure__title">' . esc_html__( '¿Dudas sobre tu caso o la indicación?', 'nuvanx-medical' ) . '</h2>';
+	$html  .= '<p class="nvx-home-closure__desc">' . esc_html__( 'Nuestro equipo médico revisará tus consultas previas sin compromiso comercial.', 'nuvanx-medical' ) . '</p>';
+	$html  .= '<div class="nvx-home-closure__actions">';
+	$html  .= '<a href="#nvx-hubspot-form" class="nvx-brand-btn nvx-btn--primary">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	$html  .= '<a href="' . esc_url( $wa_url ) . '" class="nvx-brand-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' ) . '</a>';
+	$html  .= '</div></div></section>';
+
 	return $html;
 }
 
@@ -69,6 +79,7 @@ function nvx_valoracion_managed_page_markup(): string {
 
 	$valuation_url  = home_url( '/madrid/valoracion/' );
 	$doctoralia_url = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+	$wa_url         = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : 'https://wa.me/34689317399';
 	$form_id        = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 	$portal_id      = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
 
@@ -88,6 +99,12 @@ function nvx_valoracion_managed_page_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'SOLICITUD DE VALORACIÓN', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-valoracion-form-title" class="nvx-brand-title">' . esc_html__( 'Cuéntanos qué quieres valorar', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-body">' . esc_html__( 'Completa tus datos e indica la zona o tratamiento de interés. El equipo de NUVANX te contactará para coordinar una orientación virtual o una valoración presencial. La cita suele durar entre 15 y 30 minutos y permite revisar tu caso, las opciones de tratamiento y el presupuesto individualizado.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-valoracion-direct-contact">';
+	$html .= '<p class="nvx-valoracion-direct-contact__label">' . esc_html__( '¿Prefieres coordinar directamente o tienes alguna duda?', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-valoracion-direct-contact__actions">';
+	$html .= '<a href="' . esc_url( $wa_url ) . '" class="nvx-brand-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer">' . esc_html__( 'WhatsApp directo', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a href="tel:+34689317399" class="nvx-brand-btn nvx-btn--secondary">' . esc_html__( 'Llamar: 689 31 73 99', 'nuvanx-medical' ) . '</a>';
+	$html .= '</div></div>';
 	$html .= '<div class="nvx-form nvx-hs-native-section" aria-label="' . esc_attr__( 'Formulario de valoración médica NUVANX', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-hs-native-box">';
 	$html .= '<div id="nvx-hubspot-native-form" class="nvx-hubspot-native-form-v2" data-nvx-hubspot-native="1" data-nvx-hubspot-eager="1" data-form-id="' . esc_attr( $form_id ) . '" data-portal-id="' . esc_attr( $portal_id ) . '" data-page-origin="' . esc_attr__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '" data-page-url="' . esc_url( $valuation_url ) . '"></div>';

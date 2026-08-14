@@ -64,10 +64,11 @@ async function buildAuth() {
   }
   
   console.log('  No GTM_REFRESH_TOKEN found. Falling back to Application Default Credentials...');
-  console.log('  (Run: gcloud auth application-default login --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/tagmanager.publish)');
+  console.log('  (Run: gcloud auth application-default login --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/tagmanager.edit.containerversions,https://www.googleapis.com/auth/tagmanager.publish)');
   const auth = new google.auth.GoogleAuth({
     scopes: [
       'https://www.googleapis.com/auth/tagmanager.edit.containers',
+      'https://www.googleapis.com/auth/tagmanager.edit.containerversions',
       'https://www.googleapis.com/auth/tagmanager.publish'
     ]
   });
@@ -206,6 +207,17 @@ async function main() {
   console.log('1. Resolving workspace...');
   const workspace     = await resolveOrCreateWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
+
+  // Pre-mutation check: ensure workspace does not already contain unrelated uncommitted edits
+  const initialStatus = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
+  const initialChanges = initialStatus.data.workspaceChange || [];
+  const preExistingUnrelated = initialChanges.filter(c => {
+    const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
+    return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
+  });
+  if (preExistingUnrelated.length > 0) {
+    throw new Error(`Workspace already contains ${preExistingUnrelated.length} uncommitted external change(s). Please commit or discard them in GTM before running automated setup.`);
+  }
 
   // 2. Ensure Data Layer variable exists
   console.log('\n2. Ensuring Data Layer variable...');

@@ -22,7 +22,7 @@ function fetchJson(url, timeoutMs = 30000) {
     });
 
     req.setTimeout(timeoutMs, () => {
-      const sanitizedUrl = String(url || '').replace(/[?&]key=[^&]+/g, '&key=[REDACTED]');
+      const sanitizedUrl = String(url || '').replace(/([?&])key=[^&]+/g, '$1key=[REDACTED]');
       req.destroy(new Error(`Request timed out after ${timeoutMs}ms for ${sanitizedUrl}`));
     });
 

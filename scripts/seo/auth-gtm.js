@@ -1,14 +1,14 @@
-#!/usr/bin/env node
 const { google } = require('googleapis');
 const readline = require('node:readline');
 const fs = require('node:fs');
+const path = require('node:path');
 
 if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !process.stdin.isTTY || !process.stdout.isTTY) {
   console.error('REFRESH_TOKEN_HELPER=REFUSED: this interactive credential helper may only run in a private local TTY.');
   process.exit(2);
 }
 
-const envPath = '.env.local';
+const envPath = path.resolve(__dirname, '../../.env.local');
 
 function loadEnvVars(filePath) {
   const envVars = {};
@@ -45,6 +45,7 @@ const url = oauth2Client.generateAuthUrl({
   access_type: 'offline',
   scope: [
     'https://www.googleapis.com/auth/tagmanager.edit.containers',
+    'https://www.googleapis.com/auth/tagmanager.edit.containerversions',
     'https://www.googleapis.com/auth/tagmanager.publish'
   ],
   prompt: 'consent'
@@ -96,7 +97,7 @@ function persistRefreshToken(filePath, refreshToken) {
     currentContent = `${newExportLine}\n`;
   }
 
-  fs.writeFileSync(filePath, currentContent);
+  fs.writeFileSync(filePath, currentContent, { mode: 0o600 });
   console.log(`✅ Token guardado automáticamente en ${filePath}`);
 }
 

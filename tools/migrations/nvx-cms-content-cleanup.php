@@ -514,6 +514,11 @@ do {
 		ARRAY_A
 	);
 
+	if ( ! empty( $wpdb->last_error ) ) {
+		fwrite( STDERR, sprintf( "[DB-ERROR] Keyset pagination query failed at ID > %d: %s\n", $last_id, $wpdb->last_error ) );
+		exit( 1 );
+	}
+
 	if ( empty( $rows ) ) {
 		break;
 	}

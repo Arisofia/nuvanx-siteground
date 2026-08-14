@@ -40,7 +40,7 @@ async function runFullGscAnalysis() {
     // 7 días previos (para comparativa)
     safeQ('prev7', { startDate: dates.prev7Start, endDate: dates.prev7End, dimensions: ['date'] }),
     // Query + Page combos (para detectar canibalización y oportunidades)
-    safeQ('queryPage', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query', 'page'], rowLimit: 30, dimensionFilterGroups: [{ filters: [{ dimension: 'query', expression: 'madrid', operator: 'contains' }] }] }),
+    safeQ('queryPage', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query', 'page'], rowLimit: 50 }),
     // Queries en móvil
     safeQ('queriesMobile', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'device', expression: 'MOBILE' }] }] }),
     // Queries en desktop

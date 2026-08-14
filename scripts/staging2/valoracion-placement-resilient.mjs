@@ -213,12 +213,17 @@ async function saveScreenshot(page, viewportKey, attempt, isTransient = false) {
   const filename = isTransient
     ? `valoracion-${viewportKey}-attempt-${attempt}-transient.jpg`
     : `valoracion-${viewportKey}-attempt-${attempt}.jpg`;
-  await page.screenshot({
+  const options = {
     path: path.join(outDir, filename),
     type: 'jpeg',
     quality: 78,
     fullPage: true,
-  }).catch(() => {});
+  };
+  if (isTransient) {
+    await page.screenshot(options).catch(() => {});
+  } else {
+    await page.screenshot(options);
+  }
 }
 
 function createTransientResult(status, currentUrl, reason, placement = null, mounted = false, mountState = null, interactiveState = null) {

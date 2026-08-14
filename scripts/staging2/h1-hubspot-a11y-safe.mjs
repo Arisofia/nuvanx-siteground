@@ -77,7 +77,7 @@ async function canAcceptSafeScope(result) {
   const errors = Array.isArray(result.errorSemantics) ? result.errorSemantics : [];
   const requiredBefore = controls.filter((control) => control?.programmaticRequired);
   const phones = requiredBefore.filter((control) => control?.type === 'tel');
-  if (requiredBefore.length < 1 || phones.length !== 1) return false;
+  if (requiredBefore.length < 2 || phones.length !== 1) return false;
 
   const phone = phones[0];
   if (!phoneClientContractPasses(phone) || !onlyDeferredPhoneIssues(result, phone)) return false;

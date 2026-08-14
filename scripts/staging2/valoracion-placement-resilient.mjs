@@ -315,12 +315,30 @@ try {
 
 if (fatalError) throw fatalError;
 if (realFailure) {
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const summary = [
+      '### ❌ Staging Valoración QA — Real Failure',
+      '> **One or more viewports failed valuation placement assertions:**',
+      ...results
+        .filter((r) => r.issues?.length > 0 && !r.transient)
+        .flatMap((r) => [
+          `- **Viewport:** \`${r.viewport.key}\` (${r.viewport.width}x${r.viewport.height})`,
+          ...r.issues.map((issue) => `  - 🔴 ${issue}`),
+        ]),
+      '',
+    ].join('\n');
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err.message}`);
+    });
+  }
   console.error('VALORACION_PLACEMENT=FAIL_REAL');
   process.exit(1);
 }
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch(() => {});
+    await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch((err) => {
+      console.warn(`Failed to append to GITHUB_ENV: ${err.message}`);
+    });
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
@@ -331,7 +349,9 @@ if (transientExhausted) {
       '- Staging snapshot rollback remains armed and artifacts are preserved.',
       '',
     ].join('\n');
-    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch(() => {});
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err.message}`);
+    });
   }
   console.error('VALORACION_PLACEMENT=TRANSIENT_ONLY');
   process.exit(transientExitCode);

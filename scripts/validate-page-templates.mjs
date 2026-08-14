@@ -185,9 +185,7 @@ async function fetchXml(url) {
       });
       const body = await response.text();
       if (isSiteGroundChallenge(response, body)) {
-        lastError = new SitemapTransientError(`SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
-      } else if (TRANSIENT_HTTP.has(Number(response.status))) {
-        lastError = new SitemapTransientError(`Transient HTTP ${response.status} while fetching sitemap: ${url}`);
+        lastError = new SitemapTransientError(`Transient SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
       } else if (!response.ok) {
         lastError = new Error(`Sitemap fetch failed for ${url}: HTTP ${response.status}`);
       } else if (!/<(?:sitemapindex|urlset)\b/i.test(body)) {
@@ -206,15 +204,6 @@ async function fetchXml(url) {
 }
 
 function inventoryBaseUrl(pages) {
-  const explicit = String(process.env.WORDPRESS_URL || '').trim();
-  if (explicit) {
-    try {
-      return new URL(explicit).origin;
-    } catch {
-      return explicit.replace(/\/$/, '');
-    }
-  }
-
   for (const page of pages) {
     const rawLink = typeof page?.link === 'string' ? page.link.trim() : '';
     if (!rawLink) continue;
@@ -225,6 +214,15 @@ function inventoryBaseUrl(pages) {
       }
     } catch {
       // Skip malformed entries and continue checking remaining candidates
+    }
+  }
+
+  const explicit = String(process.env.WORDPRESS_URL || '').trim();
+  if (explicit) {
+    try {
+      return new URL(explicit).origin;
+    } catch {
+      throw new Error(`WORDPRESS_URL is not a valid absolute URL: ${explicit}`);
     }
   }
 
@@ -257,7 +255,10 @@ async function enrichTrustedInventoryWithSitemap(pages) {
       try {
         indexXml = await fetchXml(fallbackUrl);
         indexUrl = fallbackUrl;
-      } catch {
+      } catch (fallbackErr) {
+        if (fallbackErr.isTransient) {
+          throw fallbackErr;
+        }
         throw err;
       }
     } else {

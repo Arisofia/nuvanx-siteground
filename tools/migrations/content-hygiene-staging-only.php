@@ -162,9 +162,9 @@ foreach ( $seed_pages as $page ) {
 // Staging and Production use separate uploads trees. Content parity can therefore
 // leave a valid featured-image attachment record in Staging while the referenced
 // file is physically absent. Browser acceptance must treat that as a real defect.
-// Repair only missing files for featured media used by published posts/pages,
+// Repair only missing or zero-byte truncated files for featured media used by published posts/pages,
 // sourcing from the canonical Production uploads tree. Production is read-only;
-// existing Staging files are never overwritten.
+// valid non-zero Staging files are never overwritten.
 
 echo "\n--- Block B: Featured Media Filesystem Parity ---\n";
 
@@ -198,9 +198,9 @@ if (
     || $production_uploads_real === $staging_uploads_real
     || ! str_starts_with( $production_uploads_real, $production_root_real . DIRECTORY_SEPARATOR )
 ) {
-    fwrite( STDERR, "[WARN] Featured-media parity filesystem boundary unresolvable from staging environment.\n" );
-    printf( "STAGING_FEATURED_MEDIA_PARITY=SKIPPED reason=production-uploads-unreachable\n" );
-    $blocks_ok++;
+    fwrite( STDERR, "[ERROR] Featured-media parity filesystem boundary unresolvable or invalid from staging environment.\n" );
+    printf( "STAGING_FEATURED_MEDIA_PARITY=FAIL reason=invalid-uploads-boundary\n" );
+    $blocks_fail++;
 } else {
     $published_ids = get_posts(
         array(

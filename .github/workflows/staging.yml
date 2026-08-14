@@ -141,6 +141,7 @@ jobs:
           find tools/migrations lib -name '*.php' -type f -print0 | xargs -0 -r -n1 php -l >/dev/null
           php scripts/lint/test-seo-governed-metadata.php
           node scripts/lint/test-single-hubspot-mount.mjs
+          node scripts/staging2/test-console-error-classifier.mjs
           find wp-content/themes/nuvanx-medical -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null
           node scripts/lint/no-hardcoded-colors.mjs --strict
           node scripts/lint/no-hardcoded-fontsize.mjs

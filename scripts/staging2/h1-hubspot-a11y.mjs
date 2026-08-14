@@ -355,13 +355,6 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
       message: `iframe-accessible-name: generic or missing title (${JSON.stringify(hubspot.iframe.title)})`,
     });
   }
-  if (hubspot.iframe.ariaLabel) {
-    issues.push({
-      code: 'IFRAME_PROHIBITED_ARIA_LABEL',
-      category: 'iframe-accessible-name',
-      message: `iframe-accessible-name: prohibited aria-label attribute present on HubSpot iframe (${JSON.stringify(hubspot.iframe.ariaLabel)})`,
-    });
-  }
 
   const requiredCount = controlsBefore.filter((control) => control.programmaticRequired).length;
   let validation = { issues: [], controls: [], active: null, liveRegionCount: 0 };

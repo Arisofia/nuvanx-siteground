@@ -188,10 +188,10 @@ jobs:
 
           if [[ -n "$log_opts" ]]; then
             echo "Scanning commit range: $log_opts"
-            "$RUNNER_TEMP/gitleaks" detect --source . --gitleaks-ignore-path .gitleaksignore --log-opts="$log_opts" --redact --verbose
+            "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml --gitleaks-ignore-path .gitleaksignore --log-opts="$log_opts" --redact --verbose
           else
             echo "Scanning entire git commit history"
-            "$RUNNER_TEMP/gitleaks" detect --source . --gitleaks-ignore-path .gitleaksignore --redact --verbose
+            "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml --gitleaks-ignore-path .gitleaksignore --redact --verbose
           fi
 
   deploy_staging_runners:

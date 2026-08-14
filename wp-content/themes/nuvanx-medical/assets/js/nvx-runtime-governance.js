@@ -612,8 +612,22 @@
     }
 
     if (typeof MutationObserver === 'function') {
+      // Coalesce bursts of DOM mutations into a single title pass per frame:
+      // the observer fires on every insertion across document.body, so running
+      // the query synchronously each time is wasteful on form-heavy pages.
+      let titlePassScheduled = false;
+      const scheduleTitlePass =
+        typeof window.requestAnimationFrame === 'function'
+          ? window.requestAnimationFrame.bind(window)
+          : function (cb) { return window.setTimeout(cb, 100); };
+
       new MutationObserver(function () {
-        enforceAccessibleIframeTitles();
+        if (titlePassScheduled) return;
+        titlePassScheduled = true;
+        scheduleTitlePass(function () {
+          titlePassScheduled = false;
+          enforceAccessibleIframeTitles();
+        });
       }).observe(document.body, { childList: true, subtree: true });
     }
   }

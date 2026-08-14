@@ -161,8 +161,8 @@ assert.match(
 );
 assert.doesNotMatch(
   runtimeGovernance,
-  /ifr\.setAttribute\('aria-label',\s*'Formulario de valoración médica'\)/,
-  'HubSpot iframe governance must not assign aria-label to the iframe'
+  /ifr\.setAttribute\('aria-label'\s*,/,
+  'HubSpot iframe governance must not assign any aria-label to the iframe'
 );
 
 console.log('HUBSPOT_SUBMISSION_CLASSIFIER_TEST=PASS cases=17');

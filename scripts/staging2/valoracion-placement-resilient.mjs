@@ -1,6 +1,5 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
-import fsSync from 'node:fs';
 import path from 'node:path';
 import {
   isSiteGroundCaptchaInterruption,
@@ -316,19 +315,48 @@ try {
 
 if (fatalError) throw fatalError;
 if (realFailure) {
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const summary = [
+      '',
+      '### ❌ Staging Valoración QA — Real Failure',
+      '> **One or more viewports failed valuation placement assertions:**',
+      ...results
+        .filter((r) => r.issues?.length > 0 && !r.transient)
+        .flatMap((r) => [
+          `- **Viewport:** \`${r.viewport.key}\` (${r.viewport.width}x${r.viewport.height})`,
+          ...r.issues.map((issue) => `  - 🔴 ${issue}`),
+        ]),
+      '',
+    ].join('\n');
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
+    });
+  }
   console.error('VALORACION_PLACEMENT=FAIL_REAL');
   process.exit(1);
 }
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    fsSync.appendFileSync(process.env.GITHUB_ENV, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+    await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to append to GITHUB_ENV: ${message}`);
+    });
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
-    fsSync.appendFileSync(
-      process.env.GITHUB_STEP_SUMMARY,
-      '## Valoración acceptance inconclusive\n\nSiteGround Antibot exhausted the bounded retries. The candidate remains deployed on Staging2, rollback is suppressed, and no production-eligible acceptance is emitted.\n',
-      'utf8'
-    );
+    const summary = [
+      '',
+      '### ⚠️ Staging Valoración QA — Transient Exhausted',
+      '> **SiteGround challenge / antibot / transient navigation interruptions prevented complete valuation placement verification.**',
+      `- **Exit code:** \`${transientExitCode}\``,
+      `- **Max attempts:** \`${maxAttempts}\``,
+      '- Automatic Staging2 rollback executes and artifacts are preserved.',
+      '',
+    ].join('\n');
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
+    });
   }
   console.error('VALORACION_PLACEMENT=TRANSIENT_ONLY');
   process.exit(transientExitCode);

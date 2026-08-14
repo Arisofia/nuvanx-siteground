@@ -11,6 +11,13 @@ import {
 } from './siteground-transient-classifier.mjs';
 import './governed-blog-head-contract.mjs';
 
+import {
+  SITEGROUND_CAPTCHA_PATH,
+  SITEGROUND_TRANSIENT_HTTP_STATUSES,
+  EX_TEMPFAIL,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
+
 const VIEWPORT_COUNT = VIEWPORTS.length;
 
 const maxAttempts = 3;

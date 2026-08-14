@@ -280,9 +280,15 @@ async function validateAttempt(context, viewport, attempt) {
       return createTransientResult(status, currentUrl, `SiteGround captcha challenge URL: ${currentUrl}`);
     }
 
+    if (isTransientStatus) {
+      await saveScreenshot(page, viewport.key, attempt, true);
+      const reason = formatTransientReason(status, headers, page.url());
+      return createTransientResult(status, page.url(), reason);
+    }
+
     const issues = [];
     if (!response) issues.push('Valuation navigation returned no HTTP response');
-    else if (status !== 200 && !isTransientStatus) issues.push(`Expected HTTP 200, got ${status}`);
+    else if (status !== 200) issues.push(`Expected HTTP 200, got ${status}`);
 
     try {
       const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
@@ -301,24 +307,11 @@ async function validateAttempt(context, viewport, attempt) {
       const hubSpotValidation = await validateHubSpotMount(page, mounted, mountState);
       issues.push(...hubSpotValidation.issues);
 
-      const recoveredTransientHttp = Boolean(isTransientStatus && issues.length === 0);
-
-      if (isTransientStatus && !recoveredTransientHttp) {
-        await saveScreenshot(page, viewport.key, attempt, true);
-        const reason = formatTransientReason(status, headers, page.url());
-        return createTransientResult(status, page.url(), reason, placement, mounted, mountState, hubSpotValidation.interactiveState);
-      }
-
       await saveScreenshot(page, viewport.key, attempt, false);
-
-      if (recoveredTransientHttp) {
-        console.log(`RECOVERED /madrid/valoracion/ ${viewport.width}x${viewport.height} attempt=${attempt} HTTP ${status} -> exact interactive page`);
-      }
 
       return {
         transient: false,
         status,
-        recoveredTransientHttp,
         currentUrl: page.url(),
         reason: '',
         placement,
@@ -355,7 +348,7 @@ async function runViewport(browser, viewport) {
       console.log(`VALORACION_ATTEMPT viewport=${viewport.key} attempt=${attempt}/${maxAttempts}`);
       const result = await validateAttempt(context, viewport, attempt);
       attempts.push({ attempt, ...result });
-      finalResult = { viewport, finalAttempt: attempt, attempts, ...result };
+      finalResult = { viewport, attempt, attempts, ...result };
 
       if (result.transient) {
         console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);

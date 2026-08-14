@@ -113,7 +113,7 @@ export function isBlockCTransientSiteGroundFailure(result, baseUrl) {
     blockers.length > 0 &&
     blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
     issues.length === 0 &&
-    [202, 429, 503].includes(status)
+    ([202, 429, 503].includes(status) || (typeof result.finalUrl === 'string' && result.finalUrl.includes(SITEGROUND_CAPTCHA_PATH)))
   ) return true;
 
   if (

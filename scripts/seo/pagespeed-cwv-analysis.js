@@ -5,6 +5,7 @@ const https = require('https');
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
+      res.setEncoding('utf8');
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
       res.on('end', () => {

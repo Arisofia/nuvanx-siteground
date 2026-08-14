@@ -588,7 +588,11 @@ function nvx_seo_handle_route_alias_redirect(): void {
 
 	$destination = nvx_seo_route_alias_destination( $path );
 	if ( null !== $destination ) {
-		wp_safe_redirect( $destination, 301, 'NUVANX' );
+		$target = home_url( $destination );
+		if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
+			$target .= '?' . $_SERVER['QUERY_STRING'];
+		}
+		wp_safe_redirect( $target, 301, 'NUVANX' );
 		exit;
 	}
 }

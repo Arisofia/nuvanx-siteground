@@ -115,10 +115,11 @@ async function runFullAdsAnalysis() {
 function sanitizeAdsError(err) {
   if (!err) return 'UNKNOWN_ERROR';
   const code = String(err.code || err.status || err.name || 'GOOGLE_ADS_API_ERROR').replace(/[^a-zA-Z0-9_]/g, '');
-  if (Array.isArray(err.failure?.errors)) {
-    const errorDetails = err.failure.errors
+  const errorList = Array.isArray(err.errors) ? err.errors : err.failure?.errors;
+  if (Array.isArray(errorList)) {
+    const errorDetails = errorList
       .map((e) => {
-        const errCodeObj = e.error_code || {};
+        const errCodeObj = e.error_code || e.errorCode || {};
         const parts = [];
         for (const [key, val] of Object.entries(errCodeObj)) {
           const safeKey = String(key).replace(/[^a-zA-Z0-9_]/g, '');

@@ -329,7 +329,8 @@ if (realFailure) {
       '',
     ].join('\n');
     await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
-      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
     });
   }
   console.error('VALORACION_PLACEMENT=FAIL_REAL');
@@ -338,7 +339,8 @@ if (realFailure) {
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
     await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch((err) => {
-      console.warn(`Failed to append to GITHUB_ENV: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to append to GITHUB_ENV: ${message}`);
     });
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
@@ -352,7 +354,8 @@ if (transientExhausted) {
       '',
     ].join('\n');
     await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
-      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
     });
   }
   console.error('VALORACION_PLACEMENT=TRANSIENT_ONLY');

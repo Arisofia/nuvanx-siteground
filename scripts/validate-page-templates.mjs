@@ -219,11 +219,13 @@ function inventoryBaseUrl(pages) {
 
   const explicit = String(process.env.WORDPRESS_URL || '').trim();
   if (explicit) {
+    let parsedExplicit;
     try {
-      return new URL(explicit).origin;
+      parsedExplicit = new URL(explicit);
     } catch {
       throw new Error(`WORDPRESS_URL is not a valid absolute URL: ${explicit}`);
     }
+    return `${parsedExplicit.origin}${parsedExplicit.pathname}`.replace(/\/$/, '');
   }
 
   throw new Error('Cannot derive sitemap base URL: trusted page inventory has no valid absolute link and WORDPRESS_URL is unset');

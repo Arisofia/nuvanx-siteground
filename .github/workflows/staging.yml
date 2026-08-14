@@ -645,7 +645,7 @@ jobs:
           compression-level: 6
 
       - name: Write fresh-runner completion marker
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && (env.RUN_ACCEPTANCE != 'true' || env.STAGING_ACCEPTANCE_TRANSIENT != '1') }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -662,7 +662,7 @@ jobs:
           echo "STAGING_COMPLETION_MARKER=$marker" >> "$GITHUB_ENV"
 
       - name: Upload fresh-runner completion marker
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && (env.RUN_ACCEPTANCE != 'true' || env.STAGING_ACCEPTANCE_TRANSIENT != '1') }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-deploy-complete-${{ env.CANDIDATE_SHA }}

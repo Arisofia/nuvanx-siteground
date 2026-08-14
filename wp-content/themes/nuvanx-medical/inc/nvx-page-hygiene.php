@@ -92,7 +92,7 @@ add_action( 'template_redirect', 'nvx_redirect_valoracion_aliases', 0 );
  * Short /medicina-estetica-goya/ redirects to preserve historical links and ad tracking.
  */
 function nvx_redirect_goya_alias(): void {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return;
 	}
 
@@ -105,30 +105,22 @@ function nvx_redirect_goya_alias(): void {
 		return;
 	}
 
-	// Already on the canonical path.
-	if ( 0 === strpos( $path, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ) {
-		return;
-	}
-
-	// Preserve query strings (gclid, UTM, etc.) - parse and reconstruct
-	$parsed_uri = wp_parse_url( $uri );
+	// Preserve attribution without copying raw request input into Location.
+	$parsed_uri   = wp_parse_url( $uri );
 	$query_params = array();
-	
-	if ( isset( $parsed_uri['query'] ) && '' !== $parsed_uri['query'] ) {
-		parse_str( $parsed_uri['query'], $query_params );
+	if ( is_array( $parsed_uri ) && isset( $parsed_uri['query'] ) && is_string( $parsed_uri['query'] ) ) {
+		wp_parse_str( $parsed_uri['query'], $query_params );
 	}
 
 	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
-	
-	// Reconstruct query string if parameters exist
 	if ( ! empty( $query_params ) ) {
 		$target = add_query_arg( $query_params, $target );
 	}
-	
+
 	wp_safe_redirect( $target, 301, 'NUVANX' );
 	exit;
 }
-add_action( 'template_redirect', 'nvx_redirect_goya_alias', 1 );
+add_action( 'template_redirect', 'nvx_redirect_goya_alias', 0 );
 
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
@@ -603,4 +595,3 @@ function nvx_sanitize_complianz_banner_html( string $html ): string {
 }
 add_filter( 'cmplz_banner_html', 'nvx_sanitize_complianz_banner_html', 20 );
 add_filter( 'cmplz_template', 'nvx_sanitize_complianz_banner_html', 20 );
-

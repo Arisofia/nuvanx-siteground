@@ -207,9 +207,6 @@ function auditErrorState(controls) {
     if (!control.nativeInvalid && !control.ariaInvalid) {
       issues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
     }
-    // The browser's native validationMessage exists for every invalid required
-    // control, even when no error is exposed to assistive technology. Require
-    // an explicit programmatic relationship to rendered error text instead.
     if (!control.associatedErrorText) {
       issues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
     }
@@ -340,30 +337,6 @@ async function auditOnce(browser, attempt) {
   }
 }
 
-async function disarmRollbackAfterTransientExhaustion() {
-  const envFile = (process.env.GITHUB_ENV || '').trim();
-  if (envFile) {
-    try {
-      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-      console.error('HUBSPOT_A11Y_STAGING_ROLLBACK=DISARMED reason=third-party-or-siteground-transient-exhaustion');
-    } catch (error) {
-      console.warn(`HUBSPOT_A11Y_STAGING_ROLLBACK=DISARM_FAILED error=${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
-  if (!summary) return;
-  try {
-    await fs.appendFile(
-      summary,
-      '\n### HubSpot accessibility gate transient exhaustion\n\nThe HubSpot accessibility audit could not obtain a stable embedded form after three bounded attempts. No semantic defect was established, so Staging rollback was disarmed; the run remains ineligible for Production acceptance.\n',
-      'utf8'
-    );
-  } catch (error) {
-    console.warn(`HUBSPOT_A11Y_SUMMARY=WRITE_FAILED error=${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
 async function persistResult(result) {
   await fs.writeFile(outFile, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
 }
@@ -392,7 +365,6 @@ async function runAudit(browser) {
     console.warn(`HUBSPOT_A11Y_TRANSIENT attempt=${attempt} reason=${result.reason}`);
     if (attempt === maxAttempts) {
       await persistResult(result);
-      await disarmRollbackAfterTransientExhaustion();
       console.error(`HUBSPOT_A11Y=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
       return EX_TEMPFAIL;
     }

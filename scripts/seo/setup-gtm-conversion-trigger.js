@@ -93,8 +93,14 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
     ws = createRes.data;
     console.log(`  Created isolated workspace: "${ws.name}" (${ws.workspaceId})`);
     return ws;
-  } catch {
-    console.log('  Using Default Workspace (verifying clean workspace status before proceeding)...');
+  } catch (err) {
+    const status = err.code || err.response?.status;
+    if (status === 400 || status === 409 || err.message?.includes('limit') || err.message?.includes('quota') || err.message?.includes('workspace')) {
+      console.log('  Could not create dedicated workspace (workspace limit or conflict). Using Default Workspace...');
+    } else {
+      throw err;
+    }
+
     ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
     if (!ws) throw new Error('No workspace found in container ' + containerPath);
 
@@ -102,7 +108,7 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
     const changes = statusRes.data.workspaceChange || [];
     const nonOurs = changes.filter(c => {
       const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
-      return entityName !== TRIGGER_NAME && entityName !== TAG_NAME;
+      return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
     });
     if (nonOurs.length > 0) {
       throw new Error(`Default workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
@@ -210,8 +216,8 @@ async function main() {
     console.log(`  Created trigger ID: ${trigger.triggerId}`);
   }
 
-  // 3. Check / create Google Ads conversion tag
-  console.log('\n3. Checking for existing tag...');
+  // 4. Check / create Google Ads conversion tag
+  console.log('\n4. Checking for existing tag...');
   const tags = await listTags(tagmanager, workspacePath);
   let tag = tags.find(t => t.name === TAG_NAME);
 
@@ -237,8 +243,18 @@ async function main() {
     console.log(`  Created tag ID: ${tag.tagId}`);
   }
 
-  // 4. Publish new version
-  console.log('\n4. Publishing new container version...');
+  // 5. Check workspace status before versioning
+  console.log('\n5. Checking workspace changes before publishing...');
+  const statusRes = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
+  const pendingChanges = statusRes.data.workspaceChange || [];
+  if (pendingChanges.length === 0) {
+    console.log('  Workspace has 0 pending changes (tag, trigger and variable are already up to date). Skipping publish.');
+    console.log('\n─────────────────────────────────────────────────');
+    console.log('Done (idempotent no-op).');
+    return;
+  }
+
+  console.log(`  Found ${pendingChanges.length} pending change(s). Creating and publishing container version...`);
   const versionRes = await tagmanager.accounts.containers.workspaces.create_version({
     path: workspacePath,
     requestBody: { name: VERSION_NAME, notes: VERSION_NOTES },

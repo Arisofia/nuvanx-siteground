@@ -11,19 +11,13 @@ function formatDate(date) {
  */
 function getGscDateRanges() {
   const now = new Date();
-  const end = new Date(now);
-  end.setDate(end.getDate() - 3); // 3 days reporting lag
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 3));
 
-  const start30 = new Date(end);
-  start30.setDate(start30.getDate() - 29); // 30 days inclusive
+  const start30 = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - 29));
+  const start7 = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - 6));
 
-  const start7 = new Date(end);
-  start7.setDate(start7.getDate() - 6); // 7 days inclusive
-
-  const prev7End = new Date(start7);
-  prev7End.setDate(prev7End.getDate() - 1);
-  const prev7Start = new Date(prev7End);
-  prev7Start.setDate(prev7Start.getDate() - 6); // 7 days inclusive
+  const prev7End = new Date(Date.UTC(start7.getUTCFullYear(), start7.getUTCMonth(), start7.getUTCDate() - 1));
+  const prev7Start = new Date(Date.UTC(prev7End.getUTCFullYear(), prev7End.getUTCMonth(), prev7End.getUTCDate() - 6));
 
   return {
     endDate: formatDate(end),

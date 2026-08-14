@@ -7,7 +7,14 @@ async function runFullGscAnalysis() {
   const sc = createGscClient();
   const dates = getGscDateRanges();
 
-  const q = (body) => queryGsc(sc, property, body);
+  const safeQ = async (name, body) => {
+    try {
+      return await queryGsc(sc, property, body);
+    } catch (err) {
+      console.warn(`[WARN] GSC query "${name}" failed:`, err?.message || err);
+      return [];
+    }
+  };
 
   const [
     topQueries,
@@ -21,23 +28,23 @@ async function runFullGscAnalysis() {
     queriesDesktop,
   ] = await Promise.all([
     // Full query list (últimos 30 días)
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 25 }),
+    safeQ('topQueries', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 25 }),
     // Top pages con CTR real
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['page'], rowLimit: 20 }),
+    safeQ('topPages', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['page'], rowLimit: 20 }),
     // Breakdown por dispositivo
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['device'] }),
+    safeQ('deviceBreakdown', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['device'] }),
     // Breakdown por país/región
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['country'], rowLimit: 10 }),
+    safeQ('countryBreakdown', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['country'], rowLimit: 10 }),
     // Últimos 7 días (para tendencia)
-    q({ startDate: dates.startDate7, endDate: dates.endDate, dimensions: ['date'] }),
+    safeQ('last7', { startDate: dates.startDate7, endDate: dates.endDate, dimensions: ['date'] }),
     // 7 días previos (para comparativa)
-    q({ startDate: dates.prev7Start, endDate: dates.prev7End, dimensions: ['date'] }),
+    safeQ('prev7', { startDate: dates.prev7Start, endDate: dates.prev7End, dimensions: ['date'] }),
     // Query + Page combos (para detectar canibalización y oportunidades)
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query', 'page'], rowLimit: 30, dimensionFilterGroups: [{ filters: [{ dimension: 'query', expression: 'madrid', operator: 'contains' }] }] }),
+    safeQ('queryPage', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query', 'page'], rowLimit: 30, dimensionFilterGroups: [{ filters: [{ dimension: 'query', expression: 'madrid', operator: 'contains' }] }] }),
     // Queries en móvil
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'device', expression: 'MOBILE' }] }] }),
+    safeQ('queriesMobile', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'device', expression: 'MOBILE' }] }] }),
     // Queries en desktop
-    q({ startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'device', expression: 'DESKTOP' }] }] }),
+    safeQ('queriesDesktop', { startDate: dates.startDate30, endDate: dates.endDate, dimensions: ['query'], rowLimit: 15, dimensionFilterGroups: [{ filters: [{ dimension: 'device', expression: 'DESKTOP' }] }] }),
   ]);
 
   const results = {

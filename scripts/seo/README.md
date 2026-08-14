@@ -12,7 +12,7 @@ This directory contains **manual diagnostic/support scripts**, not additional Gi
 - `setup-gtm-conversion-trigger.js` — idempotent Google Tag Manager configuration tool. Creates or updates the Google Ads Conversion Tracking tag (`awct`) and matching custom event triggers in the container.
 - `gsc-client.js` — shared Google Search Console API helper. Computes dynamic 30-day and 7-day windows accounting for GSC's 3-day data latency.
 - `gsc-full-analysis.js` — read-only Google Search Console diagnostic covering device breakdown, query performance, and URL-level clicks/CTR across the dynamic 30-day window.
-- `search-console-analytics.js` — summary Search Console audit script comparing top queries and pages between the current and previous period.
+- `search-console-analytics.js` — summary Search Console audit script reporting top queries and landing pages across the dynamic 30-day window.
 - `pagespeed-cwv-analysis.js` — Core Web Vitals and PageSpeed Insights runner using native Node HTTPS, auditing mobile/desktop performance metrics across key URLs.
 - `index-pages.js` — sitemap/index URL support utility. Network target/host constraints are owned by the caller; production verification remains owned by the canonical Production workflow and its origin-side audit scripts.
 

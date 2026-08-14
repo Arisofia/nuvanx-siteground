@@ -6,6 +6,7 @@ import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 
 const strictAuditPath = fileURLToPath(new URL('./h1-hubspot-a11y.mjs', import.meta.url));
 const artifactPath = path.resolve('scripts/staging2/valoracion-artifacts/hubspot-a11y.json');
+const expectedSha = String(process.env.EXPECTED_SHA || '').trim();
 
 function runStrictAudit() {
   return new Promise((resolve, reject) => {
@@ -50,11 +51,12 @@ function phoneClientContractPasses(phone) {
 
 function onlyDeferredPhoneIssues(result, phone) {
   const issues = Array.isArray(result?.issues) ? result.issues : [];
-  if (issues.length !== 3 || !phone?.id) return false;
+  const phoneIdentity = identity(phone);
+  if (issues.length !== 3 || !phoneIdentity) return false;
 
   const expected = new Set([
-    `3.3.1 invalid state not exposed after blank submit: ${phone.id}`,
-    `3.3.1 error message not programmatically associated after blank submit: ${phone.id}`,
+    `3.3.1 invalid state not exposed after blank submit: ${phoneIdentity}`,
+    `3.3.1 error message not programmatically associated after blank submit: ${phoneIdentity}`,
     'safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST',
   ]);
 
@@ -68,6 +70,7 @@ async function strictAuditInterceptionIsPresent() {
 
 async function canAcceptSafeScope(result) {
   if (!result || result.transient || !result.realFailure || result.submissionObserved !== true) return false;
+  if (!/^[0-9a-f]{40}$/.test(expectedSha) || result.deploySha !== expectedSha) return false;
   if (!await strictAuditInterceptionIsPresent()) return false;
 
   const controls = Array.isArray(result.controls) ? result.controls : [];
@@ -88,6 +91,11 @@ async function canAcceptSafeScope(result) {
 }
 
 async function main() {
+  // Never reinterpret evidence left by an earlier cycle/run. The strict probe
+  // must create a fresh artifact for this exact EXPECTED_SHA before safe-scope
+  // evaluation is even possible.
+  await fs.rm(artifactPath, { force: true });
+
   const exitCode = await runStrictAudit();
   if (exitCode === 0 || exitCode === EX_TEMPFAIL) return exitCode;
 

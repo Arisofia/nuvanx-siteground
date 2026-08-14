@@ -9,6 +9,7 @@ import {
   EX_TEMPFAIL,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
+import './governed-blog-head-contract.mjs';
 
 const VIEWPORT_COUNT = VIEWPORTS.length;
 

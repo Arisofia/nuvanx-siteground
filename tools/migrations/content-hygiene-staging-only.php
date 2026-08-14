@@ -348,9 +348,6 @@ if (
             continue;
         }
 
-        $file_mode = defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644;
-        @chmod( $destination, $file_mode );
-
         printf( "[MEDIA-COPIED] %s\n", $relative );
         $media_copied++;
     }

@@ -394,30 +394,20 @@
       }
     }
 
-    let isEnforcingTitles = false;
-
     function enforceAccessibleIframeTitles() {
-      if (isEnforcingTitles) return;
-      isEnforcingTitles = true;
-      try {
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach(function (ifr) {
-          if (!isHubSpotIframe(ifr)) return;
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(function (ifr) {
+        if (!isHubSpotIframe(ifr)) return;
 
-          const currentTitle = ifr.getAttribute('title');
-          // iframe has a native accessible-name mechanism via title. Keep that
-          // single source of truth and remove aria-label, which Axe flags as a
-          // prohibited ARIA attribute for the embedded HubSpot frame role.
-          if (ifr.hasAttribute('aria-label')) ifr.removeAttribute('aria-label');
-          if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
-            ifr.setAttribute('title', 'Formulario de valoración médica');
-          }
-        });
-      } finally {
-        window.setTimeout(function () {
-          isEnforcingTitles = false;
-        }, 50);
-      }
+        const currentTitle = ifr.getAttribute('title');
+        // iframe has a native accessible-name mechanism via title. Keep that
+        // single source of truth and remove aria-label, which Axe flags as a
+        // prohibited ARIA attribute for the embedded HubSpot frame role.
+        if (ifr.hasAttribute('aria-label')) ifr.removeAttribute('aria-label');
+        if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
+          ifr.setAttribute('title', 'Formulario de valoración médica');
+        }
+      });
     }
 
     /**
@@ -657,7 +647,6 @@
       const hasRaf = typeof window.requestAnimationFrame === 'function';
 
       new MutationObserver(function (mutations) {
-        if (isEnforcingTitles) return;
         let shouldRun = false;
         for (const m of mutations) {
           if (m.type === 'childList') {
@@ -671,8 +660,13 @@
           } else if (m.type === 'attributes') {
             const target = m.target;
             if (target?.tagName === 'IFRAME' && isHubSpotIframe(target)) {
-              shouldRun = true;
-              break;
+              const currentTitle = target.getAttribute('title');
+              const hasAria = target.hasAttribute('aria-label');
+              const isCompliant = !hasAria && currentTitle === 'Formulario de valoración médica';
+              if (!isCompliant) {
+                shouldRun = true;
+                break;
+              }
             }
           }
         }

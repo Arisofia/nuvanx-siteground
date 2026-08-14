@@ -60,22 +60,55 @@ async function buildAuth() {
   }
   
   console.log('  No GTM_REFRESH_TOKEN found. Falling back to Application Default Credentials...');
-  console.log('  (Run: gcloud auth application-default login --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers)');
+  console.log('  (Run: gcloud auth application-default login --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/tagmanager.publish)');
   const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/tagmanager.edit.containers']
+    scopes: [
+      'https://www.googleapis.com/auth/tagmanager.edit.containers',
+      'https://www.googleapis.com/auth/tagmanager.publish'
+    ]
   });
   return await auth.getClient();
 }
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
-async function getWorkspace(tagmanager, parent) {
-  const res = await tagmanager.accounts.containers.workspaces.list({ parent });
+async function resolveOrCreateWorkspace(tagmanager, containerPath) {
+  const res = await tagmanager.accounts.containers.workspaces.list({ parent: containerPath });
   const workspaces = res.data.workspace || [];
-  const ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
-  if (!ws) throw new Error('No workspace found in container ' + parent);
-  console.log(`  Workspace: "${ws.name}" (${ws.workspaceId})`);
-  return ws;
+  const dedicatedName = 'NVX Conversion Signal Setup';
+  let ws = workspaces.find(w => w.name === dedicatedName);
+  if (ws) {
+    console.log(`  Found existing dedicated workspace: "${ws.name}" (${ws.workspaceId})`);
+    return ws;
+  }
+
+  try {
+    const createRes = await tagmanager.accounts.containers.workspaces.create({
+      parent: containerPath,
+      requestBody: {
+        name: dedicatedName,
+        description: 'Isolated workspace for canonical nvx_conversion_signal tag and trigger'
+      }
+    });
+    ws = createRes.data;
+    console.log(`  Created isolated workspace: "${ws.name}" (${ws.workspaceId})`);
+    return ws;
+  } catch {
+    console.log('  Using Default Workspace (verifying clean workspace status before proceeding)...');
+    ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
+    if (!ws) throw new Error('No workspace found in container ' + containerPath);
+
+    const statusRes = await tagmanager.accounts.containers.workspaces.get_status({ path: ws.path });
+    const changes = statusRes.data.workspaceChange || [];
+    const nonOurs = changes.filter(c => {
+      const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
+      return entityName !== TRIGGER_NAME && entityName !== TAG_NAME;
+    });
+    if (nonOurs.length > 0) {
+      throw new Error(`Default workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
+    }
+    return ws;
+  }
 }
 
 async function listTriggers(tagmanager, wsPath) {
@@ -101,7 +134,7 @@ async function main() {
 
   // 1. Get workspace
   console.log('1. Resolving workspace...');
-  const workspace     = await getWorkspace(tagmanager, containerPath);
+  const workspace     = await resolveOrCreateWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
 
   // 2. Check / create trigger

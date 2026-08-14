@@ -1,7 +1,7 @@
 {
   "name": "nuvanx-seo-verification",
   "version": "1.0.0",
-  "description": "SEO verification scripts for Search Console and PageSpeed Insights",
+  "description": "SEO indexing and Google API verification scripts for Nuvanx Medical",
   "scripts": {
     "index-pages": "node index-pages.js"
   },

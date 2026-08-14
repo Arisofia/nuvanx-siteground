@@ -376,6 +376,12 @@
         'iframe[src*="hsforms"], iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe'
       );
       iframes.forEach(function (ifr) {
+        const src = String(ifr.getAttribute('src') || '').toLowerCase();
+        const isHubSpotFrame = ifr.classList.contains('hs-form-iframe') ||
+          Boolean(ifr.closest('.hs-form-frame')) ||
+          src.includes('hsforms');
+        if (!isHubSpotFrame) return;
+
         const currentTitle = ifr.getAttribute('title');
         // iframe has a native accessible-name mechanism via title. Keep that
         // single source of truth and remove aria-label, which Axe flags as a

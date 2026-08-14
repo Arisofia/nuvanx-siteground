@@ -646,7 +646,12 @@
 
         const timeoutId = window.setTimeout(runTitlePass, 100);
         if (hasRaf) rafId = window.requestAnimationFrame(runTitlePass);
-      }).observe(document.body, { childList: true, subtree: true });
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-label', 'title'],
+      });
     }
   }
 

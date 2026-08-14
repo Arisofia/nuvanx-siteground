@@ -151,17 +151,17 @@ const runtimeGovernance = await fs.readFile(
 );
 assert.match(
   runtimeGovernance,
-  /ifr\.setAttribute\('title', 'Formulario de valoración médica'\)/,
+  /ifr\.setAttribute\(\s*['"]title['"]\s*,\s*['"]Formulario de valoración médica['"]\s*\)/,
   'HubSpot iframe governance must provide the native accessible title'
 );
 assert.match(
   runtimeGovernance,
-  /ifr\.removeAttribute\('aria-label'\)/,
+  /ifr\.removeAttribute\(\s*['"]aria-label['"]\s*\)/,
   'HubSpot iframe governance must remove prohibited aria-label attributes'
 );
 assert.doesNotMatch(
   runtimeGovernance,
-  /ifr\.setAttribute\('aria-label'\s*,/,
+  /ifr\.setAttribute\(\s*['"]aria-label['"]\s*,/,
   'HubSpot iframe governance must not assign any aria-label to the iframe'
 );
 

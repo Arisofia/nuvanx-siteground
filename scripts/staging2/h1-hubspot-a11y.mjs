@@ -207,14 +207,17 @@ function auditErrorState(controls) {
     if (!control.nativeInvalid && !control.ariaInvalid) {
       issues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
     }
-    if (!control.associatedErrorText && !control.validationMessage) {
+    // The browser's native validationMessage exists for every invalid required
+    // control, even when no error is exposed to assistive technology. Require
+    // an explicit programmatic relationship to rendered error text instead.
+    if (!control.associatedErrorText) {
       issues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
     }
   }
   return issues;
 }
 
-async function exerciseBlankValidation(frame) {
+async function exerciseBlankValidation(frame, expectedRequiredControls) {
   const submit = frame.locator('button[type="submit"], input[type="submit"]').first();
   if (!await submit.count().catch(() => 0)) {
     return { issues: ['3.3.1 submit control missing; error-identification cycle cannot be exercised'], controls: [], active: null, liveRegionCount: 0 };
@@ -226,6 +229,12 @@ async function exerciseBlankValidation(frame) {
   await delay(750);
 
   const controls = await collectControls(frame);
+  const actualRequiredIdentities = new Set(
+    controls.filter((control) => control.programmaticRequired).map(controlIdentity)
+  );
+  const missingRequiredControls = expectedRequiredControls
+    .map(controlIdentity)
+    .filter((identity) => !actualRequiredIdentities.has(identity));
   const active = await frame.evaluate(() => {
     const node = document.activeElement;
     if (!node) return null;
@@ -238,7 +247,12 @@ async function exerciseBlankValidation(frame) {
   }).catch(() => null);
   const liveRegionCount = await frame.locator('[role="alert"], [aria-live]').count().catch(() => 0);
 
-  return { issues: auditErrorState(controls), controls, active, liveRegionCount };
+  const issues = auditErrorState(controls);
+  if (missingRequiredControls.length > 0) {
+    issues.push(`3.3.1 required controls unavailable after blank submit: ${missingRequiredControls.join(', ')}`);
+  }
+
+  return { issues, controls, active, liveRegionCount };
 }
 
 async function auditForm(page, hubspot, documentState, attempt, submissionState) {
@@ -255,7 +269,10 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
   if (requiredCount === 0) {
     issues.push('3.3.2 no programmatically required controls detected; blank-submit error cycle cannot be validated safely');
   } else {
-    validation = await exerciseBlankValidation(hubspot.frame);
+    validation = await exerciseBlankValidation(
+      hubspot.frame,
+      controlsBefore.filter((control) => control.programmaticRequired)
+    );
     issues.push(...validation.issues);
   }
 
@@ -289,10 +306,19 @@ async function auditOnce(browser, attempt) {
   const page = await context.newPage();
   const submissionState = { observed: false };
 
-  page.on('request', (request) => {
-    if (request.method() !== 'POST') return;
+  await page.route('**/*', async (route) => {
+    const request = route.request();
     const url = request.url();
-    if (/\/submissions\/v3\//i.test(url) && url.includes(formId)) submissionState.observed = true;
+    const isHubSpotSubmission = request.method() === 'POST'
+      && /(^|\.)(hsforms\.com|hsforms\.net|hubspot\.com)$/i.test(new URL(url).hostname)
+      && (/\/(submissions\/v\d+|uploads\/form\/v\d+|collected-forms)(\/|$)/i.test(new URL(url).pathname)
+        || url.includes(formId));
+    if (isHubSpotSubmission) {
+      submissionState.observed = true;
+      await route.abort('blockedbyclient');
+      return;
+    }
+    await route.continue();
   });
 
   try {
@@ -317,17 +343,25 @@ async function auditOnce(browser, attempt) {
 async function disarmRollbackAfterTransientExhaustion() {
   const envFile = (process.env.GITHUB_ENV || '').trim();
   if (envFile) {
-    await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-    console.error('HUBSPOT_A11Y_STAGING_ROLLBACK=DISARMED reason=third-party-or-siteground-transient-exhaustion');
+    try {
+      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+      console.error('HUBSPOT_A11Y_STAGING_ROLLBACK=DISARMED reason=third-party-or-siteground-transient-exhaustion');
+    } catch (error) {
+      console.warn(`HUBSPOT_A11Y_STAGING_ROLLBACK=DISARM_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (!summary) return;
-  await fs.appendFile(
-    summary,
-    '\n### HubSpot accessibility gate transient exhaustion\n\nThe HubSpot accessibility audit could not obtain a stable embedded form after three bounded attempts. No semantic defect was established, so Staging rollback was disarmed; the run remains ineligible for Production acceptance.\n',
-    'utf8'
-  );
+  try {
+    await fs.appendFile(
+      summary,
+      '\n### HubSpot accessibility gate transient exhaustion\n\nThe HubSpot accessibility audit could not obtain a stable embedded form after three bounded attempts. No semantic defect was established, so Staging rollback was disarmed; the run remains ineligible for Production acceptance.\n',
+      'utf8'
+    );
+  } catch (error) {
+    console.warn(`HUBSPOT_A11Y_SUMMARY=WRITE_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function persistResult(result) {

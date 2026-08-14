@@ -13,11 +13,6 @@
     "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes && npm run lint:contrast && npm run lint:complianz",
     "seo:nap-audit": "node scripts/seo/google-business-profile-audit.js"
   },
-  "dependencies": {
-    "google-ads-api": "^24.1.0",
-    "google-auth-library": "^9.0.0",
-    "googleapis": "^140.0.0"
-  },
   "engines": {
     "node": ">=18"
   }

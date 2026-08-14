@@ -42,18 +42,26 @@ function runCycle(cycle) {
 
 async function propagateFinalTransientDisarm() {
   if (realGithubEnv) {
-    await fs.appendFile(realGithubEnv, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-    console.error('GOVERNED_BLOG_HEAD_RESILIENT_ROLLBACK=DISARMED reason=transient-exhaustion-after-bounded-retries');
+    try {
+      await fs.appendFile(realGithubEnv, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+      console.error('GOVERNED_BLOG_HEAD_RESILIENT_ROLLBACK=DISARMED reason=transient-exhaustion-after-bounded-retries');
+    } catch (error) {
+      console.warn(`GOVERNED_BLOG_HEAD_RESILIENT_ROLLBACK=DISARM_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+    }
   } else {
     console.warn('GOVERNED_BLOG_HEAD_RESILIENT_ROLLBACK=NOT_DISARMED reason=GITHUB_ENV_unavailable');
   }
 
   if (realSummary) {
-    await fs.appendFile(
-      realSummary,
-      '\n### Governed blog head contract transient exhaustion\n\nThe governed blog head contract was retried three times. Every failure was classified as SiteGround/transient infrastructure (`EX_TEMPFAIL`), with no real application defect established. Staging rollback was therefore disarmed only after bounded retries were exhausted; the run remains ineligible for Production acceptance.\n',
-      'utf8'
-    );
+    try {
+      await fs.appendFile(
+        realSummary,
+        '\n### Governed blog head contract transient exhaustion\n\nThe governed blog head contract was retried three times. Every failure was classified as SiteGround/transient infrastructure (`EX_TEMPFAIL`), with no real application defect established. Staging rollback was therefore disarmed only after bounded retries were exhausted; the run remains ineligible for Production acceptance.\n',
+        'utf8'
+      );
+    } catch (error) {
+      console.warn(`GOVERNED_BLOG_HEAD_RESILIENT_SUMMARY=WRITE_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }
 

@@ -123,9 +123,10 @@ export function isBlockCTransientSiteGroundFailure(result, baseUrl) {
     blockers.length > 0 &&
     blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
     issues.length === 0 &&
-    networkErrors.every((message) =>
-      message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED')
-    )
+    networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      return /net::ERR_ABORTED/i.test(message) && message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`);
+    })
   ) return true;
 
   if (
@@ -136,10 +137,12 @@ export function isBlockCTransientSiteGroundFailure(result, baseUrl) {
     networkErrors.length > 0
   ) {
     const expectedDocumentUrl = `${baseUrl}${String(result.route || '')}`;
-    return networkErrors.every((message) =>
-      message === `${expectedDocumentUrl}: net::ERR_ABORTED` ||
-      (message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED'))
-    );
+    const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
+    return networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      if (!/net::ERR_ABORTED/i.test(message)) return false;
+      return message.startsWith(expectedDocumentUrl) || message.startsWith(captchaPrefix);
+    });
   }
 
   return false;

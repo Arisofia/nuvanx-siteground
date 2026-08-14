@@ -112,10 +112,17 @@ EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/sta
 EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
 ```
 
-The valuation placement runner adheres to the following exit-code contract:
+The Staging acceptance runners adhere to the following exit-code contracts:
+
+### Valoración placement runner (`valoracion-placement.mjs` / `valoracion-placement-resilient.mjs`)
 - `0`: Validation passed (`VALORACION_PLACEMENT=PASS` / `VALORACION_INTERACTIVITY=PASS`).
 - `1`: Real assertion failure (`VALORACION_PLACEMENT=FAIL_REAL`).
-- `75`: Transient challenge exhaustion (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), triggering automatic Staging2 rollback and writing diagnostics to GitHub Step Summary.
+- `75` (`EX_TEMPFAIL`): Transient challenge exhaustion (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), triggering automatic Staging2 rollback and writing diagnostics to GitHub Step Summary.
+
+### Block C matrix runner (`block-c-entrypoint.mjs` / `block-c-matrix.mjs`)
+- `0`: Validation passed (`BLOCK_C_RESILIENT=PASS`). All published routes and viewports validated with complete browser visual geometry. Eligible for Production acceptance.
+- `1`: Real assertion failure (`BLOCK_C_RESILIENT=FAIL_REAL`) or malformed results. Rollback remains armed to revert Staging2.
+- `75` (`EX_TEMPFAIL`): Transient challenge exhaustion (`BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED`). Rollback is disarmed (`STAGING_MUTATION_ARMED=0`) because origin SHA and HTTP 200 were verified, but the run remains ineligible for Production acceptance due to incomplete visual validation.
 
 ## Repository hygiene
 

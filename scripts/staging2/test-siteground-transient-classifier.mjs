@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
 import {
   SITEGROUND_CAPTCHA_PATH,
+  SITEGROUND_TRANSIENT_HTTP_STATUSES,
+  EX_TEMPFAIL,
   isSiteGroundCaptchaInterruption,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
+
+assert.equal(EX_TEMPFAIL, 75);
+assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(202), true);
+assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(429), true);
+assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(503), true);
 
 const captchaUrl = `https://staging2.nuvanx.com${SITEGROUND_CAPTCHA_PATH}?rid=qa`;
 const interrupted = new Error(

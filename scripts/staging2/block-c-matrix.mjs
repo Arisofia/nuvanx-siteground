@@ -39,12 +39,14 @@ function verifyViaSiteGroundOrigin(route) {
 }
 
 function isSiteGroundNoResponse(networkErrors, expectedDocumentUrl) {
+  const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
   return (
     networkErrors.length === 0 ||
-    networkErrors.every((message) =>
-      message === `${expectedDocumentUrl}: net::ERR_ABORTED` ||
-      (message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED'))
-    )
+    networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      if (!/net::ERR_ABORTED/i.test(message)) return false;
+      return message.startsWith(expectedDocumentUrl) || message.startsWith(captchaPrefix);
+    })
   );
 }
 

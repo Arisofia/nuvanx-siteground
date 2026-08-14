@@ -3,6 +3,12 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
+import {
+  SITEGROUND_CAPTCHA_PATH,
+  SITEGROUND_TRANSIENT_HTTP_STATUSES,
+  EX_TEMPFAIL,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
 
 const VIEWPORT_COUNT = VIEWPORTS.length;
 
@@ -13,10 +19,6 @@ const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
 const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
-
-// Provider-specific paths for transient failure detection
-const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
-const SITEGROUND_TRANSIENT_HTTP_STATUSES = new Set([202, 429, 503]);
 
 async function prepareTrustedPagesPreload() {
   const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
@@ -87,13 +89,14 @@ async function runAttempt(attempt) {
 
 function isAllowedSiteGroundAbort(networkErrors, route) {
   const expectedDocumentUrl = `${baseUrl}${String(route || '')}`;
+  const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
   return (
     networkErrors.length === 0 ||
-    networkErrors.every(
-      (message) =>
-        message === `${expectedDocumentUrl}: net::ERR_ABORTED` ||
-        (message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED'))
-    )
+    networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      if (!/net::ERR_ABORTED/i.test(message)) return false;
+      return message.startsWith(expectedDocumentUrl) || message.startsWith(captchaPrefix);
+    })
   );
 }
 
@@ -133,14 +136,23 @@ function isNetworkIssueOnly(result, blockers, issues, networkErrors) {
 }
 
 function isRetryAbortOnly(networkErrors, expectedDocumentUrl) {
-  return networkErrors.every((message) => message === `${expectedDocumentUrl}: net::ERR_ABORTED`);
+  return (
+    networkErrors.length > 0 &&
+    networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      return /net::ERR_ABORTED/i.test(message) && message.startsWith(expectedDocumentUrl);
+    })
+  );
 }
 
 function isSiteGroundCaptchaRequestAbortOnly(networkErrors) {
-  return networkErrors.every(
-    (message) =>
-      message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) &&
-      message.endsWith(': net::ERR_ABORTED')
+  const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
+  return (
+    networkErrors.length > 0 &&
+    networkErrors.every((msg) => {
+      const message = String(msg || '').trim();
+      return /net::ERR_ABORTED/i.test(message) && message.startsWith(captchaPrefix);
+    })
   );
 }
 
@@ -180,11 +192,13 @@ function isOriginVerifiedVisualInconclusive(result) {
   if (expectedSha && String(result.originDeploySha || '') !== expectedSha) return false;
 
   const edgeStatus = Number(result.edgeHttpStatus ?? 0);
-  if (SITEGROUND_TRANSIENT_HTTP_STATUSES.has(edgeStatus)) return true;
-  if (edgeStatus !== 0) return false;
-
+  const finalUrl = String(result.finalUrl || '');
   const networkErrors = Array.isArray(result.networkErrors) ? result.networkErrors.map(String) : [];
-  return isAllowedSiteGroundAbort(networkErrors, result.route);
+
+  if (isSiteGroundTransientResponse(edgeStatus, result.edgeHeaders || {}, finalUrl)) return true;
+  if (edgeStatus === 0 && isAllowedSiteGroundAbort(networkErrors, result.route)) return true;
+
+  return false;
 }
 
 async function readValidatedResults() {
@@ -205,8 +219,8 @@ async function readValidatedResults() {
   }
 
   const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
-  if (!Array.isArray(results) || results.length !== expectedResultsCount) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);
+  if (!Array.isArray(results) || results.length < expectedResultsCount || results.length % VIEWPORT_COUNT !== 0) {
+    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} min_expected=${expectedResultsCount}`);
     return null;
   }
 
@@ -257,19 +271,27 @@ async function failedResultsAreTransient() {
 async function disarmRollbackAfterTransientExhaustion() {
   const envFile = (process.env.GITHUB_ENV || '').trim();
   if (envFile) {
-    await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-    console.error('BLOCK_C_STAGING_ROLLBACK=DISARMED reason=transient-only-exhaustion');
+    try {
+      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+      console.error('BLOCK_C_STAGING_ROLLBACK=DISARMED reason=transient-only-exhaustion');
+    } catch (err) {
+      console.warn(`BLOCK_C_STAGING_ROLLBACK=NOT_DISARMED reason=GITHUB_ENV_write_failed error=${err instanceof Error ? err.message : String(err)}`);
+    }
   } else {
     console.warn('BLOCK_C_STAGING_ROLLBACK=NOT_DISARMED reason=GITHUB_ENV_unavailable');
   }
 
   const summaryFile = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (summaryFile) {
-    await fs.appendFile(
-      summaryFile,
-      '\n### Block C transient exhaustion\n\nSiteGround Antibot prevented complete browser validation after all bounded retries. No real application defect was established, so the Staging rollback was disarmed. This run remains ineligible for Production acceptance because browser geometry, H1 visibility, responsive layout and images were not completely validated.\n',
-      'utf8'
-    );
+    try {
+      await fs.appendFile(
+        summaryFile,
+        '\n### Block C transient exhaustion\n\nSiteGround Antibot prevented complete browser validation after all bounded retries. No real application defect was established, so the Staging rollback was disarmed. This run remains ineligible for Production acceptance because browser geometry, H1 visibility, responsive layout and images were not completely validated.\n',
+        'utf8'
+      );
+    } catch (err) {
+      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 }
 
@@ -307,7 +329,7 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
   if (attempt === maxAttempts) {
     await disarmRollbackAfterTransientExhaustion();
     console.error(`BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
-    process.exit(75);
+    process.exit(EX_TEMPFAIL);
   }
 
   const delayMs = 4000 * attempt;
@@ -316,3 +338,4 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 }
 
 process.exit(1);
+

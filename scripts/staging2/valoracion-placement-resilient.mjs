@@ -4,6 +4,7 @@ import path from 'node:path';
 import {
   SITEGROUND_CAPTCHA_PATH,
   SITEGROUND_TRANSIENT_HTTP_STATUSES,
+  EX_TEMPFAIL,
   isSiteGroundCaptchaInterruption,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
@@ -13,7 +14,7 @@ const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const valuationUrl = `${baseUrl}/madrid/valoracion/`;
 const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const expectedPortalId = '147416356';
-const transientExitCode = 75;
+const transientExitCode = EX_TEMPFAIL;
 const maxAttempts = 5;
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {

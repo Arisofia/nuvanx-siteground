@@ -1,5 +1,7 @@
 export const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
 export const SITEGROUND_TRANSIENT_HTTP_STATUSES = new Set([202, 429, 503]);
+/** BSD sysexits: EX_TEMPFAIL (75) - Temporary failure / transient infrastructure challenge (retryable). */
+export const EX_TEMPFAIL = 75;
 
 export function isSiteGroundCaptchaInterruption(error, currentUrl = '') {
   const message = error instanceof Error ? error.message : String(error || '');

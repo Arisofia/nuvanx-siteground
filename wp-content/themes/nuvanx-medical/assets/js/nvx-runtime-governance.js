@@ -316,7 +316,6 @@
     if (!hasModal && !hasPageMount) return;
 
     let promise = null;
-    let fallbackTimer = null;
 
     function reportHubSpotError(scope, error, hookName) {
       if (config.debug !== true || !window.console || typeof window.console.warn !== 'function') return;
@@ -414,13 +413,6 @@
               formId: frame.dataset.formId || config.hubspotFormId,
               target: '#' + frame.id,
               onFormReady: function ($form) {
-                // The form rendered successfully: cancel the pending fallback
-                // check so a late/inline mount can't get the WhatsApp/phone
-                // fallback shown on top of a working form.
-                if (fallbackTimer !== null) {
-                  clearTimeout(fallbackTimer);
-                  fallbackTimer = null;
-                }
                 const wrapper = frame.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || frame.parentElement;
                 if (wrapper) {
                   const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
@@ -454,10 +446,10 @@
       }
 
       // Schedule fallback check in case script is blocked or network times out.
-      // Cancelled by onFormReady once a form renders successfully.
-      if (fallbackTimer !== null) clearTimeout(fallbackTimer);
-      fallbackTimer = setTimeout(function () {
-        fallbackTimer = null;
+      // The per-frame guard below only reveals the fallback for mounts that
+      // still contain neither .hbspt-form nor an iframe, so a working form is
+      // never covered even when other mounts on the page fail.
+      setTimeout(function () {
         const uninitialized = document.querySelectorAll('.hs-form-frame, #nvx-hubspot-native-form');
         uninitialized.forEach(function (f) {
           if (!f.querySelector('.hbspt-form') && !f.querySelector('iframe')) {

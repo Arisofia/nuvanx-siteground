@@ -348,15 +348,21 @@ if (
             continue;
         }
 
-        @chmod( $destination, 0644 );
+        $file_mode = defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644;
+        @chmod( $destination, $file_mode );
 
         printf( "[MEDIA-COPIED] %s\n", $relative );
         $media_copied++;
     }
 
+    $parity_status = 'FAIL';
+    if ( 0 === $media_copy_failures ) {
+        $parity_status = $dry_run ? 'DRY_RUN_PASS' : 'PASS';
+    }
+
     printf(
         "STAGING_FEATURED_MEDIA_PARITY=%s attachments=%d referenced=%d copied=%d already_present=%d source_missing=%d copy_failures=%d mode=%s\n",
-        0 === $media_copy_failures ? ( $dry_run ? 'DRY_RUN_PASS' : 'PASS' ) : 'FAIL',
+        $parity_status,
         count( $featured_attachment_ids ),
         count( $media_paths ),
         $media_copied,

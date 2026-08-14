@@ -80,10 +80,6 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     sawTransient = true;
     if (cycle < maxCycles) {
-      // Some child validators disarm rollback when their own bounded attempts
-      // are exhausted. The outer orchestrator is about to continue testing, so
-      // restore rollback protection before the next cycle can discover a real
-      // deterministic defect.
       await writeRollbackState('1', name, 'outer-transient-retry');
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);
@@ -98,11 +94,12 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
+  { name: 'hubspot-submission-classifier', url: new URL('./test-hubspot-submission-classifier.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 3 },
   // HubSpot is third-party runtime. Each child cycle already performs three
   // internal attempts; three outer cycles provide bounded resilience without
-  // weakening any accessibility assertion or creating a real contact.
+  // weakening owned-page assertions or creating a real contact.
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 3, backoffMs: 7000 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];

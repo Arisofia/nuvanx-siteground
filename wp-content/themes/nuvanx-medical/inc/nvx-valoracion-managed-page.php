@@ -80,8 +80,6 @@ function nvx_valoracion_managed_page_markup(): string {
 	$valuation_url  = home_url( '/madrid/valoracion/' );
 	$doctoralia_url = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
 	$wa_url         = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : 'https://wa.me/34689317399';
-	$form_id        = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-	$portal_id      = '147416356';
 
 	$html = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
 

@@ -111,6 +111,8 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
   }
 }
 
+const VARIABLE_NAME = 'nvx_event_name';
+
 async function listTriggers(tagmanager, wsPath) {
   const res = await tagmanager.accounts.containers.workspaces.triggers.list({ parent: wsPath });
   return res.data.trigger || [];
@@ -119,6 +121,35 @@ async function listTriggers(tagmanager, wsPath) {
 async function listTags(tagmanager, wsPath) {
   const res = await tagmanager.accounts.containers.workspaces.tags.list({ parent: wsPath });
   return res.data.tag || [];
+}
+
+async function listVariables(tagmanager, wsPath) {
+  const res = await tagmanager.accounts.containers.workspaces.variables.list({ parent: wsPath });
+  return res.data.variable || [];
+}
+
+async function ensureDataLayerVariable(tagmanager, wsPath) {
+  const variables = await listVariables(tagmanager, wsPath);
+  let v = variables.find(varItem => varItem.name === VARIABLE_NAME);
+  if (v) {
+    console.log(`  Data Layer Variable already exists: "${VARIABLE_NAME}" (ID: ${v.variableId})`);
+    return v;
+  }
+  console.log(`  Creating Data Layer variable: "${VARIABLE_NAME}"...`);
+  const res = await tagmanager.accounts.containers.workspaces.variables.create({
+    parent: wsPath,
+    requestBody: {
+      name: VARIABLE_NAME,
+      type: 'v',
+      parameter: [
+        { type: 'integer', key: 'dataLayerVersion', value: '2' },
+        { type: 'template', key: 'name', value: 'nvx_event_name' }
+      ]
+    }
+  });
+  v = res.data;
+  console.log(`  Created variable ID: ${v.variableId}`);
+  return v;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -137,8 +168,12 @@ async function main() {
   const workspace     = await resolveOrCreateWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
 
-  // 2. Check / create trigger
-  console.log('\n2. Checking for existing trigger...');
+  // 2. Ensure Data Layer variable exists
+  console.log('\n2. Ensuring Data Layer variable...');
+  await ensureDataLayerVariable(tagmanager, workspacePath);
+
+  // 3. Check / create trigger
+  console.log('\n3. Checking for existing trigger...');
   const triggers = await listTriggers(tagmanager, workspacePath);
   let trigger = triggers.find(t => t.name === TRIGGER_NAME);
 

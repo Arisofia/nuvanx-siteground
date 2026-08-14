@@ -1,5 +1,8 @@
 title = "NUVANX Gitleaks Configuration"
 
+[extend]
+useDefault = true
+
 [allowlist]
 description = "Public client-side identifiers, form GUIDs, and schema fixtures"
 regexes = [

@@ -187,9 +187,9 @@ $normalize_media_path = static function ( string $path ) {
     return ltrim( $path, '/' );
 };
 
-$production_root_real = realpath( $production_root );
+$production_root_real    = realpath( $production_root );
 $production_uploads_real = realpath( $production_uploads_dir );
-$staging_uploads_real = realpath( $staging_uploads_dir );
+$staging_uploads_real    = realpath( $staging_uploads_dir );
 
 if (
     false === $production_root_real
@@ -223,7 +223,7 @@ if (
         }
     }
 
-    $media_paths = array();
+    $media_paths        = array();
     $required_originals = array();
 
     foreach ( array_keys( $featured_attachment_ids ) as $attachment_id ) {
@@ -233,7 +233,7 @@ if (
             continue;
         }
 
-        $media_paths[ $relative ] = true;
+        $media_paths[ $relative ]        = true;
         $required_originals[ $relative ] = true;
 
         $metadata = wp_get_attachment_metadata( $attachment_id );

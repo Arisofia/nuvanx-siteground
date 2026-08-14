@@ -48,32 +48,61 @@ for candidate in "${candidates[@]}"; do
   IFS=$'\t' read -r artifact_id run_id created_at <<< "$candidate"
   [[ "$artifact_id" =~ ^[0-9]{1,20}$ && "$run_id" =~ ^[0-9]{1,20}$ ]] || continue
 
-  run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")" || continue
+  run=""
+  if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=fetch_run_failed" >&2
+    continue
+  fi
   IFS=$'\t' read -r head_branch run_head_sha workflow_path run_event < <(printf '%s' "$run" | jq -r '[.head_branch // "",.head_sha // "",.path // "",.event // ""] | @tsv')
 
-  [[ "$head_branch" == "$STAGING_ACCEPTANCE_BRANCH" ]] || continue
+  if [[ "$head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=branch_mismatch branch=$head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2
+    continue
+  fi
   workflow_prefix="${workflow_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
   workflow_suffix="${workflow_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-  [[ "$workflow_prefix" == "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]] || continue
-  [[ -z "$workflow_suffix" || ( "${workflow_suffix:0:1}" == '@' && "$workflow_suffix" != '@' ) ]] || continue
-  [[ "$run_head_sha" =~ ^[0-9a-f]{40}$ ]] || continue
-  [[ "$run_event" == push || "$run_event" == workflow_dispatch ]] || continue
+  if [[ "$workflow_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$workflow_suffix" && "${workflow_suffix:0:1}" != '@' ) || "$workflow_suffix" == '@' ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=workflow_path_mismatch path=$workflow_path" >&2
+    continue
+  fi
+  if [[ ! "$run_head_sha" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=invalid_run_head_sha sha=$run_head_sha" >&2
+    continue
+  fi
+  if [[ "$run_event" != push && "$run_event" != workflow_dispatch ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=non_mutation_event event=$run_event" >&2
+    continue
+  fi
 
   if [[ "$run_event" == push ]]; then
-    [[ "$run_head_sha" == "$CANDIDATE_SHA" ]] || continue
+    if [[ "$run_head_sha" != "$CANDIDATE_SHA" ]]; then
+      echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=push_sha_mismatch run_sha=$run_head_sha candidate_sha=$CANDIDATE_SHA" >&2
+      continue
+    fi
   else
-    git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null || continue
-    git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH" || continue
-    git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha" || continue
+    if ! git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null || \
+       ! git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH" || \
+       ! git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha"; then
+      echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=dispatch_sha_lineage_invalid run_sha=$run_head_sha candidate_sha=$CANDIDATE_SHA" >&2
+      continue
+    fi
   fi
 
   artifact_zip="$RUNNER_TEMP/staging-acceptance-${artifact_id}.zip"
   rm -f "$artifact_zip"
-  curl -LfsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 180 --max-filesize 157286400 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip" || { rm -f "$artifact_zip"; continue; }
-  unzip -tqq "$artifact_zip" >/dev/null 2>&1 || { rm -f "$artifact_zip"; continue; }
+  if ! curl -LfsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 180 --max-filesize 157286400 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip" || \
+     ! unzip -tqq "$artifact_zip" >/dev/null 2>&1; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=artifact_download_or_zip_corrupt" >&2
+    rm -f "$artifact_zip"
+    continue
+  fi
 
   manifest_path="$(unzip -Z1 "$artifact_zip" | grep -E '(^|/)acceptance-manifest\.json$' | head -n1 || true)"
-  [[ -n "$manifest_path" ]] || { rm -f "$artifact_zip"; continue; }
+  if [[ -z "$manifest_path" ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=missing_manifest" >&2
+    rm -f "$artifact_zip"
+    continue
+  fi
   manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
   rm -f "$artifact_zip"
 
@@ -82,34 +111,58 @@ for candidate in "${candidates[@]}"; do
     [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
     select(all(.[]; type == "string" and length > 0)) |
     @tsv
-  ')" || continue
+  ' 2>/dev/null)" || {
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=invalid_manifest_schema" >&2
+    continue
+  }
   IFS=$'\t' read -r manifest_candidate manifest_run_id manifest_run_attempt manifest_event manifest_head_sha manifest_head_branch manifest_workflow <<< "$manifest_fields"
 
-  [[ "$manifest_candidate" == "$CANDIDATE_SHA" ]] || continue
-  [[ "$manifest_run_id" == "$run_id" ]] || continue
-  [[ "$manifest_run_attempt" =~ ^[0-9]{1,6}$ ]] || continue
+  if [[ "$manifest_candidate" != "$CANDIDATE_SHA" || "$manifest_run_id" != "$run_id" || ! "$manifest_run_attempt" =~ ^[0-9]{1,6}$ ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=manifest_identity_mismatch" >&2
+    continue
+  fi
   manifest_run_attempt=$((10#$manifest_run_attempt))
-  (( manifest_run_attempt >= 1 )) || continue
-  [[ "$manifest_event" == "$run_event" ]] || continue
-  [[ "$manifest_head_sha" == "$run_head_sha" ]] || continue
-  [[ "$manifest_head_branch" == "$STAGING_ACCEPTANCE_BRANCH" ]] || continue
-  [[ "$manifest_workflow" == "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]] || continue
+  if (( manifest_run_attempt < 1 )); then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=invalid_attempt_number" >&2
+    continue
+  fi
+  if [[ "$manifest_event" != "$run_event" || "$manifest_head_sha" != "$run_head_sha" || "$manifest_head_branch" != "$STAGING_ACCEPTANCE_BRANCH" || "$manifest_workflow" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=manifest_metadata_mismatch" >&2
+    continue
+  fi
 
-  exact_run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/attempts/${manifest_run_attempt}")" || continue
+  exact_run=""
+  if ! exact_run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/attempts/${manifest_run_attempt}")"; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id attempt=$manifest_run_attempt reason=fetch_attempt_failed" >&2
+    continue
+  fi
   IFS=$'\t' read -r exact_status exact_conclusion exact_branch exact_head_sha exact_path exact_event exact_attempt < <(printf '%s' "$exact_run" | jq -r '[.status // "",.conclusion // "",.head_branch // "",.head_sha // "",.path // "",.event // "",(.run_attempt // "" | tostring)] | @tsv')
 
-  [[ "$exact_status" == completed && "$exact_conclusion" == success ]] || continue
-  [[ "$exact_attempt" == "$manifest_run_attempt" ]] || continue
-  [[ "$exact_branch" == "$manifest_head_branch" && "$exact_head_sha" == "$manifest_head_sha" && "$exact_event" == "$manifest_event" ]] || continue
+  if [[ "$exact_status" != completed || "$exact_conclusion" != success ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id attempt=$manifest_run_attempt reason=attempt_not_successful status=$exact_status conclusion=$exact_conclusion" >&2
+    continue
+  fi
+  if [[ "$exact_attempt" != "$manifest_run_attempt" || "$exact_branch" != "$manifest_head_branch" || "$exact_head_sha" != "$manifest_head_sha" || "$exact_event" != "$manifest_event" ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id attempt=$manifest_run_attempt reason=attempt_metadata_mismatch" >&2
+    continue
+  fi
   exact_prefix="${exact_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
   exact_suffix="${exact_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-  [[ "$exact_prefix" == "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]] || continue
-  [[ -z "$exact_suffix" || ( "${exact_suffix:0:1}" == '@' && "$exact_suffix" != '@' ) ]] || continue
+  if [[ "$exact_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$exact_suffix" && "${exact_suffix:0:1}" != '@' ) || "$exact_suffix" == '@' ]]; then
+    echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=attempt_workflow_path_mismatch path=$exact_path" >&2
+    continue
+  fi
 
   if [[ "$manifest_event" == push ]]; then
-    [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || continue
+    if [[ "$manifest_head_sha" != "$CANDIDATE_SHA" ]]; then
+      echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=manifest_push_sha_mismatch" >&2
+      continue
+    fi
   else
-    git merge-base --is-ancestor "$CANDIDATE_SHA" "$manifest_head_sha" || continue
+    if ! git merge-base --is-ancestor "$CANDIDATE_SHA" "$manifest_head_sha"; then
+      echo "STAGING_ACCEPTANCE_CANDIDATE_SKIPPED artifact_id=$artifact_id run_id=$run_id reason=manifest_candidate_not_ancestor" >&2
+      continue
+    fi
   fi
 
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then

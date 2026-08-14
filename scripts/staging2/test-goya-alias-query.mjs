@@ -1,4 +1,9 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {
+  EX_TEMPFAIL,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
 assert.ok(base.startsWith('https://'), 'STAGING_URL must be HTTPS');
@@ -9,18 +14,55 @@ source.searchParams.set('utm_source', 'google');
 source.searchParams.set('utm_medium', 'cpc');
 source.searchParams.set('utm_campaign', 'qa_redirect_contract');
 
-const response = await fetch(source, {
-  redirect: 'manual',
-  headers: {
-    'cache-control': 'no-cache',
-    pragma: 'no-cache',
-    cookie: 'wpSGCacheBypass=1',
-  },
-});
+function parseHeaderDump(raw) {
+  const blocks = String(raw || '')
+    .replace(/\r/g, '')
+    .split(/\n\n+/)
+    .filter((block) => /^HTTP\/\S+\s+\d{3}\b/.test(block));
+  assert.ok(blocks.length > 0, 'Origin response file contains no HTTP header block');
 
-assert.equal(response.status, 301, `Expected 301, received ${response.status}`);
+  const lines = blocks.at(-1).split('\n');
+  const statusMatch = lines.shift().match(/^HTTP\/\S+\s+(\d{3})\b/);
+  assert.ok(statusMatch, 'Origin response file contains no valid status line');
+  const headers = {};
+  for (const line of lines) {
+    const separator = line.indexOf(':');
+    if (separator < 1) continue;
+    headers[line.slice(0, separator).trim().toLowerCase()] = line.slice(separator + 1).trim();
+  }
+  return { status: Number(statusMatch[1]), headers };
+}
 
-const locationHeader = response.headers.get('location');
+const responseFile = String(process.env.GOYA_ALIAS_RESPONSE_FILE || '').trim();
+let status;
+let headers;
+let validationMode = 'public-edge';
+
+if (responseFile) {
+  ({ status, headers } = parseHeaderDump(fs.readFileSync(responseFile, 'utf8')));
+  validationMode = 'origin-fallback';
+} else {
+  const response = await fetch(source, {
+    redirect: 'manual',
+    headers: {
+      accept: 'text/html,application/xhtml+xml',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
+      cookie: 'wpSGCacheBypass=1',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
+    },
+  });
+  status = response.status;
+  headers = Object.fromEntries(response.headers.entries());
+  if (isSiteGroundTransientResponse(status, headers, source.href)) {
+    console.error(`GOYA_ALIAS_QUERY_CONTRACT=BLOCKED_TRANSIENT status=${status} mode=${validationMode}`);
+    process.exit(EX_TEMPFAIL);
+  }
+}
+
+assert.equal(status, 301, `Expected 301, received ${status}`);
+
+const locationHeader = headers.location;
 assert.ok(locationHeader, 'Redirect response has no Location header');
 
 const destination = new URL(locationHeader, source);
@@ -36,11 +78,11 @@ assert.equal(destination.searchParams.get('utm_medium'), 'cpc');
 assert.equal(destination.searchParams.get('utm_campaign'), 'qa_redirect_contract');
 
 assert.equal(
-  response.headers.get('x-redirect-by'),
+  headers['x-redirect-by'],
   'NUVANX',
-  `Unexpected redirect owner: ${response.headers.get('x-redirect-by')}`,
+  `Unexpected redirect owner: ${headers['x-redirect-by']}`,
 );
 
 console.log(
-  `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${response.status} owner=NUVANX destination=${destination.href}`,
+  `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );

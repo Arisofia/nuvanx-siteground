@@ -536,8 +536,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          set +e
           STAGING_URL="$STAGING_URL" \
           node scripts/staging2/test-goya-alias-query.mjs
+          result=$?
+          set -e
+          if [[ "$result" -eq 75 ]]; then
+            origin_headers="$RUNNER_TEMP/goya-alias-origin-headers.txt"
+            ssh nvx-staging2 \
+              "curl -skS -D - -o /dev/null --max-redirs 0 --resolve staging2.nuvanx.com:443:127.0.0.1 'https://staging2.nuvanx.com/medicina-estetica-goya/?gclid=QA_REDIRECT_CI_GCLID_001&utm_source=google&utm_medium=cpc&utm_campaign=qa_redirect_contract'" \
+              > "$origin_headers"
+            STAGING_URL="$STAGING_URL" \
+            GOYA_ALIAS_RESPONSE_FILE="$origin_headers" \
+            node scripts/staging2/test-goya-alias-query.mjs
+          else
+            test "$result" -eq 0
+          fi
 
       - name: Validate WordPress page templates from origin
         if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}

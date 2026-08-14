@@ -112,8 +112,18 @@ async function resolveHubSpot(page, attempt) {
   const frame = handle ? await handle.contentFrame() : null;
   if (!frame) return transientResult(attempt, 'hubspot_content_frame_unavailable');
 
-  const formCount = await frame.locator('form').first().count().catch(() => 0);
-  if (formCount === 0) return transientResult(attempt, 'hubspot_form_element_not_available');
+  // HubSpot attaches the iframe before its form subtree is ready. The previous
+  // immediate count() created a deterministic race and classified a healthy
+  // vendor load as transient in ~2–4 seconds. Match the proven H1 E2E contract:
+  // wait for the actual form DOM before auditing semantics.
+  try {
+    await frame.locator('form').first().waitFor({ state: 'attached', timeout: 30000 });
+  } catch (error) {
+    return transientResult(
+      attempt,
+      `hubspot_form_element_not_available_after_wait:${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 
   return {
     transient: false,
@@ -207,6 +217,9 @@ function auditErrorState(controls) {
     if (!control.nativeInvalid && !control.ariaInvalid) {
       issues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
     }
+    // The browser's native validationMessage exists for every invalid required
+    // control, even when no error is exposed to assistive technology. Require
+    // an explicit programmatic relationship to rendered error text instead.
     if (!control.associatedErrorText) {
       issues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
     }
@@ -337,6 +350,30 @@ async function auditOnce(browser, attempt) {
   }
 }
 
+async function disarmRollbackAfterTransientExhaustion() {
+  const envFile = (process.env.GITHUB_ENV || '').trim();
+  if (envFile) {
+    try {
+      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+      console.error('HUBSPOT_A11Y_STAGING_ROLLBACK=DISARMED reason=third-party-or-siteground-transient-exhaustion');
+    } catch (error) {
+      console.warn(`HUBSPOT_A11Y_STAGING_ROLLBACK=DISARM_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
+  if (!summary) return;
+  try {
+    await fs.appendFile(
+      summary,
+      '\n### HubSpot accessibility gate transient exhaustion\n\nThe HubSpot accessibility audit could not obtain a stable embedded form after three bounded attempts. No semantic defect was established, so Staging rollback was disarmed; the run remains ineligible for Production acceptance.\n',
+      'utf8'
+    );
+  } catch (error) {
+    console.warn(`HUBSPOT_A11Y_SUMMARY=WRITE_FAILED error=${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 async function persistResult(result) {
   await fs.writeFile(outFile, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
 }
@@ -365,6 +402,7 @@ async function runAudit(browser) {
     console.warn(`HUBSPOT_A11Y_TRANSIENT attempt=${attempt} reason=${result.reason}`);
     if (attempt === maxAttempts) {
       await persistResult(result);
+      await disarmRollbackAfterTransientExhaustion();
       console.error(`HUBSPOT_A11Y=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
       return EX_TEMPFAIL;
     }

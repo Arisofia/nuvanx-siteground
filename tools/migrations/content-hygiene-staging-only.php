@@ -282,10 +282,11 @@ if (
     );
     if ( is_array( $inline_contents ) ) {
         foreach ( $inline_contents as $content_str ) {
-            if ( preg_match_all( '#/wp-content/uploads/([^\'"\s<>?#]+)#i', (string) $content_str, $content_matches ) ) {
+            if ( preg_match_all( '#/wp-content/uploads/([^\'"\s<>?#\),]+)#i', (string) $content_str, $content_matches ) ) {
                 foreach ( $content_matches[1] as $matched_path ) {
-                    $norm = $normalize_media_path( (string) $matched_path );
-                    if ( '' !== $norm ) {
+                    $cleaned = urldecode( rtrim( (string) $matched_path, '),' ) );
+                    $norm    = $normalize_media_path( $cleaned );
+                    if ( '' !== $norm && preg_match( '#\.(jpe?g|png|webp|gif|svg|avif|ico|pdf|mp4)$#i', $norm ) ) {
                         $media_paths[ $norm ] = true;
                     }
                 }

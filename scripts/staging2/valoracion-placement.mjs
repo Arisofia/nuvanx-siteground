@@ -59,24 +59,36 @@ async function writeRollbackState(value, component, reason) {
   }
 }
 
-async function appendTransientSummary(component, reason, detail) {
+async function disarmRollbackAfterTransientExhaustion(component) {
+  await writeRollbackState('0', component, 'transient-exhaustion');
+
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (!summary) return;
   try {
-    await fs.appendFile(summary, `\n### Staging acceptance transient\n\nComponent \`${component}\` could not produce production-eligible evidence (${reason}). ${detail} No deterministic site defect was established, so rollback was disarmed and the same immutable SHA must be retried on a fresh runner.\n`, 'utf8');
+    await fs.appendFile(
+      summary,
+      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established, so rollback was disarmed; this run is not eligible for Production acceptance.\n`,
+      'utf8'
+    );
   } catch (error) {
     console.warn(`STAGING_ACCEPTANCE_SUMMARY=WRITE_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-async function disarmRollbackAfterTransientExhaustion(component) {
-  await writeRollbackState('0', component, 'transient-exhaustion');
-  await appendTransientSummary(component, 'transient-exhaustion', 'The component exhausted its bounded runtime attempts.');
-}
-
 async function failTransientForMissingEvidence(component) {
   await writeRollbackState('0', component, 'required-evidence-unavailable');
-  await appendTransientSummary(component, 'required-evidence-unavailable', 'The gate itself passed, but its required evidence file could not be preserved.');
+  const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
+  if (summary) {
+    try {
+      await fs.appendFile(
+        summary,
+        `\n### Staging acceptance evidence unavailable\n\nComponent \`${component}\` passed, but its required evidence file could not be preserved. No deterministic site defect was established, so rollback was disarmed; this run is not eligible for Production acceptance and the same immutable SHA must be retried on a fresh runner.\n`,
+        'utf8'
+      );
+    } catch (error) {
+      console.warn(`STAGING_ACCEPTANCE_SUMMARY=WRITE_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
   console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL_TRANSIENT component=${component} reason=required_evidence_unavailable exit=${EX_TEMPFAIL}`);
   process.exit(EX_TEMPFAIL);
 }

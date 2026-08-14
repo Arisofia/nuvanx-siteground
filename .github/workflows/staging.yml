@@ -544,8 +544,14 @@ jobs:
           if [[ "$result" -eq 75 ]]; then
             origin_headers="$RUNNER_TEMP/goya-alias-origin-headers.txt"
             ssh nvx-staging2 \
-              "curl -skS -D - -o /dev/null --max-redirs 0 --resolve staging2.nuvanx.com:443:127.0.0.1 'https://staging2.nuvanx.com/medicina-estetica-goya/?gclid=QA_REDIRECT_CI_GCLID_001&utm_source=google&utm_medium=cpc&utm_campaign=qa_redirect_contract'" \
+              "curl -kS -D - -o /dev/null --max-redirs 0 --max-time 30 --resolve staging2.nuvanx.com:443:127.0.0.1 -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' -b 'wpSGCacheBypass=1' -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36 NUVANX-Staging-QA' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' 'https://staging2.nuvanx.com/medicina-estetica-goya/?gclid=QA_REDIRECT_CI_GCLID_001&utm_source=google&utm_medium=cpc&utm_campaign=qa_redirect_contract'" \
               > "$origin_headers"
+            origin_result=$?
+            if [[ "$origin_result" -eq 75 ]] || [[ "$origin_result" -eq 28 ]]; then
+              echo "STAGING_ACCEPTANCE_TRANSIENT=1" >> "$GITHUB_ENV"
+              echo "GOYA_ALIAS_ORIGIN=TRANSIENT status=$origin_result" >&2
+              exit 75
+            fi
             STAGING_URL="$STAGING_URL" \
             GOYA_ALIAS_RESPONSE_FILE="$origin_headers" \
             node scripts/staging2/test-goya-alias-query.mjs

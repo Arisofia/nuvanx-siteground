@@ -13,6 +13,11 @@ import {
   HUBSPOT_PORTAL_ID,
   HUBSPOT_FORM_ID,
 } from './hubspot-config.mjs';
+import {
+  HUBSPOT_MOUNTED_SELECTOR,
+  HUBSPOT_FRAME_CONTAINER_SELECTOR,
+  HUBSPOT_LEGACY_FRAME_SELECTOR,
+} from './hubspot-selectors.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -33,7 +38,7 @@ const viewports = [
   { key: 'mobile', width: 390, height: 844 },
 ];
 
-const mountedSelector = '#nvx-hubspot-form .hs-form-frame[data-nvx-hubspot-lazy="1"] iframe[data-test-id^="embedded-form-"]';
+const mountedSelector = HUBSPOT_MOUNTED_SELECTOR;
 
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
 await fs.mkdir(outDir, { recursive: true });
@@ -94,7 +99,7 @@ async function inspectHubSpotInteractivity(page, embeddedSrc) {
 }
 
 async function collectPlacement(page) {
-  return page.evaluate(() => {
+  return page.evaluate((frameSelector) => {
     const visible = (element) => {
       if (!element) return false;
       const style = getComputedStyle(element);
@@ -105,7 +110,7 @@ async function collectPlacement(page) {
     const root = document.getElementById('nvx-valoracion-main');
     const hero = root?.querySelector(':scope > .nvx-valoracion-hero, :scope > .nvx-brand-hero');
     const form = document.getElementById('nvx-hubspot-form');
-    const frame = form?.querySelector('.hs-form-frame[data-nvx-hubspot-lazy="1"]');
+    const frame = form?.querySelector(frameSelector);
     const heroRect = hero?.getBoundingClientRect();
     const formRect = form?.getBoundingClientRect();
     return {
@@ -117,7 +122,7 @@ async function collectPlacement(page) {
       heroBottom: heroRect ? Math.round(heroRect.bottom) : null,
       formTop: formRect ? Math.round(formRect.top) : null,
     };
-  });
+  }, HUBSPOT_FRAME_CONTAINER_SELECTOR);
 }
 
 function validatePlacement(placement) {
@@ -134,10 +139,10 @@ function validatePlacement(placement) {
 }
 
 async function collectMountState(page) {
-  return page.evaluate(({ formId, portalId }) => {
+  return page.evaluate(({ formId, portalId, frameSelector }) => {
     const section = document.getElementById('nvx-hubspot-form');
     const canonicalMounts = section
-      ? Array.from(section.querySelectorAll('.hs-form-frame[data-nvx-hubspot-lazy="1"]'))
+      ? Array.from(section.querySelectorAll(frameSelector))
       : [];
     const embeddedIframes = section
       ? Array.from(section.querySelectorAll('iframe[data-test-id^="embedded-form-"]'))
@@ -164,7 +169,7 @@ async function collectMountState(page) {
       embeddedIframeCount: embeddedIframes.length,
       rogueMounts: rogueLegacy + rogueIframes,
     };
-  }, { formId: expectedFormId, portalId: expectedPortalId });
+  }, { formId: expectedFormId, portalId: expectedPortalId, frameSelector: HUBSPOT_FRAME_CONTAINER_SELECTOR });
 }
 
 async function validateHubSpotMount(page, mounted, mountState) {

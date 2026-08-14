@@ -41,6 +41,10 @@ let validationMode = 'public-edge';
 if (responseFile) {
   ({ status, headers } = parseHeaderDump(fs.readFileSync(responseFile, 'utf8')));
   validationMode = 'origin-fallback';
+  if (isSiteGroundTransientResponse(status, headers, source.href)) {
+    console.error(`GOYA_ALIAS_QUERY_CONTRACT=BLOCKED_TRANSIENT status=${status} mode=${validationMode}`);
+    process.exit(EX_TEMPFAIL);
+  }
 } else {
   const response = await fetch(source, {
     redirect: 'manual',

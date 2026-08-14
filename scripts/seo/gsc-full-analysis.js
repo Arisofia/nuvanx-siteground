@@ -68,7 +68,16 @@ async function runFullGscAnalysis() {
   };
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'gsc-full-analysis.json'), JSON.stringify(results, null, 2));
-  console.log(JSON.stringify(results, null, 2));
+
+  console.log('\nSearch Console Analysis complete:');
+  console.log(`  Device breakdown rows: ${deviceBreakdown.length}`);
+  console.log(`  Country breakdown rows: ${countryBreakdown.length}`);
+  console.log(`  Last 7 days rows: ${last7.length}`);
+  console.log(`  Previous 7 days rows: ${prev7.length}`);
+  console.log(`  Query/Page rows: ${queryPage.length}`);
+  console.log(`  Mobile queries: ${queriesMobile.length}`);
+  console.log(`  Desktop queries: ${queriesDesktop.length}`);
+  console.log('  Full results saved to scripts/seo/artifacts/gsc-full-analysis.json');
 
   if (Object.keys(queryErrors).length > 0) {
     if (Object.keys(queryErrors).length === totalQueries) {

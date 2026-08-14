@@ -2,8 +2,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const https = require('node:https');
 
+let currentApiKey = '';
+
 function sanitizeUrlString(str) {
-  return String(str || '').replace(/([?&])key=[^&]+/g, '$1key=[REDACTED]');
+  let result = String(str || '').replace(/([?&])key=[^&]+/g, '$1key=[REDACTED]');
+  if (currentApiKey && typeof currentApiKey === 'string' && currentApiKey.length > 5) {
+    result = result.split(currentApiKey).join('[REDACTED]');
+  }
+  return result;
 }
 
 function sanitizeError(err) {
@@ -17,10 +23,10 @@ function sanitizeError(err) {
   return err;
 }
 
-function fetchJson(url, timeoutMs = 30000) {
+function fetchJson(url, options = {}, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     let timer = null;
-    const req = https.get(url, (res) => {
+    const req = https.get(url, options, (res) => {
       res.setEncoding('utf8');
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
@@ -59,6 +65,7 @@ async function runPagespeedAnalysis() {
     console.error('ERROR: GOOGLE_PAGESPEED_API_KEY is required to run PageSpeed analysis.');
     process.exit(1);
   }
+  currentApiKey = apiKey;
 
   const urls = [
     'https://nuvanx.com/',
@@ -79,8 +86,13 @@ async function runPagespeedAnalysis() {
     results[url] = {};
     for (const strategy of strategies) {
       try {
-        const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${apiKey}&category=performance&category=seo&category=accessibility&category=best-practices`;
-        const data = await fetchJson(endpoint);
+        const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance&category=seo&category=accessibility&category=best-practices`;
+        const data = await fetchJson(endpoint, {
+          headers: {
+            'X-Goog-Api-Key': apiKey,
+            Accept: 'application/json',
+          },
+        });
 
         const lcpVal  = data.lighthouseResult?.audits?.['largest-contentful-paint']?.numericValue;
         const clsVal  = data.lighthouseResult?.audits?.['cumulative-layout-shift']?.numericValue;

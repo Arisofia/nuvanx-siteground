@@ -92,7 +92,13 @@ async function runFullAdsAnalysis() {
   };
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'ads-full-analysis.json'), JSON.stringify(results, null, 2));
-  console.log(JSON.stringify(results, null, 2));
+
+  console.log('\nGoogle Ads Analysis complete:');
+  console.log(`  Campaigns: ${campaigns.length}`);
+  console.log(`  Asset Groups: ${assetGroups.length}`);
+  console.log(`  Demographics: ${demographics.length}`);
+  console.log(`  Geo Targets: ${geo.length}`);
+  console.log('  Full results saved to scripts/seo/artifacts/ads-full-analysis.json');
 
   if (Object.keys(queryErrors).length > 0) {
     if (Object.keys(queryErrors).length === totalQueries) {
@@ -108,17 +114,27 @@ async function runFullAdsAnalysis() {
 
 function sanitizeAdsError(err) {
   if (!err) return 'UNKNOWN_ERROR';
-  const code = err.code || err.status || err.name || 'GOOGLE_ADS_API_ERROR';
+  const code = String(err.code || err.status || err.name || 'GOOGLE_ADS_API_ERROR').replace(/[^a-zA-Z0-9_]/g, '');
   if (Array.isArray(err.failure?.errors)) {
     const errorDetails = err.failure.errors
       .map((e) => {
         const errCodeObj = e.error_code || {};
-        return Object.keys(errCodeObj).map((k) => `${k}.${errCodeObj[k]}`).join(',') || 'ERROR';
+        const parts = [];
+        for (const [key, val] of Object.entries(errCodeObj)) {
+          const safeKey = String(key).replace(/[^a-zA-Z0-9_]/g, '');
+          if (typeof val === 'string' || typeof val === 'number') {
+            const safeVal = String(val).replace(/[^a-zA-Z0-9_]/g, '');
+            parts.push(`${safeKey}.${safeVal}`);
+          } else if (val && typeof val === 'object') {
+            parts.push(safeKey);
+          }
+        }
+        return parts.join(',') || 'ERROR';
       })
       .filter(Boolean)
       .slice(0, 3)
       .join('; ');
-    return `code=${code} details=[${errorDetails}]`;
+    return `code=${code}${errorDetails ? ` details=[${errorDetails}]` : ''}`;
   }
   return `code=${code}`;
 }

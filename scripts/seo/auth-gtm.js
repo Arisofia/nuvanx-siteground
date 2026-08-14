@@ -115,7 +115,9 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
   const code = extractAuthCode(codeUrl);
   if (!code) {
     console.error('❌ No se encontró un código de autorización válido.');
-    process.exit(1);
+    process.exitCode = 1;
+    rl.close();
+    return;
   }
 
   try {

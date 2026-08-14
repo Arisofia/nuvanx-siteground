@@ -37,7 +37,8 @@ const CONV_LABEL    = process.env.GOOGLE_ADS_CONVERSION_LABEL || '86RgCI2dht4cEP
 
 const TRIGGER_NAME  = 'CE - nvx_conversion_signal - generate_lead';
 const TAG_NAME      = 'Google Ads - Formulario Valoración - nvx_signal';
-const VERSION_NAME  = 'v4 - Canonical generate_lead via nvx_conversion_signal';
+const VERSION_NAME_BASE = process.env.GTM_VERSION_NAME || 'Canonical generate_lead via nvx_conversion_signal';
+const VERSION_NAME  = `${VERSION_NAME_BASE} (${new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')} UTC)`;
 const VERSION_NOTES = [
   'Sets up CE - nvx_conversion_signal custom event trigger for generate_lead.',
   'Fires Google Ads conversion tag with canonical ID AW-18182220789 / label 86RgCI2dht4cEPXX-t1D.',

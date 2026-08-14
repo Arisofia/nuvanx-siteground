@@ -297,10 +297,12 @@ async function main() {
     requestBody: { name: VERSION_NAME, notes: VERSION_NOTES },
   });
 
+  if (versionRes.data.compilerError) {
+    throw new Error('GTM reported a compiler error while creating the container version; nothing was published.');
+  }
   const newVersionId = versionRes.data.containerVersion?.containerVersionId;
   if (!newVersionId) {
-    console.log('  No workspace changes to version — container already up to date. Nothing to publish.');
-    return;
+    throw new Error('Container version creation returned no containerVersionId despite pending workspace changes; nothing was published.');
   }
   const publishRes   = await tagmanager.accounts.containers.versions.publish({
     path: `${containerPath}/versions/${newVersionId}`,

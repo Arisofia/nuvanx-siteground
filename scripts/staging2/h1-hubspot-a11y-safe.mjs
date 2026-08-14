@@ -117,6 +117,10 @@ async function canAcceptSafeScope(result) {
     errorsByIdentity.set(errorIdentity, errorControl);
   }
 
+  // Also assert that the phone control maintains its client contract in post-submit error snapshot
+  const postSubmitPhone = errorsByIdentity.get(phoneIdentity);
+  if (!postSubmitPhone || !phoneClientContractPasses(postSubmitPhone)) return false;
+
   const requiredIdentities = new Set();
   for (const control of requiredBefore) {
     const controlIdentity = identity(control);
@@ -145,6 +149,12 @@ async function canAcceptSafeScope(result) {
 }
 
 async function main() {
+  const expectedSha = String(process.env.EXPECTED_SHA || '').trim();
+  if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+    console.error('HUBSPOT_A11Y_SAFE_SCOPE=FAIL reason=EXPECTED_SHA_must_be_40_hex');
+    return 1;
+  }
+
   // Never reinterpret evidence left by an earlier cycle/run. The strict probe
   // must create a fresh artifact for this exact EXPECTED_SHA before safe-scope
   // evaluation is even possible.
@@ -182,6 +192,7 @@ async function main() {
   result.structuredIssues = [];
   await fs.writeFile(artifactPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
 
+  console.log('HUBSPOT_A11Y_STRICT_RESULT=FAIL_REAL superseded_by=safe_scope');
   console.log(`HUBSPOT_A11Y=PASS safe_scope=client_semantics server_validation_deferred=1 control=${phoneIdentity} submission_intercepted=1`);
   console.log('HUBSPOT_A11Y_SERVER_VALIDATION=DEFERRED reason=zero-submit-safety-boundary');
   return 0;

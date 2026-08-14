@@ -56,6 +56,10 @@ function makeSamplePayload(overrides = {}) {
     type: 'tel',
     tag: 'input',
     programmaticRequired: true,
+    ariaRequired: 'true',
+    accessibleName: 'Teléfono de contacto',
+    labelText: 'Teléfono de contacto',
+    hasNativeLabelAssociation: true,
     nativeInvalid: false,
     ariaInvalid: false,
     associatedErrorText: '',
@@ -178,6 +182,15 @@ async function runTests() {
     errorSemantics: [sample.errorSemantics[1]], // only phone, email error missing
   });
   assert.equal(await canAcceptSafeScope(missingErrorPayload), false);
+
+  console.log('Testing canAcceptSafeScope rejects when post-submit phone loses label association...');
+  const brokenPostSubmitPhonePayload = makeSamplePayload({
+    errorSemantics: [
+      sample.errorSemantics[0],
+      { ...sample.errorSemantics[1], hasNativeLabelAssociation: false },
+    ],
+  });
+  assert.equal(await canAcceptSafeScope(brokenPostSubmitPhonePayload), false);
 
   console.log('Testing canAcceptSafeScope rejects when email client error is inaccessible...');
   const inaccessibleErrorPayload = makeSamplePayload({

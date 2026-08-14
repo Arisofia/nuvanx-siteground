@@ -351,6 +351,10 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 			#nvx-hubspot-native-form:has(iframe) .nvx-skeleton-wrapper,
 			.nvx-hubspot-native-form-v2:has(.hbspt-form) .nvx-skeleton-wrapper,
 			.nvx-hubspot-native-form-v2:has(iframe) .nvx-skeleton-wrapper { display: none; }
+			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-hubspot-fallback,
+			#nvx-hubspot-native-form:has(iframe) .nvx-hubspot-fallback,
+			.nvx-hubspot-native-form-v2:has(.hbspt-form) .nvx-hubspot-fallback,
+			.nvx-hubspot-native-form-v2:has(iframe) .nvx-hubspot-fallback { display: none; }
 		</style>
 		<div class="nvx-skeleton-wrapper" aria-hidden="true">
 			<div class="nvx-skeleton-field"></div>

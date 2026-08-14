@@ -167,7 +167,19 @@
 
 	window.addEventListener('hs-form-event:on-submission:success', function (event) {
 		var detail = event && event.detail ? event.detail : {};
+		// Invoke legacy onBeforeFormSubmit hook for compatibility
+		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit === 'function') {
+			try {
+				window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId);
+			} catch (_error) {}
+		}
 		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event');
+		// Invoke legacy onFormSubmitted hook for compatibility
+		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormSubmitted === 'function') {
+			try {
+				window.NUVANXGoogleAttributionLegacy.onFormSubmitted(null, detail.formId);
+			} catch (_error) {}
+		}
 	});
 
 	window.addEventListener('message', function (event) {
@@ -314,7 +326,14 @@
 		if (String(detail.formId || '').toLowerCase() !== FORM_ID) return;
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return;
 		try {
-			populateHubSpotClickFields(window.HubSpotFormsV4.getFormFromEvent(event));
+			var form = window.HubSpotFormsV4.getFormFromEvent(event);
+			populateHubSpotClickFields(form);
+			// Invoke legacy attribution hook for compatibility
+			if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormReady === 'function') {
+				try {
+					window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId);
+				} catch (_error) {}
+			}
 		} catch (_error) {}
 	});
 

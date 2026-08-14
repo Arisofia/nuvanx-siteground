@@ -343,6 +343,46 @@
       else window.console.warn('NUVANX ' + scope, errorName);
     }
 
+    function dispatchRuntimeError(eventName, detail) {
+      try {
+        document.dispatchEvent(new CustomEvent(eventName, { detail: detail }));
+      } catch (error) {
+        reportHubSpotError('monitoring event failed', error, eventName);
+      }
+    }
+
+    function reportAttributionHookError(error, hookName) {
+      reportHubSpotError('attribution hook failed', error, hookName);
+      dispatchRuntimeError('nvx:attribution-hook-error', {
+        hook: hookName,
+        error_name: safeErrorName(error)
+      });
+    }
+
+    function reportHubSpotInitError(error, formId) {
+      reportHubSpotError('HubSpot form initialization failed', error);
+      dispatchRuntimeError('nvx:hubspot-init-error', {
+        error_name: safeErrorName(error),
+        form_id: String(formId || '').slice(0, 64)
+      });
+    }
+
+    /** Invoke an optional attribution hook without allowing sync or async failures to escape into HubSpot. */
+    function invokeLegacyAttributionHook(hookName, form, formId) {
+      try {
+        const hooks = window.NUVANXGoogleAttributionLegacy;
+        if (!hooks || typeof hooks[hookName] !== 'function') return;
+        const result = hooks[hookName](form, formId);
+        if (result && typeof result.then === 'function') {
+          result.catch(function (error) {
+            reportAttributionHookError(error, hookName);
+          });
+        }
+      } catch (error) {
+        reportAttributionHookError(error, hookName);
+      }
+    }
+
     function isHubSpotIframe(ifr) {
       if (ifr?.tagName !== 'IFRAME') return false;
       if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {

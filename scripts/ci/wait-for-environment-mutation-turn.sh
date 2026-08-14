@@ -3,13 +3,25 @@ set -Eeuo pipefail
 
 : "${GITHUB_REPOSITORY:?Missing GITHUB_REPOSITORY}"
 : "${GITHUB_RUN_ID:?Missing GITHUB_RUN_ID}"
+: "${GITHUB_RUN_ATTEMPT:?Missing GITHUB_RUN_ATTEMPT}"
 : "${GH_TOKEN:?Missing GH_TOKEN}"
 
 command -v gh >/dev/null || { echo 'MUTATION_FIFO=FAIL reason=missing_gh' >&2; exit 1; }
 command -v sort >/dev/null || { echo 'MUTATION_FIFO=FAIL reason=missing_sort' >&2; exit 1; }
 
 CURRENT_RUN_ID="$(printf '%s' "$GITHUB_RUN_ID" | tr -d '[:space:]')"
+CURRENT_RUN_ATTEMPT="$(printf '%s' "$GITHUB_RUN_ATTEMPT" | tr -d '[:space:]')"
 [[ "$CURRENT_RUN_ID" =~ ^[0-9]{1,20}$ ]] || { echo "MUTATION_FIFO=FAIL reason=invalid_run_id value=$CURRENT_RUN_ID" >&2; exit 1; }
+[[ "$CURRENT_RUN_ATTEMPT" =~ ^[0-9]{1,6}$ && "$CURRENT_RUN_ATTEMPT" -ge 1 ]] || { echo "MUTATION_FIFO=FAIL reason=invalid_run_attempt value=$CURRENT_RUN_ATTEMPT" >&2; exit 1; }
+
+# GitHub re-runs keep the original run_id while incrementing run_attempt. A
+# re-run of an old mutation could therefore be older by run_id but newer in
+# wall-clock time, which destroys a total FIFO ordering. Mutation retries must
+# be new workflow_dispatch/push runs so they receive a fresh monotonic run_id.
+if (( CURRENT_RUN_ATTEMPT > 1 )); then
+  echo "MUTATION_FIFO=FAIL reason=rerun_forbidden run_id=$CURRENT_RUN_ID attempt=$CURRENT_RUN_ATTEMPT action=start_new_run" >&2
+  exit 1
+fi
 
 ROLE="${MUTATION_ROLE:-environment-mutation}"
 POLL_SECONDS="${MUTATION_WAIT_POLL_SECONDS:-15}"
@@ -38,6 +50,7 @@ current_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${CURRENT_RUN_I
 current_path="$(printf '%s' "$current_meta" | jq -r '.path // ""')"
 current_event="$(printf '%s' "$current_meta" | jq -r '.event // ""')"
 current_status="$(printf '%s' "$current_meta" | jq -r '.status // ""')"
+api_attempt="$(printf '%s' "$current_meta" | jq -r '(.run_attempt // 0) | tostring')"
 
 is_mutation_workflow_path "$current_path" || {
   echo "MUTATION_FIFO=FAIL reason=current_workflow_not_canonical path=$current_path" >&2
@@ -45,6 +58,10 @@ is_mutation_workflow_path "$current_path" || {
 }
 is_mutation_event "$current_event" || {
   echo "MUTATION_FIFO=FAIL reason=current_event_not_mutating event=$current_event" >&2
+  exit 1
+}
+[[ "$api_attempt" == "$CURRENT_RUN_ATTEMPT" ]] || {
+  echo "MUTATION_FIFO=FAIL reason=run_attempt_identity_mismatch env=$CURRENT_RUN_ATTEMPT api=$api_attempt" >&2
   exit 1
 }
 [[ "$current_status" != 'completed' ]] || {
@@ -75,10 +92,10 @@ while :; do
     clear_scans=$((clear_scans + 1))
     if (( clear_scans >= 2 )); then
       waited=$(( $(date +%s) - started_epoch ))
-      echo "MUTATION_FIFO=PASS role=$ROLE run_id=$CURRENT_RUN_ID waited_seconds=$waited stable_scans=$clear_scans"
+      echo "MUTATION_FIFO=PASS role=$ROLE run_id=$CURRENT_RUN_ID attempt=$CURRENT_RUN_ATTEMPT waited_seconds=$waited stable_scans=$clear_scans"
       exit 0
     fi
-    echo "MUTATION_FIFO=CLEAR_STABILIZING role=$ROLE run_id=$CURRENT_RUN_ID scan=$clear_scans/2"
+    echo "MUTATION_FIFO=CLEAR_STABILIZING role=$ROLE run_id=$CURRENT_RUN_ID attempt=$CURRENT_RUN_ATTEMPT scan=$clear_scans/2"
     sleep "$STABILIZE_SECONDS"
     continue
   fi

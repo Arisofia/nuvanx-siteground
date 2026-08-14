@@ -25,7 +25,7 @@ on:
         default: false
         type: boolean
       run_hubspot_e2e:
-        description: Run the live HubSpot E2E. This creates a real QA contact.
+        description: Run the zero-submit production HubSpot verification contract.
         required: true
         default: false
         type: boolean
@@ -77,6 +77,8 @@ jobs:
           set -euo pipefail
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
+          bash -n scripts/ci/test-mutation-fifo-contract.sh
+          bash scripts/ci/test-mutation-fifo-contract.sh
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
@@ -138,7 +140,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MUTATION_ROLE: production
-          MUTATION_WAIT_MAX_SECONDS: 5400
+          MUTATION_WAIT_MAX_SECONDS: 3600
         run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Configure strict production SSH
@@ -253,10 +255,12 @@ jobs:
           set -euo pipefail
           pass=0
           for attempt in {1..6}; do
-            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" PRODUCTION_BOUNDARY_ARTIFACTS_DIR="$GITHUB_WORKSPACE/scripts/production/artifacts" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
             sleep 10
           done
           test "$pass" = 1
+          mkdir -p "$GITHUB_WORKSPACE/scripts/production/artifacts"
+          cp -f "$CANDIDATE_ROOT/scripts/production/artifacts/production-boundary.json" "$GITHUB_WORKSPACE/scripts/production/artifacts/" 2>/dev/null || true
           ssh nvx-prod "PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$PROD_ROOT"
@@ -412,6 +416,15 @@ jobs:
           grep -Fq 'SEO_GEO_ORIGIN_AUDIT=PASS' scripts/production/artifacts/seo-geo-origin-audit.log
           grep -Fq 'INDEXNOW_SUBMIT=PASS' scripts/production/artifacts/indexnow-submit.log
           echo "RELEASE_ORIGIN_EVIDENCE=PASS urls=$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
+
+      - name: Wait for FIFO environment turn (verification only)
+        if: ${{ inputs.deploy == false }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_ROLE: production-verification
+          MUTATION_WAIT_MAX_SECONDS: 1800
+        run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Configure verification-only production audit SSH
         if: ${{ inputs.deploy == false }}
@@ -684,7 +697,7 @@ jobs:
           retention-days: 14
 
   hubspot_e2e:
-    name: Live production HubSpot attribution E2E
+    name: Production zero-submit HubSpot contract verification
     needs: release
     if: >-
       always() &&
@@ -706,7 +719,7 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Verify production and run live H1 E2E
+      - name: Verify zero-submit contract and run HubSpot verification
         shell: bash
         env:
           EXPECTED_SHA: ${{ inputs.candidate_sha }}
@@ -715,8 +728,9 @@ jobs:
           BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$EXPECTED_SHA" node scripts/production/verify-production-boundary.mjs
           cd scripts/staging2
           npm ci --ignore-scripts
-          ./node_modules/.bin/playwright install --with-deps chromium
           cd ../..
+          # Enforce zero-submit contract regression guard on candidate probe before execution
+          node scripts/staging2/test-hubspot-submission-classifier.mjs
           mkdir -p scripts/staging2/h1-artifacts
           node scripts/staging2/h1-hubspot-e2e.mjs 2>&1 | tee scripts/staging2/h1-artifacts/h1-e2e.log
 

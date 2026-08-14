@@ -16,7 +16,7 @@ The shell scripts in this directory are implementation helpers. Release orchestr
 - `.github/workflows/staging.yml` - Complete Staging2 lifecycle
 - `.github/workflows/production.yml` - Production promotion with SEO/GEO audits
 
-A relevant push to `master` can automatically deploy **Staging2 only** through `staging.yml`. Production deployment requires explicit authorization via the `release/production` branch and changes to `release/production-candidate.txt`.
+A relevant push to `master` can automatically deploy **Staging2 only** through `staging.yml`. Production deployment is explicitly dispatched through `production.yml` and requires verified, immutable exact-SHA Staging2 acceptance evidence before mutation.
 
 See [`docs/operations/deployment.md`](../../docs/operations/deployment.md) for the canonical release model.
 

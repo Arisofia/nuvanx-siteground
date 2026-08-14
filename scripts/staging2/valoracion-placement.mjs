@@ -1,6 +1,5 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
@@ -11,39 +10,50 @@ function runProcess(moduleUrl) {
       env: process.env,
       stdio: 'inherit',
     });
+
     child.once('error', reject);
     child.once('exit', (code, signal) => {
-      if (signal) return reject(new Error(`Terminated by signal ${signal}`));
+      if (signal) {
+        reject(new Error(`Terminated by signal ${signal}`));
+        return;
+      }
       resolve(Number.isInteger(code) ? code : 1);
     });
   });
 }
 
-function blockA11yEvidencePaths() {
-  return {
-    source: path.resolve('scripts/staging2/block-a11y-artifacts/results.json'),
-    destinationDir: path.resolve('scripts/staging2/valoracion-artifacts'),
-    destination: path.resolve('scripts/staging2/valoracion-artifacts/block-a11y-results.json'),
-  };
-}
+const STAGE_EVIDENCE_MAP = {
+  'block-a11y': {
+    source: fileURLToPath(new URL('./block-a11y-artifacts/results.json', import.meta.url)),
+    destinationDir: fileURLToPath(new URL('./valoracion-artifacts', import.meta.url)),
+    destination: fileURLToPath(new URL('./valoracion-artifacts/block-a11y-results.json', import.meta.url)),
+  },
+};
 
-async function prepareBlockA11yEvidence() {
-  const { source, destination } = blockA11yEvidencePaths();
-  await fs.rm(source, { force: true });
-  await fs.rm(destination, { force: true });
+async function prepareAllStageEvidence() {
+  for (const config of Object.values(STAGE_EVIDENCE_MAP)) {
+    await fs.rm(config.source, { recursive: true, force: true }).catch((err) => {
+      console.warn(`STAGING_ACCEPTANCE_EVIDENCE=CLEANUP_WARN path=${config.source} error=${err instanceof Error ? err.message : String(err)}`);
+    });
+    await fs.rm(config.destination, { recursive: true, force: true }).catch((err) => {
+      console.warn(`STAGING_ACCEPTANCE_EVIDENCE=CLEANUP_WARN path=${config.destination} error=${err instanceof Error ? err.message : String(err)}`);
+    });
+  }
 }
 
 async function preserveStageEvidence(component) {
-  if (component !== 'block-a11y') return true;
-  const { source, destinationDir, destination } = blockA11yEvidencePaths();
+  const config = STAGE_EVIDENCE_MAP[component];
+  if (!config) return true;
+
   try {
-    await fs.access(source);
-    await fs.mkdir(destinationDir, { recursive: true });
-    await fs.copyFile(source, destination);
-    console.log(`STAGING_ACCEPTANCE_EVIDENCE=PRESERVED component=${component} path=${destination}`);
+    await fs.mkdir(config.destinationDir, { recursive: true });
+    await fs.copyFile(config.source, config.destination);
+    console.log(`STAGING_ACCEPTANCE_EVIDENCE=PRESERVED component=${component} path=${config.destination}`);
     return true;
   } catch (error) {
-    console.warn(`STAGING_ACCEPTANCE_EVIDENCE=UNAVAILABLE component=${component} error=${error instanceof Error ? error.message : String(error)}`);
+    console.warn(
+      `STAGING_ACCEPTANCE_EVIDENCE=UNAVAILABLE component=${component} error=${error instanceof Error ? error.message : String(error)}`
+    );
     return false;
   }
 }
@@ -60,14 +70,12 @@ async function writeRollbackState(value, component, reason) {
 }
 
 async function disarmRollbackAfterTransientExhaustion(component) {
-  await writeRollbackState('0', component, 'transient-exhaustion');
-
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (!summary) return;
   try {
     await fs.appendFile(
       summary,
-      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established, so rollback was disarmed; this run is not eligible for Production acceptance.\n`,
+      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established; this run is not eligible for Production acceptance.\n`,
       'utf8'
     );
   } catch (error) {
@@ -75,7 +83,7 @@ async function disarmRollbackAfterTransientExhaustion(component) {
   }
 }
 
-async function failTransientForMissingEvidence(component) {
+async function recordMissingEvidence(component) {
   await writeRollbackState('0', component, 'required-evidence-unavailable');
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (summary) {
@@ -90,7 +98,6 @@ async function failTransientForMissingEvidence(component) {
     }
   }
   console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL_TRANSIENT component=${component} reason=required_evidence_unavailable exit=${EX_TEMPFAIL}`);
-  process.exit(EX_TEMPFAIL);
 }
 
 async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
@@ -98,7 +105,9 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   let sawTransient = false;
 
   for (let cycle = 1; cycle <= maxCycles; cycle += 1) {
-    if (maxCycles > 1) console.log(`STAGING_ACCEPTANCE_CYCLE component=${name} cycle=${cycle}/${maxCycles}`);
+    if (maxCycles > 1) {
+      console.log(`STAGING_ACCEPTANCE_CYCLE component=${name} cycle=${cycle}/${maxCycles}`);
+    }
 
     let processError = null;
     let evidencePreserved = true;
@@ -112,21 +121,41 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     if (processError) {
       console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} reason=${processError instanceof Error ? processError.message : String(processError)}`);
-      process.exit(1);
+      return 1;
     }
-    if (lastExitCode === 0 && !evidencePreserved) await failTransientForMissingEvidence(name);
+
     if (lastExitCode === 0) {
-      if (sawTransient) await writeRollbackState('1', name, 'transient-recovered');
+      if (!evidencePreserved) {
+        await recordMissingEvidence(name);
+        return EX_TEMPFAIL;
+      }
+      if (sawTransient) {
+        await writeRollbackState('1', name, 'transient-recovered');
+        const envFile = (process.env.GITHUB_ENV || '').trim();
+        if (envFile) {
+          try {
+            await fs.appendFile(envFile, 'STAGING_ACCEPTANCE_TRANSIENT=0\n', 'utf8');
+            console.log(`STAGING_ACCEPTANCE_TRANSIENT=RESET component=${name} reason=transient-recovered`);
+          } catch (err) {
+            console.warn(`STAGING_ACCEPTANCE_TRANSIENT=RESET_FAILED component=${name} error=${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      }
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
-      return;
+      return 0;
     }
+
     if (lastExitCode !== EX_TEMPFAIL) {
       console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} exit=${lastExitCode}`);
-      process.exit(lastExitCode);
+      return lastExitCode;
     }
 
     sawTransient = true;
     if (cycle < maxCycles) {
+      // Some child validators disarm rollback when their own bounded attempts
+      // are exhausted. The outer orchestrator is about to continue testing, so
+      // restore rollback protection before the next cycle can discover a real
+      // deterministic defect.
       await writeRollbackState('1', name, 'outer-transient-retry');
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);
@@ -136,22 +165,27 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
   await disarmRollbackAfterTransientExhaustion(name);
   console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} cycles=${maxCycles} exit=${lastExitCode}`);
-  process.exit(lastExitCode || 1);
+  return lastExitCode || 1;
 }
 
-// Network-aware children own their bounded internal retries. Any remaining
-// transient is escalated after one cycle to the next of the three fresh GitHub
-// runners, preserving coverage without repeating the same workload/network ID.
+// Outer retry budgets: configurable via environment for single-runner workflows (e.g. PR preview).
+const VALORACION_PLACEMENT_CYCLES = Number.parseInt(process.env.VALORACION_PLACEMENT_CYCLES || '3', 10) || 3;
+const HUBSPOT_A11Y_CYCLES = Number.parseInt(process.env.HUBSPOT_A11Y_CYCLES || '3', 10) || 3;
+
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
   { name: 'hubspot-submission-classifier', url: new URL('./test-hubspot-submission-classifier.mjs', import.meta.url), maxCycles: 1 },
+  { name: 'hubspot-a11y-safe-unit', url: new URL('./test-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
-  { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 1 },
-  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
+  { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: VALORACION_PLACEMENT_CYCLES },
+  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 
-// Remove both locations before any earlier stage can fail, preventing stale
-// evidence from a reused workspace from entering the diagnostic artifact.
-await prepareBlockA11yEvidence();
-for (const stage of stages) await runStage(stage.name, stage.url, stage.maxCycles, stage.backoffMs);
+await prepareAllStageEvidence();
+for (const stage of stages) {
+  const exitCode = await runStage(stage.name, stage.url, stage.maxCycles, stage.backoffMs);
+  if (exitCode !== 0) {
+    process.exit(exitCode);
+  }
+}

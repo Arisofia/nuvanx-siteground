@@ -8,7 +8,7 @@ This directory contains the canonical browser acceptance harness used before any
 2. The Staging workflow must complete successfully for that exact SHA.
 3. `.nvx-deploy-sha` on Staging2 must equal the candidate SHA.
 4. The immutable `staging2-block-c-<SHA>` acceptance artifact must exist and come from a completed successful canonical Staging run.
-5. Only after those conditions are true may `release/production-candidate.txt` be updated to that accepted SHA.
-6. Production then promotes that exact accepted SHA and verifies the live disk marker and public boundary.
+5. Only after those conditions are true may `production.yml` be dispatched with that accepted candidate SHA.
+6. Production verifies the immutable acceptance manifest, acquires the FIFO mutation lease, promotes that exact accepted SHA, and verifies the live disk marker and public boundary.
 
 Do not update the production candidate before Staging acceptance is complete. This ordering prevents a production run from racing an in-progress Staging deployment.

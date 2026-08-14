@@ -92,15 +92,17 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   process.exit(lastExitCode || 1);
 }
 
+// Network-aware child scripts already perform their own bounded retries. A
+// transient exit is intentionally escalated after one child cycle so the
+// canonical staging workflow can move to the next of its three fresh runners.
+// This preserves every assertion and viewport while avoiding 3x/9x nested
+// repetitions of the same browser workload on the same GitHub runner.
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
   { name: 'hubspot-submission-classifier', url: new URL('./test-hubspot-submission-classifier.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
-  { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 3 },
-  // HubSpot is third-party runtime. Each child cycle already performs three
-  // internal attempts; three outer cycles provide bounded resilience without
-  // weakening owned-page assertions or creating a real contact.
-  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 3, backoffMs: 7000 },
+  { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 1 },
+  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 

@@ -161,7 +161,13 @@ function validatePlacement(placement) {
 async function collectMountState(page) {
   return page.evaluate(({ formId, portalId }) => {
     const section = document.getElementById('nvx-hubspot-form');
-    const embedded = section?.querySelector('.hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]') || null;
+    const canonicalMounts = section
+      ? Array.from(section.querySelectorAll('.hs-form-frame[data-nvx-hubspot-lazy="1"]'))
+      : [];
+    const embeddedIframes = section
+      ? Array.from(section.querySelectorAll('iframe[data-test-id^="embedded-form-"]'))
+      : [];
+    const embedded = embeddedIframes[0] || null;
     const embeddedSrc = embedded?.getAttribute('src') || '';
     const embeddedTestId = embedded?.getAttribute('data-test-id') || '';
     const embeddedRect = embedded?.getBoundingClientRect();
@@ -179,6 +185,8 @@ async function collectMountState(page) {
         embeddedSrc.includes(`_hsFormId=${formId}`) &&
         embeddedTestId.includes(formId)
       ),
+      canonicalMountCount: canonicalMounts.length,
+      embeddedIframeCount: embeddedIframes.length,
       rogueMounts: rogueLegacy + rogueIframes,
     };
   }, { formId: expectedFormId, portalId: expectedPortalId });
@@ -194,6 +202,12 @@ async function validateHubSpotMount(page, mounted, mountState) {
   };
 
   if (!mounted) issues.push('HubSpot form did not mount inside #nvx-hubspot-form within 12s');
+  if (mountState.canonicalMountCount !== 1) {
+    issues.push(`Expected one canonical HubSpot mount, found ${mountState.canonicalMountCount}`);
+  }
+  if (mountState.embeddedIframeCount !== 1) {
+    issues.push(`Expected one HubSpot iframe inside #nvx-hubspot-form, found ${mountState.embeddedIframeCount}`);
+  }
   if (mountState.embedded && !mountState.expectedIdentity) issues.push('HubSpot iframe mounted with an unexpected portal/form identity');
   if (mountState.rogueMounts > 0) issues.push(`Found ${mountState.rogueMounts} HubSpot form mount(s) outside #nvx-hubspot-form`);
 

@@ -140,7 +140,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MUTATION_ROLE: production
-          MUTATION_WAIT_MAX_SECONDS: 5400
+          MUTATION_WAIT_MAX_SECONDS: 3600
         run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Configure strict production SSH

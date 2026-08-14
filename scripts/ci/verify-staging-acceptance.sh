@@ -37,8 +37,10 @@ fi
 echo "STAGING_ACCEPTANCE_HUBSPOT_SAFETY=PASS sha=$CANDIDATE_SHA zero_submit=1"
 
 artifact_name="staging2-block-c-${CANDIDATE_SHA}"
-api_headers=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json')
-response="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
+if ! response="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"; then
+  echo "STAGING_ACCEPTANCE=FAIL reason=github_api_artifacts_query_failed sha=$CANDIDATE_SHA" >&2
+  exit 1
+fi
 mapfile -t candidates < <(printf '%s' "$response" | jq -rc --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | reverse | .[] | [.id, .workflow_run.id, .created_at] | @tsv')
 (( ${#candidates[@]} > 0 )) || { echo "STAGING_ACCEPTANCE=FAIL reason=no_artifact sha=$CANDIDATE_SHA" >&2; exit 1; }
 

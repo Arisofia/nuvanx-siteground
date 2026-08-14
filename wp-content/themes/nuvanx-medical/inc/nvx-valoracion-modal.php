@@ -82,7 +82,9 @@ function nvx_valoracion_modal_markup(): string {
 	$html .= '<h2 id="nvx-valoracion-modal-title" class="nvx-valoracion-modal__title">' . esc_html__( 'Solicita una valoración médica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-valoracion-modal__lead">' . esc_html__( 'Normalmente, un miembro del equipo te contactará durante el siguiente día laborable para confirmar la fecha de valoración.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div id="nvx-valoracion-modal-form" class="nvx-valoracion-modal__form nvx-hubspot-form-section" data-nvx-valoracion-modal-form>';
-	$html .= '<div class="hs-form-frame" data-region="' . esc_attr( $cfg['region'] ) . '" data-form-id="' . esc_attr( $cfg['form_id'] ) . '" data-portal-id="' . esc_attr( $cfg['portal_id'] ) . '"></div>';
+	// Presentation host only: runtime governance inserts the canonical .hs-form-frame with identity.
+	// Repeating data-form-id/data-portal-id here would cause duplicate HubSpot embed initialization.
+	$html .= '<div class="hs-form-frame"></div>';
 	$html .= '</div>';
 	$html .= '<p class="nvx-valoracion-modal__legal">' . sprintf(
 		/* translators: %s: Enlace a la política de privacidad */
@@ -114,10 +116,15 @@ function nvx_valoracion_modal_enqueue_boot_config(): void {
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
 
+	$cfg = nvx_valoracion_modal_hubspot_config();
+
 	$config = array(
 		'enabled' => nvx_valoracion_modal_enabled(),
 		'pageUrl' => $page_url,
 		'modalId' => 'nvx-valoracion-modal',
+		'hubspotPortalId' => $cfg['portal_id'],
+		'hubspotFormId' => $cfg['form_id'],
+		'hubspotRegion' => $cfg['region'],
 	);
 
 	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );

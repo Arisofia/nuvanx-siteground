@@ -7,6 +7,7 @@
   };
 
   const config = window.nvxRuntimeGovernance || {};
+  const modalConfig = window.nvxValoracionModal || {};
 
   function setInert(element, inert) {
     if (!element) return;
@@ -433,6 +434,21 @@
     /** Complete presentation state after the declarative HubSpot runtime loads. */
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
+      
+      // Inject HubSpot identity into modal frame (presentation host only)
+      const modalFrame = modal ? modal.querySelector('.hs-form-frame') : null;
+      if (modalFrame && !modalFrame.dataset.portalId) {
+        const region = modalConfig.hubspotRegion || config.hubspotRegion || 'eu1';
+        const portalId = modalConfig.hubspotPortalId || config.hubspotPortalId || '';
+        const formId = modalConfig.hubspotFormId || config.hubspotFormId || '';
+        if (portalId) {
+          modalFrame.dataset.region = region;
+          modalFrame.dataset.portalId = portalId;
+          modalFrame.dataset.formId = formId;
+          modalFrame.dataset.nvxHubspotLazy = '1';
+        }
+      }
+      
       enforceAccessibleIframeTitles();
 
       // Schedule fallback check in case script is blocked or network times out.

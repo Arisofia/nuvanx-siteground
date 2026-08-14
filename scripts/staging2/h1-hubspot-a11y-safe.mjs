@@ -26,7 +26,7 @@ function runStrictAudit() {
 }
 
 function identity(control) {
-  return control?.uid || control?.id || control?.name || '';
+  return control?.uid || control?.name || control?.id || '';
 }
 
 function hasAccessibleClientError(control) {
@@ -175,6 +175,13 @@ async function main() {
   try {
     result = JSON.parse(await fs.readFile(artifactPath, 'utf8'));
   } catch (error) {
+    const fallbackFailure = {
+      transient: false,
+      realFailure: true,
+      reason: `strict_audit_process_failed_or_missing_artifact:${error instanceof Error ? error.message : String(error)}`,
+      exitCode,
+    };
+    await fs.writeFile(artifactPath, `${JSON.stringify(fallbackFailure, null, 2)}\n`, 'utf8').catch(() => {});
     console.error(`HUBSPOT_A11Y_SAFE_SCOPE=FAIL reason=artifact_unreadable error=${error instanceof Error ? error.message : String(error)}`);
     return exitCode || 1;
   }

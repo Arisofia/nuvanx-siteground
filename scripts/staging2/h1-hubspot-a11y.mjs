@@ -170,7 +170,7 @@ async function collectControls(frame) {
       const name = node.getAttribute('name') || '';
       const tag = node.tagName.toLowerCase();
       const type = String(node.getAttribute('type') || '').toLowerCase();
-      const uid = id || name || `${tag}:${type || 'unknown'}`;
+      const uid = name || id || `${tag}:${type || 'unknown'}`;
 
       return {
         uid,

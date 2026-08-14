@@ -109,7 +109,8 @@ function makeSamplePayload(overrides = {}) {
 async function runTests() {
   console.log('Testing identity helper...');
   assert.equal(identity({ uid: 'u1', id: 'i1', name: 'n1' }), 'u1');
-  assert.equal(identity({ id: 'i1', name: 'n1' }), 'i1');
+  assert.equal(identity({ name: 'n1', id: 'i1' }), 'n1');
+  assert.equal(identity({ id: 'i1' }), 'i1');
   assert.equal(identity({ name: 'n1' }), 'n1');
   assert.equal(identity({}), '');
   assert.equal(identity(null), '');

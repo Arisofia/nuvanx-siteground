@@ -300,7 +300,14 @@
 
     const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
     const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
-    return 'https://js-' + region + '.hsforms.net/forms/v2.js';
+    const portalValue = config.hubspotPortalId || (frame ? frame.dataset.portalId : '');
+    const portalId = String(portalValue || '').replace(/[^0-9]/g, '');
+    if (!portalId) return '';
+
+    // The portal embed owns declarative .hs-form-frame mounts. Loading the
+    // legacy v2 factory and then calling hbspt.forms.create() on those same
+    // nodes initializes the canonical form more than once.
+    return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 
   /**
@@ -329,46 +336,6 @@
       const errorName = safeErrorName(error);
       if (hookName) window.console.warn('NUVANX ' + scope, hookName, errorName);
       else window.console.warn('NUVANX ' + scope, errorName);
-    }
-
-    function dispatchRuntimeError(eventName, detail) {
-      try {
-        document.dispatchEvent(new CustomEvent(eventName, { detail: detail }));
-      } catch (error) {
-        reportHubSpotError('monitoring event failed', error, eventName);
-      }
-    }
-
-    function reportAttributionHookError(error, hookName) {
-      reportHubSpotError('attribution hook failed', error, hookName);
-      dispatchRuntimeError('nvx:attribution-hook-error', {
-        hook: hookName,
-        error_name: safeErrorName(error)
-      });
-    }
-
-    function reportHubSpotInitError(error, formId) {
-      reportHubSpotError('HubSpot form initialization failed', error);
-      dispatchRuntimeError('nvx:hubspot-init-error', {
-        error_name: safeErrorName(error),
-        form_id: String(formId || '').slice(0, 64)
-      });
-    }
-
-    /** Invoke an optional attribution hook without allowing sync or async failures to escape into HubSpot. */
-    function invokeLegacyAttributionHook(hookName, form, formId) {
-      try {
-        const hooks = window.NUVANXGoogleAttributionLegacy;
-        if (!hooks || typeof hooks[hookName] !== 'function') return;
-        const result = hooks[hookName](form, formId);
-        if (result && typeof result.then === 'function') {
-          result.catch(function (error) {
-            reportAttributionHookError(error, hookName);
-          });
-        }
-      } catch (error) {
-        reportAttributionHookError(error, hookName);
-      }
     }
 
     function isHubSpotIframe(ifr) {
@@ -412,73 +379,10 @@
       });
     }
 
-    /**
-     * Initializes eligible HubSpot form frames and connects supported attribution callbacks.
-     */
+    /** Complete presentation state after the declarative HubSpot runtime loads. */
     function initializeForms() {
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
-
-      if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
-        const frames = document.querySelectorAll(
-          '.hs-form-frame[data-form-id][data-portal-id], #nvx-hubspot-native-form[data-form-id][data-portal-id], [data-nvx-hubspot-native="1"][data-form-id][data-portal-id]'
-        );
-        frames.forEach(function(frame, index) {
-          if (frame.dataset.hsInitialized === '1') return;
-
-          // HubSpot Forms v2 expects `target` to be a CSS selector. Passing the
-          // DOM node itself causes HubSpot to fall back to an out-of-place mount
-          // (observed at the end of /madrid/valoracion/). Give every canonical
-          // frame a deterministic, collision-safe ID and target that selector.
-          if (!frame.id) {
-            let suffix = index + 1;
-            let frameId = 'nvx-hubspot-frame-' + suffix;
-            while (document.getElementById(frameId) && document.getElementById(frameId) !== frame) {
-              suffix += 1;
-              frameId = 'nvx-hubspot-frame-' + suffix;
-            }
-            frame.id = frameId;
-          }
-
-          frame.dataset.hsInitialized = '1';
-
-          try {
-            window.hbspt.forms.create({
-              region: frame.dataset.region || config.hubspotRegion || 'eu1',
-              portalId: frame.dataset.portalId || config.hubspotPortalId,
-              formId: frame.dataset.formId || config.hubspotFormId,
-              target: '#' + frame.id,
-              onFormReady: function ($form) {
-                const wrapper = frame.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || frame.parentElement;
-                if (wrapper) {
-                  const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
-                  if (sk) sk.style.display = 'none';
-                  const fb = wrapper.querySelector('.nvx-hubspot-fallback');
-                  if (fb) fb.style.display = 'none';
-                }
-                enforceAccessibleIframeTitles();
-                invokeLegacyAttributionHook('onFormReady', $form, frame.dataset.formId);
-              },
-              onBeforeFormSubmit: function ($form) {
-                invokeLegacyAttributionHook('onBeforeFormSubmit', $form, frame.dataset.formId);
-              },
-              onFormSubmitted: function ($form) {
-                invokeLegacyAttributionHook('onFormSubmitted', $form, frame.dataset.formId);
-              }
-            });
-          } catch (error) {
-            delete frame.dataset.hsInitialized;
-            if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
-            const wrapper = frame.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || frame.parentElement;
-            if (wrapper) {
-              const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
-              if (sk) sk.style.display = 'none';
-              const fb = wrapper.querySelector('.nvx-hubspot-fallback');
-              if (fb) fb.style.display = 'block';
-            }
-            reportHubSpotInitError(error, frame.dataset.formId);
-          }
-        });
-      }
+      enforceAccessibleIframeTitles();
 
       // Schedule fallback check in case script is blocked or network times out.
       // The per-frame guard below only reveals the fallback for mounts that

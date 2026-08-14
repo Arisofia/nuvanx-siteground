@@ -18,7 +18,8 @@ const transientExitCode = EX_TEMPFAIL;
 const maxAttempts = 5;
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
-  throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
+  console.error('VALORACION_PLACEMENT=FAIL_REAL reason=EXPECTED_SHA_must_be_40_hex');
+  process.exit(1);
 }
 
 const viewports = [
@@ -45,7 +46,6 @@ const legacyControlsSelector = [
 ].join(', ');
 
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
-await fs.rm(outDir, { recursive: true, force: true });
 await fs.mkdir(outDir, { recursive: true });
 
 function formatTransientReason(status, headers, currentUrl) {
@@ -209,6 +209,37 @@ async function validateHubSpotMount(page, mounted, mountState) {
   return { issues, interactiveState };
 }
 
+async function saveScreenshot(page, viewportKey, attempt, isTransient = false, tolerateFailure = isTransient) {
+  const filename = isTransient
+    ? `valoracion-${viewportKey}-attempt-${attempt}-transient.jpg`
+    : `valoracion-${viewportKey}-attempt-${attempt}.jpg`;
+  const options = {
+    path: path.join(outDir, filename),
+    type: 'jpeg',
+    quality: 78,
+    fullPage: true,
+  };
+  if (tolerateFailure) {
+    await page.screenshot(options).catch(() => {});
+  } else {
+    await page.screenshot(options);
+  }
+}
+
+function createTransientResult(status, currentUrl, reason, placement = null, mounted = false, mountState = null, interactiveState = null) {
+  return {
+    transient: true,
+    status,
+    currentUrl,
+    reason,
+    placement,
+    mounted,
+    mountState,
+    interactiveState,
+    issues: [reason],
+  };
+}
+
 async function validateAttempt(context, viewport, attempt) {
   const page = await context.newPage();
 
@@ -225,43 +256,23 @@ async function validateAttempt(context, viewport, attempt) {
     const currentUrl = page.url() || '';
 
     if (navError) {
+      const navMessage = navError instanceof Error ? navError.message : String(navError);
       if (isSiteGroundCaptchaInterruption(navError, currentUrl)) {
-        await page.screenshot({
-          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
-          type: 'jpeg',
-          quality: 78,
-          fullPage: true,
-        }).catch(() => {});
-        return {
-          transient: true,
-          status: 0,
-          currentUrl,
-          reason: `Captcha interruption: ${navError.message}`,
-          placement: null,
-          mounted: false,
-          mountState: null,
-          interactiveState: null,
-          issues: [`Captcha interruption: ${navError.message}`],
-        };
+        await saveScreenshot(page, viewport.key, attempt, true);
+        return createTransientResult(0, currentUrl, `Captcha interruption: ${navMessage}`);
       }
 
-      await page.screenshot({
-        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}.jpg`),
-        type: 'jpeg',
-        quality: 78,
-        fullPage: true,
-      }).catch(() => {});
-
+      await saveScreenshot(page, viewport.key, attempt, false);
       return {
         transient: false,
         status: 0,
         currentUrl,
-        reason: navError.message,
+        reason: navMessage,
         placement: null,
         mounted: false,
         mountState: null,
         interactiveState: null,
-        issues: [`Valuation navigation failed: ${navError.message}`],
+        issues: [`Valuation navigation failed: ${navMessage}`],
       };
     }
 
@@ -270,23 +281,8 @@ async function validateAttempt(context, viewport, attempt) {
     const isTransientStatus = isSiteGroundTransientResponse(status, headers, currentUrl);
 
     if (currentUrl.includes(SITEGROUND_CAPTCHA_PATH)) {
-      await page.screenshot({
-        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
-        type: 'jpeg',
-        quality: 78,
-        fullPage: true,
-      }).catch(() => {});
-      return {
-        transient: true,
-        status,
-        currentUrl,
-        reason: `SiteGround captcha challenge URL: ${currentUrl}`,
-        placement: null,
-        mounted: false,
-        mountState: null,
-        interactiveState: null,
-        issues: [`SiteGround captcha challenge URL: ${currentUrl}`],
-      };
+      await saveScreenshot(page, viewport.key, attempt, true);
+      return createTransientResult(status, currentUrl, `SiteGround captcha challenge URL: ${currentUrl}`);
     }
 
     const issues = [];
@@ -313,31 +309,12 @@ async function validateAttempt(context, viewport, attempt) {
       const recoveredTransientHttp = Boolean(isTransientStatus && issues.length === 0);
 
       if (isTransientStatus && !recoveredTransientHttp) {
-        await page.screenshot({
-          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
-          type: 'jpeg',
-          quality: 78,
-          fullPage: true,
-        }).catch(() => {});
-        return {
-          transient: true,
-          status,
-          currentUrl: page.url(),
-          reason: formatTransientReason(status, headers, page.url()),
-          placement,
-          mounted,
-          mountState,
-          interactiveState: hubSpotValidation.interactiveState,
-          issues: [formatTransientReason(status, headers, page.url())],
-        };
+        await saveScreenshot(page, viewport.key, attempt, true);
+        const reason = formatTransientReason(status, headers, page.url());
+        return createTransientResult(status, page.url(), reason, placement, mounted, mountState, hubSpotValidation.interactiveState);
       }
 
-      await page.screenshot({
-        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}.jpg`),
-        type: 'jpeg',
-        quality: 78,
-        fullPage: true,
-      });
+      await saveScreenshot(page, viewport.key, attempt, false);
 
       if (recoveredTransientHttp) {
         console.log(`RECOVERED /madrid/valoracion/ ${viewport.width}x${viewport.height} attempt=${attempt} HTTP ${status} -> exact interactive page`);
@@ -357,23 +334,9 @@ async function validateAttempt(context, viewport, attempt) {
       };
     } catch (evalError) {
       if (isSiteGroundCaptchaInterruption(evalError, page.url())) {
-        await page.screenshot({
-          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
-          type: 'jpeg',
-          quality: 78,
-          fullPage: true,
-        }).catch(() => {});
-        return {
-          transient: true,
-          status,
-          currentUrl: page.url(),
-          reason: `Captcha redirection during inspection: ${evalError.message}`,
-          placement: null,
-          mounted: false,
-          mountState: null,
-          interactiveState: null,
-          issues: [`Captcha redirection during inspection: ${evalError.message}`],
-        };
+        await saveScreenshot(page, viewport.key, attempt, true);
+        const evalMessage = evalError instanceof Error ? evalError.message : String(evalError);
+        return createTransientResult(status, page.url(), `Captcha redirection during inspection: ${evalMessage}`);
       }
       throw evalError;
     }
@@ -397,14 +360,19 @@ async function runViewport(browser, viewport) {
       console.log(`VALORACION_ATTEMPT viewport=${viewport.key} attempt=${attempt}/${maxAttempts}`);
       const result = await validateAttempt(context, viewport, attempt);
       attempts.push({ attempt, ...result });
-      finalResult = { viewport, finalAttempt: attempt, attempts, ...result };
+      finalResult = { viewport, attempt, attempts, ...result };
 
       if (result.transient) {
         console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);
-        if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, 2500 * attempt));
-      } else {
-        break;
+        if (attempt < maxAttempts) {
+          const backoff = 2500 * attempt;
+          console.log(`VALORACION_BACKOFF viewport=${viewport.key} delay_ms=${backoff}`);
+          await new Promise((resolve) => setTimeout(resolve, backoff));
+          continue;
+        }
       }
+
+      return finalResult;
     }
 
     return finalResult;
@@ -441,10 +409,13 @@ try {
     transientExhausted ||= classification === 'transient';
   }
 } finally {
-  await browser.close();
+  await browser.close().catch(() => {});
+  try {
+    await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
+  } catch (writeErr) {
+    console.error(`Failed to write results.json: ${writeErr instanceof Error ? writeErr.message : String(writeErr)}`);
+  }
 }
-
-await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 
 if (realFailure) {
   if (process.env.GITHUB_STEP_SUMMARY) {

@@ -138,7 +138,7 @@ async function fetchPublishedPages() {
           accept: 'application/json',
         },
       });
-      if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()))) {
+      if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()), response.url || endpoint)) {
         console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
         try {
           const pages = await fetchPublishedPagesViaBrowser(endpoint);
@@ -198,7 +198,7 @@ async function gotoPlain(page, url) {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       if (!response) return { response: null, attempt };
       const headers = response.headers();
-      if (isSiteGroundTransientResponse(response.status(), headers)) {
+      if (isSiteGroundTransientResponse(response.status(), headers, page.url() || url)) {
         if (attempt < 4) {
           await page.waitForTimeout(2500 * attempt);
           continue;

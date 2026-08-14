@@ -365,9 +365,9 @@ async function runViewport(browser, viewport) {
       if (result.transient) {
         console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);
         if (attempt < maxAttempts) {
-          const backoff = calculateBackoff(attempt);
+          const backoff = 2500 * attempt;
           console.log(`VALORACION_BACKOFF viewport=${viewport.key} delay_ms=${backoff}`);
-          await delay(backoff);
+          await new Promise((resolve) => setTimeout(resolve, backoff));
           continue;
         }
       }

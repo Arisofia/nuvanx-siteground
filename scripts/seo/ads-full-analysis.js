@@ -20,11 +20,17 @@ async function runFullAdsAnalysis() {
 
   const customer = client.Customer(customerOptions);
 
+  const queryErrors = {};
+  let totalQueries = 0;
+
   async function safeQuery(queryName, gaql) {
+    totalQueries += 1;
     try {
       return await customer.query(gaql);
     } catch (err) {
-      console.warn(`[WARN] Query "${queryName}" failed: ${sanitizeAdsError(err)}`);
+      const sanitized = sanitizeAdsError(err);
+      console.warn(`[WARN] Query "${queryName}" failed: ${sanitized}`);
+      queryErrors[queryName] = sanitized;
       return [];
     }
   }
@@ -76,12 +82,22 @@ async function runFullAdsAnalysis() {
     `)
   ]);
 
-  const results = { dateRange: 'LAST_30_DAYS', campaigns, assetGroups, demographics, geo };
+  const results = {
+    dateRange: 'LAST_30_DAYS',
+    campaigns,
+    assetGroups,
+    demographics,
+    geo,
+    ...(Object.keys(queryErrors).length > 0 ? { errors: queryErrors } : {})
+  };
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'ads-full-analysis.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results, null, 2));
 
-  if (campaigns.length === 0 && assetGroups.length === 0 && demographics.length === 0 && geo.length === 0) {
+  if (Object.keys(queryErrors).length === totalQueries && totalQueries > 0) {
+    console.error('\n[ERROR] All Google Ads queries failed. Check credentials and account permissions.');
+    process.exitCode = 1;
+  } else if (campaigns.length === 0 && assetGroups.length === 0 && demographics.length === 0 && geo.length === 0) {
     console.warn('\n[WARN] All Google Ads queries returned 0 results or failed. Check credentials and account status.');
   }
 }

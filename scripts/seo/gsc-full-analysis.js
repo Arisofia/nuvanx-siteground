@@ -7,11 +7,17 @@ async function runFullGscAnalysis() {
   const sc = createGscClient();
   const dates = getGscDateRanges();
 
+  const queryErrors = {};
+  let totalQueries = 0;
+
   const safeQ = async (name, body) => {
+    totalQueries += 1;
     try {
       return await queryGsc(sc, property, body);
     } catch (err) {
-      console.warn(`[WARN] GSC query "${name}" failed:`, err?.message || err);
+      const errMsg = err?.message || String(err);
+      console.warn(`[WARN] GSC query "${name}" failed:`, errMsg);
+      queryErrors[name] = errMsg;
       return [];
     }
   };
@@ -58,10 +64,16 @@ async function runFullGscAnalysis() {
     queryPage,
     queriesMobile,
     queriesDesktop,
+    ...(Object.keys(queryErrors).length > 0 ? { errors: queryErrors } : {})
   };
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'gsc-full-analysis.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results, null, 2));
+
+  if (Object.keys(queryErrors).length === totalQueries && totalQueries > 0) {
+    console.error('\n[ERROR] All GSC queries failed. Check credentials and property permissions.');
+    process.exitCode = 1;
+  }
 }
 
 runFullGscAnalysis().catch(err => { console.error('GSC Full Analysis Error:', err?.message); process.exit(1); });

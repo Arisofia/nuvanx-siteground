@@ -110,12 +110,20 @@ function nvx_redirect_goya_alias(): void {
 		return;
 	}
 
-	// Preserve query strings (gclid, UTM, etc.) - get the full query string
-	$query_string = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
-		? '?' . $_SERVER['QUERY_STRING']
-		: '';
+	// Preserve query strings (gclid, UTM, etc.) - extract from original URI
+	$query_string = '';
+	$query_start = strpos( $uri, '?' );
+	if ( $query_start !== false ) {
+		$query_string = substr( $uri, $query_start );
+	}
 
 	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) . $query_string;
+	
+	// Debug logging to help troubleshoot
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( 'NUVANX Goya Redirect: URI=' . $uri . ' Path=' . $path . ' Query=' . $query_string . ' Target=' . $target );
+	}
+	
 	wp_safe_redirect( $target, 301, 'NUVANX' );
 	exit;
 }

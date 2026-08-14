@@ -206,7 +206,7 @@ async function readValidatedResults() {
   try {
     results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
   } catch (error) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=RESULTS_UNAVAILABLE reason=${error.message}`);
+    console.error(`BLOCK_C_RESULTS_VALIDATION=RESULTS_UNAVAILABLE reason=${error.message}`);
     return null;
   }
 
@@ -214,13 +214,15 @@ async function readValidatedResults() {
   try {
     manifest = await loadPublishedPagesManifest();
   } catch (error) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=MANIFEST_INVALID reason=${error.message}`);
+    console.error(`BLOCK_C_RESULTS_VALIDATION=MANIFEST_INVALID reason=${error.message}`);
     return null;
   }
 
   const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
   if (!Array.isArray(results) || results.length < expectedResultsCount || results.length % VIEWPORT_COUNT !== 0) {
-    console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} min_expected=${expectedResultsCount}`);
+    console.error(
+      `BLOCK_C_RESULTS_VALIDATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} min_expected=${expectedResultsCount}`
+    );
     return null;
   }
 
@@ -268,12 +270,12 @@ async function failedResultsAreTransient() {
   return transient;
 }
 
-async function disarmRollbackAfterTransientExhaustion() {
+async function disarmRollbackAfterTransientExhaustion(reason = 'transient-only-exhaustion') {
   const envFile = (process.env.GITHUB_ENV || '').trim();
   if (envFile) {
     try {
       await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-      console.error('BLOCK_C_STAGING_ROLLBACK=DISARMED reason=transient-only-exhaustion');
+      console.error(`BLOCK_C_STAGING_ROLLBACK=DISARMED reason=${reason}`);
     } catch (err) {
       console.warn(`BLOCK_C_STAGING_ROLLBACK=NOT_DISARMED reason=GITHUB_ENV_write_failed error=${err instanceof Error ? err.message : String(err)}`);
     }
@@ -286,7 +288,7 @@ async function disarmRollbackAfterTransientExhaustion() {
     try {
       await fs.appendFile(
         summaryFile,
-        '\n### Block C transient exhaustion\n\nSiteGround Antibot prevented complete browser validation after all bounded retries. No real application defect was established, so the Staging rollback was disarmed. This run remains ineligible for Production acceptance because browser geometry, H1 visibility, responsive layout and images were not completely validated.\n',
+        `\n### Block C transient exhaustion\n\nSiteGround Antibot or transient infrastructure challenge prevented complete browser validation after all bounded retries (${reason}). No real application defect was established, so the Staging rollback was disarmed. This run remains ineligible for Production acceptance because browser geometry, H1 visibility, responsive layout and images were not completely validated.\n`,
         'utf8'
       );
     } catch (err) {
@@ -306,6 +308,7 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
   }
 
   let transientOnly = false;
+  let transientReason = 'transient-only-exhaustion';
 
   if (code === 0) {
     const completion = await successfulResultsAreComplete();
@@ -318,17 +321,19 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       process.exit(1);
     }
     transientOnly = true;
+    transientReason = 'siteground-antibot-visual-inconclusive';
   } else {
     transientOnly = await failedResultsAreTransient();
     if (!transientOnly) {
       console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt}`);
       process.exit(code || 1);
     }
+    transientReason = 'transient-network-or-challenge-failure';
   }
 
   if (attempt === maxAttempts) {
-    await disarmRollbackAfterTransientExhaustion();
-    console.error(`BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
+    await disarmRollbackAfterTransientExhaustion(transientReason);
+    console.error(`BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts} reason=${transientReason}`);
     process.exit(EX_TEMPFAIL);
   }
 

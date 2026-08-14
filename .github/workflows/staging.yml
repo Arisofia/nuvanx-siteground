@@ -167,7 +167,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
-          GITLEAKS_LOG_OPTS: "--all --full-history"
+          GITLEAKS_LOG_OPTS: >-
+            ${{ github.event_name == 'pull_request' && 'origin/master...HEAD' ||
+                (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && format('{0}..{1}', github.event.before, github.event.after) ||
+                '--all --full-history') }}
 
   deploy_staging_runners:
     name: Staging SSH runner ${{ matrix.runner_attempt }}/3

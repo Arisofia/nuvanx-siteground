@@ -2,161 +2,247 @@
 /**
  * setup-gtm-conversion-trigger.js
  *
- * Creates the canonical nvx_conversion_signal → generate_lead Google Ads
- * conversion tag in GTM-W55RGVF2 and publishes a new container version.
+ * Private local manual publisher for the canonical
+ * nvx_conversion_signal -> generate_lead Google Ads conversion in GTM.
  *
- * Idempotent: skips creation if trigger/tag with matching name already exists.
+ * Safety contract:
+ * - refuses CI/non-TTY execution;
+ * - requires GTM_CONFIRM_PUBLISH=yes;
+ * - requires all target IDs through environment variables (no live defaults);
+ * - uses only an isolated dedicated workspace and never falls back to Default Workspace;
+ * - syncs a reused dedicated workspace before any mutation;
+ * - refuses any pre-existing pending workspace changes;
+ * - verifies existing variable/trigger/tag contracts without replacing them;
+ * - publishes only changes whose entity IDs were created by this invocation.
  *
  * Usage:
- *   source .env.local && node scripts/seo/setup-gtm-conversion-trigger.js
+ *   source .env.local
+ *   GTM_CONFIRM_PUBLISH=yes node scripts/seo/setup-gtm-conversion-trigger.js
  *
  * Required environment variables:
- *   GTM_REFRESH_TOKEN       — OAuth2 refresh token with scope tagmanager.edit.containers
- *   GTM_CLIENT_ID           — OAuth2 client ID (can reuse GOOGLE_ADS_CLIENT_ID if same project)
- *   GTM_CLIENT_SECRET       — OAuth2 client secret
- *   GTM_ACCOUNT_ID          — Tag Manager account ID (6362896218)
- *   GTM_CONTAINER_ID        — Tag Manager container ID (256599823)
- *
- * Constants below are hardcoded based on the audited live configuration:
- *   Container:     GTM-W55RGVF2
- *   Conversion ID: AW-18182220789
- *   Label:         86RgCI2dht4cEPXX-t1D   (same label currently used by Snippet #7)
+ *   GTM_REFRESH_TOKEN
+ *   GTM_CLIENT_ID (or GOOGLE_ADS_CLIENT_ID)
+ *   GTM_CLIENT_SECRET (or GOOGLE_ADS_CLIENT_SECRET)
+ *   GTM_ACCOUNT_ID
+ *   GTM_CONTAINER_ID
+ *   GOOGLE_ADS_CONVERSION_ID     (AW-XXXXXXXXXXX)
+ *   GOOGLE_ADS_CONVERSION_LABEL
  */
 
 'use strict';
 
 const { google } = require('googleapis');
 
-// ── Constants ────────────────────────────────────────────────────────────────
+const TRIGGER_NAME = 'CE - nvx_conversion_signal - generate_lead';
+const TAG_NAME = 'Google Ads - Formulario Valoración - nvx_signal';
+const VARIABLE_NAME = 'nvx_event_name';
+const WORKSPACE_NAME = 'NVX Conversion Signal Setup';
 
-const ACCOUNT_ID    = process.env.GTM_ACCOUNT_ID    || '6362896218';
-const CONTAINER_ID  = process.env.GTM_CONTAINER_ID  || '256599823';
-const CONVERSION_ID = process.env.GOOGLE_ADS_CONVERSION_ID || 'AW-18182220789';
-const NUMERIC_CONVERSION_ID = CONVERSION_ID.replace(/^AW-/, '');
-const CONV_LABEL    = process.env.GOOGLE_ADS_CONVERSION_LABEL || '86RgCI2dht4cEPXX-t1D';
+function safeFail(message) {
+  const error = new Error(message);
+  error.nvxSafe = true;
+  throw error;
+}
 
-const TRIGGER_NAME  = 'CE - nvx_conversion_signal - generate_lead';
-const TAG_NAME      = 'Google Ads - Formulario Valoración - nvx_signal';
-const VERSION_NAME_BASE = process.env.GTM_VERSION_NAME || 'Canonical generate_lead via nvx_conversion_signal';
-const VERSION_NAME  = `${VERSION_NAME_BASE} (${new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')} UTC)`;
-const VERSION_NOTES = [
-  'Sets up CE - nvx_conversion_signal custom event trigger for generate_lead.',
-  'Fires Google Ads conversion tag with canonical ID AW-18182220789 / label 86RgCI2dht4cEPXX-t1D.',
-  'Replaces redundant inline GTM injection from WP Code Snippet #7.',
-  'Deploys full consent-mode v2 and conversion linker support.',
-].join('\n');
+function cleanToken(value, fallback = 'UNKNOWN') {
+  const token = String(value || '').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 80);
+  return token || fallback;
+}
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
+function sanitizeGtmError(err) {
+  const status = cleanToken(err?.code || err?.response?.status, 'UNKNOWN');
+  const reason = cleanToken(
+    err?.response?.data?.error?.status || err?.errors?.[0]?.reason || err?.name,
+    'GTM_API_ERROR'
+  );
+  return `status=${status} reason=${reason}`;
+}
+
+function requireManualContext() {
+  if (
+    process.env.CI === 'true'
+    || process.env.GITHUB_ACTIONS === 'true'
+    || !process.stdin.isTTY
+    || !process.stdout.isTTY
+  ) {
+    console.error('GTM_SETUP=REFUSED: this live GTM publisher may only run in a private local TTY.');
+    process.exit(2);
+  }
+  if (process.env.GTM_CONFIRM_PUBLISH !== 'yes') {
+    console.error('GTM_SETUP=REFUSED: set GTM_CONFIRM_PUBLISH=yes for an intentional live GTM mutation/publish.');
+    process.exit(2);
+  }
+}
+
+function requiredEnv(name) {
+  const value = String(process.env[name] || '').trim();
+  if (!value) safeFail(`Missing required environment variable: ${name}`);
+  return value;
+}
+
+function loadConfiguration() {
+  const accountId = requiredEnv('GTM_ACCOUNT_ID');
+  const containerId = requiredEnv('GTM_CONTAINER_ID');
+  const conversionId = requiredEnv('GOOGLE_ADS_CONVERSION_ID');
+  const conversionLabel = requiredEnv('GOOGLE_ADS_CONVERSION_LABEL');
+
+  if (!/^AW-[0-9]+$/.test(conversionId)) {
+    safeFail('GOOGLE_ADS_CONVERSION_ID must use the AW-XXXXXXXX numeric format.');
+  }
+  if (!/^[A-Za-z0-9_-]+$/.test(conversionLabel)) {
+    safeFail('GOOGLE_ADS_CONVERSION_LABEL contains unsupported characters.');
+  }
+
+  return {
+    accountId,
+    containerId,
+    conversionId,
+    numericConversionId: conversionId.replace(/^AW-/, ''),
+    conversionLabel,
+  };
+}
 
 async function buildAuth() {
-  const clientId     = process.env.GTM_CLIENT_ID     || process.env.GOOGLE_ADS_CLIENT_ID;
+  const clientId = process.env.GTM_CLIENT_ID || process.env.GOOGLE_ADS_CLIENT_ID;
   const clientSecret = process.env.GTM_CLIENT_SECRET || process.env.GOOGLE_ADS_CLIENT_SECRET;
   const refreshToken = process.env.GTM_REFRESH_TOKEN;
 
-  if (refreshToken) {
-    if (!clientId || !clientSecret) {
-      console.error('ERROR: GTM_CLIENT_ID (or GOOGLE_ADS_CLIENT_ID) and GTM_CLIENT_SECRET (or GOOGLE_ADS_CLIENT_SECRET) are required when providing GTM_REFRESH_TOKEN.');
-      process.exit(1);
-    }
-    console.log('  Using provided GTM_REFRESH_TOKEN...');
-    const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
-    oauth2.setCredentials({ refresh_token: refreshToken });
-    return oauth2;
+  if (!refreshToken || !clientId || !clientSecret) {
+    safeFail('GTM_REFRESH_TOKEN plus GTM_CLIENT_ID/GTM_CLIENT_SECRET (or GOOGLE_ADS fallbacks) are required.');
   }
-  
-  console.log('  No GTM_REFRESH_TOKEN found. Falling back to Application Default Credentials...');
-  console.log('  (Run: gcloud auth application-default login --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/tagmanager.edit.containerversions,https://www.googleapis.com/auth/tagmanager.publish)');
-  const auth = new google.auth.GoogleAuth({
-    scopes: [
-      'https://www.googleapis.com/auth/tagmanager.edit.containers',
-      'https://www.googleapis.com/auth/tagmanager.edit.containerversions',
-      'https://www.googleapis.com/auth/tagmanager.publish'
-    ]
-  });
-  return await auth.getClient();
+
+  const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
+  oauth2.setCredentials({ refresh_token: refreshToken });
+  return oauth2;
 }
 
-// ── API helpers ───────────────────────────────────────────────────────────────
+async function getWorkspaceStatus(tagmanager, path) {
+  const res = await tagmanager.accounts.containers.workspaces.getStatus({ path });
+  return res.data.workspaceChange || [];
+}
 
-async function resolveOrCreateWorkspace(tagmanager, containerPath) {
+async function resolveIsolatedWorkspace(tagmanager, containerPath) {
   const res = await tagmanager.accounts.containers.workspaces.list({ parent: containerPath });
   const workspaces = res.data.workspace || [];
-  const dedicatedName = 'NVX Conversion Signal Setup';
-  let ws = workspaces.find(w => w.name === dedicatedName);
-  if (ws) {
-    console.log(`  Found existing dedicated workspace: "${ws.name}" (${ws.workspaceId})`);
-    return ws;
-  }
+  let workspace = workspaces.find((item) => item.name === WORKSPACE_NAME);
 
-  try {
-    const createRes = await tagmanager.accounts.containers.workspaces.create({
-      parent: containerPath,
-      requestBody: {
-        name: dedicatedName,
-        description: 'Isolated workspace for canonical nvx_conversion_signal tag and trigger'
-      }
-    });
-    ws = createRes.data;
-    console.log(`  Created isolated workspace: "${ws.name}" (${ws.workspaceId})`);
-    return ws;
-  } catch (err) {
-    const status = err.code || err.response?.status;
-    const msg = String(err.message || '').toLowerCase();
-    if (status === 400 || status === 409 || msg.includes('limit') || msg.includes('quota') || msg.includes('maximum')) {
-      console.log('  Could not create dedicated workspace (workspace limit reached). Using Default Workspace...');
-    } else {
-      throw err;
+  if (!workspace) {
+    try {
+      const created = await tagmanager.accounts.containers.workspaces.create({
+        parent: containerPath,
+        requestBody: {
+          name: WORKSPACE_NAME,
+          description: 'Isolated workspace for canonical nvx_conversion_signal conversion setup',
+        },
+      });
+      workspace = created.data;
+      console.log(`  Created isolated workspace: ${workspace.workspaceId}`);
+      return workspace;
+    } catch (err) {
+      safeFail(`Unable to create isolated GTM workspace (${sanitizeGtmError(err)}). Default Workspace fallback is disabled.`);
     }
-
-    ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
-    if (!ws) throw new Error('No workspace found in container ' + containerPath);
-    return ws;
   }
+
+  console.log(`  Reusing isolated workspace: ${workspace.workspaceId}`);
+  const beforeSync = await getWorkspaceStatus(tagmanager, workspace.path);
+  if (beforeSync.length > 0) {
+    safeFail(`Dedicated workspace already contains ${beforeSync.length} pending change(s). Resolve them manually before running this publisher.`);
+  }
+
+  const syncRes = await tagmanager.accounts.containers.workspaces.sync({ path: workspace.path });
+  const syncStatus = syncRes.data.syncStatus || {};
+  const conflicts = syncRes.data.mergeConflict || [];
+  if (syncStatus.syncError || syncStatus.mergeConflict || conflicts.length > 0) {
+    safeFail('Dedicated workspace could not be synchronized cleanly to the latest container version. Resolve GTM conflicts manually.');
+  }
+
+  const afterSync = await getWorkspaceStatus(tagmanager, workspace.path);
+  if (afterSync.length > 0) {
+    safeFail(`Dedicated workspace is not clean after synchronization (${afterSync.length} pending change(s)).`);
+  }
+
+  return workspace;
 }
 
-const VARIABLE_NAME = 'nvx_event_name';
-
-async function listTriggers(tagmanager, wsPath) {
-  const res = await tagmanager.accounts.containers.workspaces.triggers.list({ parent: wsPath });
+async function listTriggers(tagmanager, workspacePath) {
+  const res = await tagmanager.accounts.containers.workspaces.triggers.list({ parent: workspacePath });
   return res.data.trigger || [];
 }
 
-async function listTags(tagmanager, wsPath) {
-  const res = await tagmanager.accounts.containers.workspaces.tags.list({ parent: wsPath });
+async function listTags(tagmanager, workspacePath) {
+  const res = await tagmanager.accounts.containers.workspaces.tags.list({ parent: workspacePath });
   return res.data.tag || [];
 }
 
-async function listVariables(tagmanager, wsPath) {
-  const res = await tagmanager.accounts.containers.workspaces.variables.list({ parent: wsPath });
+async function listVariables(tagmanager, workspacePath) {
+  const res = await tagmanager.accounts.containers.workspaces.variables.list({ parent: workspacePath });
   return res.data.variable || [];
 }
 
-async function ensureDataLayerVariable(tagmanager, wsPath) {
-  const variables = await listVariables(tagmanager, wsPath);
-  let v = variables.find(varItem => varItem.name === VARIABLE_NAME);
-  if (v) {
-    console.log(`  Data Layer variable "${VARIABLE_NAME}" already exists (ID: ${v.variableId})`);
-    return v;
+function parameterMap(parameters) {
+  const map = new Map();
+  for (const parameter of Array.isArray(parameters) ? parameters : []) {
+    if (parameter && parameter.key) map.set(String(parameter.key), String(parameter.value ?? ''));
   }
-
-  console.log(`  Creating Data Layer variable: "${VARIABLE_NAME}"...`);
-  const res = await tagmanager.accounts.containers.workspaces.variables.create({
-    parent: wsPath,
-    requestBody: {
-      name: VARIABLE_NAME,
-      type: 'v',
-      parameter: [
-        { type: 'template', key: 'name', value: 'event' },
-        { type: 'integer',  key: 'dataLayerVersion', value: '2' },
-      ],
-    },
-  });
-  v = res.data;
-  console.log(`  Created variable ID: ${v.variableId}`);
-  return v;
+  return map;
 }
 
-function buildTriggerPayload() {
+function conditionMatches(condition, left, right) {
+  if (!condition || condition.type !== 'equals') return false;
+  const params = parameterMap(condition.parameter);
+  return params.get('arg0') === left && params.get('arg1') === right;
+}
+
+function assertVariableContract(variable) {
+  const params = parameterMap(variable.parameter);
+  if (
+    variable.type !== 'v'
+    || params.get('name') !== VARIABLE_NAME
+    || params.get('dataLayerVersion') !== '2'
+  ) {
+    safeFail(`Existing GTM variable "${VARIABLE_NAME}" does not match the canonical Data Layer Variable contract. Refusing to overwrite it.`);
+  }
+}
+
+function assertTriggerContract(trigger) {
+  const customConditions = Array.isArray(trigger.customEventFilter) ? trigger.customEventFilter : [];
+  const extraConditions = Array.isArray(trigger.filter) ? trigger.filter : [];
+  const allConditions = customConditions.concat(extraConditions);
+  const eventMatch = allConditions.some((condition) => conditionMatches(condition, '{{_event}}', 'nvx_conversion_signal'));
+  const nameMatch = allConditions.some((condition) => conditionMatches(condition, `{{${VARIABLE_NAME}}}`, 'generate_lead'));
+
+  if (trigger.type !== 'customEvent' || !eventMatch || !nameMatch) {
+    safeFail(`Existing GTM trigger "${TRIGGER_NAME}" does not match the canonical event/filter contract. Refusing to overwrite it.`);
+  }
+}
+
+function assertTagContract(tag, triggerId, config) {
+  const params = parameterMap(tag.parameter);
+  const firing = Array.isArray(tag.firingTriggerId) ? tag.firingTriggerId.map(String) : [];
+  if (
+    tag.type !== 'awct'
+    || params.get('conversionId') !== config.numericConversionId
+    || params.get('conversionLabel') !== config.conversionLabel
+    || params.get('enableRemarketing') !== 'false'
+    || params.get('enableConversionLinker') !== 'true'
+    || !firing.includes(String(triggerId))
+  ) {
+    safeFail(`Existing GTM tag "${TAG_NAME}" does not match the canonical conversion contract. Refusing to overwrite it.`);
+  }
+}
+
+function variablePayload() {
+  return {
+    name: VARIABLE_NAME,
+    type: 'v',
+    parameter: [
+      { type: 'template', key: 'name', value: VARIABLE_NAME },
+      { type: 'integer', key: 'dataLayerVersion', value: '2' },
+    ],
+  };
+}
+
+function triggerPayload() {
   return {
     name: TRIGGER_NAME,
     type: 'customEvent',
@@ -179,170 +265,180 @@ function buildTriggerPayload() {
   };
 }
 
-function buildTagPayload(triggerId) {
+function tagPayload(triggerId, config) {
   return {
     name: TAG_NAME,
     type: 'awct',
     parameter: [
-      { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
-      { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
-      { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
-      { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },
+      { type: 'template', key: 'conversionId', value: config.numericConversionId },
+      { type: 'template', key: 'conversionLabel', value: config.conversionLabel },
+      { type: 'boolean', key: 'enableRemarketing', value: 'false' },
+      { type: 'boolean', key: 'enableConversionLinker', value: 'true' },
     ],
-    firingTriggerId: [triggerId],
+    firingTriggerId: [String(triggerId)],
   };
 }
 
-function isOurWorkspaceChange(change, ourIds = {}) {
-  if (change.trigger) {
-    if (change.trigger.name === TRIGGER_NAME) return true;
-    if (ourIds.triggerId && String(change.trigger.triggerId) === String(ourIds.triggerId)) return true;
+async function ensureVariable(tagmanager, workspacePath, createdIds) {
+  const variables = await listVariables(tagmanager, workspacePath);
+  let variable = variables.find((item) => item.name === VARIABLE_NAME);
+  if (variable) {
+    assertVariableContract(variable);
+    console.log(`  Variable verified: ${variable.variableId}`);
+    return variable;
   }
-  if (change.tag) {
-    if (change.tag.name === TAG_NAME) return true;
-    if (ourIds.tagId && String(change.tag.tagId) === String(ourIds.tagId)) return true;
+
+  const res = await tagmanager.accounts.containers.workspaces.variables.create({
+    parent: workspacePath,
+    requestBody: variablePayload(),
+  });
+  variable = res.data;
+  createdIds.variableId = String(variable.variableId);
+  console.log(`  Variable created: ${variable.variableId}`);
+  return variable;
+}
+
+async function ensureTrigger(tagmanager, workspacePath, createdIds) {
+  const triggers = await listTriggers(tagmanager, workspacePath);
+  let trigger = triggers.find((item) => item.name === TRIGGER_NAME);
+  if (trigger) {
+    assertTriggerContract(trigger);
+    console.log(`  Trigger verified: ${trigger.triggerId}`);
+    return trigger;
   }
-  if (change.variable) {
-    if (change.variable.name === VARIABLE_NAME) return true;
-    if (ourIds.variableId && String(change.variable.variableId) === String(ourIds.variableId)) return true;
+
+  const res = await tagmanager.accounts.containers.workspaces.triggers.create({
+    parent: workspacePath,
+    requestBody: triggerPayload(),
+  });
+  trigger = res.data;
+  createdIds.triggerId = String(trigger.triggerId);
+  console.log(`  Trigger created: ${trigger.triggerId}`);
+  return trigger;
+}
+
+async function ensureTag(tagmanager, workspacePath, trigger, config, createdIds) {
+  const tags = await listTags(tagmanager, workspacePath);
+  let tag = tags.find((item) => item.name === TAG_NAME);
+  if (tag) {
+    assertTagContract(tag, trigger.triggerId, config);
+    console.log(`  Tag verified: ${tag.tagId}`);
+    return tag;
+  }
+
+  const res = await tagmanager.accounts.containers.workspaces.tags.create({
+    parent: workspacePath,
+    requestBody: tagPayload(trigger.triggerId, config),
+  });
+  tag = res.data;
+  createdIds.tagId = String(tag.tagId);
+  console.log(`  Tag created: ${tag.tagId}`);
+  return tag;
+}
+
+function isCreatedByThisRun(change, createdIds) {
+  if (change.variable && createdIds.variableId) {
+    return String(change.variable.variableId || '') === createdIds.variableId;
+  }
+  if (change.trigger && createdIds.triggerId) {
+    return String(change.trigger.triggerId || '') === createdIds.triggerId;
+  }
+  if (change.tag && createdIds.tagId) {
+    return String(change.tag.tagId || '') === createdIds.tagId;
   }
   return false;
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
-
 async function main() {
-  console.log('\n=== NUVANX GTM Conversion Trigger Setup ===\n');
+  requireManualContext();
+  const config = loadConfiguration();
 
-  const auth       = await buildAuth();
+  console.log('\n=== NUVANX GTM Conversion Trigger Setup ===');
+  console.log(`Target account: ${config.accountId}`);
+  console.log(`Target container: ${config.containerId}`);
+  console.log(`Conversion: ${config.conversionId}/${config.conversionLabel}\n`);
+
+  const auth = await buildAuth();
   const tagmanager = google.tagmanager({ version: 'v2', auth });
+  const containerPath = `accounts/${config.accountId}/containers/${config.containerId}`;
 
-  const accountPath   = `accounts/${ACCOUNT_ID}`;
-  const containerPath = `${accountPath}/containers/${CONTAINER_ID}`;
-
-  // 1. Get workspace
-  console.log('1. Resolving workspace...');
-  const workspace     = await resolveOrCreateWorkspace(tagmanager, containerPath);
+  console.log('1. Resolving isolated workspace...');
+  const workspace = await resolveIsolatedWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
 
-  // Pre-mutation check: workspace MUST be completely clean before automated setup
-  const initialStatus = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
-  const initialChanges = initialStatus.data.workspaceChange || [];
+  const initialChanges = await getWorkspaceStatus(tagmanager, workspacePath);
   if (initialChanges.length > 0) {
-    throw new Error(`Workspace already contains ${initialChanges.length} uncommitted change(s). Please commit or discard them in GTM before running automated setup.`);
+    safeFail(`Workspace must be clean before mutation; found ${initialChanges.length} pending change(s).`);
   }
 
-  // 2. Ensure Data Layer variable exists
+  const createdIds = {};
+
   console.log('\n2. Ensuring Data Layer variable...');
-  const variable      = await ensureDataLayerVariable(tagmanager, workspacePath);
+  await ensureVariable(tagmanager, workspacePath, createdIds);
 
-  // 3. Check / create trigger
-  console.log('\n3. Checking for existing trigger...');
-  const triggers = await listTriggers(tagmanager, workspacePath);
-  let trigger = triggers.find(t => t.name === TRIGGER_NAME);
-  const triggerPayload = buildTriggerPayload();
+  console.log('\n3. Ensuring custom-event trigger...');
+  const trigger = await ensureTrigger(tagmanager, workspacePath, createdIds);
 
-  if (trigger) {
-    console.log(`  Updating existing trigger: "${TRIGGER_NAME}" (ID: ${trigger.triggerId})...`);
-    const res = await tagmanager.accounts.containers.workspaces.triggers.update({
-      path: trigger.path,
-      requestBody: triggerPayload,
-    });
-    trigger = res.data;
-    console.log(`  Trigger reconciled (ID: ${trigger.triggerId})`);
-  } else {
-    console.log(`  Creating trigger: "${TRIGGER_NAME}"...`);
-    const res = await tagmanager.accounts.containers.workspaces.triggers.create({
-      parent: workspacePath,
-      requestBody: triggerPayload,
-    });
-    trigger = res.data;
-    console.log(`  Created trigger ID: ${trigger.triggerId}`);
-  }
+  console.log('\n4. Ensuring Google Ads conversion tag...');
+  await ensureTag(tagmanager, workspacePath, trigger, config, createdIds);
 
-  // 4. Check / create or update Google Ads conversion tag
-  console.log('\n4. Checking for existing tag...');
-  const tags = await listTags(tagmanager, workspacePath);
-  let tag = tags.find(t => t.name === TAG_NAME);
-  const tagPayload = buildTagPayload(trigger.triggerId);
-
-  if (tag) {
-    console.log(`  Updating existing tag: "${TAG_NAME}" (ID: ${tag.tagId})...`);
-    const res = await tagmanager.accounts.containers.workspaces.tags.update({
-      path: tag.path,
-      requestBody: tagPayload,
-    });
-    tag = res.data;
-    console.log(`  Tag reconciled (ID: ${tag.tagId})`);
-  } else {
-    console.log(`  Creating tag: "${TAG_NAME}"...`);
-    const res = await tagmanager.accounts.containers.workspaces.tags.create({
-      parent: workspacePath,
-      requestBody: tagPayload,
-    });
-    tag = res.data;
-    console.log(`  Created tag ID: ${tag.tagId}`);
-  }
-
-  // 5. Check workspace status before versioning
-  console.log('\n5. Checking workspace changes before publishing...');
-  const statusRes = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
-  const pendingChanges = statusRes.data.workspaceChange || [];
+  console.log('\n5. Verifying isolated changes before versioning...');
+  const pendingChanges = await getWorkspaceStatus(tagmanager, workspacePath);
   if (pendingChanges.length === 0) {
-    console.log('  Workspace has 0 pending changes (tag, trigger and variable are already up to date). Skipping publish.');
-    console.log('\n─────────────────────────────────────────────────');
-    console.log('Done (idempotent no-op).');
+    console.log('  No pending changes. Existing GTM configuration already matches the canonical contract.');
+    console.log('GTM_SETUP=PASS mode=verify-only');
     return;
   }
 
-  // Ensure only our intended setup entities are pending before publishing
-  const nonOurs = pendingChanges.filter(c => !isOurWorkspaceChange(c, {
-    triggerId: trigger?.triggerId,
-    tagId: tag?.tagId,
-    variableId: variable?.variableId
-  }));
-  if (nonOurs.length > 0) {
-    throw new Error(`Workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
+  const unexpected = pendingChanges.filter((change) => !isCreatedByThisRun(change, createdIds));
+  if (unexpected.length > 0) {
+    safeFail(`Workspace contains ${unexpected.length} pending change(s) not created by this invocation. Refusing to publish.`);
   }
 
-  console.log(`  Found ${pendingChanges.length} pending change(s). Creating and publishing container version...`);
+  const versionNameBase = process.env.GTM_VERSION_NAME || 'Canonical generate_lead via nvx_conversion_signal';
+  const versionName = `${versionNameBase} (${new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')} UTC)`;
+  const versionNotes = [
+    'Creates missing canonical nvx_conversion_signal -> generate_lead GTM entities only.',
+    `Google Ads conversion: ${config.conversionId}/${config.conversionLabel}.`,
+    'Conversion linker is enabled on the Google Ads conversion tag.',
+    'Consent Mode ownership/configuration is unchanged and remains outside this helper.',
+  ].join('\n');
+
   const versionRes = await tagmanager.accounts.containers.workspaces.create_version({
     path: workspacePath,
-    requestBody: { name: VERSION_NAME, notes: VERSION_NOTES },
+    requestBody: { name: versionName, notes: versionNotes },
   });
 
   if (versionRes.data.compilerError) {
-    throw new Error('GTM reported a compiler error while creating the container version; nothing was published.');
+    safeFail('GTM reported a compiler error while creating the container version; nothing was published.');
   }
-  const newVersionId = versionRes.data.containerVersion?.containerVersionId;
-  if (!newVersionId) {
-    throw new Error('Container version creation returned no containerVersionId despite pending workspace changes; nothing was published.');
+  if (versionRes.data.syncStatus?.syncError || versionRes.data.syncStatus?.mergeConflict) {
+    safeFail('GTM reported a synchronization error/conflict while creating the container version; nothing was published.');
   }
-  const publishRes   = await tagmanager.accounts.containers.versions.publish({
-    path: `${containerPath}/versions/${newVersionId}`,
+
+  const versionId = versionRes.data.containerVersion?.containerVersionId;
+  if (!versionId) {
+    safeFail('Container version creation returned no containerVersionId despite pending changes; nothing was published.');
+  }
+
+  const publishRes = await tagmanager.accounts.containers.versions.publish({
+    path: `${containerPath}/versions/${versionId}`,
   });
-
   const published = publishRes.data.containerVersion;
-  console.log(`  Published version: ${published?.containerVersionId} — "${published?.name}"`);
 
-  // 5. Summary
-  console.log('\n─────────────────────────────────────────────────');
-  console.log('Done.');
-  console.log(`  Container:  GTM-W55RGVF2 (account ${ACCOUNT_ID})`);
-  console.log(`  Version:    ${published?.containerVersionId}`);
-  console.log(`  Trigger:    ${TRIGGER_NAME}`);
-  console.log(`  Tag:        ${TAG_NAME}`);
-  console.log(`  Conversion: ${CONVERSION_ID}/${CONV_LABEL}`);
-  console.log('\nNext steps:');
-  console.log('  1. Verify via Site Kit that live version = ' + published?.containerVersionId);
-  console.log('  2. Deactivate Snippet #7 in WP Code Snippets plugin.');
-  console.log('  3. Pause conversion action 4BC2CKSat8YcEPXX-t1D in Google Ads (min 30 days before deleting).');
-  console.log('─────────────────────────────────────────────────\n');
+  if (!published?.containerVersionId) {
+    safeFail('GTM publish returned no live containerVersionId. Verify the container manually.');
+  }
+
+  console.log(`\nGTM_SETUP=PASS mode=published version=${published.containerVersionId}`);
+  console.log('Next: verify the live container in GTM/Site Kit before disabling any legacy WordPress snippet.');
 }
 
-main().catch(err => {
-  const status = err.code || err.response?.status || 'UNKNOWN';
-  const msg = err.response?.data?.error?.message || err.message || 'Fatal error';
-  console.error(`\n❌ Fatal error [HTTP ${status}]: ${msg}`);
+main().catch((err) => {
+  if (err?.nvxSafe) {
+    console.error(`\nGTM_SETUP=FAIL: ${err.message}`);
+  } else {
+    console.error(`\nGTM_SETUP=FAIL: ${sanitizeGtmError(err)}`);
+  }
   process.exit(1);
 });

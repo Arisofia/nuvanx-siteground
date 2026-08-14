@@ -256,3 +256,4 @@ const exitCode = await runGovernedBlogHeadContract().catch((err) => {
   return 1;
 });
 process.exit(exitCode);
+

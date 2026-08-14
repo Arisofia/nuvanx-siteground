@@ -280,15 +280,9 @@ async function validateAttempt(context, viewport, attempt) {
       return createTransientResult(status, currentUrl, `SiteGround captcha challenge URL: ${currentUrl}`);
     }
 
-    if (isTransientStatus) {
-      await saveScreenshot(page, viewport.key, attempt, true);
-      const reason = formatTransientReason(status, headers, page.url());
-      return createTransientResult(status, page.url(), reason);
-    }
-
     const issues = [];
     if (!response) issues.push('Valuation navigation returned no HTTP response');
-    else if (status !== 200) issues.push(`Expected HTTP 200, got ${status}`);
+    else if (status !== 200 && !isTransientStatus) issues.push(`Expected HTTP 200, got ${status}`);
 
     try {
       const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
@@ -307,11 +301,24 @@ async function validateAttempt(context, viewport, attempt) {
       const hubSpotValidation = await validateHubSpotMount(page, mounted, mountState);
       issues.push(...hubSpotValidation.issues);
 
+      const recoveredTransientHttp = Boolean(isTransientStatus && issues.length === 0);
+
+      if (isTransientStatus && !recoveredTransientHttp) {
+        await saveScreenshot(page, viewport.key, attempt, true);
+        const reason = formatTransientReason(status, headers, page.url());
+        return createTransientResult(status, page.url(), reason, placement, mounted, mountState, hubSpotValidation.interactiveState);
+      }
+
       await saveScreenshot(page, viewport.key, attempt, false);
+
+      if (recoveredTransientHttp) {
+        console.log(`RECOVERED /madrid/valoracion/ ${viewport.width}x${viewport.height} attempt=${attempt} HTTP ${status} -> exact interactive page`);
+      }
 
       return {
         transient: false,
         status,
+        recoveredTransientHttp,
         currentUrl: page.url(),
         reason: '',
         placement,
@@ -352,10 +359,15 @@ async function runViewport(browser, viewport) {
 
       if (result.transient) {
         console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);
-        if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, 2500 * attempt));
-      } else {
-        break;
+        if (attempt < maxAttempts) {
+          const backoff = calculateBackoff(attempt);
+          console.log(`VALORACION_BACKOFF viewport=${viewport.key} delay_ms=${backoff}`);
+          await delay(backoff);
+          continue;
+        }
       }
+
+      return finalResult;
     }
 
     return finalResult;
@@ -393,7 +405,11 @@ try {
   }
 } finally {
   await browser.close().catch(() => {});
-  await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8').catch(() => {});
+  try {
+    await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
+  } catch (writeErr) {
+    console.error(`Failed to write results.json: ${writeErr instanceof Error ? writeErr.message : String(writeErr)}`);
+  }
 }
 
 if (realFailure) {

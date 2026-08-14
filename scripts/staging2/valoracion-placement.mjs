@@ -22,16 +22,19 @@ function runProcess(moduleUrl) {
   });
 }
 
-async function disarmRollbackAfterTransientExhaustion(component) {
+async function writeRollbackState(value, component, reason) {
   const envFile = (process.env.GITHUB_ENV || '').trim();
-  if (envFile) {
-    try {
-      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
-      console.error(`STAGING_ACCEPTANCE_ROLLBACK=DISARMED component=${component} reason=transient-exhaustion`);
-    } catch (error) {
-      console.warn(`STAGING_ACCEPTANCE_ROLLBACK=DISARM_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
-    }
+  if (!envFile) return;
+  try {
+    await fs.appendFile(envFile, `STAGING_MUTATION_ARMED=${value}\n`, 'utf8');
+    console.log(`STAGING_ACCEPTANCE_ROLLBACK=${value === '1' ? 'REARMED' : 'DISARMED'} component=${component} reason=${reason}`);
+  } catch (error) {
+    console.warn(`STAGING_ACCEPTANCE_ROLLBACK=WRITE_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+async function disarmRollbackAfterTransientExhaustion(component) {
+  await writeRollbackState('0', component, 'transient-exhaustion');
 
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (!summary) return;
@@ -48,6 +51,7 @@ async function disarmRollbackAfterTransientExhaustion(component) {
 
 async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   let lastExitCode = 1;
+  let sawTransient = false;
 
   for (let cycle = 1; cycle <= maxCycles; cycle += 1) {
     if (maxCycles > 1) {
@@ -62,16 +66,22 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
     }
 
     if (lastExitCode === 0) {
+      if (sawTransient) {
+        // A child may have written STAGING_MUTATION_ARMED=0 during an earlier
+        // transient cycle. Recovery restores the normal rollback contract for
+        // any later deterministic failure in this job.
+        await writeRollbackState('1', name, 'transient-recovered');
+      }
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
       return;
     }
 
-    // Do not retry deterministic real failures across cycles; fail immediately to preserve evidence.
     if (lastExitCode !== EX_TEMPFAIL) {
       console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} exit=${lastExitCode}`);
       process.exit(lastExitCode);
     }
 
+    sawTransient = true;
     if (cycle < maxCycles) {
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);

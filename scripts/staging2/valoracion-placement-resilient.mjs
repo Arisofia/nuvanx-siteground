@@ -34,7 +34,7 @@ const viewports = [
 ];
 
 const mountedSelector = [
-  '#nvx-hubspot-form .hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]',
+  '#nvx-hubspot-form .hs-form-frame[data-nvx-hubspot-lazy="1"] iframe[data-test-id^="embedded-form-"]',
   '#nvx-hubspot-form .hbspt-form',
   '#nvx-hubspot-form form.hs-form',
 ].join(', ');

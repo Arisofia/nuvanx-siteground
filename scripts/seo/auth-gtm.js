@@ -80,12 +80,17 @@ function extractAuthCode(codeUrl) {
   }
 }
 
+function shellSingleQuote(value) {
+  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
+}
+
 function persistRefreshToken(filePath, refreshToken) {
-  if (!/^[A-Za-z0-9._~+\/-]+$/.test(String(refreshToken || ''))) {
-    throw new Error('OAuth refresh token contains an unexpected character set; refusing to serialize it into a shell-sourced file.');
+  const token = String(refreshToken || '');
+  if (!token || /[\r\n\0]/.test(token)) {
+    throw new Error('OAuth refresh token is empty or contains a line-breaking/NUL character; refusing to serialize it.');
   }
 
-  const newExportLine = `export GTM_REFRESH_TOKEN='${refreshToken}'`;
+  const newExportLine = `export GTM_REFRESH_TOKEN=${shellSingleQuote(token)}`;
   let lines = [];
 
   if (fs.existsSync(filePath)) {
@@ -98,7 +103,11 @@ function persistRefreshToken(filePath, refreshToken) {
   lines.push(newExportLine, '');
 
   fs.writeFileSync(filePath, lines.join('\n'), { mode: 0o600 });
-  fs.chmodSync(filePath, 0o600);
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    console.warn('⚠️ No se pudo reforzar chmod 0600 en esta plataforma; verifica manualmente los permisos de .env.local.');
+  }
 
   console.log(hadExisting
     ? 'ℹ️ Se eliminaron asignaciones GTM_REFRESH_TOKEN anteriores y se escribió una única asignación canónica.'

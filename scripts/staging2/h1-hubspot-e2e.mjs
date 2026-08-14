@@ -21,6 +21,10 @@ const managedPageUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/inc/nvx-valoracion-managed-page.php',
   import.meta.url
 );
+const heroAndFormsUrl = new URL(
+  '../../wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php',
+  import.meta.url
+);
 const conversionEventsUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js',
   import.meta.url
@@ -30,32 +34,13 @@ const runtimeGovernanceUrl = new URL(
   import.meta.url
 );
 
-const [managedPage, conversionEvents, runtimeGovernance] = await Promise.all([
+const [managedPage, heroAndForms, conversionEvents, runtimeGovernance] = await Promise.all([
   fs.readFile(managedPageUrl, 'utf8'),
+  fs.readFile(heroAndFormsUrl, 'utf8'),
   fs.readFile(conversionEventsUrl, 'utf8'),
   fs.readFile(runtimeGovernanceUrl, 'utf8'),
 ]);
 
-assert.match(
-  managedPage,
-  /data-form-id="/,
-  'managed valoración page must render a HubSpot form ID attribute'
-);
-assert.match(
-  managedPage,
-  new RegExp(formId),
-  'managed valoración page must retain the canonical HubSpot form ID'
-);
-assert.match(
-  managedPage,
-  /data-portal-id="/,
-  'managed valoración page must render a HubSpot portal ID attribute'
-);
-assert.match(
-  managedPage,
-  new RegExp(portalId),
-  'managed valoración page must retain the canonical HubSpot portal ID'
-);
 assert.match(
   managedPage,
   /id="nvx-hubspot-form"/,
@@ -75,6 +60,43 @@ assert.doesNotMatch(
   managedPage,
   /nvx-hs-lead-form/,
   'managed valoración page must not reintroduce the legacy captured non-HubSpot form'
+);
+assert.doesNotMatch(
+  managedPage,
+  /data-form-id="/,
+  'managed valoración page host must not contain HubSpot identity (prevents duplicate embeds)'
+);
+assert.doesNotMatch(
+  managedPage,
+  /data-portal-id="/,
+  'managed valoración page host must not contain HubSpot identity (prevents duplicate embeds)'
+);
+
+// Validate HubSpot identity on the canonical child mount in nvx-hero-and-forms.php
+assert.match(
+  heroAndForms,
+  /data-form-id="/,
+  'canonical HubSpot mount must render a HubSpot form ID attribute'
+);
+assert.match(
+  heroAndForms,
+  new RegExp(formId),
+  'canonical HubSpot mount must retain the canonical HubSpot form ID'
+);
+assert.match(
+  heroAndForms,
+  /data-portal-id="/,
+  'canonical HubSpot mount must render a HubSpot portal ID attribute'
+);
+assert.match(
+  heroAndForms,
+  new RegExp(portalId),
+  'canonical HubSpot mount must retain the canonical HubSpot portal ID'
+);
+assert.match(
+  heroAndForms,
+  /data-nvx-hubspot-lazy="1"/,
+  'canonical HubSpot mount must have the lazy attribute for governance'
 );
 
 assert.match(

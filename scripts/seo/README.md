@@ -8,13 +8,33 @@ This directory contains **manual diagnostic/support scripts**, not additional Gi
 - `ads-full-analysis.js` — read-only Google Ads performance and structure diagnostic. Queries 30-day bounded performance across campaigns, asset groups, demographics, and geo locations, keeping error output redacted and bounded.
 - `classify-google-credential.js` — local shape/presence diagnostic for a Google Ads JSON credential bundle. It reports only presence classes/counts; it must not print secret values.
 - `get-refresh-token.js` — **private local interactive helper only**. It refuses CI/non-TTY execution, requires OAuth client credentials from the local environment and prints the newly issued refresh token only to that private terminal so it can be transferred immediately to the secret manager.
-- `auth-gtm.js` — **private local interactive helper only**. It refuses CI/non-TTY execution, requests GTM container edit scopes, and writes/updates `GTM_REFRESH_TOKEN` strictly into the local `.env.local` file.
-- `setup-gtm-conversion-trigger.js` — **private local manual tool only**. Requires human invocation and confirmation; performs write operations against Google Tag Manager (creating/updating `awct` tags, triggers, and variables) and publishes container versions. Never run in automated CI workflows.
+- `auth-gtm.js` — **private local interactive helper only**. It refuses CI/non-TTY execution, requests the GTM edit/version/publish scopes, and writes exactly one `GTM_REFRESH_TOKEN` assignment into the repository-root `.env.local` with permissions `0600`.
+- `setup-gtm-conversion-trigger.js` — **private local manual publisher only**. It refuses CI/non-TTY execution and requires `GTM_CONFIRM_PUBLISH=yes`. All GTM account/container and Google Ads conversion identifiers must be supplied explicitly through environment variables; the script has no production target defaults. It uses only an isolated workspace, synchronizes a reused workspace before mutation, never falls back to `Default Workspace`, verifies existing canonical entities without replacing them, and publishes only entity IDs created by the current invocation.
 - `gsc-client.js` — shared Google Search Console API helper. Computes dynamic 30-day and 7-day windows accounting for GSC's 3-day data latency.
 - `gsc-full-analysis.js` — read-only Google Search Console diagnostic covering device breakdown, query performance, and URL-level clicks/CTR across the dynamic 30-day window.
 - `search-console-analytics.js` — summary Search Console audit script reporting top queries and landing pages across the dynamic 30-day window.
 - `pagespeed-cwv-analysis.js` — Core Web Vitals and PageSpeed Insights runner using native Node HTTPS, auditing mobile/desktop performance metrics across key URLs.
 - `index-pages.js` — sitemap/index URL support utility. Network target/host constraints are owned by the caller; production verification remains owned by the canonical Production workflow and its origin-side audit scripts.
+
+## GTM publisher required environment
+
+Before running `setup-gtm-conversion-trigger.js`, configure these values explicitly in the private local environment or `.env.local`:
+
+- `GTM_REFRESH_TOKEN`
+- `GTM_CLIENT_ID` and `GTM_CLIENT_SECRET` (or the corresponding `GOOGLE_ADS_*` OAuth client pair)
+- `GTM_ACCOUNT_ID`
+- `GTM_CONTAINER_ID`
+- `GOOGLE_ADS_CONVERSION_ID` in `AW-<digits>` format
+- `GOOGLE_ADS_CONVERSION_LABEL`
+
+The publisher must be invoked deliberately from a private local TTY:
+
+```bash
+source .env.local
+GTM_CONFIRM_PUBLISH=yes node scripts/seo/setup-gtm-conversion-trigger.js
+```
+
+Do not disable legacy WordPress tracking snippets merely because this helper exits successfully. First verify the resulting live GTM container/version and the expected conversion event end-to-end.
 
 ## Security rules
 

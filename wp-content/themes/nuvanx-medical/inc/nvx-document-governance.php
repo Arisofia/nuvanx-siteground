@@ -186,6 +186,9 @@ function nvx_document_governance_bind_blog_pre_get_posts( WP_Query $query ): voi
 	$query->is_page     = false;
 	$query->is_single   = true;
 	$query->is_singular = true;
+	$query->is_404      = false;
+	$query->is_archive  = false;
+	$query->is_home     = false;
 }
 add_action( 'pre_get_posts', 'nvx_document_governance_bind_blog_pre_get_posts', 1 );
 
@@ -197,7 +200,7 @@ add_action( 'pre_get_posts', 'nvx_document_governance_bind_blog_pre_get_posts', 
  * @return array{slug:string,path:string,metadata:array<string,mixed>}|null
  */
 function nvx_document_governance_governed_blog_request(): ?array {
-	if ( is_admin() || wp_doing_ajax() || is_404() || is_search() || is_feed() || is_preview() ) {
+	if ( is_admin() || wp_doing_ajax() || is_search() || is_feed() || is_preview() ) {
 		return null;
 	}
 
@@ -213,6 +216,14 @@ function nvx_document_governance_governed_blog_request(): ?array {
 
 	$catalog = nvx_seo_blog_post_metadata_catalog();
 	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
+		return null;
+	}
+
+	// Request-path authority must survive a stale WordPress 404/query context.
+	// Only an exact published post may claim that authority, so unknown catalog
+	// entries still retain normal 404 behavior.
+	$post = nvx_document_governance_get_published_post_by_slug( $slug );
+	if ( ! ( $post instanceof WP_Post ) ) {
 		return null;
 	}
 

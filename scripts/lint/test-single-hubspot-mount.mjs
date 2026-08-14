@@ -26,5 +26,25 @@ const declarativeMounts = mountGovernance.match(/class="hs-form-frame"/g) || [];
 assert.equal(declarativeMounts.length, 1, 'Mount governance must define exactly one declarative HubSpot frame');
 assert.match(runtime, /\/forms\/embed\/' \+ portalId \+ '\.js'/, 'Runtime must load the declarative portal embed');
 assert.doesNotMatch(runtime, /window\.hbspt\.forms\.create\s*\(/, 'Runtime must not imperatively duplicate declarative mounts');
+assert.match(
+  runtime,
+  /removeLegacyHubSpotV2Scripts/,
+  'Runtime must actively remove legacy HubSpot v2 loaders before declarative embed initialization',
+);
+assert.doesNotMatch(
+  runtime,
+  /script\[src\*="forms\/embed\/"\], script\[src\*="forms\/v2\.js"\]/,
+  'Runtime must not treat legacy forms/v2.js as a valid loaded declarative embed',
+);
+assert.match(
+  runtime,
+  /normalizeNativeHubSpotMounts/,
+  'Runtime must normalize stale HubSpot hosts before loading the embed',
+);
+assert.match(
+  mountGovernance,
+  /nvx_valoracion_sanitize_hubspot_host_opening/,
+  'Mount governance must sanitize stale HubSpot identity attributes from the presentation host',
+);
 
 console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0');

@@ -441,6 +441,20 @@ if ( ! function_exists( 'nvx_valoracion_remove_divs_by_class' ) ) {
 }
 
 /**
+ * Keep only presentation attributes on the managed HubSpot host.
+ */
+if ( ! function_exists( 'nvx_valoracion_sanitize_hubspot_host_opening' ) ) {
+	function nvx_valoracion_sanitize_hubspot_host_opening( string $opening ): string {
+		$cleaned = preg_replace(
+			'/\s+(?:data-(?:form-id|portal-id|region|hs-[a-z0-9_-]+|nvx-hubspot-lazy)|aria-label)=("([^"]*)"|\'([^\']*)\'|[^\s>]+)/iu',
+			'',
+			$opening
+		);
+		return is_string( $cleaned ) ? $cleaned : $opening;
+	}
+}
+
+/**
  * Keep a single canonical HubSpot mount on the valoración page output.
  */
 if ( ! function_exists( 'nvx_valoracion_native_hubspot_enforce_single_mount' ) ) {
@@ -469,7 +483,7 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_enforce_single_mount' ) )
 			}
 		);
 		$first_offset  = (int) $ranges[0]['start'];
-		$first_opening = (string) $ranges[0]['opening'];
+		$first_opening = nvx_valoracion_sanitize_hubspot_host_opening( (string) $ranges[0]['opening'] );
 		$marker        = '<!-- NVX_VALORACION_CANONICAL_MOUNT -->';
 
 		$descending = $ranges;

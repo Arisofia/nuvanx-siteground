@@ -25,6 +25,13 @@
     return error && typeof error.name === 'string' ? error.name.slice(0, 64) : 'Error';
   }
 
+  function removeAttributes(element, names) {
+    if (!element || typeof element.removeAttribute !== 'function') return;
+    names.forEach(function (name) {
+      if (element.hasAttribute(name)) element.removeAttribute(name);
+    });
+  }
+
   function focusableElements(container) {
     if (!container) return [];
     return Array.prototype.slice.call(
@@ -294,7 +301,8 @@
    * @return {string} The configured or derived HubSpot script URL, or an empty string when no valid portal ID is available.
    */
   function resolveHubSpotScriptUrl() {
-    if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
+    const configuredUrl = config.hubspotScriptUrl ? String(config.hubspotScriptUrl) : '';
+    if (configuredUrl && !/\/forms\/v2\.js(?:[?#]|$)/i.test(configuredUrl)) return configuredUrl;
 
     const frame = document.querySelector('.hs-form-frame[data-portal-id]');
     if (!frame && !config.hubspotPortalId) {
@@ -322,6 +330,65 @@
     return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 
+  function removeLegacyHubSpotV2Scripts() {
+    document.querySelectorAll('script[src*="forms/v2.js"]').forEach(function (script) {
+      script.remove();
+    });
+  }
+
+  function applyHubSpotFrameIdentity(frame, identity) {
+    if (!frame) return;
+    frame.classList.add('hs-form-frame');
+    if (identity.region) frame.dataset.region = identity.region;
+    if (identity.portalId) frame.dataset.portalId = identity.portalId;
+    if (identity.formId) frame.dataset.formId = identity.formId;
+    frame.dataset.nvxHubspotLazy = '1';
+  }
+
+  function normalizeNativeHubSpotMounts() {
+    const hosts = document.querySelectorAll('#nvx-hubspot-native-form, [data-nvx-hubspot-native="1"]');
+    hosts.forEach(function (host) {
+      const identity = {
+        region: String(config.hubspotRegion || host.dataset.region || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1',
+        portalId: String(config.hubspotPortalId || host.dataset.portalId || '').replace(/[^0-9]/g, ''),
+        formId: String(config.hubspotFormId || host.dataset.formId || '').trim(),
+      };
+
+      removeAttributes(host, [
+        'data-form-id',
+        'data-portal-id',
+        'data-region',
+        'data-hs-initialized',
+        'data-hs-forms-root',
+        'data-nvx-hubspot-lazy',
+        'aria-label',
+      ]);
+
+      const frames = Array.prototype.slice.call(host.querySelectorAll('.hs-form-frame'));
+      let canonical = frames.find(function (frame) {
+        return frame.parentElement === host && frame.dataset.portalId && frame.dataset.formId;
+      }) || frames.find(function (frame) {
+        return frame.dataset.portalId && frame.dataset.formId;
+      }) || frames[0] || null;
+
+      if (!canonical && identity.portalId && identity.formId) {
+        canonical = document.createElement('div');
+        canonical.className = 'hs-form-frame';
+        const skeleton = host.querySelector('.nvx-skeleton-wrapper');
+        if (skeleton && skeleton.nextSibling) host.insertBefore(canonical, skeleton.nextSibling);
+        else host.appendChild(canonical);
+      }
+
+      if (!canonical) return;
+      if (canonical.parentElement !== host) host.insertBefore(canonical, host.firstChild);
+      applyHubSpotFrameIdentity(canonical, identity);
+
+      Array.prototype.slice.call(host.querySelectorAll('.hs-form-frame')).forEach(function (frame) {
+        if (frame !== canonical) frame.remove();
+      });
+    });
+  }
+
   /**
    * Lazily loads HubSpot Forms when an eligible modal or page form mount is activated.
    *
@@ -329,6 +396,9 @@
    * and retries after load failures.
    */
   function initLazyHubSpot() {
+    removeLegacyHubSpotV2Scripts();
+    normalizeNativeHubSpotMounts();
+
     const scriptUrl = resolveHubSpotScriptUrl();
     if (!scriptUrl) return;
 
@@ -433,6 +503,7 @@
 
     /** Complete presentation state after the declarative HubSpot runtime loads. */
     function initializeForms() {
+      normalizeNativeHubSpotMounts();
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
       
       // Inject HubSpot identity into modal frame (presentation host only)
@@ -475,7 +546,8 @@
       // The legacy v2 factory created window.hbspt.forms, but the new portal embed
       // (forms/embed/{portalId}.js) does not. Only short-circuit if we have the
       // script element already loaded, not just the global object.
-      if (document.querySelector('script[src*="forms/embed/"], script[src*="forms/v2.js"]')) {
+      removeLegacyHubSpotV2Scripts();
+      if (document.querySelector('script[src*="forms/embed/"]')) {
         initializeForms();
         return Promise.resolve();
       }

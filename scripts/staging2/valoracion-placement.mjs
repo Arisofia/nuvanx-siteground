@@ -41,7 +41,7 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
       return;
     }
 
-    // Do not retry deterministic real failures across cycles; fail immediately to preserve evidence
+    // Do not retry deterministic real failures across cycles; fail immediately to preserve evidence.
     if (lastExitCode !== EX_TEMPFAIL) {
       console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} exit=${lastExitCode}`);
       process.exit(lastExitCode);
@@ -60,8 +60,13 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
-  { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-contract.mjs', import.meta.url), maxCycles: 1 },
+  // Wrapper owns bounded retries and only propagates rollback disarm after all
+  // transient cycles are exhausted. Real head-contract failures still fail fast.
+  { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 3 },
+  // Semantic accessibility gate runs after placement/mount has been proven. It
+  // exercises blank validation only and must never create a real HubSpot contact.
+  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 
 for (const stage of stages) {

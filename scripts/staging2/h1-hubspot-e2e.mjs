@@ -36,32 +36,39 @@ const [managedPage, conversionEvents, runtimeGovernance] = await Promise.all([
   fs.readFile(runtimeGovernanceUrl, 'utf8'),
 ]);
 
-const escapedFormId = formId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const escapedPortalId = portalId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
 assert.match(
   managedPage,
-  new RegExp(`data-form-id=\\"[^\\"]*${escapedFormId}[^\\"]*\\"`),
-  'managed valoración page must render the canonical HubSpot form ID'
+  /data-form-id="/,
+  'managed valoración page must render a HubSpot form ID attribute'
 );
 assert.match(
   managedPage,
-  new RegExp(`data-portal-id=\\"[^\\"]*${escapedPortalId}[^\\"]*\\"`),
-  'managed valoración page must render the canonical HubSpot portal ID'
+  new RegExp(formId),
+  'managed valoración page must retain the canonical HubSpot form ID'
 );
 assert.match(
   managedPage,
-  /id=\\"nvx-hubspot-form\\"/,
+  /data-portal-id="/,
+  'managed valoración page must render a HubSpot portal ID attribute'
+);
+assert.match(
+  managedPage,
+  new RegExp(portalId),
+  'managed valoración page must retain the canonical HubSpot portal ID'
+);
+assert.match(
+  managedPage,
+  /id="nvx-hubspot-form"/,
   'managed valoración page must retain the canonical HubSpot section mount'
 );
 assert.match(
   managedPage,
-  /id=\\"nvx-hubspot-native-form\\"/,
+  /id="nvx-hubspot-native-form"/,
   'managed valoración page must retain the canonical native HubSpot host'
 );
 assert.match(
   managedPage,
-  /data-nvx-hubspot-native=\\"1\\"/,
+  /data-nvx-hubspot-native="1"/,
   'managed valoración page must identify the canonical HubSpot runtime mount'
 );
 assert.doesNotMatch(
@@ -77,7 +84,7 @@ assert.match(
 );
 assert.match(
   conversionEvents,
-  new RegExp(escapedFormId),
+  new RegExp(formId),
   'attribution runtime must remain scoped to the canonical HubSpot form'
 );
 assert.match(

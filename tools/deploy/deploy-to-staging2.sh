@@ -119,7 +119,6 @@ SOURCE_REQUIRED_FILES=(
   assets/css/nvx-accessibility-governance.css
   assets/js/nvx-runtime-governance.js
   assets/css/nvx-soluciones-medicas.css
-  assets/images/nvx-solutions-hero-architecture.svg
   template-parts/content/nvx-soluciones-medicas.php
   templates/page-soluciones-medicas.php
   inc/nvx-blog-system.php

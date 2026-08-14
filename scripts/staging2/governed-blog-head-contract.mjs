@@ -83,50 +83,23 @@ async function disarmRollbackAfterTransientExhaustion(reason = 'transient-challe
   }
 }
 
-// 1. Fetch REST posts
-const rest = await context.newPage();
-const restResult = await gotoStable(rest, `${base}/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=id,slug`);
+// The versioned catalog is the source of truth for governed journal routes.
+// Do not discover it through public wp-json: SiteGround Antibot can challenge
+// REST independently from the HTML route under test. Every catalog slug must
+// resolve as a real public article; an unpublished/missing route therefore
+// fails naturally with a non-200 response.
+const governed = Object.keys(catalog)
+  .map((slug) => String(slug || '').trim())
+  .filter(Boolean)
+  .map((slug) => ({ slug }));
 
-if (restResult.transient) {
-  await rest.close();
-  await browser.close();
-  console.error('GOVERNED_BLOG_HEAD=FAIL_TRANSIENT_EXHAUSTED endpoint=wp-json-posts');
-  await disarmRollbackAfterTransientExhaustion('wp-json-posts-antibot-challenge');
-  process.exit(EX_TEMPFAIL);
-}
-
-if (restResult.error || restResult.response?.status() !== 200) {
-  await rest.close();
-  await browser.close();
-  console.error(
-    `GOVERNED_BLOG_HEAD=FAIL_REAL endpoint=wp-json-posts http=${restResult.response?.status() || 0} reason=${restResult.error?.message || 'non-200'}`
-  );
-  process.exit(1);
-}
-
-let posts;
-try {
-  posts = JSON.parse(await rest.locator('body').innerText());
-} catch (err) {
-  await rest.close();
-  await browser.close();
-  console.error(`GOVERNED_BLOG_HEAD=FAIL_REAL reason=invalid_json_body error=${err.message}`);
-  process.exit(1);
-}
-await rest.close();
-
-if (!Array.isArray(posts)) {
-  await browser.close();
-  console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=posts_not_array');
-  process.exit(1);
-}
-
-const governed = posts.filter((post) => Object.hasOwn(catalog, post.slug));
 if (governed.length === 0) {
   await browser.close();
-  console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=no_governed_posts_found');
+  console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=no_governed_posts_in_catalog');
   process.exit(1);
 }
+
+console.log(`GOVERNED_BLOG_HEAD_SOURCE=versioned-catalog routes=${governed.length}`);
 
 let realFailures = 0;
 let transientFailures = 0;

@@ -9,12 +9,18 @@
  * - published pages with custom templates reference files that exist;
  * - the required canonical template files exist in the current theme.
  *
+ * When WORDPRESS_PAGES_FILE is provided by the Staging WP-CLI step, this
+ * validator also enriches that trusted snapshot with every same-host route
+ * published by the WordPress/Yoast sitemap index. Block C then validates the
+ * union of published pages (including intentional noindex pages) and every
+ * sitemap URL across its canonical viewport matrix.
+ *
  * Optional env:
  * - WORDPRESS_PAGES_FILE: trusted JSON snapshot from authenticated WP-CLI.
- * - WORDPRESS_URL: REST fallback when no snapshot is supplied.
+ * - WORDPRESS_URL: REST/sitemap base URL when no trusted link is available.
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { MIN_MANIFEST_ENTRIES } from './staging2/published-pages-contract.mjs';
@@ -24,6 +30,7 @@ const __dirname = dirname(__filename);
 const THEME_ROOT = join(__dirname, '..', 'wp-content', 'themes', 'nuvanx-medical');
 const TEMPLATES_DIR = join(THEME_ROOT, 'templates');
 const MANIFEST_FILE = join(__dirname, 'staging2', 'published-pages-manifest.json');
+const TRANSIENT_HTTP = new Set([202, 429, 503]);
 
 const VALID_TEMPLATES = [
   'page-contacto.php',
@@ -127,6 +134,140 @@ function templateExists(templatePath) {
   return false;
 }
 
+function decodeXml(value) {
+  return String(value || '')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'");
+}
+
+function extractLocs(xml) {
+  return [...String(xml || '').matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)]
+    .map((match) => decodeXml(match[1]).trim())
+    .filter(Boolean);
+}
+
+function isSiteGroundChallenge(response, body) {
+  if (TRANSIENT_HTTP.has(Number(response.status))) return true;
+  const captchaHeader = String(response.headers.get('sg-captcha') || '').toLowerCase();
+  if (captchaHeader.includes('challenge')) return true;
+  return /\.well-known\/sgcaptcha|sg-captcha/i.test(String(body || ''));
+}
+
+async function fetchXml(url) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        redirect: 'follow',
+        headers: {
+          Accept: 'application/xml,text/xml;q=0.9,*/*;q=0.1',
+          'User-Agent': 'Mozilla/5.0 NUVANX-Block-C-Inventory/1.0',
+        },
+      });
+      const body = await response.text();
+      if (isSiteGroundChallenge(response, body)) {
+        lastError = new Error(`SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
+      } else if (!response.ok) {
+        lastError = new Error(`Sitemap fetch failed for ${url}: HTTP ${response.status}`);
+      } else if (!/<(?:sitemapindex|urlset)\b/i.test(body)) {
+        lastError = new Error(`Expected sitemap XML from ${url}`);
+      } else {
+        return body;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+  }
+  throw lastError || new Error(`Unable to fetch sitemap XML: ${url}`);
+}
+
+function inventoryBaseUrl(pages) {
+  const explicit = String(process.env.WORDPRESS_URL || '').trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  const linkedPage = pages.find((page) => typeof page.link === 'string' && page.link.trim());
+  if (linkedPage) return new URL(linkedPage.link).origin;
+  return 'https://nuvanx.com';
+}
+
+function normalizeRoutePath(value, baseUrl) {
+  const url = new URL(value, `${baseUrl}/`);
+  let route = url.pathname || '/';
+  if (!route.endsWith('/')) route += '/';
+  return route;
+}
+
+async function enrichTrustedInventoryWithSitemap(pages) {
+  const pagesFile = String(process.env.WORDPRESS_PAGES_FILE || '').trim();
+  if (!pagesFile) return;
+
+  const baseUrl = inventoryBaseUrl(pages);
+  const expectedHost = new URL(baseUrl).hostname;
+  const indexUrl = `${baseUrl}/sitemap_index.xml`;
+  const indexXml = await fetchXml(indexUrl);
+  const indexLocs = extractLocs(indexXml);
+  if (indexLocs.length === 0) {
+    throw new Error(`Sitemap index has no <loc> entries: ${indexUrl}`);
+  }
+
+  const sitemapUrls = [];
+  const routeUrls = [];
+  for (const loc of indexLocs) {
+    const parsed = new URL(loc, `${baseUrl}/`);
+    if (parsed.hostname !== expectedHost) {
+      throw new Error(`Sitemap index points outside expected host: ${loc}`);
+    }
+    if (/\.xml(?:$|[?#])/i.test(parsed.href)) sitemapUrls.push(parsed.href);
+    else routeUrls.push(parsed.href);
+  }
+
+  for (const sitemapUrl of sitemapUrls) {
+    const childXml = await fetchXml(sitemapUrl);
+    for (const loc of extractLocs(childXml)) {
+      const parsed = new URL(loc, `${baseUrl}/`);
+      if (parsed.hostname !== expectedHost) {
+        throw new Error(`Child sitemap points outside expected host: ${loc}`);
+      }
+      routeUrls.push(parsed.href);
+    }
+  }
+
+  const inventory = [...pages];
+  const seenPaths = new Set();
+  for (const page of pages) {
+    if (!page.link) continue;
+    seenPaths.add(normalizeRoutePath(page.link, baseUrl));
+  }
+
+  let syntheticId = -1;
+  let added = 0;
+  for (const rawUrl of routeUrls) {
+    const parsed = new URL(rawUrl, `${baseUrl}/`);
+    parsed.hash = '';
+    parsed.search = '';
+    const route = normalizeRoutePath(parsed.href, baseUrl);
+    if (seenPaths.has(route)) continue;
+    seenPaths.add(route);
+    inventory.push({
+      id: syntheticId,
+      slug: route === '/' ? '' : route.split('/').filter(Boolean).at(-1) || '',
+      link: `${parsed.origin}${route}`,
+      title: `Sitemap route ${route}`,
+      template: '',
+      inventorySource: 'sitemap',
+    });
+    syntheticId -= 1;
+    added += 1;
+  }
+
+  inventory.sort((left, right) => String(left.link || '').localeCompare(String(right.link || '')));
+  writeFileSync(pagesFile, `${JSON.stringify(inventory)}\n`, 'utf8');
+  console.log(`BLOCK_C_ROUTE_INVENTORY=PASS published_pages=${pages.length} sitemap_routes=${new Set(routeUrls.map((url) => normalizeRoutePath(url, baseUrl))).size} added_from_sitemap=${added} total_routes=${inventory.length}`);
+}
+
 async function validateTemplates() {
   console.log('🔍 Validating WordPress publication topology and page templates...\n');
 
@@ -167,10 +308,11 @@ async function validateTemplates() {
         console.error(`  - ${err}`);
       }
       process.exit(1);
-    } else {
-      console.log('\n✅ ALL TEMPLATES AND PUBLICATION TOPOLOGY VALIDATED');
-      process.exit(0);
     }
+
+    await enrichTrustedInventoryWithSitemap(pages);
+    console.log('\n✅ ALL TEMPLATES, PUBLICATION TOPOLOGY AND BLOCK C ROUTE INVENTORY VALIDATED');
+    process.exit(0);
   } catch (error) {
     console.error(`\n❌ FATAL ERROR: ${error.message}`);
     process.exit(1);

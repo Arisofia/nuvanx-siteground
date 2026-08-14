@@ -166,7 +166,7 @@ jobs:
           set -euo pipefail
           GITLEAKS_VERSION="8.24.0"
           GITLEAKS_TAR="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_TAR}" -o "$RUNNER_TEMP/$GITLEAKS_TAR"
+          curl -fsSL --proto '=https' --proto-redir '=https' --retry 3 --connect-timeout 10 --max-time 60 "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_TAR}" -o "$RUNNER_TEMP/$GITLEAKS_TAR"
           tar -xzf "$RUNNER_TEMP/$GITLEAKS_TAR" -C "$RUNNER_TEMP" gitleaks
           chmod +x "$RUNNER_TEMP/gitleaks"
 

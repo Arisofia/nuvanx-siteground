@@ -25,6 +25,7 @@ async function runFullAdsAnalysis() {
         metrics.average_cpc, metrics.average_cpm,
         metrics.all_conversions, metrics.all_conversions_value
       FROM campaign
+      WHERE segments.date DURING LAST_30_DAYS
     `),
 
     // Asset group details
@@ -34,6 +35,7 @@ async function runFullAdsAnalysis() {
         campaign.id,
         metrics.impressions, metrics.clicks, metrics.ctr, metrics.cost_micros
       FROM asset_group
+      WHERE segments.date DURING LAST_30_DAYS
     `),
 
     // Demographics breakdown (age/gender/device)
@@ -43,6 +45,7 @@ async function runFullAdsAnalysis() {
         ad_group_criterion.age_range.type,
         metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.ctr
       FROM age_range_view
+      WHERE segments.date DURING LAST_30_DAYS
       LIMIT 10
     `),
 
@@ -53,14 +56,25 @@ async function runFullAdsAnalysis() {
         metrics.impressions, metrics.clicks, metrics.ctr, metrics.cost_micros
       FROM geographic_view
       WHERE geographic_view.location_type = 'LOCATION_OF_PRESENCE'
+        AND segments.date DURING LAST_30_DAYS
       LIMIT 10
     `)
   ]);
 
-  const results = { campaigns, assetGroups, demographics, geo };
+  const results = { dateRange: 'LAST_30_DAYS', campaigns, assetGroups, demographics, geo };
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'ads-full-analysis.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results, null, 2));
 }
 
-runFullAdsAnalysis().catch(err => { console.error('Ads Full Analysis Error:', err?.message || err); process.exit(1); });
+function sanitizeAdsError(err) {
+  if (!err) return 'UNKNOWN_ERROR';
+  const code = err.code || err.status || 'GOOGLE_ADS_API_ERROR';
+  const failureClass = err.failure ? err.failure.constructor?.name : 'GENERIC_FAILURE';
+  return `code=${code} failure_class=${failureClass}`;
+}
+
+runFullAdsAnalysis().catch((err) => {
+  console.error('ADS_FULL_ANALYSIS=FAIL', sanitizeAdsError(err));
+  process.exit(1);
+});

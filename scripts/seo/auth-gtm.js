@@ -3,23 +3,27 @@ const { google } = require('googleapis');
 const readline = require('readline');
 const fs = require('fs');
 
+if (!process.stdout.isTTY || process.env.CI) {
+  console.error('ERROR: auth-gtm.js is an interactive local setup utility and cannot run in CI or non-interactive environments.');
+  process.exit(1);
+}
+
 const envPath = '.env.local';
 
-let envContent = '';
+const envVars = { ...process.env };
 if (fs.existsSync(envPath)) {
-  envContent = fs.readFileSync(envPath, 'utf8');
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach((line) => {
+    const match = line.trim().match(/^(?:export\s+)?([A-Za-z0-9_]+)=['"]?(.*?)['"]?$/);
+    if (match) envVars[match[1]] = match[2];
+  });
 }
-const envVars = {};
-envContent.split('\n').forEach(line => {
-  const match = line.match(/^export\s+([^=]+)=['"]?(.*?)['"]?$/);
-  if (match) envVars[match[1]] = match[2];
-});
 
 const clientId = envVars['GTM_CLIENT_ID'] || envVars['GOOGLE_ADS_CLIENT_ID'];
 const clientSecret = envVars['GTM_CLIENT_SECRET'] || envVars['GOOGLE_ADS_CLIENT_SECRET'];
 
 if (!clientId || !clientSecret) {
-  console.error("❌ No se encontró GOOGLE_ADS_CLIENT_ID ni GOOGLE_ADS_CLIENT_SECRET en .env.local");
+  console.error("❌ No se encontró GOOGLE_ADS_CLIENT_ID ni GOOGLE_ADS_CLIENT_SECRET en .env.local ni en el entorno");
   process.exit(1);
 }
 
@@ -51,11 +55,16 @@ const rl = readline.createInterface({
 });
 
 rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (codeUrl) => {
-  let code = codeUrl;
+  let code = String(codeUrl || '').trim();
   
-  if (codeUrl.includes('code=')) {
-    const urlObj = new URL(codeUrl);
-    code = urlObj.searchParams.get('code');
+  if (code.includes('code=')) {
+    try {
+      const urlObj = new URL(code, 'http://localhost');
+      code = urlObj.searchParams.get('code') || code;
+    } catch {
+      const match = code.match(/code=([^&]+)/);
+      if (match) code = decodeURIComponent(match[1]);
+    }
   }
 
   if (!code) {

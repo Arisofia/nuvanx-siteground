@@ -50,6 +50,7 @@ current_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${CURRENT_RUN_I
 current_path="$(printf '%s' "$current_meta" | jq -r '.path // ""')"
 current_event="$(printf '%s' "$current_meta" | jq -r '.event // ""')"
 current_status="$(printf '%s' "$current_meta" | jq -r '.status // ""')"
+current_head_sha="$(printf '%s' "$current_meta" | jq -r '.head_sha // ""')"
 api_attempt="$(printf '%s' "$current_meta" | jq -r '(.run_attempt // 0) | tostring')"
 
 is_mutation_workflow_path "$current_path" || {
@@ -68,6 +69,29 @@ is_mutation_event "$current_event" || {
   echo "MUTATION_FIFO=FAIL reason=current_run_already_completed run_id=$CURRENT_RUN_ID" >&2
   exit 1
 }
+
+# A push-triggered Staging run is useful only while its push SHA is still the
+# canonical master HEAD. In an active repository, deploying every superseded
+# push serially creates a long queue and repeatedly rewinds Staging through
+# obsolete states. Reject those runs before any snapshot, SSH mutation, or
+# browser acceptance. Historical workflow_dispatch runs remain supported, and
+# Production is intentionally outside this rule because it deploys an explicitly
+# authorized candidate SHA that may differ from the authorization commit HEAD.
+if [[ "$ROLE" == 'staging' && "$current_event" == 'push' ]]; then
+  [[ "$current_head_sha" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "MUTATION_FIFO=FAIL reason=invalid_current_head_sha value=$current_head_sha" >&2
+    exit 1
+  }
+  latest_master_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/master" --jq '.sha' | tr -d '[:space:]')"
+  [[ "$latest_master_sha" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "MUTATION_FIFO=FAIL reason=invalid_latest_master_sha value=$latest_master_sha" >&2
+    exit 1
+  }
+  if [[ "$current_head_sha" != "$latest_master_sha" ]]; then
+    echo "MUTATION_FIFO=SUPERSEDED role=staging run_id=$CURRENT_RUN_ID head_sha=$current_head_sha latest_master_sha=$latest_master_sha mutation=forbidden" >&2
+    exit 78
+  fi
+fi
 
 started_epoch="$(date +%s)"
 clear_scans=0

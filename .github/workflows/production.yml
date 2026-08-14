@@ -1,22 +1,18 @@
 name: Production
 run-name: >-
-  Production · ${{ github.event_name == 'workflow_dispatch' && (inputs.deploy && 'release' || 'verification') || github.sha }}
+  Production · ${{ inputs.deploy && format('release · {0}', inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha) }}
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'release/production-candidate.txt'
   workflow_dispatch:
     inputs:
       deploy:
-        description: Promote the exact currently accepted Staging2 SHA to production.
+        description: Promote the exact accepted Staging SHA to production.
         required: true
         default: true
         type: boolean
       candidate_sha:
-        description: Exact SHA when supplied. Required for verification-only HubSpot E2E; for deploy it must equal the current Staging2 marker.
-        required: false
+        description: Exact 40-character SHA with successful immutable Staging acceptance evidence.
+        required: true
         type: string
       run_post_audits:
         description: Run SEO/GEO, Search Console URL Inspection and IndexNow verification/submission.
@@ -38,17 +34,17 @@ permissions:
   contents: read
   actions: read
 
+# Each run owns a unique GitHub concurrency group. Cross-workflow mutation order
+# is enforced by scripts/ci/wait-for-environment-mutation-turn.sh so a newer run
+# cannot replace an older pending SHA in GitHub's single-pending concurrency slot.
 concurrency:
-  group: nuvanx-environment-mutation
+  group: ${{ format('nuvanx-mutation-run-{0}', github.run_id) }}
   cancel-in-progress: false
 
 env:
-  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
   PROD_ROOT: /home/customer/www/nuvanx.com/public_html
   PROD_PARENT: /home/customer/www/nuvanx.com
-  STAGING_DB_NAME: dbshcocboodiwr
   PROD_DB_NAME: db0ecrycwv2tgb
-  STAGING_URL: https://staging2.nuvanx.com
   BASE_URL: https://nuvanx.com
   EXPECTED_HOST: nuvanx.com
   SEARCH_CONSOLE_PROPERTY: https://nuvanx.com/
@@ -61,311 +57,88 @@ env:
 
 jobs:
   release:
-    name: Promote exact accepted Staging2 SHA
-    if: ${{ github.event_name == 'push' || inputs.deploy }}
+    name: Promote immutable accepted SHA
+    if: ${{ inputs.deploy }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 105
     outputs:
       candidate_sha: ${{ steps.candidate.outputs.sha }}
     steps:
-      - name: Check out hardened release tooling
+      - name: Check out release control plane
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: master
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Validate production tooling and two-workflow invariant
+      - name: Validate release control plane
         shell: bash
         run: |
           set -euo pipefail
-          bash -n tools/deploy/deploy-to-prod.sh
-          node --check scripts/production/verify-production-boundary.mjs
-          node --check scripts/seo/index-pages.js
-          bash -n scripts/production/seo-geo-origin-audit.sh
-          bash -n scripts/production/document-head-title-audit.sh
-          bash -n scripts/production/diagnose-title-emitters.sh
-          bash -n scripts/production/indexnow-submit-sitemap.sh
-          grep -Fq 'ROLLBACK_SNAPSHOT=PASS' tools/deploy/deploy-to-prod.sh
-          grep -Fq 'ROLLBACK_PRODUCTION=PASS' tools/deploy/deploy-to-prod.sh
-          grep -Fq '.nvx-deploy-sha' tools/deploy/deploy-to-prod.sh
-          ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
+          bash -n scripts/ci/wait-for-environment-mutation-turn.sh
+          bash -n scripts/ci/verify-staging-acceptance.sh
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
-          echo 'PRODUCTION_TOOLING_STATIC=PASS workflows=2'
+          ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
+          echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2'
 
-      - name: Configure strict Staging2 SSH and resolve live candidate
+      - name: Resolve immutable requested candidate
         id: candidate
         shell: bash
         env:
-          HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          USER: ${{ secrets.STAGING2_SSH_USER }}
-          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
-          DISPATCH_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate_sha || '' }}
+          REQUESTED_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
-          : "${HOST:?Missing STAGING2_SSH_HOST}"; : "${USER:?Missing STAGING2_SSH_USER}"; : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"; : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-
-          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
-            test -s release/production-candidate.txt || { echo 'release/production-candidate.txt must contain the authorized SHA.' >&2; exit 1; }
-            REQUESTED_SHA="$(tr -d '[:space:]' < release/production-candidate.txt)"
-          else
-            REQUESTED_SHA="$(printf '%s' "$DISPATCH_SHA" | tr -d '[:space:]')"
-          fi
-          if [[ -n "$REQUESTED_SHA" ]]; then
-            [[ "$REQUESTED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Authorized candidate SHA must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          fi
-
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_gate_key"; chmod 600 "$HOME/.ssh/staging_gate_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'STAGING_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging-gate
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging_gate_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-          connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if ssh -n nvx-staging-gate "test -d '$STAGING_ROOT' && test -d '$PROD_ROOT' && command -v wp >/dev/null"; then
-              connected=1; break
-            fi
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Staging gate SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$connected" = 1 ]] || { echo "STAGING_SSH=FAIL_TRANSPORT: could not reach SiteGround staging gate after $SSH_RETRY_ATTEMPTS attempts." >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-
-          marker="$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
-          ssh -n nvx-staging-gate "test -f '$marker'" || { echo "STAGING_MARKER=MISSING path=$marker" >&2; exit 1; }
-          staging_sha=''
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            if candidate_value="$(ssh -n nvx-staging-gate "tr -d '\\r\\n' < '$marker'")" && [[ "$candidate_value" =~ ^[0-9a-f]{40}$ ]]; then
-              staging_sha="$candidate_value"; break
-            fi
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Staging marker read $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$staging_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'STAGING_MARKER=UNREADABLE after retries' >&2; exit 1; }
-          if [[ -n "$REQUESTED_SHA" && "$REQUESTED_SHA" != "$staging_sha" ]]; then
-            echo "Authorized SHA $REQUESTED_SHA is not the current Staging2 SHA $staging_sha" >&2
-            exit 1
-          fi
-
+          candidate="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'candidate_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
           git fetch --no-tags origin "$STAGING_ACCEPTANCE_BRANCH"
-          git cat-file -e "${staging_sha}^{commit}"
-          git merge-base --is-ancestor "$staging_sha" "origin/$STAGING_ACCEPTANCE_BRANCH" || { echo "Current Staging2 SHA is not contained in origin/$STAGING_ACCEPTANCE_BRANCH: $staging_sha" >&2; exit 1; }
-          git cat-file -e "${staging_sha}:wp-content/themes/nuvanx-medical/functions.php"
-          theme_tree="$(git rev-parse "${staging_sha}:wp-content/themes/nuvanx-medical")"
-
-          ssh nvx-staging-gate "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' STAGING_SHA='$staging_sha' STAGING_DB_NAME='$STAGING_DB_NAME' PROD_DB_NAME='$PROD_DB_NAME' STAGING_URL='$STAGING_URL' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          test "$STAGING_ROOT" != "$PROD_ROOT"
-          cd "$STAGING_ROOT"
-          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$STAGING_SHA"
-          test "$(wp config get DB_NAME)" = "$STAGING_DB_NAME"
-          test "$(wp option get home)" = "$STAGING_URL"
-          test "$(wp option get siteurl)" = "$STAGING_URL"
-          test "$(wp option get blog_public)" = '0'
-          test "$(wp config get NVX_ENV)" = 'staging'
-          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
-          wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
-          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          cd "$PROD_ROOT"
-          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
-          test "$(wp option get home)" = "$BASE_URL"
-          test "$(wp option get siteurl)" = "$BASE_URL"
-          test "$(wp option get blog_public)" = '1'
-          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
-          test ! -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
-          echo 'PRODUCTION_GATE_IDENTITIES=PASS'
-          REMOTE
-
-          echo "sha=$staging_sha" >> "$GITHUB_OUTPUT"
-          echo "CANDIDATE_SHA=$staging_sha" >> "$GITHUB_ENV"
-          echo "EXPECTED_SHA=$staging_sha" >> "$GITHUB_ENV"
+          git cat-file -e "${candidate}^{commit}"
+          git merge-base --is-ancestor "$candidate" "origin/$STAGING_ACCEPTANCE_BRANCH" || { echo "Candidate is outside origin/$STAGING_ACCEPTANCE_BRANCH: $candidate" >&2; exit 1; }
+          git cat-file -e "${candidate}:wp-content/themes/nuvanx-medical/functions.php"
+          theme_tree="$(git rev-parse "${candidate}:wp-content/themes/nuvanx-medical")"
+          echo "sha=$candidate" >> "$GITHUB_OUTPUT"
+          echo "CANDIDATE_SHA=$candidate" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$candidate" >> "$GITHUB_ENV"
           echo "CANDIDATE_THEME_TREE=$theme_tree" >> "$GITHUB_ENV"
-          echo "PRODUCTION_CANDIDATE=$staging_sha"
+          echo "PRODUCTION_CANDIDATE=$candidate"
           echo "PRODUCTION_CANDIDATE_THEME_TREE=$theme_tree"
 
       - name: Verify successful exact-SHA Staging acceptance evidence
+        id: acceptance
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          command -v unzip >/dev/null || { echo 'Required unzip command is unavailable on the runner.' >&2; exit 1; }
-          artifact_name="staging2-block-c-${CANDIDATE_SHA}"
-          api_headers=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json')
-          response="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"
-          mapfile -t candidates < <(printf '%s' "$response" | jq -rc --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | sort_by(.created_at) | reverse | .[] | [.id, .workflow_run.id, .created_at] | @tsv')
-          (( ${#candidates[@]} > 0 )) || { echo "No non-expired Staging acceptance artifacts for $CANDIDATE_SHA. Rerun Staging with run_acceptance=true." >&2; exit 1; }
+        run: bash scripts/ci/verify-staging-acceptance.sh
 
-          accepted=0
-          accepted_run_id=''
-          accepted_attempt=''
-          accepted_artifact_id=''
-          accepted_event=''
-          accepted_head_sha=''
-
-          for candidate in "${candidates[@]}"; do
-            IFS=$'\t' read -r artifact_id run_id created_at <<< "$candidate"
-            if [[ ! "$artifact_id" =~ ^[0-9]{1,20}$ || ! "$run_id" =~ ^[0-9]{1,20}$ ]]; then
-              echo "Skipping malformed artifact candidate: artifact_id=$artifact_id run_id=$run_id created_at=$created_at" >&2
-              continue
-            fi
-
-            if ! run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"; then
-              echo "Skipping artifact $artifact_id: unable to fetch source run $run_id" >&2
-              continue
-            fi
-            IFS=$'\t' read -r head_branch run_head_sha workflow_path run_event < <(printf '%s' "$run" | jq -r '[.head_branch // "",.head_sha // "",.path // "",.event // ""] | @tsv')
-            if [[ "$head_branch" != "$STAGING_ACCEPTANCE_BRANCH" ]]; then echo "Skipping artifact $artifact_id run $run_id: head_branch=$head_branch expected=$STAGING_ACCEPTANCE_BRANCH" >&2; continue; fi
-            workflow_prefix="${workflow_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-            workflow_suffix="${workflow_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-            if [[ "$workflow_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$workflow_suffix" && "${workflow_suffix:0:1}" != '@' ) || "$workflow_suffix" == '@' ]]; then
-              echo "Skipping artifact $artifact_id run $run_id: path=$workflow_path expected=$STAGING_ACCEPTANCE_WORKFLOW_PATH or $STAGING_ACCEPTANCE_WORKFLOW_PATH@<ref>" >&2
-              continue
-            fi
-            [[ "$run_head_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Skipping artifact $artifact_id run $run_id: invalid head_sha=$run_head_sha" >&2; continue; }
-            [[ "$run_event" == push || "$run_event" == workflow_dispatch ]] || { echo "Skipping artifact $artifact_id run $run_id: unsupported event=$run_event" >&2; continue; }
-            if [[ "$run_event" == push && "$run_head_sha" != "$CANDIDATE_SHA" ]]; then
-              echo "Skipping artifact $artifact_id run $run_id: push head_sha=$run_head_sha candidate=$CANDIDATE_SHA" >&2
-              continue
-            fi
-            if [[ "$run_event" == workflow_dispatch ]]; then
-              git cat-file -e "${run_head_sha}^{commit}" 2>/dev/null || { echo "Skipping artifact $artifact_id run $run_id: dispatch head unavailable: $run_head_sha" >&2; continue; }
-              git merge-base --is-ancestor "$run_head_sha" "origin/$STAGING_ACCEPTANCE_BRANCH" || { echo "Skipping artifact $artifact_id run $run_id: dispatch head outside current $STAGING_ACCEPTANCE_BRANCH" >&2; continue; }
-              git merge-base --is-ancestor "$CANDIDATE_SHA" "$run_head_sha" || { echo "Skipping artifact $artifact_id run $run_id: candidate not contained in dispatch head" >&2; continue; }
-            fi
-
-            artifact_zip="$RUNNER_TEMP/staging-acceptance-${artifact_id}.zip"
-            rm -f "$artifact_zip"
-            if ! curl -LfsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 180 --max-filesize 157286400 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip"; then
-              echo "Skipping artifact $artifact_id run $run_id: download failed after retries" >&2
-              rm -f "$artifact_zip"
-              continue
-            fi
-            if ! unzip -tqq "$artifact_zip" >/dev/null 2>&1; then
-              echo "Skipping artifact $artifact_id run $run_id: downloaded ZIP is corrupt or truncated" >&2
-              rm -f "$artifact_zip"
-              continue
-            fi
-            manifest_path="$(unzip -Z1 "$artifact_zip" | grep -E '(^|/)acceptance-manifest\.json$' | head -n1 || true)"
-            if [[ -z "$manifest_path" ]]; then
-              echo "Skipping artifact $artifact_id run $run_id: schema-v1 immutable acceptance manifest is missing; rerun Staging" >&2
-              rm -f "$artifact_zip"
-              continue
-            fi
-            manifest="$(unzip -p "$artifact_zip" "$manifest_path" 2>/dev/null || true)"
-            rm -f "$artifact_zip"
-
-            if ! manifest_fields="$(printf '%s' "$manifest" | jq -er '
-              select(type == "object" and .schema == 1) |
-              [.candidate_sha,.run_id,.run_attempt,.event,.head_sha,.head_branch,.workflow_path] |
-              select(all(.[]; type == "string" and length > 0)) |
-              @tsv
-            ')"; then
-              echo "Skipping artifact $artifact_id run $run_id: invalid or unsupported acceptance manifest schema/fields" >&2
-              continue
-            fi
-            IFS=$'\t' read -r manifest_candidate manifest_run_id manifest_run_attempt manifest_event manifest_head_sha manifest_head_branch manifest_workflow <<< "$manifest_fields"
-            [[ "$manifest_candidate" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest candidate=$manifest_candidate expected=$CANDIDATE_SHA" >&2; continue; }
-            [[ "$manifest_run_id" == "$run_id" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest run_id=$manifest_run_id" >&2; continue; }
-            [[ "$manifest_run_attempt" =~ ^[0-9]{1,6}$ ]] || { echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; }
-            manifest_run_attempt=$((10#$manifest_run_attempt))
-            (( manifest_run_attempt >= 1 )) || { echo "Skipping artifact $artifact_id run $run_id: invalid manifest run_attempt=$manifest_run_attempt" >&2; continue; }
-            [[ "$manifest_event" == push || "$manifest_event" == workflow_dispatch ]] || { echo "Skipping artifact $artifact_id run $run_id: unsupported manifest event=$manifest_event" >&2; continue; }
-            [[ "$manifest_event" == "$run_event" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest event=$manifest_event source event=$run_event" >&2; continue; }
-            [[ "$manifest_head_sha" == "$run_head_sha" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest head_sha=$manifest_head_sha source=$run_head_sha" >&2; continue; }
-            [[ "$manifest_head_branch" == "$STAGING_ACCEPTANCE_BRANCH" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest head_branch=$manifest_head_branch" >&2; continue; }
-            [[ "$manifest_workflow" == "$STAGING_ACCEPTANCE_WORKFLOW_PATH" ]] || { echo "Skipping artifact $artifact_id run $run_id: manifest workflow_path=$manifest_workflow" >&2; continue; }
-
-            if ! exact_run="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/attempts/${manifest_run_attempt}")"; then
-              echo "Skipping artifact $artifact_id run $run_id: unable to fetch exact attempt $manifest_run_attempt" >&2
-              continue
-            fi
-            IFS=$'\t' read -r exact_status exact_conclusion exact_branch exact_head_sha exact_path exact_event exact_attempt < <(printf '%s' "$exact_run" | jq -r '[.status // "",.conclusion // "",.head_branch // "",.head_sha // "",.path // "",.event // "",(.run_attempt // "" | tostring)] | @tsv')
-            [[ "$exact_status" == completed ]] || { echo "Skipping artifact $artifact_id run $run_id attempt $manifest_run_attempt: status=${exact_status:-null} expected=completed" >&2; continue; }
-            [[ "$exact_conclusion" == success ]] || { echo "Skipping artifact $artifact_id run $run_id attempt $manifest_run_attempt: conclusion=${exact_conclusion:-null} expected=success" >&2; continue; }
-            [[ "$exact_attempt" == "$manifest_run_attempt" ]] || { echo "Skipping artifact $artifact_id run $run_id: exact API attempt=$exact_attempt manifest=$manifest_run_attempt" >&2; continue; }
-            [[ "$exact_branch" == "$manifest_head_branch" && "$exact_head_sha" == "$manifest_head_sha" && "$exact_event" == "$manifest_event" ]] || { echo "Skipping artifact $artifact_id run $run_id: exact-attempt identity differs from manifest" >&2; continue; }
-            exact_prefix="${exact_path:0:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-            exact_suffix="${exact_path:${#STAGING_ACCEPTANCE_WORKFLOW_PATH}}"
-            if [[ "$exact_prefix" != "$STAGING_ACCEPTANCE_WORKFLOW_PATH" || ( -n "$exact_suffix" && "${exact_suffix:0:1}" != '@' ) || "$exact_suffix" == '@' ]]; then
-              echo "Skipping artifact $artifact_id run $run_id: exact-attempt workflow path=$exact_path" >&2
-              continue
-            fi
-
-            case "$manifest_event" in
-              push)
-                [[ "$manifest_head_sha" == "$CANDIDATE_SHA" ]] || { echo "Skipping artifact $artifact_id run $run_id: push manifest head is not candidate" >&2; continue; }
-                ;;
-              workflow_dispatch)
-                git merge-base --is-ancestor "$CANDIDATE_SHA" "$manifest_head_sha" || { echo "Skipping artifact $artifact_id run $run_id: candidate absent from dispatch attempt head" >&2; continue; }
-                ;;
-              *)
-                echo "Skipping artifact $artifact_id run $run_id: unsupported event=$manifest_event" >&2
-                continue
-                ;;
-            esac
-
-            accepted=1
-            accepted_run_id="$run_id"
-            accepted_attempt="$manifest_run_attempt"
-            accepted_artifact_id="$artifact_id"
-            accepted_event="$manifest_event"
-            accepted_head_sha="$manifest_head_sha"
-            break
-          done
-
-          [[ "$accepted" = 1 ]] || { echo "No completed successful canonical Staging attempt provides valid exact-candidate acceptance evidence for $CANDIDATE_SHA." >&2; exit 1; }
-          echo "STAGING_ACCEPTANCE=PASS artifact=$artifact_name artifact_id=$accepted_artifact_id run_id=$accepted_run_id attempt=$accepted_attempt sha=$CANDIDATE_SHA event=$accepted_event run_head_sha=$accepted_head_sha conclusion=success"
-
-      - name: Materialize exact candidate and canonical master audit tooling
+      - name: Materialize and validate exact candidate tooling
         shell: bash
         run: |
           set -euo pipefail
           CANDIDATE_ROOT="$RUNNER_TEMP/production-candidate-$CANDIDATE_SHA"
-          AUDIT_ROOT="$RUNNER_TEMP/production-audit-master"
           git worktree add --detach "$CANDIDATE_ROOT" "$CANDIDATE_SHA"
-          git worktree add --detach "$AUDIT_ROOT" "origin/$STAGING_ACCEPTANCE_BRANCH"
           test "$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)" = "$CANDIDATE_SHA"
           find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
-          bash -n "$AUDIT_ROOT/scripts/production/document-head-title-audit.sh"
-          bash -n "$AUDIT_ROOT/scripts/production/seo-geo-origin-audit.sh"
-          bash -n "$AUDIT_ROOT/scripts/production/diagnose-title-emitters.sh"
-          bash -n "$AUDIT_ROOT/scripts/production/indexnow-submit-sitemap.sh"
+          bash -n "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
+          node --check "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"
+          bash -n "$CANDIDATE_ROOT/scripts/production/document-head-title-audit.sh"
+          bash -n "$CANDIDATE_ROOT/scripts/production/seo-geo-origin-audit.sh"
+          bash -n "$CANDIDATE_ROOT/scripts/production/diagnose-title-emitters.sh"
+          bash -n "$CANDIDATE_ROOT/scripts/production/indexnow-submit-sitemap.sh"
+          grep -Fq 'ROLLBACK_SNAPSHOT=PASS' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
+          grep -Fq 'ROLLBACK_PRODUCTION=PASS' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
+          grep -Fq '.nvx-deploy-sha' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
-          echo "AUDIT_ROOT=$AUDIT_ROOT" >> "$GITHUB_ENV"
-          echo "CANONICAL_AUDIT_SHA=$(git -C "$AUDIT_ROOT" rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "AUDIT_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
+          echo "CANONICAL_AUDIT_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+          echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA"
 
-      - name: Destroy Staging gate SSH identity
+      - name: Wait for FIFO environment mutation turn
         shell: bash
-        run: rm -f "$HOME/.ssh/staging_gate_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_ROLE: production
+          MUTATION_WAIT_MAX_SECONDS: 5400
+        run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Configure strict production SSH
         shell: bash
@@ -411,12 +184,6 @@ jobs:
             fi
           }
 
-          if timeout 10 bash -c "exec 3<>/dev/tcp/$HOST/$SSH_PORT" 2>/dev/null; then
-            echo 'PRODUCTION_TCP_PROBE=PASS'
-          else
-            echo 'PRODUCTION_TCP_PROBE=NO_RESPONSE'
-          fi
-
           prod_connected=0
           retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
           last_reason='UNKNOWN'
@@ -431,7 +198,6 @@ jobs:
             echo "PRODUCTION_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
             tail -n 2 "$ssh_error" >&2 || true
             if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Production SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
               sleep "$retry_delay"
               retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
             fi
@@ -460,7 +226,7 @@ jobs:
           echo 'PRODUCTION_PREFLIGHT=PASS'
           REMOTE
 
-      - name: Upload exact accepted payload
+      - name: Upload exact accepted payload and tooling
         shell: bash
         run: |
           set -euo pipefail
@@ -468,11 +234,11 @@ jobs:
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
           ssh nvx-prod "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/tools/migrations' '$REMOTE_RELEASE/lib'"
           rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-prod:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-prod.sh "nvx-prod:$REMOTE_RELEASE/deploy-to-prod.sh"
+          rsync -az "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh" "nvx-prod:$REMOTE_RELEASE/deploy-to-prod.sh"
           rsync -az "$CANDIDATE_ROOT/lib/" "nvx-prod:$REMOTE_RELEASE/lib/"
           rsync -az "$CANDIDATE_ROOT/tools/migrations/audit-content-divergence.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
           rsync -az "$CANDIDATE_ROOT/tools/migrations/content-hygiene-shared.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
-          # content-hygiene-staging-only.php → NOT included in production payload
+          echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
 
       - name: Execute guarded atomic production cutover
         shell: bash
@@ -486,7 +252,7 @@ jobs:
           set -euo pipefail
           pass=0
           for attempt in {1..6}; do
-            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node scripts/production/verify-production-boundary.mjs; then pass=1; break; fi
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
             sleep 10
           done
           test "$pass" = 1
@@ -501,60 +267,34 @@ jobs:
           echo "PRODUCTION_DEPLOYED_SHA=$CANDIDATE_SHA"
           REMOTE
 
-      - name: Verify one document title across production sitemap on established SSH
-        id: document_title_audit
-        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
+      - name: Run exact-candidate production origin audits
+        id: origin_audits
+        if: ${{ inputs.run_post_audits }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts
-          ssh nvx-prod "BASE_URL='$BASE_URL' bash -s" < "$AUDIT_ROOT/scripts/production/document-head-title-audit.sh" | tee scripts/production/artifacts/document-head-title-audit.log
+          ssh nvx-prod "BASE_URL='$BASE_URL' bash -s" < "$CANDIDATE_ROOT/scripts/production/document-head-title-audit.sh" | tee scripts/production/artifacts/document-head-title-audit.log
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < "$CANDIDATE_ROOT/scripts/production/seo-geo-origin-audit.sh" | tee scripts/production/artifacts/seo-geo-origin-audit.log
 
-      - name: Run blocking SEO/GEO origin audit on established SSH
-        id: seo_geo_audit
-        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < "$AUDIT_ROOT/scripts/production/seo-geo-origin-audit.sh" | tee scripts/production/artifacts/seo-geo-origin-audit.log
-
-      - name: Materialize exact sitemap URL inventory from release origin audit
-        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
-        shell: bash
-        run: |
-          set -euo pipefail
           log='scripts/production/artifacts/seo-geo-origin-audit.log'
           out='scripts/seo/artifacts/sitemap-urls.txt'
           expected="$(sed -nE 's/^PASS SITEMAP_URL_COUNT count=([0-9]+)$/\1/p' "$log" | tail -n1)"
           grep '^PASS URL_SEO url=' "$log" | sed -E 's/^PASS URL_SEO url=([^ ]+) .*/\1/' > "$out" || true
-          base_prefix="${BASE_URL%/}/"
-          base_host="$(node -e 'process.stdout.write(new URL(process.argv[1]).host)' "$BASE_URL")"
-          [[ -n "$base_prefix" && "$base_host" == "$EXPECTED_HOST" ]] || {
-            echo "GSC_URL_INVENTORY=FAIL base_url=$BASE_URL base_host=${base_host:-missing} expected_host=$EXPECTED_HOST" >&2
-            exit 1
-          }
-          actual="$(awk -v prefix="$base_prefix" 'index($0, prefix) == 1 { count++ } END { print count + 0 }' "$out")"
-          [[ "$expected" =~ ^[0-9]+$ && "$actual" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]] || {
-            echo "GSC_URL_INVENTORY=FAIL expected=${expected:-missing} actual=$actual" >&2
-            exit 1
-          }
-          [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]] || { echo 'GSC_URL_INVENTORY=FAIL duplicate_urls' >&2; exit 1; }
-          echo "GSC_URL_INVENTORY=PASS urls=$actual source=release-origin-audit"
+          actual="$(wc -l < "$out" | tr -d ' ')"
+          [[ "$expected" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]]
+          [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]]
 
-      - name: Submit production sitemap to IndexNow on established SSH
-        if: ${{ github.event_name == 'push' || inputs.run_post_audits }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < "$AUDIT_ROOT/scripts/production/indexnow-submit-sitemap.sh" | tee scripts/production/artifacts/indexnow-submit.log
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < "$CANDIDATE_ROOT/scripts/production/indexnow-submit-sitemap.sh" | tee scripts/production/artifacts/indexnow-submit.log
+          echo "PRODUCTION_ORIGIN_AUDITS=PASS urls=$actual tooling_sha=$CANDIDATE_SHA"
 
-      - name: Diagnose title emitters after release audit failure
-        if: ${{ always() && (steps.document_title_audit.outcome == 'failure' || steps.seo_geo_audit.outcome == 'failure') }}
+      - name: Diagnose exact-candidate title emitters after audit failure
+        if: ${{ always() && steps.origin_audits.outcome == 'failure' }}
         shell: bash
         run: |
           set +e
-          if [[ -f "$HOME/.ssh/config" ]]; then
-            ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < "$AUDIT_ROOT/scripts/production/diagnose-title-emitters.sh" | tee scripts/production/artifacts/title-emitter-diagnostic.log
+          if [[ -f "$HOME/.ssh/config" && -n "${CANDIDATE_ROOT:-}" ]]; then
+            ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < "$CANDIDATE_ROOT/scripts/production/diagnose-title-emitters.sh" | tee scripts/production/artifacts/title-emitter-diagnostic.log
           fi
           exit 0
 
@@ -568,7 +308,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload production origin audit evidence
-        if: ${{ always() && (github.event_name == 'push' || inputs.run_post_audits) }}
+        if: ${{ always() && inputs.run_post_audits }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-origin-audit-${{ env.CANDIDATE_SHA }}
@@ -586,9 +326,8 @@ jobs:
         run: |
           set +e
           if [[ -n "${REMOTE_RELEASE:-}" && -f "$HOME/.ssh/config" ]]; then ssh nvx-prod "rm -rf '$REMOTE_RELEASE'" || true; fi
-          rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/staging_gate_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+          rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
           [[ -z "${CANDIDATE_ROOT:-}" ]] || git worktree remove --force "$CANDIDATE_ROOT" 2>/dev/null || true
-          [[ -z "${AUDIT_ROOT:-}" ]] || git worktree remove --force "$AUDIT_ROOT" 2>/dev/null || true
 
       - name: Write release summary
         if: success()
@@ -597,16 +336,12 @@ jobs:
           {
             echo '## Production release PASS'
             echo
-            echo "- Candidate source: current locked Staging2 deploy marker"
+            echo '- Candidate authority: immutable successful Staging acceptance artifact.'
             echo "- Exact SHA: \`$CANDIDATE_SHA\`"
             echo "- Theme tree: \`$CANDIDATE_THEME_TREE\`"
-            echo "- Canonical audit tooling SHA: \`$CANONICAL_AUDIT_SHA\`"
-            echo '- Staging acceptance: exact-SHA successful-attempt artifact verified.'
-            echo '- Cross-environment concurrency: serialized; Staging cannot advance during this release.'
+            echo "- Deploy/audit tooling SHA: \`$CANONICAL_AUDIT_SHA\`"
+            echo '- FIFO lease prevented newer Staging/Production mutations from overtaking this release.'
             echo '- Atomic production cutover + rollback contract: PASS.'
-            if [[ "$GITHUB_EVENT_NAME" == push || "${{ inputs.run_post_audits }}" == true ]]; then
-              echo '- Blocking document-title, SEO/GEO and IndexNow submission reused the established production SSH identity.'
-            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:
@@ -614,21 +349,35 @@ jobs:
     needs: release
     if: >-
       always() &&
-      (github.event_name == 'push' || inputs.run_post_audits) &&
-      (needs.release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.deploy == false))
+      inputs.run_post_audits &&
+      (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
       contents: read
       actions: read
       id-token: write
+    env:
+      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
     steps:
-      - name: Check out canonical master audit tooling
+      - name: Check out exact candidate audit tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: ${{ inputs.candidate_sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Validate candidate and production identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$candidate"
+          if [[ "${{ inputs.deploy }}" == false ]]; then
+            BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$candidate" node scripts/production/verify-production-boundary.mjs
+          fi
+          echo "POST_AUDIT_TOOLING=PASS sha=$candidate"
 
       - name: Setup Node.js for Search Console audit
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -640,14 +389,14 @@ jobs:
         run: npm ci --prefix scripts/seo --ignore-scripts
 
       - name: Download release origin audit evidence
-        if: needs.release.result == 'success'
+        if: ${{ inputs.deploy }}
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: production-origin-audit-${{ needs.release.outputs.candidate_sha }}
           path: scripts
 
       - name: Validate release origin evidence handoff
-        if: needs.release.result == 'success'
+        if: ${{ inputs.deploy }}
         shell: bash
         run: |
           set -euo pipefail
@@ -661,8 +410,7 @@ jobs:
           echo "RELEASE_ORIGIN_EVIDENCE=PASS urls=$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
 
       - name: Configure verification-only production audit SSH
-        id: verification_ssh
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
+        if: ${{ inputs.deploy == false }}
         shell: bash
         env:
           HOST: ${{ secrets.PROD_SSH_HOST }}
@@ -672,12 +420,11 @@ jobs:
           KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          SSH_PORT="${PORT:-18765}"
           mkdir -p "$HOME/.ssh" scripts/production/artifacts scripts/seo/artifacts; chmod 700 "$HOME/.ssh"
           printf '%s\n' "$KEY" > "$HOME/.ssh/prod_audit_key"; chmod 600 "$HOME/.ssh/prod_audit_key"
           printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_AUDIT_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-prod-audit
             HostName $HOST
@@ -689,109 +436,27 @@ jobs:
             StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-prod-audit true
 
-          classify_ssh_error() {
-            local file="$1"
-            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
-            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
-            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
-            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
-            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
-            else echo SSH_HANDSHAKE_OR_UNKNOWN
-            fi
-          }
-
-          if timeout 10 bash -c "exec 3<>/dev/tcp/$HOST/$SSH_PORT" 2>/dev/null; then
-            echo 'PRODUCTION_AUDIT_TCP_PROBE=PASS'
-          else
-            echo 'PRODUCTION_AUDIT_TCP_PROBE=NO_RESPONSE'
-          fi
-
-          audit_connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          last_reason='UNKNOWN'
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            ssh_error="$RUNNER_TEMP/production-audit-ssh-attempt-${attempt}.err"
-            if ssh -n nvx-prod-audit true 2>"$ssh_error"; then
-              audit_connected=1
-              echo "PRODUCTION_AUDIT_SSH_ATTEMPT=PASS attempt=$attempt"
-              break
-            fi
-            last_reason="$(classify_ssh_error "$ssh_error")"
-            echo "PRODUCTION_AUDIT_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
-            tail -n 2 "$ssh_error" >&2 || true
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              echo "Production audit SSH attempt $attempt/$SSH_RETRY_ATTEMPTS failed; retrying in ${retry_delay}s..."
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$audit_connected" = 1 ]] || { echo "PRODUCTION_AUDIT_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'PRODUCTION_AUDIT_SSH=PASS mode=verification-only'
-
-      - name: Verify one document title across production sitemap in verification-only mode
-        id: verification_document_title_audit
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
+      - name: Run verification-only exact-candidate origin audits
+        if: ${{ inputs.deploy == false }}
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-prod-audit "BASE_URL='$BASE_URL' bash -s" < scripts/production/document-head-title-audit.sh | tee scripts/production/artifacts/document-head-title-audit.log
-
-      - name: Run blocking SEO/GEO origin audit in verification-only mode
-        id: verification_seo_geo_audit
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
-        shell: bash
-        run: |
-          set -euo pipefail
           ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < scripts/production/seo-geo-origin-audit.sh | tee scripts/production/artifacts/seo-geo-origin-audit.log
-
-      - name: Materialize exact sitemap URL inventory in verification-only mode
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
-        shell: bash
-        run: |
-          set -euo pipefail
           log='scripts/production/artifacts/seo-geo-origin-audit.log'
           out='scripts/seo/artifacts/sitemap-urls.txt'
           expected="$(sed -nE 's/^PASS SITEMAP_URL_COUNT count=([0-9]+)$/\1/p' "$log" | tail -n1)"
           grep '^PASS URL_SEO url=' "$log" | sed -E 's/^PASS URL_SEO url=([^ ]+) .*/\1/' > "$out" || true
-          base_prefix="${BASE_URL%/}/"
-          base_host="$(node -e 'process.stdout.write(new URL(process.argv[1]).host)' "$BASE_URL")"
-          [[ -n "$base_prefix" && "$base_host" == "$EXPECTED_HOST" ]] || {
-            echo "GSC_URL_INVENTORY=FAIL base_url=$BASE_URL base_host=${base_host:-missing} expected_host=$EXPECTED_HOST" >&2
-            exit 1
-          }
-          actual="$(awk -v prefix="$base_prefix" 'index($0, prefix) == 1 { count++ } END { print count + 0 }' "$out")"
-          [[ "$expected" =~ ^[0-9]+$ && "$actual" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]] || {
-            echo "GSC_URL_INVENTORY=FAIL expected=${expected:-missing} actual=$actual" >&2
-            exit 1
-          }
-          [[ "$(sort -u "$out" | wc -l | tr -d ' ')" -eq "$actual" ]] || { echo 'GSC_URL_INVENTORY=FAIL duplicate_urls' >&2; exit 1; }
-          echo "GSC_URL_INVENTORY=PASS urls=$actual source=verification-origin-audit"
-
-      - name: Submit production sitemap to IndexNow in verification-only mode
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == false }}
-        shell: bash
-        run: |
-          set -euo pipefail
+          actual="$(wc -l < "$out" | tr -d ' ')"
+          [[ "$expected" =~ ^[0-9]+$ && "$actual" -eq "$expected" && "$actual" -gt 0 ]]
           ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' INDEXNOW_KEY='$INDEXNOW_KEY' bash -s" < scripts/production/indexnow-submit-sitemap.sh | tee scripts/production/artifacts/indexnow-submit.log
-
-      - name: Diagnose title emitters after verification-only audit failure
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.deploy == false && (steps.verification_document_title_audit.outcome == 'failure' || steps.verification_seo_geo_audit.outcome == 'failure') }}
-        shell: bash
-        run: |
-          set +e
-          if [[ -f "$HOME/.ssh/config" ]]; then
-            ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < scripts/production/diagnose-title-emitters.sh | tee scripts/production/artifacts/title-emitter-diagnostic.log
-          fi
-          exit 0
+          echo "VERIFICATION_ORIGIN_AUDITS=PASS urls=$actual sha=$CANDIDATE_SHA"
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
-        id: google_auth
         if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' && vars.GCP_SEARCH_CONSOLE_SERVICE_ACCOUNT != '' }}
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
@@ -806,23 +471,21 @@ jobs:
         shell: bash
         env:
           STATIC_SEARCH_CONSOLE_JSON: ${{ secrets.SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
-          WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SEARCH_CONSOLE_SERVICE_ACCOUNT }}
         run: |
           set -euo pipefail
           rm -f scripts/seo/credentials.json
           if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && -s "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
             echo 'SEARCH_CONSOLE_AUTH=WIF_ADC'
-            echo 'enabled=true' >> $GITHUB_OUTPUT
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
           elif [[ -n "$STATIC_SEARCH_CONSOLE_JSON" ]]; then
             printf '%s' "$STATIC_SEARCH_CONSOLE_JSON" > scripts/seo/credentials.json
             chmod 600 scripts/seo/credentials.json
             jq -e '.type == "service_account" and (.client_email | type == "string" and length > 0) and (.private_key | type == "string" and length > 0)' scripts/seo/credentials.json >/dev/null
             echo 'SEARCH_CONSOLE_AUTH=SERVICE_ACCOUNT_JSON_FALLBACK'
-            echo 'enabled=true' >> $GITHUB_OUTPUT
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
           else
             echo 'SEARCH_CONSOLE_AUTH=SKIPPED no_credentials_configured'
-            echo 'enabled=false' >> $GITHUB_OUTPUT
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
           fi
 
       - name: Inspect exact production sitemap URLs in Google Search Console
@@ -830,17 +493,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/seo/index-pages.js \
-            --property "$SEARCH_CONSOLE_PROPERTY" \
-            --url "$BASE_URL" \
-            --urls-file scripts/seo/artifacts/sitemap-urls.txt \
-            2>&1 | tee scripts/seo/artifacts/url-inspection.log
+          node scripts/seo/index-pages.js --property "$SEARCH_CONSOLE_PROPERTY" --url "$BASE_URL" --urls-file scripts/seo/artifacts/sitemap-urls.txt 2>&1 | tee scripts/seo/artifacts/url-inspection.log
           grep -Fq 'INSPECTION_COMPLETED=true' scripts/seo/artifacts/url-inspection.log
           total="$(sed -nE 's/^TOTAL_URLS=([0-9]+)$/\1/p' scripts/seo/artifacts/url-inspection.log | tail -n1)"
           api_errors="$(sed -nE 's/^API_ERRORS=([0-9]+)$/\1/p' scripts/seo/artifacts/url-inspection.log | tail -n1)"
           inventory="$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
-          [[ "$total" =~ ^[0-9]+$ && "$total" -eq "$inventory" ]] || { echo "GSC_INSPECTION=FAIL total=${total:-missing} inventory=$inventory" >&2; exit 1; }
-          [[ "$api_errors" == '0' ]] || { echo "GSC_INSPECTION=FAIL api_errors=${api_errors:-missing}" >&2; exit 1; }
+          [[ "$total" =~ ^[0-9]+$ && "$total" -eq "$inventory" ]]
+          [[ "$api_errors" == '0' ]]
           echo "GSC_INSPECTION=PASS urls=$total api_errors=0"
 
       - name: Export Search Console URL-level CSV evidence
@@ -851,29 +510,7 @@ jobs:
           json='scripts/seo/artifacts/indexing-results.json'
           csv='scripts/seo/artifacts/indexing-results.csv'
           if [[ -s "$json" ]]; then
-            jq -r '
-              (["url","apiStatus","verdict","coverageState","indexingState","robotsTxtState","pageFetchState","lastCrawlTime","crawledAs","userCanonical","googleCanonical","blocked","canonicalMismatch","referringUrls","sitemap"] | @csv),
-              (.results[] | [
-                .url,
-                .apiStatus,
-                (.verdict // ""),
-                (.coverageState // ""),
-                (.indexingState // ""),
-                (.robotsTxtState // ""),
-                (.pageFetchState // ""),
-                (.lastCrawlTime // ""),
-                (.crawledAs // ""),
-                (.userCanonical // ""),
-                (.googleCanonical // ""),
-                (.blocked // false),
-                (.canonicalMismatch // false),
-                ((.referringUrls // []) | join(" | ")),
-                ((.sitemap // []) | join(" | "))
-              ] | @csv)
-            ' "$json" > "$csv"
-            echo "GSC_CSV=PASS rows=$(($(wc -l < "$csv") - 1))"
-          else
-            echo 'GSC_CSV=SKIPPED no_indexing_results' >&2
+            jq -r '(["url","apiStatus","verdict","coverageState","indexingState","robotsTxtState","pageFetchState","lastCrawlTime","crawledAs","userCanonical","googleCanonical","blocked","canonicalMismatch","referringUrls","sitemap"] | @csv), (.results[] | [.url,.apiStatus,(.verdict // ""),(.coverageState // ""),(.indexingState // ""),(.robotsTxtState // ""),(.pageFetchState // ""),(.lastCrawlTime // ""),(.crawledAs // ""),(.userCanonical // ""),(.googleCanonical // ""),(.blocked // false),(.canonicalMismatch // false),((.referringUrls // []) | join(" | ")),((.sitemap // []) | join(" | "))] | @csv)' "$json" > "$csv"
           fi
 
       - name: Verify public IndexNow key with origin fallback
@@ -883,60 +520,20 @@ jobs:
           public_url="$BASE_URL/$INDEXNOW_KEY.txt"
           response_file="$RUNNER_TEMP/indexnow-public-key.txt"
           transport_error="$RUNNER_TEMP/indexnow-public-key.err"
-          rm -f "$response_file" "$transport_error"
-
           set +e
-          http_code="$(curl -sS \
-            --retry 3 \
-            --retry-all-errors \
-            --retry-delay 2 \
-            --retry-max-time 45 \
-            --connect-timeout 5 \
-            --max-time 15 \
-            --proto '=https' \
-            --proto-redir '=https' \
-            -o "$response_file" \
-            -w '%{http_code}' \
-            "$public_url" 2>"$transport_error")"
+          http_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 5 --max-time 15 --proto '=https' --proto-redir '=https' -o "$response_file" -w '%{http_code}' "$public_url" 2>"$transport_error")"
           curl_rc=$?
           set -e
-
           if (( curl_rc == 0 )); then
-            [[ "$http_code" == '200' ]] || {
-              echo "INDEXNOW_KEY_PUBLIC=FAIL reason=http_status status=$http_code" >&2
-              exit 1
-            }
-            actual="$(tr -d '\r\n' < "$response_file")"
-            [[ "$actual" == "$INDEXNOW_KEY" ]] || {
-              echo 'INDEXNOW_KEY_PUBLIC=FAIL reason=content_mismatch' >&2
-              exit 1
-            }
+            [[ "$http_code" == '200' ]]
+            [[ "$(tr -d '\r\n' < "$response_file")" == "$INDEXNOW_KEY" ]]
             echo 'INDEXNOW_KEY_PUBLIC=PASS source=public-edge'
-            exit 0
+          else
+            origin_log='scripts/production/artifacts/indexnow-submit.log'
+            grep -Fq "PASS INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt" "$origin_log"
+            grep -Fq 'INDEXNOW_SUBMIT=PASS' "$origin_log"
+            echo 'INDEXNOW_KEY_PUBLIC=UNVERIFIED_TRANSPORT origin_evidence=PASS'
           fi
-
-          reason='TRANSPORT_ERROR'
-          if grep -qi 'timed out' "$transport_error"; then reason='TIMEOUT'
-          elif grep -qi 'Could not resolve host' "$transport_error"; then reason='DNS'
-          elif grep -Eqi 'Failed to connect|Connection refused|Network is unreachable|No route to host' "$transport_error"; then reason='CONNECT'
-          fi
-
-          origin_log='scripts/production/artifacts/indexnow-submit.log'
-          [[ -s "$origin_log" ]] || {
-            echo "INDEXNOW_KEY_PUBLIC=FAIL reason=$reason origin_evidence=missing" >&2
-            exit 1
-          }
-          grep -Fq "PASS INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt" "$origin_log" || {
-            echo "INDEXNOW_KEY_PUBLIC=FAIL reason=$reason origin_key_evidence=missing" >&2
-            exit 1
-          }
-          grep -Fq 'INDEXNOW_SUBMIT=PASS' "$origin_log" || {
-            echo "INDEXNOW_KEY_PUBLIC=FAIL reason=$reason indexnow_submission_evidence=missing" >&2
-            exit 1
-          }
-
-          echo "::warning::Public IndexNow key fetch unavailable from this GitHub runner ($reason); exact origin key-file evidence and successful IndexNow submission are present."
-          echo "INDEXNOW_KEY_PUBLIC=UNVERIFIED_TRANSPORT reason=$reason origin_evidence=PASS"
 
       - name: Upload production audit evidence
         if: always()
@@ -953,7 +550,7 @@ jobs:
           if-no-files-found: warn
           compression-level: 6
 
-      - name: Destroy verification-only production audit identity and temporary credentials
+      - name: Cleanup audit identities and temporary credentials
         if: always()
         shell: bash
         run: |
@@ -965,17 +562,20 @@ jobs:
     needs: release
     if: >-
       always() &&
-      github.event_name == 'workflow_dispatch' &&
       inputs.run_performance &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - name: Check out master
+      - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
+
+      - name: Verify production is exact requested SHA
+        shell: bash
+        run: BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
 
       - name: Run Lighthouse production matrix
         shell: bash
@@ -1006,31 +606,13 @@ jobs:
               done
               if [[ "$success" != 1 ]]; then
                 printf '%s\t%s\t%s\n' "$page" "$mode" 'lighthouse_execution_failed_after_3_attempts' >> perf-results/failures.tsv
-                matrix_failures=$((matrix_failures + 1))
-                continue
+                matrix_failures=$((matrix_failures + 1)); continue
               fi
-              if ! jq -e '
-                (.categories.performance.score | type == "number") and
-                (.audits["first-contentful-paint"].numericValue | type == "number") and
-                (.audits["largest-contentful-paint"].numericValue | type == "number") and
-                (.audits["total-blocking-time"].numericValue | type == "number") and
-                (.audits["cumulative-layout-shift"].numericValue | type == "number") and
-                (.audits["speed-index"].numericValue | type == "number") and
-                (.audits["server-response-time"].numericValue | type == "number")
-              ' "$out" >/dev/null; then
-                printf '%s\t%s\t%s\n' "$page" "$mode" 'invalid_lighthouse_json' >> perf-results/failures.tsv
-                matrix_failures=$((matrix_failures + 1))
-                continue
-              fi
+              jq -e '(.categories.performance.score | type == "number") and (.audits["largest-contentful-paint"].numericValue | type == "number") and (.audits["cumulative-layout-shift"].numericValue | type == "number")' "$out" >/dev/null || { matrix_failures=$((matrix_failures + 1)); continue; }
               jq -r --arg p "$page" --arg m "$mode" '[$p,$m,((.categories.performance.score)*100|round),(.audits["first-contentful-paint"].numericValue|round),(.audits["largest-contentful-paint"].numericValue|round),(.audits["total-blocking-time"].numericValue|round),(.audits["cumulative-layout-shift"].numericValue),(.audits["speed-index"].numericValue|round),(.audits["server-response-time"].numericValue|round)]|@tsv' "$out" >> perf-results/summary.tsv
             done
           done
-          cat perf-results/summary.tsv
-          if (( matrix_failures > 0 )); then
-            echo "LIGHTHOUSE_MATRIX=FAIL failures=$matrix_failures" >&2
-            cat perf-results/failures.tsv >&2
-            exit 1
-          fi
+          (( matrix_failures == 0 )) || { cat perf-results/failures.tsv >&2; exit 1; }
           echo 'LIGHTHOUSE_MATRIX=PASS failures=0'
 
       - name: Upload performance evidence
@@ -1046,16 +628,15 @@ jobs:
     needs: release
     if: >-
       always() &&
-      github.event_name == 'workflow_dispatch' &&
       inputs.run_hubspot_e2e &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out master
+      - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
 
       - name: Setup Node.js
@@ -1065,29 +646,13 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Resolve independent expected production SHA
-        id: expected_sha
+      - name: Verify production and run live H1 E2E
         shell: bash
         env:
-          RELEASE_SHA: ${{ needs.release.outputs.candidate_sha }}
-          REQUESTED_SHA: ${{ inputs.candidate_sha }}
+          EXPECTED_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
-          expected_sha="$(printf '%s' "$RELEASE_SHA" | tr -d '[:space:]')"
-          if [[ -z "$expected_sha" ]]; then
-            expected_sha="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
-            [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Verification-only HubSpot E2E requires candidate_sha as an independent full lowercase 40-character SHA.' >&2; exit 1; }
-          fi
-          [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid authoritative production SHA: $expected_sha" >&2; exit 1; }
-          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
-          echo "H1_EXPECTED_SHA=$expected_sha"
-
-      - name: Install Playwright and run live H1 E2E
-        shell: bash
-        env:
-          EXPECTED_SHA: ${{ steps.expected_sha.outputs.sha }}
-        run: |
-          set -euo pipefail
+          BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$EXPECTED_SHA" node scripts/production/verify-production-boundary.mjs
           cd scripts/staging2
           npm ci --ignore-scripts
           ./node_modules/.bin/playwright install --with-deps chromium

@@ -371,16 +371,29 @@
       }
     }
 
+    function isHubSpotIframe(ifr) {
+      if (!ifr || ifr.tagName !== 'IFRAME') return false;
+      if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame, #nvx-hubspot-form, #nvx-valoracion-modal'))) {
+        return true;
+      }
+      const rawSrc = ifr.getAttribute('src');
+      if (!rawSrc) return false;
+      try {
+        const parsed = new URL(rawSrc, window.location.href);
+        const host = parsed.hostname.toLowerCase();
+        return host === 'hsforms.com' || host.endsWith('.hsforms.com') ||
+               host === 'hsforms.net' || host.endsWith('.hsforms.net') ||
+               host === 'hubspot.com' || host.endsWith('.hubspot.com') ||
+               host === 'hscollectedforms.net' || host.endsWith('.hscollectedforms.net');
+      } catch {
+        return false;
+      }
+    }
+
     function enforceAccessibleIframeTitles() {
-      const iframes = document.querySelectorAll(
-        'iframe[src*="hsforms"], iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe'
-      );
+      const iframes = document.querySelectorAll('iframe');
       iframes.forEach(function (ifr) {
-        const src = String(ifr.getAttribute('src') || '').toLowerCase();
-        const isHubSpotFrame = ifr.classList.contains('hs-form-iframe') ||
-          Boolean(ifr.closest('.hs-form-frame')) ||
-          src.includes('hsforms');
-        if (!isHubSpotFrame) return;
+        if (!isHubSpotIframe(ifr)) return;
 
         const currentTitle = ifr.getAttribute('title');
         // iframe has a native accessible-name mechanism via title. Keep that

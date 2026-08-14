@@ -2,14 +2,16 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import path from 'node:path';
+import {
+  isSiteGroundCaptchaInterruption,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const valuationUrl = `${baseUrl}/madrid/valoracion/`;
 const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const expectedPortalId = '147416356';
-const transientStatuses = new Set([202, 429, 503]);
-const captchaPath = '/.well-known/sgcaptcha/';
 const transientExitCode = 75;
 const maxAttempts = 5;
 const viewports = [
@@ -31,11 +33,6 @@ const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
 await fs.rm(outDir, { recursive: true, force: true });
 await fs.mkdir(outDir, { recursive: true });
 
-function isCaptchaInterruption(error, currentUrl) {
-  const message = error instanceof Error ? error.message : String(error || '');
-  return currentUrl.includes(captchaPath) || (/interrupted by another navigation/i.test(message) && message.includes(captchaPath));
-}
-
 function isMatchingHubSpotFrame(frame, page, embeddedSrc) {
   if (frame === page.mainFrame()) return false;
   const frameUrl = frame.url() || '';
@@ -45,31 +42,23 @@ function isMatchingHubSpotFrame(frame, page, embeddedSrc) {
 async function frameHasVisibleControl(frame) {
   const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
   const count = Math.min(await controls.count().catch(() => 0), 40);
+  for (let index = 0; index < count; index += 1) {
+    if (await controls.nth(index).isVisible().catch(() => false)) return true;
+  }
+  return false;
+}
+
 async function visibleControlsInHubSpotFrame(page, embeddedSrc) {
   const deadline = Date.now() + 12000;
-  let frameEverFound = false;
-
   while (Date.now() < deadline) {
-    for (const frame of page.frames()) {
-      if (frame === page.mainFrame()) continue;
-      const frameUrl = frame.url() || '';
-      if (!frameUrl.includes(expectedFormId) && (!embeddedSrc || frameUrl !== embeddedSrc)) continue;
-
-      frameEverFound = true;
-
-      const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
-      const count = await controls.count().catch(() => 0);
-      for (let index = 0; index < Math.min(count, 40); index += 1) {
-        if (await controls.nth(index).isVisible().catch(() => false)) {
-          return { frameFound: true, visibleControls: 1 };
-        }
-      }
+    const frames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
+    for (const frame of frames) {
+      if (await frameHasVisibleControl(frame)) return { frameFound: true, visibleControls: 1 };
     }
-
+    if (frames.length > 0) return { frameFound: true, visibleControls: 0 };
     await page.waitForTimeout(600);
   }
-
-  return { frameFound: frameEverFound, visibleControls: 0 };
+  return { frameFound: false, visibleControls: 0 };
 }
 
 async function navigateValuation(page) {
@@ -77,16 +66,17 @@ async function navigateValuation(page) {
     const response = await page.goto(valuationUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
     const headers = response ? await response.allHeaders() : {};
     const status = response?.status() || 0;
-    const transient = transientStatuses.has(status) || Boolean(headers['sg-captcha']) || page.url().includes(captchaPath);
+    const currentUrl = page.url();
+    const transient = isSiteGroundTransientResponse(status, headers, currentUrl);
     return {
       response,
       status,
       transient,
       reason: transient ? `SiteGround challenge HTTP ${status}` : '',
-      currentUrl: page.url(),
+      currentUrl,
     };
   } catch (error) {
-    if (!isCaptchaInterruption(error, page.url())) throw error;
+    if (!isSiteGroundCaptchaInterruption(error, page.url())) throw error;
     return {
       response: null,
       status: 0,

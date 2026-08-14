@@ -282,7 +282,7 @@ if (
     );
     if ( is_array( $inline_contents ) ) {
         foreach ( $inline_contents as $content_str ) {
-            if ( preg_match_all( '#/wp-content/uploads/([^\'"\s<>?#\),]+)#i', (string) $content_str, $content_matches ) ) {
+            if ( preg_match_all( '~/wp-content/uploads/([^\'"\s<>?#\),]+)~i', (string) $content_str, $content_matches ) ) {
                 foreach ( $content_matches[1] as $matched_path ) {
                     $cleaned = urldecode( rtrim( (string) $matched_path, '),' ) );
                     $norm    = $normalize_media_path( $cleaned );

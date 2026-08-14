@@ -319,6 +319,12 @@ async function exerciseBlankValidation(frame, expectedRequiredControls) {
   return { issues, controls, active, liveRegionCount };
 }
 
+function formatIssueMessage(issue) {
+  if (typeof issue === 'string') return issue;
+  if (issue && typeof issue.message === 'string') return issue.message;
+  return JSON.stringify(issue);
+}
+
 async function auditForm(page, hubspot, documentState, attempt, submissionState) {
   const controlsBefore = await collectControls(hubspot.frame);
   if (controlsBefore.length === 0) return transientResult(attempt, 'hubspot_visible_controls_not_available');
@@ -357,7 +363,7 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
     });
   }
 
-  const rawIssueMessages = issues.map((issue) => (typeof issue === 'string' ? issue : (issue?.message || String(issue))));
+  const rawIssueMessages = issues.map(formatIssueMessage);
   const structuredIssues = issues.map((issue) => (typeof issue === 'string' ? { message: issue } : issue));
 
   return {
@@ -459,8 +465,7 @@ function reportRealFailure(result) {
   const issues = result.issues || [result.reason || 'unknown failure'];
   console.error(`HUBSPOT_A11Y=FAIL_REAL issues=${issues.length}`);
   for (const issue of issues) {
-    const message = typeof issue === 'string' ? issue : (issue?.message || JSON.stringify(issue));
-    console.error(`HUBSPOT_A11Y_ISSUE=${message}`);
+    console.error(`HUBSPOT_A11Y_ISSUE=${formatIssueMessage(issue)}`);
   }
 }
 

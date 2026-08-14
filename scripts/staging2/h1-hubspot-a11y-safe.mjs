@@ -70,10 +70,18 @@ function isDeferredPhoneIssue(issue, phoneIdentity) {
   return isPhoneControl && isAllowedCriterion && (isAllowedCategory || isAllowedCode);
 }
 
+function getResultIssues(result) {
+  if (Array.isArray(result?.structuredIssues) && result.structuredIssues.length > 0) {
+    return result.structuredIssues;
+  }
+  if (Array.isArray(result?.issues)) {
+    return result.issues;
+  }
+  return [];
+}
+
 function onlyDeferredPhoneIssues(result, phone) {
-  const structured = Array.isArray(result?.structuredIssues) && result.structuredIssues.length > 0
-    ? result.structuredIssues
-    : (Array.isArray(result?.issues) ? result.issues : []);
+  const structured = getResultIssues(result);
   const phoneIdentity = identity(phone);
   if (!phoneIdentity || structured.length === 0) return false;
 
@@ -90,11 +98,51 @@ function onlyDeferredPhoneIssues(result, phone) {
   return true;
 }
 
+function isAuditResultEligible(result, expectedSha) {
+  if (!result || result.transient || !result.realFailure || result.submissionObserved !== true) {
+    return false;
+  }
+  if (result.submissionInterceptionInstalled !== true || result.submissionInterceptionPolicy !== 'blockedbyclient') {
+    return false;
+  }
+  return /^[0-9a-f]{40}$/.test(expectedSha) && result.deploySha === expectedSha;
+}
+
+function buildUniqueIdentityMap(controls) {
+  const map = new Map();
+  for (const control of controls) {
+    const id = identity(control);
+    if (!id || map.has(id)) {
+      return null;
+    }
+    map.set(id, control);
+  }
+  return map;
+}
+
+function areRequiredControlsUnique(requiredControls) {
+  const identities = new Set();
+  for (const control of requiredControls) {
+    const id = identity(control);
+    if (!id || identities.has(id)) {
+      return false;
+    }
+    identities.add(id);
+  }
+  return true;
+}
+
+function validateOtherRequiredErrors(otherRequired, errorsByIdentity) {
+  return otherRequired.every((control) => {
+    const id = identity(control);
+    const errorControl = id ? errorsByIdentity.get(id) : undefined;
+    return hasAccessibleClientError(errorControl);
+  });
+}
+
 async function canAcceptSafeScope(result) {
   const expectedSha = String(process.env.EXPECTED_SHA || '').trim();
-  if (!result || result.transient || !result.realFailure || result.submissionObserved !== true) return false;
-  if (result.submissionInterceptionInstalled !== true || result.submissionInterceptionPolicy !== 'blockedbyclient') return false;
-  if (!/^[0-9a-f]{40}$/.test(expectedSha) || result.deploySha !== expectedSha) return false;
+  if (!isAuditResultEligible(result, expectedSha)) return false;
 
   const controls = Array.isArray(result.controls) ? result.controls : [];
   const errors = Array.isArray(result.errorSemantics) ? result.errorSemantics : [];
@@ -103,47 +151,21 @@ async function canAcceptSafeScope(result) {
   if (requiredBefore.length < 2 || phones.length !== 1) return false;
 
   const phone = phones[0];
-  if (!phoneClientContractPasses(phone) || !onlyDeferredPhoneIssues(result, phone)) return false;
-
   const phoneIdentity = identity(phone);
-  if (!phoneIdentity) return false;
-
-  const errorsByIdentity = new Map();
-  for (const errorControl of errors) {
-    const errorIdentity = identity(errorControl);
-    if (!errorIdentity || errorsByIdentity.has(errorIdentity)) {
-      return false;
-    }
-    errorsByIdentity.set(errorIdentity, errorControl);
+  if (!phoneIdentity || !phoneClientContractPasses(phone) || !onlyDeferredPhoneIssues(result, phone)) {
+    return false;
   }
 
-  // Also assert that the phone control maintains its client contract in post-submit error snapshot
+  const errorsByIdentity = buildUniqueIdentityMap(errors);
+  if (!errorsByIdentity) return false;
+
   const postSubmitPhone = errorsByIdentity.get(phoneIdentity);
   if (!postSubmitPhone || !phoneClientContractPasses(postSubmitPhone)) return false;
 
-  const requiredIdentities = new Set();
-  for (const control of requiredBefore) {
-    const controlIdentity = identity(control);
-    if (!controlIdentity || requiredIdentities.has(controlIdentity)) {
-      return false;
-    }
-    requiredIdentities.add(controlIdentity);
-  }
+  if (!areRequiredControlsUnique(requiredBefore)) return false;
 
-  const otherRequired = requiredBefore.filter((control) => {
-    const controlIdentity = identity(control);
-    return controlIdentity && controlIdentity !== phoneIdentity;
-  });
-
-  if (
-    !otherRequired.every((control) => {
-      const controlIdentity = identity(control);
-      const errorForControl = controlIdentity ? errorsByIdentity.get(controlIdentity) : undefined;
-      return hasAccessibleClientError(errorForControl);
-    })
-  ) {
-    return false;
-  }
+  const otherRequired = requiredBefore.filter((control) => identity(control) !== phoneIdentity);
+  if (!validateOtherRequiredErrors(otherRequired, errorsByIdentity)) return false;
 
   return Number(result.liveRegionCount || 0) > 0;
 }

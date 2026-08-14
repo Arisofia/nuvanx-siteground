@@ -39,8 +39,7 @@ function hasAccessibleClientError(control) {
 
 function phoneClientContractPasses(phone) {
   return Boolean(
-    phone
-    && phone.type === 'tel'
+    phone?.type === 'tel'
     && phone.programmaticRequired
     && phone.ariaRequired === 'true'
     && String(phone.accessibleName || '').trim()

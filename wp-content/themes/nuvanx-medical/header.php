@@ -44,7 +44,7 @@ wp_head();
 				false,
 				array(
 					'class'  => 'nvx-logo__img',
-					'alt'    => 'NUVANX',
+					'alt'    => '',
 					'width'  => '160',
 					'height' => '154',
 					'sizes'  => '160px',

@@ -63,10 +63,10 @@
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
 	font-weight: 300;
-	opacity: 0.95;
+	color: var(--nvx-light);
 	margin-bottom: var(--nvx-space-6);
 	max-width: var(--nvx-measure);
-	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
 }
 
 .nvx-home-hero .nvx-brand-actions {

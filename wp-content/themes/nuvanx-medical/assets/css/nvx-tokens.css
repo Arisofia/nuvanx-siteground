@@ -132,10 +132,10 @@
 
   --nvx-media-overlay: linear-gradient(
     180deg,
-    rgba(26, 26, 26, 0.35) 0%,
-    rgba(26, 26, 26, 0.40) 28%,
-    rgba(26, 26, 26, 0.55) 58%,
-    rgba(26, 26, 26, 0.85) 100%
+    rgba(26, 26, 26, 0.52) 0%,
+    rgba(26, 26, 26, 0.58) 28%,
+    rgba(26, 26, 26, 0.70) 58%,
+    rgba(26, 26, 26, 0.88) 100%
   );
 
   --nvx-media-overlay-strong: linear-gradient(

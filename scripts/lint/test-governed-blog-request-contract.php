@@ -7,6 +7,7 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
+define( 'OBJECT', 'OBJECT' );
 
 class WP_Post {
 	public int $ID;

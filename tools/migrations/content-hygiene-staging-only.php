@@ -162,9 +162,9 @@ foreach ( $seed_pages as $page ) {
 // Staging and Production use separate uploads trees. Content parity can therefore
 // leave a valid featured-image attachment record in Staging while the referenced
 // file is physically absent. Browser acceptance must treat that as a real defect.
-// Repair only missing files for featured media used by published posts/pages,
+// Repair only missing or zero-byte truncated files for featured media used by published posts/pages,
 // sourcing from the canonical Production uploads tree. Production is read-only;
-// existing Staging files are never overwritten.
+// valid non-zero Staging files are never overwritten.
 
 echo "\n--- Block B: Featured Media Filesystem Parity ---\n";
 
@@ -184,7 +184,7 @@ $normalize_media_path = static function ( string $path ) {
         return '';
     }
 
-    return ltrim( $path, '/' );
+    return $path;
 };
 
 $production_root_real    = realpath( $production_root );
@@ -198,7 +198,8 @@ if (
     || $production_uploads_real === $staging_uploads_real
     || ! str_starts_with( $production_uploads_real, $production_root_real . DIRECTORY_SEPARATOR )
 ) {
-    fwrite( STDERR, "[ERROR] Featured-media parity filesystem boundary validation failed.\n" );
+    fwrite( STDERR, "[ERROR] Featured-media parity filesystem boundary unresolvable or invalid from staging environment.\n" );
+    printf( "STAGING_FEATURED_MEDIA_PARITY=FAIL reason=invalid-uploads-boundary\n" );
     $blocks_fail++;
 } else {
     $published_ids = get_posts(
@@ -237,30 +238,58 @@ if (
         $required_originals[ $relative ] = true;
 
         $metadata = wp_get_attachment_metadata( $attachment_id );
-        if ( ! is_array( $metadata ) || empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
-            continue;
-        }
-
-        $relative_dir = dirname( $relative );
-        if ( '.' === $relative_dir ) {
-            $relative_dir = '';
-        }
-
-        foreach ( $metadata['sizes'] as $size_data ) {
-            if ( ! is_array( $size_data ) || empty( $size_data['file'] ) ) {
-                continue;
+        if ( is_array( $metadata ) ) {
+            $relative_dir = dirname( $relative );
+            if ( '.' === $relative_dir ) {
+                $relative_dir = '';
             }
 
-            $size_file = $normalize_media_path( (string) $size_data['file'] );
-            if ( '' === $size_file || false !== strpos( $size_file, '/' ) ) {
-                continue;
+            if ( ! empty( $metadata['original_image'] ) && is_string( $metadata['original_image'] ) ) {
+                $orig_file = $normalize_media_path( $metadata['original_image'] );
+                if ( '' !== $orig_file && false === strpos( $orig_file, '/' ) ) {
+                    $orig_relative = $normalize_media_path( ( '' !== $relative_dir ? $relative_dir . '/' : '' ) . $orig_file );
+                    if ( '' !== $orig_relative ) {
+                        $media_paths[ $orig_relative ] = true;
+                    }
+                }
             }
 
-            $size_relative = $normalize_media_path(
-                ( '' !== $relative_dir ? $relative_dir . '/' : '' ) . $size_file
-            );
-            if ( '' !== $size_relative ) {
-                $media_paths[ $size_relative ] = true;
+            if ( ! empty( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+                foreach ( $metadata['sizes'] as $size_data ) {
+                    if ( ! is_array( $size_data ) || empty( $size_data['file'] ) ) {
+                        continue;
+                    }
+
+                    $size_file = $normalize_media_path( (string) $size_data['file'] );
+                    if ( '' === $size_file || false !== strpos( $size_file, '/' ) ) {
+                        continue;
+                    }
+
+                    $size_relative = $normalize_media_path(
+                        ( '' !== $relative_dir ? $relative_dir . '/' : '' ) . $size_file
+                    );
+                    if ( '' !== $size_relative ) {
+                        $media_paths[ $size_relative ] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // Also scan published post_content for any inline referenced media
+    $inline_contents = $wpdb->get_col(
+        "SELECT post_content FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ('post', 'page') AND post_content LIKE '%/wp-content/uploads/%'"
+    );
+    if ( is_array( $inline_contents ) ) {
+        foreach ( $inline_contents as $content_str ) {
+            if ( preg_match_all( '~/wp-content/uploads/([^\'"\s<>?#\),]+)~i', (string) $content_str, $content_matches ) ) {
+                foreach ( $content_matches[1] as $matched_path ) {
+                    $cleaned = urldecode( rtrim( (string) $matched_path, '),' ) );
+                    $norm    = $normalize_media_path( $cleaned );
+                    if ( '' !== $norm && preg_match( '#\.(jpe?g|png|webp|gif|svg|avif|ico|pdf|mp4)$#i', $norm ) ) {
+                        $media_paths[ $norm ] = true;
+                    }
+                }
             }
         }
     }
@@ -277,8 +306,15 @@ if (
         $destination = $staging_uploads_real . DIRECTORY_SEPARATOR . $relative;
 
         if ( file_exists( $destination ) ) {
-            $media_already_present++;
-            continue;
+            if ( is_dir( $destination ) ) {
+                fwrite( STDERR, "[MEDIA-ERROR] destination exists as a directory collision: {$relative}\n" );
+                $media_copy_failures++;
+                continue;
+            }
+            if ( is_file( $destination ) && filesize( $destination ) > 0 ) {
+                $media_already_present++;
+                continue;
+            }
         }
 
         if ( ! is_file( $source ) ) {
@@ -317,19 +353,25 @@ if (
         $media_copied++;
     }
 
+    $parity_status = 'FAIL';
+    if ( 0 === $media_copy_failures ) {
+        $parity_status = $dry_run ? 'DRY_RUN_PASS' : 'PASS';
+    }
+
     printf(
-        "STAGING_FEATURED_MEDIA_PARITY=%s attachments=%d referenced=%d copied=%d already_present=%d source_missing=%d copy_failures=%d\n",
-        0 === $media_copy_failures ? 'PASS' : 'FAIL',
+        "STAGING_FEATURED_MEDIA_PARITY=%s attachments=%d referenced=%d copied=%d already_present=%d source_missing=%d copy_failures=%d mode=%s\n",
+        $parity_status,
         count( $featured_attachment_ids ),
         count( $media_paths ),
         $media_copied,
         $media_already_present,
         $media_source_missing,
-        $media_copy_failures
+        $media_copy_failures,
+        $dry_run ? 'dry-run' : 'live'
     );
 
     if ( $media_copy_failures > 0 ) {
-        $blocks_fail += $media_copy_failures;
+        $blocks_fail++;
     } else {
         $blocks_ok++;
     }

@@ -127,6 +127,9 @@ function validatePublicationTopology(pages, manifest) {
   return errors;
 }
 
+const SITEMAP_FETCH_RETRIES = 4;
+const SITEMAP_BACKOFF_BASE_MS = 1500;
+
 function templateExists(templatePath) {
   if (!templatePath || templatePath === '' || templatePath === 'default') return true;
   if (existsSync(join(TEMPLATES_DIR, templatePath))) return true;
@@ -134,19 +137,32 @@ function templateExists(templatePath) {
   return false;
 }
 
+/**
+ * Decodes XML predefined entities.
+ * Note: &amp; must be unescaped strictly last to prevent double-decoding
+ * (e.g. &amp;lt; legitimately represents literal text "&lt;" and must not become "<").
+ */
 function decodeXml(value) {
   return String(value || '')
-    .replaceAll('&amp;', '&')
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>')
     .replaceAll('&quot;', '"')
-    .replaceAll('&apos;', "'");
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&');
 }
 
 function extractLocs(xml) {
   return [...String(xml || '').matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)]
     .map((match) => decodeXml(match[1]).trim())
     .filter(Boolean);
+}
+
+class SitemapTransientError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'SitemapTransientError';
+    this.isTransient = true;
+  }
 }
 
 function isSiteGroundChallenge(response, body) {
@@ -158,7 +174,7 @@ function isSiteGroundChallenge(response, body) {
 
 async function fetchXml(url) {
   let lastError = null;
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
+  for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRIES; attempt += 1) {
     try {
       const response = await fetch(url, {
         redirect: 'follow',
@@ -169,7 +185,7 @@ async function fetchXml(url) {
       });
       const body = await response.text();
       if (isSiteGroundChallenge(response, body)) {
-        lastError = new Error(`SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
+        lastError = new SitemapTransientError(`Transient SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
       } else if (!response.ok) {
         lastError = new Error(`Sitemap fetch failed for ${url}: HTTP ${response.status}`);
       } else if (!/<(?:sitemapindex|urlset)\b/i.test(body)) {
@@ -180,17 +196,39 @@ async function fetchXml(url) {
     } catch (error) {
       lastError = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+    if (attempt < SITEMAP_FETCH_RETRIES) {
+      await new Promise((resolve) => setTimeout(resolve, SITEMAP_BACKOFF_BASE_MS * attempt));
+    }
   }
-  throw lastError || new Error(`Unable to fetch sitemap XML: ${url}`);
+  throw lastError || new SitemapTransientError(`Unable to fetch sitemap XML: ${url}`);
 }
 
 function inventoryBaseUrl(pages) {
+  for (const page of pages) {
+    const rawLink = typeof page?.link === 'string' ? page.link.trim() : '';
+    if (!rawLink) continue;
+    try {
+      const parsed = new URL(rawLink);
+      if (parsed.origin && parsed.origin !== 'null') {
+        return parsed.origin;
+      }
+    } catch {
+      // Skip malformed entries and continue checking remaining candidates
+    }
+  }
+
   const explicit = String(process.env.WORDPRESS_URL || '').trim();
-  if (explicit) return explicit.replace(/\/$/, '');
-  const linkedPage = pages.find((page) => typeof page.link === 'string' && page.link.trim());
-  if (linkedPage) return new URL(linkedPage.link).origin;
-  throw new Error('Cannot derive sitemap base URL: WORDPRESS_URL is unset and trusted page inventory has no link');
+  if (explicit) {
+    let parsedExplicit;
+    try {
+      parsedExplicit = new URL(explicit);
+    } catch {
+      throw new Error(`WORDPRESS_URL is not a valid absolute URL: ${explicit}`);
+    }
+    return `${parsedExplicit.origin}${parsedExplicit.pathname}`.replace(/\/$/, '');
+  }
+
+  throw new Error('Cannot derive sitemap base URL: trusted page inventory has no valid absolute link and WORDPRESS_URL is unset');
 }
 
 function normalizeRoutePath(value, baseUrl) {
@@ -209,8 +247,27 @@ async function enrichTrustedInventoryWithSitemap(pages) {
 
   const baseUrl = inventoryBaseUrl(pages);
   const expectedHost = new URL(baseUrl).hostname;
-  const indexUrl = `${baseUrl}/sitemap_index.xml`;
-  const indexXml = await fetchXml(indexUrl);
+  let indexUrl = `${baseUrl}/sitemap_index.xml`;
+  let indexXml;
+  try {
+    indexXml = await fetchXml(indexUrl);
+  } catch (err) {
+    if (!err.isTransient) {
+      const fallbackUrl = `${baseUrl}/wp-sitemap.xml`;
+      try {
+        indexXml = await fetchXml(fallbackUrl);
+        indexUrl = fallbackUrl;
+      } catch (fallbackErr) {
+        if (fallbackErr.isTransient) {
+          throw fallbackErr;
+        }
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
+
   const indexLocs = extractLocs(indexXml);
   if (indexLocs.length === 0) {
     throw new Error(`Sitemap index has no <loc> entries: ${indexUrl}`);
@@ -319,6 +376,10 @@ async function validateTemplates() {
     console.log('\n✅ ALL TEMPLATES, PUBLICATION TOPOLOGY AND BLOCK C ROUTE INVENTORY VALIDATED');
     process.exit(0);
   } catch (error) {
+    if (error?.isTransient) {
+      console.error(`\n⚠️ TRANSIENT SITEMAP FAILURE: ${error.message} (exiting with code 75 for runner retry)`);
+      process.exit(75);
+    }
     console.error(`\n❌ FATAL ERROR: ${error.message}`);
     process.exit(1);
   }

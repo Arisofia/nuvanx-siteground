@@ -136,11 +136,11 @@ function templateExists(templatePath) {
 
 function decodeXml(value) {
   return String(value || '')
-    .replaceAll('&amp;', '&')
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>')
     .replaceAll('&quot;', '"')
-    .replaceAll('&apos;', "'");
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&');
 }
 
 function extractLocs(xml) {
@@ -180,17 +180,19 @@ async function fetchXml(url) {
     } catch (error) {
       lastError = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+    if (attempt < 4) {
+      await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+    }
   }
   throw lastError || new Error(`Unable to fetch sitemap XML: ${url}`);
 }
 
 function inventoryBaseUrl(pages) {
-  const explicit = String(process.env.WORDPRESS_URL || '').trim();
-  if (explicit) return explicit.replace(/\/$/, '');
   const linkedPage = pages.find((page) => typeof page.link === 'string' && page.link.trim());
   if (linkedPage) return new URL(linkedPage.link).origin;
-  throw new Error('Cannot derive sitemap base URL: WORDPRESS_URL is unset and trusted page inventory has no link');
+  const explicit = String(process.env.WORDPRESS_URL || '').trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  throw new Error('Cannot derive sitemap base URL: trusted page inventory has no link and WORDPRESS_URL is unset');
 }
 
 function normalizeRoutePath(value, baseUrl) {

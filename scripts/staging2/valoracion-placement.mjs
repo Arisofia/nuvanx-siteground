@@ -1,19 +1,7 @@
 import { spawn } from 'node:child_process';
-import fs from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-
-async function rearmRollbackOnSuccess() {
-  const envFile = (process.env.GITHUB_ENV || '').trim();
-  if (envFile) {
-    try {
-      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=1\n', 'utf8');
-      console.log('STAGING_MUTATION_ARMED=REARMED reason=orchestrator_stage_passed');
-    } catch {
-      // Ignore GITHUB_ENV write errors on local runs
-    }
-  }
-}
+import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 
 function runProcess(moduleUrl) {
   return new Promise((resolve, reject) => {
@@ -50,10 +38,13 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     if (lastExitCode === 0) {
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
-      if (cycle > 1) {
-        await rearmRollbackOnSuccess();
-      }
       return;
+    }
+
+    // Do not retry deterministic real failures across cycles; fail immediately to preserve evidence
+    if (lastExitCode !== EX_TEMPFAIL) {
+      console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} exit=${lastExitCode}`);
+      process.exit(lastExitCode);
     }
 
     if (cycle < maxCycles) {
@@ -76,6 +67,3 @@ const stages = [
 for (const stage of stages) {
   await runStage(stage.name, stage.url, stage.maxCycles);
 }
-
-
-

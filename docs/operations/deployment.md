@@ -117,11 +117,11 @@ The Staging acceptance runners adhere to the following exit-code contracts:
 ### Valoración and quality orchestrator (`valoracion-placement.mjs`)
 The orchestrator sequences three isolated validation stages:
 1. **SiteGround transient classifier (`test-siteground-transient-classifier.mjs`)**: deterministic classifier unit test suite (exit `0` on pass, exit `1` on regression).
-2. **Governed blog head contract (`governed-blog-head-contract.mjs`)**: validates SEO, titles, canonicals, og:url, and `noindex` across published journal entries with 4 bounded retries per post (exit `0` on pass, exit `1` on real assertion failure, exit `75` on transient exhaustion with rollback disarmed).
-3. **Valoración placement runner (`valoracion-placement-resilient.mjs`)**: validates visual geometry, SHA meta tags, and HubSpot interactive mounting across viewports, automatically retried across up to 3 outer QA cycles with backoff to absorb transient mount jitter.
+2. **Governed blog head contract (`governed-blog-head-contract.mjs`)**: validates SEO, titles, canonicals, og:url, and `noindex` across published journal entries with 4 bounded retries per post (exit `0` on pass, exit `1` on real assertion failure, exit `75` on transient challenge exhaustion with Staging2 rollback explicitly disarmed).
+3. **Valoración placement runner (`valoracion-placement-resilient.mjs`)**: validates visual geometry, SHA meta tags, and HubSpot interactive mounting across viewports, automatically retried across up to 3 outer QA cycles on transient failure (`EX_TEMPFAIL` 75) with backoff to absorb transient mount jitter (exit `0` on pass, exit `1` on real assertion failure, exit `75` on transient exhaustion with rollback triggered).
 - `0`: All stages passed (`STAGING_ACCEPTANCE_COMPONENT=PASS`).
-- `1`: Real assertion failure (`VALORACION_PLACEMENT=FAIL_REAL` or real contract defect).
-- `75` (`EX_TEMPFAIL`): Transient challenge exhaustion on valoración placement (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), triggering automatic Staging2 rollback and writing diagnostics to GitHub Step Summary.
+- `1`: Real assertion failure (`VALORACION_PLACEMENT=FAIL_REAL` or real contract defect). Fails immediately on the first cycle to preserve failure evidence and save CI time.
+- `75` (`EX_TEMPFAIL`): Transient challenge exhaustion. If originating from the governed blog head stage, Staging2 rollback is disarmed (`STAGING_MUTATION_ARMED=0`); if originating from the valoración placement runner (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), Staging2 rollback is triggered. Diagnostics are written to GitHub Step Summary.
 
 ### Block C matrix runner (`block-c-entrypoint.mjs` / `block-c-matrix.mjs`)
 - `0`: Validation passed (`BLOCK_C_RESILIENT=PASS`). All published routes and viewports validated with complete browser visual geometry. Eligible for Production acceptance.

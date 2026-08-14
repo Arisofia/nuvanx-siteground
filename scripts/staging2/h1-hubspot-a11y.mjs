@@ -112,8 +112,18 @@ async function resolveHubSpot(page, attempt) {
   const frame = handle ? await handle.contentFrame() : null;
   if (!frame) return transientResult(attempt, 'hubspot_content_frame_unavailable');
 
-  const formCount = await frame.locator('form').first().count().catch(() => 0);
-  if (formCount === 0) return transientResult(attempt, 'hubspot_form_element_not_available');
+  // HubSpot attaches the iframe before its form subtree is ready. The previous
+  // immediate count() created a deterministic race and classified a healthy
+  // vendor load as transient in ~2–4 seconds. Match the proven H1 E2E contract:
+  // wait for the actual form DOM before auditing semantics.
+  try {
+    await frame.locator('form').first().waitFor({ state: 'attached', timeout: 30000 });
+  } catch (error) {
+    return transientResult(
+      attempt,
+      `hubspot_form_element_not_available_after_wait:${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 
   return {
     transient: false,

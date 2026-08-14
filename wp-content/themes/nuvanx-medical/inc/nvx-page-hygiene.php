@@ -75,11 +75,51 @@ function nvx_redirect_valoracion_aliases(): void {
 		return;
 	}
 
-	$target = home_url( '/madrid/valoracion/' );
+	// Preserve query strings (gclid, UTM, etc.).
+	$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+		? '?' . $_SERVER['QUERY_STRING']
+		: '';
+
+	$target = home_url( '/madrid/valoracion/' ) . $query;
 	wp_safe_redirect( $target, 301, 'NUVANX' );
 	exit;
 }
 add_action( 'template_redirect', 'nvx_redirect_valoracion_aliases', 0 );
+
+/**
+ * Canonical Goya clinic page is /clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/.
+ *
+ * Short /medicina-estetica-goya/ redirects to preserve historical links and ad tracking.
+ */
+function nvx_redirect_goya_alias(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$path = '/' . trim( rawurldecode( $path ), '/' ) . '/';
+
+	// Exact match for the short alias only.
+	if ( '/medicina-estetica-goya/' !== $path ) {
+		return;
+	}
+
+	// Already on the canonical path.
+	if ( 0 === strpos( $path, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ) {
+		return;
+	}
+
+	// Preserve query strings (gclid, UTM, etc.).
+	$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+		? '?' . $_SERVER['QUERY_STRING']
+		: '';
+
+	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) . $query;
+	wp_safe_redirect( $target, 301, 'NUVANX' );
+	exit;
+}
+add_action( 'template_redirect', 'nvx_redirect_goya_alias', 0 );
 
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).

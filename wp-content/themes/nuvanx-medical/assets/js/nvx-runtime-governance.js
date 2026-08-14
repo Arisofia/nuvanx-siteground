@@ -387,27 +387,37 @@
         const host = parsed.hostname.toLowerCase();
         return host === 'hsforms.com' || host.endsWith('.hsforms.com') ||
                host === 'hsforms.net' || host.endsWith('.hsforms.net') ||
-               host === 'forms.hubspot.com' || host.endsWith('.forms.hubspot.com') ||
-               host === 'forms-eu1.hubspot.com' || host.endsWith('.forms-eu1.hubspot.com');
+               host === 'forms.hubspot.com' || host === 'forms-eu1.hubspot.com' ||
+               host.endsWith('.hubspot.com') || host.endsWith('.hubspotusercontent.com');
       } catch {
         return false;
       }
     }
 
-    function enforceAccessibleIframeTitles() {
-      const iframes = document.querySelectorAll('iframe');
-      iframes.forEach(function (ifr) {
-        if (!isHubSpotIframe(ifr)) return;
+    let isEnforcingTitles = false;
 
-        const currentTitle = ifr.getAttribute('title');
-        // iframe has a native accessible-name mechanism via title. Keep that
-        // single source of truth and remove aria-label, which Axe flags as a
-        // prohibited ARIA attribute for the embedded HubSpot frame role.
-        if (ifr.hasAttribute('aria-label')) ifr.removeAttribute('aria-label');
-        if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
-          ifr.setAttribute('title', 'Formulario de valoración médica');
-        }
-      });
+    function enforceAccessibleIframeTitles() {
+      if (isEnforcingTitles) return;
+      isEnforcingTitles = true;
+      try {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach(function (ifr) {
+          if (!isHubSpotIframe(ifr)) return;
+
+          const currentTitle = ifr.getAttribute('title');
+          // iframe has a native accessible-name mechanism via title. Keep that
+          // single source of truth and remove aria-label, which Axe flags as a
+          // prohibited ARIA attribute for the embedded HubSpot frame role.
+          if (ifr.hasAttribute('aria-label')) ifr.removeAttribute('aria-label');
+          if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
+            ifr.setAttribute('title', 'Formulario de valoración médica');
+          }
+        });
+      } finally {
+        window.setTimeout(function () {
+          isEnforcingTitles = false;
+        }, 50);
+      }
     }
 
     /**
@@ -647,13 +657,18 @@
       const hasRaf = typeof window.requestAnimationFrame === 'function';
 
       new MutationObserver(function (mutations) {
+        if (isEnforcingTitles) return;
         let shouldRun = false;
         for (const m of mutations) {
           if (m.type === 'childList') {
-            shouldRun = true;
-            break;
-          }
-          if (m.type === 'attributes') {
+            for (const node of m.addedNodes) {
+              if (node?.nodeType === 1 && (node.tagName === 'IFRAME' || node.querySelector?.('iframe'))) {
+                shouldRun = true;
+                break;
+              }
+            }
+            if (shouldRun) break;
+          } else if (m.type === 'attributes') {
             const target = m.target;
             if (target?.tagName === 'IFRAME' && isHubSpotIframe(target)) {
               shouldRun = true;

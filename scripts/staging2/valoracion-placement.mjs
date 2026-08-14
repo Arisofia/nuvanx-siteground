@@ -22,6 +22,38 @@ function runProcess(moduleUrl) {
   });
 }
 
+const STAGE_EVIDENCE_MAP = {
+  'block-a11y': {
+    source: fileURLToPath(new URL('./block-a11y-artifacts/results.json', import.meta.url)),
+    destinationDir: fileURLToPath(new URL('./valoracion-artifacts', import.meta.url)),
+    destination: fileURLToPath(new URL('./valoracion-artifacts/block-a11y-results.json', import.meta.url)),
+  },
+};
+
+async function prepareAllStageEvidence() {
+  for (const config of Object.values(STAGE_EVIDENCE_MAP)) {
+    await fs.rm(config.source, { force: true }).catch(() => {});
+    await fs.rm(config.destination, { force: true }).catch(() => {});
+  }
+}
+
+async function preserveStageEvidence(component) {
+  const config = STAGE_EVIDENCE_MAP[component];
+  if (!config) return true;
+
+  try {
+    await fs.mkdir(config.destinationDir, { recursive: true });
+    await fs.copyFile(config.source, config.destination);
+    console.log(`STAGING_ACCEPTANCE_EVIDENCE=PRESERVED component=${component} path=${config.destination}`);
+    return true;
+  } catch (error) {
+    console.warn(
+      `STAGING_ACCEPTANCE_EVIDENCE=UNAVAILABLE component=${component} error=${error instanceof Error ? error.message : String(error)}`
+    );
+    return false;
+  }
+}
+
 async function writeRollbackState(value, component, reason) {
   const envFile = (process.env.GITHUB_ENV || '').trim();
   if (!envFile) return;
@@ -47,6 +79,23 @@ async function disarmRollbackAfterTransientExhaustion(component) {
   }
 }
 
+async function recordMissingEvidence(component) {
+  await writeRollbackState('0', component, 'required-evidence-unavailable');
+  const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
+  if (summary) {
+    try {
+      await fs.appendFile(
+        summary,
+        `\n### Staging acceptance evidence unavailable\n\nComponent \`${component}\` passed, but its required evidence file could not be preserved. No deterministic site defect was established, so rollback was disarmed; this run is not eligible for Production acceptance and the same immutable SHA must be retried on a fresh runner.\n`,
+        'utf8'
+      );
+    } catch (error) {
+      console.warn(`STAGING_ACCEPTANCE_SUMMARY=WRITE_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL_TRANSIENT component=${component} reason=required_evidence_unavailable exit=${EX_TEMPFAIL}`);
+}
+
 async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   let lastExitCode = 1;
   let sawTransient = false;
@@ -56,14 +105,26 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
       console.log(`STAGING_ACCEPTANCE_CYCLE component=${name} cycle=${cycle}/${maxCycles}`);
     }
 
+    let processError = null;
+    let evidencePreserved = true;
     try {
       lastExitCode = await runProcess(moduleUrl);
     } catch (err) {
-      console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} reason=${err instanceof Error ? err.message : String(err)}`);
-      process.exit(1);
+      processError = err;
+    } finally {
+      evidencePreserved = await preserveStageEvidence(name);
+    }
+
+    if (processError) {
+      console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} reason=${processError instanceof Error ? processError.message : String(processError)}`);
+      return 1;
     }
 
     if (lastExitCode === 0) {
+      if (!evidencePreserved) {
+        await recordMissingEvidence(name);
+        return EX_TEMPFAIL;
+      }
       if (sawTransient) {
         await writeRollbackState('1', name, 'transient-recovered');
         const envFile = (process.env.GITHUB_ENV || '').trim();
@@ -77,12 +138,12 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
         }
       }
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
-      return;
+      return 0;
     }
 
     if (lastExitCode !== EX_TEMPFAIL) {
       console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} exit=${lastExitCode}`);
-      process.exit(lastExitCode);
+      return lastExitCode;
     }
 
     sawTransient = true;
@@ -100,7 +161,7 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
   await disarmRollbackAfterTransientExhaustion(name);
   console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} cycles=${maxCycles} exit=${lastExitCode}`);
-  process.exit(lastExitCode || 1);
+  return lastExitCode || 1;
 }
 
 const stages = [
@@ -117,6 +178,10 @@ const stages = [
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 
+await prepareAllStageEvidence();
 for (const stage of stages) {
-  await runStage(stage.name, stage.url, stage.maxCycles, stage.backoffMs);
+  const exitCode = await runStage(stage.name, stage.url, stage.maxCycles, stage.backoffMs);
+  if (exitCode !== 0) {
+    process.exit(exitCode);
+  }
 }

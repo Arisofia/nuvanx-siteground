@@ -28,6 +28,9 @@ on:
   pull_request_target:
     branches: [master]
     types: [labeled]
+  schedule:
+    # Weekly audit on Sundays at 00:00 UTC (runs quality & full-history secret scan only)
+    - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
       sha:
@@ -176,11 +179,11 @@ jobs:
 
           log_opts=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            log_opts="origin/master..HEAD"
+            log_opts="--diff-merges=first-parent origin/master..HEAD"
           elif [[ "${{ github.event_name }}" == 'push' && "${{ github.event.before }}" != '0000000000000000000000000000000000000000' ]]; then
             before_sha="${{ github.event.before }}"
             if git cat-file -e "${before_sha}^{commit}" 2>/dev/null; then
-              log_opts="${before_sha}..${{ github.event.after }}"
+              log_opts="--diff-merges=first-parent ${before_sha}..${{ github.event.after }}"
             else
               echo "Base commit $before_sha is unreachable (e.g. after force-push/rewrite); falling back to full history scan."
             fi

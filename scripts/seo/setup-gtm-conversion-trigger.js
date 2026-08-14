@@ -184,7 +184,34 @@ async function main() {
   let trigger = triggers.find(t => t.name === TRIGGER_NAME);
 
   if (trigger) {
-    console.log(`  Already exists: "${TRIGGER_NAME}" (ID: ${trigger.triggerId})`);
+    console.log(`  Updating existing trigger: "${TRIGGER_NAME}" (ID: ${trigger.triggerId})...`);
+    const res = await tagmanager.accounts.containers.workspaces.triggers.update({
+      path: trigger.path,
+      requestBody: {
+        name: TRIGGER_NAME,
+        type: 'customEvent',
+        customEventFilter: [
+          {
+            type: 'equals',
+            parameter: [
+              { type: 'template', key: 'arg0', value: '{{_event}}' },
+              { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
+            ],
+          },
+        ],
+        filter: [
+          {
+            type: 'equals',
+            parameter: [
+              { type: 'template', key: 'arg0', value: '{{nvx_event_name}}' },
+              { type: 'template', key: 'arg1', value: 'generate_lead' },
+            ],
+          },
+        ],
+      },
+    });
+    trigger = res.data;
+    console.log(`  Trigger reconciled (ID: ${trigger.triggerId})`);
   } else {
     console.log(`  Creating trigger: "${TRIGGER_NAME}"...`);
     const res = await tagmanager.accounts.containers.workspaces.triggers.create({
@@ -216,13 +243,29 @@ async function main() {
     console.log(`  Created trigger ID: ${trigger.triggerId}`);
   }
 
-  // 4. Check / create Google Ads conversion tag
+  // 4. Check / create or update Google Ads conversion tag
   console.log('\n4. Checking for existing tag...');
   const tags = await listTags(tagmanager, workspacePath);
   let tag = tags.find(t => t.name === TAG_NAME);
 
   if (tag) {
-    console.log(`  Already exists: "${TAG_NAME}" (ID: ${tag.tagId})`);
+    console.log(`  Updating existing tag: "${TAG_NAME}" (ID: ${tag.tagId})...`);
+    const res = await tagmanager.accounts.containers.workspaces.tags.update({
+      path: tag.path,
+      requestBody: {
+        name: TAG_NAME,
+        type: 'awct',
+        parameter: [
+          { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
+          { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
+          { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
+          { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },
+        ],
+        firingTriggerId: [trigger.triggerId],
+      },
+    });
+    tag = res.data;
+    console.log(`  Tag reconciled (ID: ${tag.tagId})`);
   } else {
     console.log(`  Creating tag: "${TAG_NAME}"...`);
     const res = await tagmanager.accounts.containers.workspaces.tags.create({
@@ -288,9 +331,8 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('\n❌ Fatal error:', err?.message || err);
-  if (err?.response?.data) {
-    console.error('API response:', JSON.stringify(err.response.data, null, 2));
-  }
+  const status = err.code || err.response?.status || 'UNKNOWN';
+  const msg = err.response?.data?.error?.message || err.message || 'Fatal error';
+  console.error(`\n❌ Fatal error [HTTP ${status}]: ${msg}`);
   process.exit(1);
 });

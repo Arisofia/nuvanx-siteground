@@ -85,8 +85,18 @@ async function runFullAdsAnalysis() {
 function sanitizeAdsError(err) {
   if (!err) return 'UNKNOWN_ERROR';
   const code = err.code || err.status || 'GOOGLE_ADS_API_ERROR';
-  const failureClass = err.failure ? err.failure.constructor?.name : 'GENERIC_FAILURE';
-  return `code=${code} failure_class=${failureClass}`;
+  const errorDetails = Array.isArray(err.failure?.errors)
+    ? err.failure.errors
+        .map((e) => {
+          const errCodeObj = e.error_code || {};
+          return Object.keys(errCodeObj).map((k) => `${k}.${errCodeObj[k]}`).join(',') || 'ERROR';
+        })
+        .filter(Boolean)
+        .slice(0, 3)
+        .join('; ')
+    : err.failure?.message || 'GENERIC_FAILURE';
+
+  return `code=${code} details=[${errorDetails}]`;
 }
 
 runFullAdsAnalysis().catch((err) => {

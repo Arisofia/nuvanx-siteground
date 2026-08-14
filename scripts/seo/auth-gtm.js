@@ -10,13 +10,17 @@ if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !proce
 
 const envPath = '.env.local';
 
-const envVars = { ...process.env };
+const envVars = {};
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   envContent.split('\n').forEach((line) => {
     const match = line.trim().match(/^(?:export\s+)?([A-Za-z0-9_]+)=['"]?(.*?)['"]?$/);
     if (match) envVars[match[1]] = match[2];
   });
+}
+// process.env takes precedence over file contents
+for (const [k, v] of Object.entries(process.env)) {
+  if (v !== undefined && v !== '') envVars[k] = v;
 }
 
 const clientId = envVars['GTM_CLIENT_ID'] || envVars['GOOGLE_ADS_CLIENT_ID'];
@@ -89,7 +93,7 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
         currentContent = fs.readFileSync(envPath, 'utf8');
         const lines = currentContent.split('\n');
         const existingIndex = lines.findIndex((line) =>
-          line.trim().startsWith('export GTM_REFRESH_TOKEN=')
+          /^(?:export\s+)?GTM_REFRESH_TOKEN=/.test(line.trim())
         );
 
         if (existingIndex !== -1) {

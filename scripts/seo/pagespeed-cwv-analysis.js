@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-function fetchJson(url) {
+function fetchJson(url, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const req = https.get(url, (res) => {
       res.setEncoding('utf8');
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
@@ -18,7 +18,13 @@ function fetchJson(url) {
           reject(parseErr);
         }
       });
-    }).on('error', reject);
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error(`Request timed out after ${timeoutMs}ms: ${url}`));
+    });
+
+    req.on('error', reject);
   });
 }
 

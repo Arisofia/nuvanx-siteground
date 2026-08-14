@@ -646,7 +646,7 @@ for (const viewport of viewports) {
           blockers.push(siteGroundChallenge
             ? 'SiteGround Antibot challenge prevented visual validation'
             : 'Navigation returned no HTTP response');
-          blockers.push(origin.attempted
+          notes.push(origin.attempted
             ? `SiteGround origin fallback failed: ${origin.stderr || origin.error || `exit-${origin.status}`}`
             : `SiteGround origin fallback unavailable via ${originVerifier.originSshAlias}`);
         }

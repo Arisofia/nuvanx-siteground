@@ -5,7 +5,7 @@ export const ALLOWED_ORIGIN_SSH_ALIASES = new Set(['nvx-staging2', 'nvx-staging2
 const SSH_BIN = '/usr/bin/ssh';
 
 function validateRoute(route) {
-  if (!/^\/[A-Za-z0-9_./-]*$/.test(route)) {
+  if (!/^\/[A-Za-z0-9_./%-]*$/.test(route)) {
     throw new Error(`Unsupported route characters: ${route}`);
   }
 }
@@ -52,8 +52,8 @@ export function createSiteGroundOriginVerifier({
       'effective="${result#*|}"',
       'test "$code" = \'200\'',
       'case "$effective" in "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;; *) echo "ORIGIN_VERIFY_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;; esac',
-      `! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"`,
-      '! grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"',
+      `if grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"; then echo "ORIGIN_VERIFY_FAIL route=$ROUTE reason=captcha-body" >&2; exit 1; fi`,
+      'if grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"; then echo "ORIGIN_VERIFY_FAIL route=$ROUTE reason=captcha-header" >&2; exit 1; fi',
       'extract_meta_content() {',
       String.raw`  php -r '$html=file_get_contents($argv[1]); $wanted=strtolower($argv[2]); preg_match_all("/<meta\b[^>]*>/is", $html, $tags); foreach ($tags[0] as $tag) { if (!preg_match("/\bname\s*=\s*(?:\x22([^\x22]+)\x22|\x27([^\x27]+)\x27)/is", $tag, $name)) continue; $actual=strtolower(trim(html_entity_decode($name[1] !== "" ? $name[1] : $name[2], ENT_QUOTES | ENT_HTML5, "UTF-8"))); if ($actual !== $wanted) continue; if (preg_match("/\bcontent\s*=\s*(?:\x22([^\x22]*)\x22|\x27([^\x27]*)\x27)/is", $tag, $content)) echo trim(html_entity_decode($content[1] !== "" ? $content[1] : $content[2], ENT_QUOTES | ENT_HTML5, "UTF-8")); break; }' "$body" "$1"`,
       '}',

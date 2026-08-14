@@ -78,6 +78,55 @@ function nvx_document_governance_governed_blog_request(): ?array {
 	);
 }
 
+/**
+ * Keep an already-canonical governed journal route bound to its own published post.
+ *
+ * WordPress redirect_canonical can occasionally infer a neighbouring singular as
+ * the destination when runtime/indexable state is stale. For a route that is
+ * already the exact canonical path of a separately published governed post, a
+ * cross-post redirect is never valid. Non-canonical forms (for example a missing
+ * trailing slash), non-governed routes and unpublished posts retain core behavior.
+ *
+ * @param string|false $redirect_url  Canonical redirect proposed by WordPress.
+ * @param string       $requested_url Requested absolute URL.
+ * @return string|false
+ */
+function nvx_document_governance_preserve_exact_governed_blog_route( $redirect_url, $requested_url ) {
+	if ( is_admin() || wp_doing_ajax() || ! function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
+		return $redirect_url;
+	}
+
+	$raw_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+	$raw_path = wp_parse_url( $raw_uri, PHP_URL_PATH );
+	if ( ! is_string( $raw_path ) || '' === $raw_path ) {
+		return $redirect_url;
+	}
+
+	$normalized_path = nvx_document_governance_request_path();
+	if ( $raw_path !== $normalized_path ) {
+		return $redirect_url;
+	}
+
+	$slug = trim( $normalized_path, '/' );
+	if ( '' === $slug || false !== strpos( $slug, '/' ) ) {
+		return $redirect_url;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
+		return $redirect_url;
+	}
+
+	$post = get_page_by_path( $slug, OBJECT, 'post' );
+	if ( ! ( $post instanceof WP_Post ) || 'publish' !== $post->post_status || $slug !== $post->post_name ) {
+		return $redirect_url;
+	}
+
+	unset( $requested_url );
+	return false;
+}
+add_filter( 'redirect_canonical', 'nvx_document_governance_preserve_exact_governed_blog_route', PHP_INT_MAX, 2 );
+
 /** Final governed journal title from the requested public route. */
 function nvx_document_governance_governed_blog_title( $title ) {
 	$request = nvx_document_governance_governed_blog_request();

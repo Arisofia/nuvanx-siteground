@@ -24,12 +24,18 @@ const catalogUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/seo-
 let catalog;
 try {
   const rawCatalog = await fs.readFile(catalogUrl, 'utf8');
-  catalog = JSON.parse(rawCatalog);
-  if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog)) {
-    throw new Error('catalog_not_object');
+  try {
+    catalog = JSON.parse(rawCatalog);
+  } catch (parseErr) {
+    console.error(`GOVERNED_BLOG_HEAD=FAIL_REAL reason=catalog_parse_failed error=${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+    process.exit(1);
   }
-} catch (err) {
-  console.error(`GOVERNED_BLOG_HEAD=FAIL_REAL reason=catalog_read_failed error=${err instanceof Error ? err.message : String(err)}`);
+  if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog)) {
+    console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=catalog_shape_invalid error=catalog_not_object');
+    process.exit(1);
+  }
+} catch (readErr) {
+  console.error(`GOVERNED_BLOG_HEAD=FAIL_REAL reason=catalog_read_failed error=${readErr instanceof Error ? readErr.message : String(readErr)}`);
   process.exit(1);
 }
 const norm = (value) => `${String(value).split(/[?#]/, 1)[0].replace(/\/$/, '')}/`;

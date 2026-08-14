@@ -109,7 +109,8 @@ npm ci --ignore-scripts
 npx playwright install chromium
 cd ../..
 EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/block-c-entrypoint.mjs
-EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
+# Note: ORIGIN_SSH_ALIAS (defaults to 'nvx-staging2') requires SSH host configuration for published post WP-CLI inventory
+EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com ORIGIN_SSH_ALIAS=nvx-staging2 node scripts/staging2/valoracion-placement.mjs
 ```
 
 The Staging acceptance runners adhere to the following exit-code contracts:

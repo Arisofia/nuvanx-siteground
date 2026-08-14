@@ -53,6 +53,10 @@ async function buildAuth() {
   const refreshToken = process.env.GTM_REFRESH_TOKEN;
 
   if (refreshToken) {
+    if (!clientId || !clientSecret) {
+      console.error('ERROR: GTM_CLIENT_ID (or GOOGLE_ADS_CLIENT_ID) and GTM_CLIENT_SECRET (or GOOGLE_ADS_CLIENT_SECRET) are required when providing GTM_REFRESH_TOKEN.');
+      process.exit(1);
+    }
     console.log('  Using provided GTM_REFRESH_TOKEN...');
     const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ refresh_token: refreshToken });
@@ -103,16 +107,6 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
 
     ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
     if (!ws) throw new Error('No workspace found in container ' + containerPath);
-
-    const statusRes = await tagmanager.accounts.containers.workspaces.getStatus({ path: ws.path });
-    const changes = statusRes.data.workspaceChange || [];
-    const nonOurs = changes.filter(c => {
-      const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
-      return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
-    });
-    if (nonOurs.length > 0) {
-      throw new Error(`Default workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
-    }
     return ws;
   }
 }
@@ -158,6 +152,45 @@ async function ensureDataLayerVariable(tagmanager, wsPath) {
   return v;
 }
 
+function buildTriggerPayload() {
+  return {
+    name: TRIGGER_NAME,
+    type: 'customEvent',
+    customEventFilter: [
+      {
+        type: 'equals',
+        parameter: [
+          { type: 'template', key: 'arg0', value: '{{_event}}' },
+          { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
+        ],
+      },
+    ],
+    filter: [
+      {
+        type: 'equals',
+        parameter: [
+          { type: 'template', key: 'arg0', value: '{{nvx_event_name}}' },
+          { type: 'template', key: 'arg1', value: 'generate_lead' },
+        ],
+      },
+    ],
+  };
+}
+
+function buildTagPayload(triggerId) {
+  return {
+    name: TAG_NAME,
+    type: 'awct',
+    parameter: [
+      { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
+      { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
+      { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
+      { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },
+    ],
+    firingTriggerId: [triggerId],
+  };
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -182,33 +215,13 @@ async function main() {
   console.log('\n3. Checking for existing trigger...');
   const triggers = await listTriggers(tagmanager, workspacePath);
   let trigger = triggers.find(t => t.name === TRIGGER_NAME);
+  const triggerPayload = buildTriggerPayload();
 
   if (trigger) {
     console.log(`  Updating existing trigger: "${TRIGGER_NAME}" (ID: ${trigger.triggerId})...`);
     const res = await tagmanager.accounts.containers.workspaces.triggers.update({
       path: trigger.path,
-      requestBody: {
-        name: TRIGGER_NAME,
-        type: 'customEvent',
-        customEventFilter: [
-          {
-            type: 'equals',
-            parameter: [
-              { type: 'template', key: 'arg0', value: '{{_event}}' },
-              { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
-            ],
-          },
-        ],
-        filter: [
-          {
-            type: 'equals',
-            parameter: [
-              { type: 'template', key: 'arg0', value: '{{nvx_event_name}}' },
-              { type: 'template', key: 'arg1', value: 'generate_lead' },
-            ],
-          },
-        ],
-      },
+      requestBody: triggerPayload,
     });
     trigger = res.data;
     console.log(`  Trigger reconciled (ID: ${trigger.triggerId})`);
@@ -216,28 +229,7 @@ async function main() {
     console.log(`  Creating trigger: "${TRIGGER_NAME}"...`);
     const res = await tagmanager.accounts.containers.workspaces.triggers.create({
       parent: workspacePath,
-      requestBody: {
-        name: TRIGGER_NAME,
-        type: 'customEvent',
-        customEventFilter: [
-          {
-            type: 'equals',
-            parameter: [
-              { type: 'template', key: 'arg0', value: '{{_event}}' },
-              { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
-            ],
-          },
-        ],
-        filter: [
-          {
-            type: 'equals',
-            parameter: [
-              { type: 'template', key: 'arg0', value: '{{nvx_event_name}}' },
-              { type: 'template', key: 'arg1', value: 'generate_lead' },
-            ],
-          },
-        ],
-      },
+      requestBody: triggerPayload,
     });
     trigger = res.data;
     console.log(`  Created trigger ID: ${trigger.triggerId}`);
@@ -247,22 +239,13 @@ async function main() {
   console.log('\n4. Checking for existing tag...');
   const tags = await listTags(tagmanager, workspacePath);
   let tag = tags.find(t => t.name === TAG_NAME);
+  const tagPayload = buildTagPayload(trigger.triggerId);
 
   if (tag) {
     console.log(`  Updating existing tag: "${TAG_NAME}" (ID: ${tag.tagId})...`);
     const res = await tagmanager.accounts.containers.workspaces.tags.update({
       path: tag.path,
-      requestBody: {
-        name: TAG_NAME,
-        type: 'awct',
-        parameter: [
-          { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
-          { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
-          { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
-          { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },
-        ],
-        firingTriggerId: [trigger.triggerId],
-      },
+      requestBody: tagPayload,
     });
     tag = res.data;
     console.log(`  Tag reconciled (ID: ${tag.tagId})`);
@@ -270,17 +253,7 @@ async function main() {
     console.log(`  Creating tag: "${TAG_NAME}"...`);
     const res = await tagmanager.accounts.containers.workspaces.tags.create({
       parent: workspacePath,
-      requestBody: {
-        name: TAG_NAME,
-        type: 'awct',
-        parameter: [
-          { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
-          { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
-          { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
-          { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },
-        ],
-        firingTriggerId: [trigger.triggerId],
-      },
+      requestBody: tagPayload,
     });
     tag = res.data;
     console.log(`  Created tag ID: ${tag.tagId}`);
@@ -295,6 +268,15 @@ async function main() {
     console.log('\n─────────────────────────────────────────────────');
     console.log('Done (idempotent no-op).');
     return;
+  }
+
+  // Ensure only our intended setup entities are pending before publishing
+  const nonOurs = pendingChanges.filter(c => {
+    const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
+    return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
+  });
+  if (nonOurs.length > 0) {
+    throw new Error(`Workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
   }
 
   console.log(`  Found ${pendingChanges.length} pending change(s). Creating and publishing container version...`);

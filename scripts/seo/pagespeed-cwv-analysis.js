@@ -9,6 +9,7 @@ function fetchJson(url, timeoutMs = 30000) {
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
       res.on('end', () => {
+        req.setTimeout(0);
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
           return reject(new Error(`HTTP ${res.statusCode}: ${body.slice(0, 200)}`));
         }
@@ -21,7 +22,8 @@ function fetchJson(url, timeoutMs = 30000) {
     });
 
     req.setTimeout(timeoutMs, () => {
-      req.destroy(new Error(`Request timed out after ${timeoutMs}ms: ${url}`));
+      const sanitizedUrl = String(url || '').replace(/[?&]key=[^&]+/g, '&key=[REDACTED]');
+      req.destroy(new Error(`Request timed out after ${timeoutMs}ms for ${sanitizedUrl}`));
     });
 
     req.on('error', reject);

@@ -80,23 +80,30 @@ async function runFullAdsAnalysis() {
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'ads-full-analysis.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results, null, 2));
+
+  if (campaigns.length === 0 && assetGroups.length === 0 && demographics.length === 0 && geo.length === 0) {
+    console.warn('\n[WARN] All Google Ads queries returned 0 results or failed. Check credentials and account status.');
+  }
 }
 
 function sanitizeAdsError(err) {
   if (!err) return 'UNKNOWN_ERROR';
-  const code = err.code || err.status || 'GOOGLE_ADS_API_ERROR';
-  const errorDetails = Array.isArray(err.failure?.errors)
-    ? err.failure.errors
-        .map((e) => {
-          const errCodeObj = e.error_code || {};
-          return Object.keys(errCodeObj).map((k) => `${k}.${errCodeObj[k]}`).join(',') || 'ERROR';
-        })
-        .filter(Boolean)
-        .slice(0, 3)
-        .join('; ')
-    : err.failure?.message || 'GENERIC_FAILURE';
+  const code = err.code || err.status || err.name || 'GOOGLE_ADS_API_ERROR';
+  let errorDetails;
+  if (Array.isArray(err.failure?.errors)) {
+    errorDetails = err.failure.errors
+      .map((e) => {
+        const errCodeObj = e.error_code || {};
+        return Object.keys(errCodeObj).map((k) => `${k}.${errCodeObj[k]}`).join(',') || 'ERROR';
+      })
+      .filter(Boolean)
+      .slice(0, 3)
+      .join('; ');
+  } else {
+    errorDetails = err.failure?.message || err.message || 'GENERIC_FAILURE';
+  }
 
-  return `code=${code} details=[${errorDetails}]`;
+  return `code=${code} details=[${String(errorDetails).slice(0, 150)}]`;
 }
 
 runFullAdsAnalysis().catch((err) => {

@@ -67,6 +67,7 @@ const stages = [
   // Semantic accessibility gate runs after placement/mount has been proven. It
   // exercises blank validation only and must never create a real HubSpot contact.
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
+  { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 
 for (const stage of stages) {

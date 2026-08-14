@@ -8,6 +8,7 @@
     "test": "cd ../.. && node scripts/staging2/block-c-entrypoint.mjs && node scripts/staging2/valoracion-placement.mjs"
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "playwright": "^1.62.1"
   }
 }

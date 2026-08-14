@@ -2,10 +2,18 @@
 /**
  * Test script for Complianz Cookie Consent Accessible Name Sanitization (WCAG 2.4.4 / 4.1.2).
  *
+ * This test verifies that the sanitization infrastructure is in place.
+ * Runtime verification of unreplaced {title} tokens in the deployed DOM/AXTree
+ * is performed by the Block A11y staging script (scripts/staging2/block-a11y.mjs).
+ *
  * Asserts that:
- * 1. Placeholder tokens like {title} inside cookie consent anchors are replaced with meaningful names.
- * 2. Privacy policy, cookie policy, and legal notice links resolve to their correct accessible names.
- * 3. No unreplaced template tokens reach the Accessibility Tree (AXTree).
+ * 1. PHP sanitizer filter logic is implemented correctly.
+ * 2. JS sanitizer in nvx-main.js exists with MutationObserver.
+ * 3. WordPress hook in nvx-page-hygiene.php is registered.
+ *
+ * Runtime DOM verification:
+ * - Block A11y script checks deployed staging for unreplaced {title}/{url} tokens
+ * - This ensures verification against fresh deployment, not stale snapshots
  */
 
 import assert from 'node:assert/strict';
@@ -68,3 +76,4 @@ assert.ok(pageHygieneContent.includes('nvx_sanitize_complianz_banner_html'), 'nv
 assert.ok(pageHygieneContent.includes("add_filter( 'cmplz_banner_html'"), 'nvx-page-hygiene.php must hook cmplz_banner_html');
 
 console.log('COMPLIANZ_A11Y_SANITIZER_TEST=PASS');
+console.log('Note: Runtime DOM/AXTree verification for unreplaced {title} tokens is performed by Block A11y staging script.');

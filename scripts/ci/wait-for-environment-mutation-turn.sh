@@ -46,11 +46,24 @@ is_mutation_event() {
   esac
 }
 
-current_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${CURRENT_RUN_ID}")"
+current_meta=""
+for attempt in 1 2 3; do
+  if current_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" 2>/dev/null)" && [[ -n "$current_meta" ]]; then
+    break
+  fi
+  sleep 2
+done
+
+[[ -n "$current_meta" ]] || {
+  echo "MUTATION_FIFO=FAIL reason=api_fetch_current_run_failed run_id=$CURRENT_RUN_ID" >&2
+  exit 1
+}
+
 current_path="$(printf '%s' "$current_meta" | jq -r '.path // ""')"
 current_event="$(printf '%s' "$current_meta" | jq -r '.event // ""')"
 current_status="$(printf '%s' "$current_meta" | jq -r '.status // ""')"
 current_head_sha="$(printf '%s' "$current_meta" | jq -r '.head_sha // ""')"
+current_head_branch="$(printf '%s' "$current_meta" | jq -r '.head_branch // ""')"
 api_attempt="$(printf '%s' "$current_meta" | jq -r '(.run_attempt // 0) | tostring')"
 
 is_mutation_workflow_path "$current_path" || {
@@ -72,7 +85,7 @@ is_mutation_event "$current_event" || {
 
 # Exit code for superseded push runs (aligned with sysexits.h EX_CONFIG / EX_TEMPFAIL convention)
 EX_SUPERSEDED=78
-DEFAULT_BRANCH="${STAGING_ACCEPTANCE_BRANCH:-${DEFAULT_BRANCH:-master}}"
+DEFAULT_BRANCH="${STAGING_ACCEPTANCE_BRANCH:-${current_head_branch:-${DEFAULT_BRANCH:-master}}}"
 
 # A push-triggered Staging run is useful only while it is the latest mutating Staging
 # push run. In an active repository, deploying every superseded push serially creates

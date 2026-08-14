@@ -80,4 +80,4 @@ async function runFullGscAnalysis() {
   }
 }
 
-runGscAnalysis().catch(err => { console.error('GSC Error:', err.message); process.exit(1); });
+runFullGscAnalysis().catch(err => { console.error('GSC Error:', err.message); process.exit(1); });

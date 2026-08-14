@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 import { createSiteGroundOriginVerifier, SITEGROUND_CAPTCHA_PATH } from './siteground-origin-verifier.mjs';
+import { isSiteGroundTransientResponse } from './siteground-transient-classifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -135,7 +136,7 @@ async function fetchPublishedPages() {
           accept: 'application/json',
         },
       });
-      if ([202, 429, 503].includes(response.status) || response.headers.get('sg-captcha')) {
+      if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()))) {
         console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
         try {
           const pages = await fetchPublishedPagesViaBrowser(endpoint);
@@ -195,7 +196,7 @@ async function gotoPlain(page, url) {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       if (!response) return { response: null, attempt };
       const headers = response.headers();
-      if ([202, 429, 503].includes(response.status()) || headers['sg-captcha']) {
+      if (isSiteGroundTransientResponse(response.status(), headers)) {
         if (attempt < 4) {
           await page.waitForTimeout(2500 * attempt);
           continue;
@@ -625,7 +626,7 @@ for (const viewport of viewports) {
       edgeHttpStatus = response?.status() || 0;
       finalUrl = page.url();
 
-      const siteGroundChallenge = Boolean(headers['sg-captcha']) || [202, 429, 503].includes(edgeHttpStatus);
+      const siteGroundChallenge = isSiteGroundTransientResponse(edgeHttpStatus, headers, finalUrl);
       const noResponseLooksTransient = !response && isSiteGroundNoResponse(networkErrors, url);
 
       if (siteGroundChallenge || noResponseLooksTransient) {

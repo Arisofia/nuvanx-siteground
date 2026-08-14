@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
+import { SITEGROUND_CAPTCHA_PATH } from './siteground-transient-classifier.mjs';
 
-export const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+export { SITEGROUND_CAPTCHA_PATH };
 export const ALLOWED_ORIGIN_SSH_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
 const SSH_BIN = '/usr/bin/ssh';
 

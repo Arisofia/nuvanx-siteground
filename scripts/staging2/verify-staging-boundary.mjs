@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import {
+  SITEGROUND_CAPTCHA_PATH,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
 
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -17,9 +21,6 @@ const routes = [
   '/blog/',
   '/endolift-primeras-72-horas-que-esperar/',
 ];
-
-// Provider-specific paths for captcha detection
-const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
 
 let baseUrl = process.env.BASE_URL || 'https://staging2.nuvanx.com';
 try {
@@ -108,7 +109,7 @@ function robotsIssues(value) {
 }
 
 function isTransientSiteGroundChallenge(response) {
-  return [202, 429, 503].includes(response.status) || Boolean(response.headers.get('sg-captcha'));
+  return isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()));
 }
 
 function sleep(ms) {

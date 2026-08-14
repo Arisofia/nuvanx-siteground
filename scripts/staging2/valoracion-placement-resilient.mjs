@@ -2,6 +2,8 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
+  SITEGROUND_CAPTCHA_PATH,
+  SITEGROUND_TRANSIENT_HTTP_STATUSES,
   isSiteGroundCaptchaInterruption,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
@@ -13,16 +15,23 @@ const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const expectedPortalId = '147416356';
 const transientExitCode = 75;
 const maxAttempts = 5;
+
+if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+  throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
+}
+
 const viewports = [
   { key: 'desktop', width: 1440, height: 1100 },
   { key: 'tablet', width: 1024, height: 768 },
   { key: 'mobile', width: 390, height: 844 },
 ];
+
 const mountedSelector = [
   '#nvx-hubspot-form .hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]',
   '#nvx-hubspot-form .hbspt-form',
   '#nvx-hubspot-form form.hs-form',
 ].join(', ');
+
 const legacyControlsSelector = [
   '#nvx-hubspot-form .hbspt-form input:not([type="hidden"])',
   '#nvx-hubspot-form .hbspt-form textarea',
@@ -34,13 +43,23 @@ const legacyControlsSelector = [
   '#nvx-hubspot-form form.hs-form button',
 ].join(', ');
 
-if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
-  throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
-}
-
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
 await fs.rm(outDir, { recursive: true, force: true });
 await fs.mkdir(outDir, { recursive: true });
+
+function formatTransientReason(status, headers, currentUrl) {
+  const reasons = [];
+  if (SITEGROUND_TRANSIENT_HTTP_STATUSES.has(Number(status || 0))) {
+    reasons.push(`HTTP status ${status}`);
+  }
+  if (headers && headers['sg-captcha']) {
+    reasons.push(`sg-captcha header (${headers['sg-captcha']})`);
+  }
+  if (String(currentUrl).includes(SITEGROUND_CAPTCHA_PATH)) {
+    reasons.push(`captcha URL path (${SITEGROUND_CAPTCHA_PATH})`);
+  }
+  return reasons.length > 0 ? `SiteGround challenge detected via: ${reasons.join(', ')}` : `SiteGround challenge HTTP ${status}`;
+}
 
 function isMatchingHubSpotFrame(frame, page, embeddedSrc) {
   if (frame === page.mainFrame()) return false;
@@ -48,62 +67,49 @@ function isMatchingHubSpotFrame(frame, page, embeddedSrc) {
   return frameUrl.includes(expectedFormId) || Boolean(embeddedSrc && frameUrl === embeddedSrc);
 }
 
-async function frameHasVisibleControl(frame) {
-  const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
-  const count = Math.min(await controls.count().catch(() => 0), 40);
-  for (let index = 0; index < count; index += 1) {
-    if (await controls.nth(index).isVisible().catch(() => false)) return true;
-  }
-  return false;
-}
+async function inspectHubSpotInteractivity(page, embeddedSrc) {
+  const state = {
+    frameFound: false,
+    frameUrl: '',
+    controls: 0,
+    visibleControls: 0,
+  };
 
-async function visibleControlsInHubSpotFrame(page, embeddedSrc) {
   const deadline = Date.now() + 12000;
-  let frameEverFound = false;
-
   while (Date.now() < deadline) {
-    const frames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
-    frameEverFound ||= frames.length > 0;
-    for (const frame of frames) {
-      if (await frameHasVisibleControl(frame)) return { frameFound: true, visibleControls: 1 };
+    const candidateFrames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
+
+    for (const frame of candidateFrames) {
+      state.frameFound = true;
+      state.frameUrl = frame.url() || '';
+
+      const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
+      const count = await controls.count().catch(() => 0);
+      let visibleControls = 0;
+      for (let index = 0; index < Math.min(count, 40); index += 1) {
+        if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
+      }
+
+      state.controls = Math.max(state.controls, count);
+      state.visibleControls = Math.max(state.visibleControls, visibleControls);
+
+      if (visibleControls > 0) return state;
     }
-    await page.waitForTimeout(600);
+
+    await page.waitForTimeout(600).catch(() => {});
   }
 
-  return { frameFound: frameEverFound, visibleControls: 0 };
+  return state;
 }
 
-async function navigateValuation(page) {
-  try {
-    const response = await page.goto(valuationUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
-    const headers = response ? await response.allHeaders() : {};
-    const status = response?.status() || 0;
-    const currentUrl = page.url();
-    const transient = isSiteGroundTransientResponse(status, headers, currentUrl);
-    return {
-      response,
-      status,
-      transient,
-      reason: transient ? `SiteGround challenge HTTP ${status}` : '',
-      currentUrl,
-    };
-  } catch (error) {
-    if (!isSiteGroundCaptchaInterruption(error, page.url())) throw error;
-    return {
-      response: null,
-      status: 0,
-      transient: true,
-      reason: error instanceof Error ? error.message : String(error),
-      currentUrl: page.url(),
-    };
+async function inspectLegacyControls(page) {
+  const controls = page.locator(legacyControlsSelector);
+  const count = await controls.count().catch(() => 0);
+  let visibleControls = 0;
+  for (let index = 0; index < Math.min(count, 40); index += 1) {
+    if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
   }
-}
-
-async function settleLayout(page) {
-  await page.evaluate(async () => {
-    if (document.fonts) await document.fonts.ready;
-  }).catch(() => {});
-  await page.waitForTimeout(350);
+  return { controls: count, visibleControls };
 }
 
 async function collectPlacement(page) {
@@ -150,131 +156,260 @@ async function collectMountState(page) {
   return page.evaluate(({ formId, portalId }) => {
     const section = document.getElementById('nvx-hubspot-form');
     const embedded = section?.querySelector('.hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]') || null;
-    const src = embedded?.src || '';
-    const testId = embedded?.dataset.testId || '';
-    const rogueLegacy = Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((element) => !section?.contains(element)).length;
-    const rogueIframes = Array.from(document.querySelectorAll('iframe[data-test-id^="embedded-form-"]')).filter((element) => !section?.contains(element)).length;
+    const embeddedSrc = embedded?.getAttribute('src') || '';
+    const embeddedTestId = embedded?.getAttribute('data-test-id') || '';
+    const embeddedRect = embedded?.getBoundingClientRect();
+    const rogueLegacy = Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((el) => !section?.contains(el)).length;
+    const rogueIframes = Array.from(document.querySelectorAll('iframe[data-test-id^="embedded-form-"]')).filter((el) => !section?.contains(el)).length;
     return {
       embedded: Boolean(embedded),
-      src,
-      expectedIdentity: Boolean(embedded && src.includes(`_hsPortalId=${portalId}`) && src.includes(`_hsFormId=${formId}`) && testId.includes(formId)),
+      embeddedSrc,
+      embeddedTestId,
+      embeddedWidth: embeddedRect ? Math.round(embeddedRect.width) : 0,
+      embeddedHeight: embeddedRect ? Math.round(embeddedRect.height) : 0,
+      expectedIdentity: Boolean(
+        embedded &&
+        embeddedSrc.includes(`_hsPortalId=${portalId}`) &&
+        embeddedSrc.includes(`_hsFormId=${formId}`) &&
+        embeddedTestId.includes(formId)
+      ),
       rogueMounts: rogueLegacy + rogueIframes,
     };
   }, { formId: expectedFormId, portalId: expectedPortalId });
 }
 
-async function inspectLegacyControls(page) {
-  const controls = page.locator(legacyControlsSelector);
-  const count = Math.min(await controls.count().catch(() => 0), 40);
-  let visibleControls = 0;
-  for (let index = 0; index < count; index += 1) {
-    if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
-  }
-  return { controls: count, visibleControls };
-}
-
 async function validateHubSpotMount(page, mounted, mountState) {
   const issues = [];
+  let interactiveState = {
+    frameFound: false,
+    frameUrl: '',
+    controls: 0,
+    visibleControls: 0,
+  };
+
   if (!mounted) issues.push('HubSpot form did not mount inside #nvx-hubspot-form within 12s');
   if (mountState.embedded && !mountState.expectedIdentity) issues.push('HubSpot iframe mounted with an unexpected portal/form identity');
   if (mountState.rogueMounts > 0) issues.push(`Found ${mountState.rogueMounts} HubSpot form mount(s) outside #nvx-hubspot-form`);
 
   if (mountState.embedded) {
-    const interactive = await visibleControlsInHubSpotFrame(page, mountState.src);
-    if (!interactive.frameFound) issues.push('HubSpot iframe element exists but its document frame was not reachable');
-    else if (interactive.visibleControls < 1) issues.push('HubSpot iframe has no visible interactive controls');
-    return issues;
-  }
-
-  if (mounted) {
-    const legacy = await inspectLegacyControls(page);
-    if (legacy.visibleControls < 1) {
-      issues.push(`Legacy HubSpot form mounted without visible interactive controls (controls=${legacy.controls})`);
+    interactiveState = await inspectHubSpotInteractivity(page, mountState.embeddedSrc);
+    if (!interactiveState.frameFound) {
+      issues.push('HubSpot iframe element exists but its document frame was not reachable');
+    } else if (interactiveState.visibleControls < 1) {
+      issues.push(`HubSpot iframe has no visible interactive controls (controls=${interactiveState.controls})`);
+    }
+  } else if (mounted) {
+    interactiveState = await inspectLegacyControls(page);
+    if (interactiveState.visibleControls < 1) {
+      issues.push(`Legacy HubSpot form mounted without visible interactive controls (controls=${interactiveState.controls})`);
     }
   }
-  return issues;
+
+  return { issues, interactiveState };
 }
 
-async function captureScreenshot(page, viewport, attempt, suffix = '') {
-  const filename = `valoracion-${viewport.key}-attempt-${attempt}${suffix}.jpg`;
-  await page.screenshot({ path: path.join(outDir, filename), type: 'jpeg', quality: 78, fullPage: true }).catch(() => {});
+async function validateAttempt(context, viewport, attempt) {
+  const page = await context.newPage();
+
+  try {
+    let response = null;
+    let navError = null;
+
+    try {
+      response = await page.goto(valuationUrl, { waitUntil: 'domcontentloaded', timeout: 40000 });
+    } catch (error) {
+      navError = error;
+    }
+
+    const currentUrl = page.url() || '';
+
+    if (navError) {
+      if (isSiteGroundCaptchaInterruption(navError, currentUrl)) {
+        await page.screenshot({
+          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
+          type: 'jpeg',
+          quality: 78,
+          fullPage: true,
+        }).catch(() => {});
+        return {
+          transient: true,
+          status: 0,
+          currentUrl,
+          reason: `Captcha interruption: ${navError.message}`,
+          placement: null,
+          mounted: false,
+          mountState: null,
+          interactiveState: null,
+          issues: [`Captcha interruption: ${navError.message}`],
+        };
+      }
+
+      await page.screenshot({
+        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}.jpg`),
+        type: 'jpeg',
+        quality: 78,
+        fullPage: true,
+      }).catch(() => {});
+
+      return {
+        transient: false,
+        status: 0,
+        currentUrl,
+        reason: navError.message,
+        placement: null,
+        mounted: false,
+        mountState: null,
+        interactiveState: null,
+        issues: [`Valuation navigation failed: ${navError.message}`],
+      };
+    }
+
+    const headers = response ? await response.allHeaders() : {};
+    const status = response?.status() || 0;
+    const isTransientStatus = isSiteGroundTransientResponse(status, headers, currentUrl);
+
+    if (currentUrl.includes(SITEGROUND_CAPTCHA_PATH)) {
+      await page.screenshot({
+        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
+        type: 'jpeg',
+        quality: 78,
+        fullPage: true,
+      }).catch(() => {});
+      return {
+        transient: true,
+        status,
+        currentUrl,
+        reason: `SiteGround captcha challenge URL: ${currentUrl}`,
+        placement: null,
+        mounted: false,
+        mountState: null,
+        interactiveState: null,
+        issues: [`SiteGround captcha challenge URL: ${currentUrl}`],
+      };
+    }
+
+    const issues = [];
+    if (!response) issues.push('Valuation navigation returned no HTTP response');
+    else if (status !== 200 && !isTransientStatus) issues.push(`Expected HTTP 200, got ${status}`);
+
+    try {
+      const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
+      if (metaSha !== expectedSha) issues.push(`SHA mismatch ${metaSha || 'missing'} != ${expectedSha}`);
+
+      await page.evaluate(async () => { if (document.fonts) await document.fonts.ready; }).catch(() => {});
+      await page.waitForTimeout(350).catch(() => {});
+
+      const placement = await collectPlacement(page);
+      issues.push(...validatePlacement(placement));
+
+      await page.waitForLoadState('load').catch(() => {});
+      await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
+      const mounted = await page.locator(mountedSelector).first().waitFor({ state: 'attached', timeout: 12000 }).then(() => true).catch(() => false);
+      const mountState = await collectMountState(page);
+      const hubSpotValidation = await validateHubSpotMount(page, mounted, mountState);
+      issues.push(...hubSpotValidation.issues);
+
+      const recoveredTransientHttp = Boolean(isTransientStatus && issues.length === 0);
+
+      if (isTransientStatus && !recoveredTransientHttp) {
+        await page.screenshot({
+          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
+          type: 'jpeg',
+          quality: 78,
+          fullPage: true,
+        }).catch(() => {});
+        return {
+          transient: true,
+          status,
+          currentUrl: page.url(),
+          reason: formatTransientReason(status, headers, page.url()),
+          placement,
+          mounted,
+          mountState,
+          interactiveState: hubSpotValidation.interactiveState,
+          issues: [formatTransientReason(status, headers, page.url())],
+        };
+      }
+
+      await page.screenshot({
+        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}.jpg`),
+        type: 'jpeg',
+        quality: 78,
+        fullPage: true,
+      });
+
+      if (recoveredTransientHttp) {
+        console.log(`RECOVERED /madrid/valoracion/ ${viewport.width}x${viewport.height} attempt=${attempt} HTTP ${status} -> exact interactive page`);
+      }
+
+      return {
+        transient: false,
+        status,
+        recoveredTransientHttp,
+        currentUrl: page.url(),
+        reason: '',
+        placement,
+        mounted,
+        mountState,
+        interactiveState: hubSpotValidation.interactiveState,
+        issues,
+      };
+    } catch (evalError) {
+      if (isSiteGroundCaptchaInterruption(evalError, page.url())) {
+        await page.screenshot({
+          path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
+          type: 'jpeg',
+          quality: 78,
+          fullPage: true,
+        }).catch(() => {});
+        return {
+          transient: true,
+          status,
+          currentUrl: page.url(),
+          reason: `Captcha redirection during inspection: ${evalError.message}`,
+          placement: null,
+          mounted: false,
+          mountState: null,
+          interactiveState: null,
+          issues: [`Captcha redirection during inspection: ${evalError.message}`],
+        };
+      }
+      throw evalError;
+    }
+  } finally {
+    await page.close().catch(() => {});
+  }
 }
 
-function normalizedTransientResult(navigation) {
-  return {
-    transient: true,
-    status: navigation.status,
-    currentUrl: navigation.currentUrl,
-    reason: navigation.reason,
-    placement: null,
-    mounted: false,
-    mountState: null,
-    issues: [],
-  };
-}
-
-async function validateAttempt(browser, viewport, attempt) {
+async function runViewport(browser, viewport) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     ignoreHTTPSErrors: true,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36 NUVANX-Valoracion-QA/2.0',
   });
-  const page = await context.newPage();
 
   try {
-    const navigation = await navigateValuation(page);
-    if (navigation.transient) {
-      await captureScreenshot(page, viewport, attempt, '-transient');
-      return normalizedTransientResult(navigation);
+    const attempts = [];
+    let finalResult = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      console.log(`VALORACION_ATTEMPT viewport=${viewport.key} attempt=${attempt}/${maxAttempts}`);
+      const result = await validateAttempt(context, viewport, attempt);
+      attempts.push({ attempt, ...result });
+      finalResult = { viewport, finalAttempt: attempt, attempts, ...result };
+
+      if (result.transient) {
+        console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);
+        if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, 2500 * attempt));
+      } else {
+        break;
+      }
     }
 
-    const issues = [];
-    if (!navigation.response) issues.push('Valuation navigation returned no HTTP response');
-    else if (navigation.status !== 200) issues.push(`Expected HTTP 200, got ${navigation.status}`);
-
-    const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
-    if (metaSha !== expectedSha) issues.push(`SHA mismatch ${metaSha || 'missing'} != ${expectedSha}`);
-
-    await settleLayout(page);
-    const placement = await collectPlacement(page);
-    issues.push(...validatePlacement(placement));
-
-    await page.waitForLoadState('load').catch(() => {});
-    await page.waitForTimeout(250);
-    await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
-    const mounted = await page.locator(mountedSelector).first().waitFor({ state: 'attached', timeout: 12000 }).then(() => true).catch(() => false);
-    const mountState = await collectMountState(page);
-    issues.push(...await validateHubSpotMount(page, mounted, mountState));
-
-    await captureScreenshot(page, viewport, attempt);
-    return {
-      transient: false,
-      status: navigation.status,
-      currentUrl: navigation.currentUrl,
-      placement,
-      mounted,
-      mountState,
-      issues,
-    };
-  } catch (error) {
-    await captureScreenshot(page, viewport, attempt, '-fatal');
-    throw error;
+    return finalResult;
   } finally {
     await context.close();
   }
-}
-
-async function runViewport(browser, viewport) {
-  let finalResult = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    console.log(`VALORACION_ATTEMPT viewport=${viewport.key} attempt=${attempt}/${maxAttempts}`);
-    const result = await validateAttempt(browser, viewport, attempt);
-    finalResult = { viewport, attempt, ...result };
-    if (!result.transient) break;
-    console.warn(`VALORACION_TRANSIENT viewport=${viewport.key} attempt=${attempt} reason=${result.reason}`);
-    if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, 2500 * attempt));
-  }
-  return finalResult;
 }
 
 function reportViewport(result) {
@@ -295,7 +430,6 @@ const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] }
 const results = [];
 let realFailure = false;
 let transientExhausted = false;
-let fatalError = null;
 
 try {
   for (const viewport of viewports) {
@@ -305,15 +439,12 @@ try {
     realFailure ||= classification === 'real';
     transientExhausted ||= classification === 'transient';
   }
-} catch (error) {
-  fatalError = error;
-  console.error(`VALORACION_PLACEMENT=FAIL_FATAL reason=${error instanceof Error ? error.message : String(error)}`);
 } finally {
   await browser.close();
-  await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 }
 
-if (fatalError) throw fatalError;
+await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
+
 if (realFailure) {
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
@@ -336,6 +467,7 @@ if (realFailure) {
   console.error('VALORACION_PLACEMENT=FAIL_REAL');
   process.exit(1);
 }
+
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
     await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch((err) => {

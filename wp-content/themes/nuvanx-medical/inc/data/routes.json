@@ -41,6 +41,9 @@
     "schema_id": "chamberi",
     "post_id": 1543
   },
+  "/medicina-estetica-goya/": {
+    "route_alias": "/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/"
+  },
   "/medicina-estetica-goya-barrio-salamanca/": {
     "route_alias": "/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/"
   },

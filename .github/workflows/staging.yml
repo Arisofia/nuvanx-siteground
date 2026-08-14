@@ -529,6 +529,14 @@ jobs:
           done
           test "$pass" = 1
 
+      - name: Verify Goya alias query preservation contract
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          STAGING_URL="$STAGING_URL" \
+          node scripts/staging2/test-goya-alias-query.mjs
+
       - name: Validate WordPress page templates from origin
         if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash

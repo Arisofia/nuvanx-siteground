@@ -138,7 +138,7 @@ async function fetchPublishedPages() {
           accept: 'application/json',
         },
       });
-      if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()), endpoint)) {
+      if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()), response.url || endpoint)) {
         console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
         try {
           const pages = await fetchPublishedPagesViaBrowser(endpoint);

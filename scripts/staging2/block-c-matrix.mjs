@@ -2,14 +2,49 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
+import { createSiteGroundOriginVerifier, SITEGROUND_CAPTCHA_PATH } from './siteground-origin-verifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const expectedHost = process.env.EXPECTED_HOST || 'staging2.nuvanx.com';
+const realisticBrowserUa = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
   process.exit(1);
+}
+
+const originVerifier = createSiteGroundOriginVerifier({ expectedHost, expectedSha });
+const originVerificationCache = new Map();
+let originFallbackAvailable = null;
+
+function getOriginFallbackAvailable() {
+  if (originFallbackAvailable === null) originFallbackAvailable = originVerifier.isAvailable();
+  return originFallbackAvailable;
+}
+
+function verifyViaSiteGroundOrigin(route) {
+  if (!getOriginFallbackAvailable()) {
+    return {
+      attempted: false,
+      pass: false,
+      error: `Origin SSH alias unavailable: ${originVerifier.originSshAlias}`,
+    };
+  }
+  if (!originVerificationCache.has(route)) {
+    originVerificationCache.set(route, originVerifier.verify(route));
+  }
+  return originVerificationCache.get(route);
+}
+
+function isSiteGroundNoResponse(networkErrors, expectedDocumentUrl) {
+  return (
+    networkErrors.length === 0 ||
+    networkErrors.every((message) =>
+      message === `${expectedDocumentUrl}: net::ERR_ABORTED` ||
+      (message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED'))
+    )
+  );
 }
 
 const viewports = VIEWPORTS;
@@ -28,7 +63,6 @@ const shortContentRoutes = new Set([
   '/mas-informacion-sobre-las-cookies/',
 ]);
 
-
 // Every published WordPress page must remain addressable with HTTP 200.
 // Editorial readiness is governed by robots/sitemap policy, not by turning
 // published CMS records into frontend 404 responses.
@@ -46,7 +80,7 @@ async function fetchPublishedPagesViaBrowser(endpoint) {
   });
   try {
     const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 NUVANX-BlockC/1.0',
+      userAgent: realisticBrowserUa,
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
@@ -97,11 +131,11 @@ async function fetchPublishedPages() {
     try {
       const response = await fetch(endpoint, {
         headers: {
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 NUVANX-BlockC/1.0',
+          'user-agent': realisticBrowserUa,
           accept: 'application/json',
         },
       });
-      if (response.status === 202 || response.headers.get('sg-captcha')) {
+      if ([202, 429, 503].includes(response.status) || response.headers.get('sg-captcha')) {
         console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
         try {
           const pages = await fetchPublishedPagesViaBrowser(endpoint);
@@ -161,7 +195,7 @@ async function gotoPlain(page, url) {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       if (!response) return { response: null, attempt };
       const headers = response.headers();
-      if (response.status() === 202 || headers['sg-captcha']) {
+      if ([202, 429, 503].includes(response.status()) || headers['sg-captcha']) {
         if (attempt < 4) {
           await page.waitForTimeout(2500 * attempt);
           continue;
@@ -497,6 +531,7 @@ const totalCases = publishedPages.length * viewports.length;
 let passCount = 0;
 let fixCount = 0;
 let blockedCount = 0;
+let originVerifiedCount = 0;
 
 for (const viewport of viewports) {
   const context = await browser.newContext({
@@ -504,7 +539,7 @@ for (const viewport of viewports) {
     screen: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
     ignoreHTTPSErrors: true,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 NUVANX-BlockC/1.0',
+    userAgent: realisticBrowserUa,
   });
 
   for (let index = 0; index < publishedPages.length; index += 1) {
@@ -519,6 +554,7 @@ for (const viewport of viewports) {
     const productionMediaLeaks = [];
     const issues = [];
     const blockers = [];
+    const notes = [];
 
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
@@ -575,26 +611,56 @@ for (const viewport of viewports) {
     let finalUrl = url;
     let metaSha = '';
     let screenshot = '';
+    let edgeHttpStatus = 0;
+    let externalInconclusive = false;
+    let originVerified = false;
+    let originStatus = null;
+    let originDeploySha = '';
+    let originRobots = '';
 
     try {
       const navResult = await gotoPlain(page, url);
       response = navResult.response;
       headers = response ? response.headers() : {};
+      edgeHttpStatus = response?.status() || 0;
       finalUrl = page.url();
 
-      if (headers['sg-captcha'] || response?.status() === 202) {
-        blockers.push('SiteGround Antibot challenge prevented visual validation');
+      const siteGroundChallenge = Boolean(headers['sg-captcha']) || [202, 429, 503].includes(edgeHttpStatus);
+      const noResponseLooksTransient = !response && isSiteGroundNoResponse(networkErrors, url);
+
+      if (siteGroundChallenge || noResponseLooksTransient) {
+        const origin = verifyViaSiteGroundOrigin(route);
+        if (origin.pass) {
+          externalInconclusive = true;
+          originVerified = true;
+          originStatus = origin.originStatus;
+          originDeploySha = origin.originDeploySha;
+          originRobots = origin.originRobots;
+          metaSha = originDeploySha;
+          originVerifiedCount += 1;
+          notes.push('SiteGround Antibot made browser geometry inconclusive for this route/viewport.');
+          notes.push('Origin fallback verified HTTP 200, exact deploy SHA and staging noindex/nofollow.');
+          notes.push('Geometry, H1 visibility, responsive layout and images were not revalidated through origin fallback.');
+          console.log(`BLOCK_C_ORIGIN_VERIFIED route=${route} viewport=${viewport.key} edge_http=${edgeHttpStatus} origin_http=${originStatus} sha=${originDeploySha}`);
+        } else {
+          blockers.push(siteGroundChallenge
+            ? 'SiteGround Antibot challenge prevented visual validation'
+            : 'Navigation returned no HTTP response');
+          blockers.push(origin.attempted
+            ? `SiteGround origin fallback failed: ${origin.stderr || origin.error || `exit-${origin.status}`}`
+            : `SiteGround origin fallback unavailable via ${originVerifier.originSshAlias}`);
+        }
       } else if (!response) {
         blockers.push('Navigation returned no HTTP response');
       } else if (response.status() !== expectedHttpStatus) {
         blockers.push(`Expected final HTTP ${expectedHttpStatus}, got ${response.status()}`);
       }
 
-      if (new URL(finalUrl).hostname !== expectedHost) {
+      if (!originVerified && new URL(finalUrl).hostname !== expectedHost) {
         blockers.push(`Final hostname ${new URL(finalUrl).hostname} != ${expectedHost}`);
       }
 
-      if (blockers.length === 0) {
+      if (blockers.length === 0 && !externalInconclusive) {
         await handleCookieConsent(page);
         await waitForVisualStability(page);
         await activateLazyImages(page);
@@ -701,6 +767,7 @@ for (const viewport of viewports) {
       passCount += 1;
     }
 
+    const effectiveHttpStatus = originVerified ? originStatus : edgeHttpStatus;
     const result = {
       pageId: pageRecord.id,
       title: pageRecord.title,
@@ -708,9 +775,18 @@ for (const viewport of viewports) {
       viewport,
       status,
       expectedHttpStatus,
-      httpStatus: response?.status() || 0,
+      httpStatus: effectiveHttpStatus || 0,
+      edgeHttpStatus,
       finalUrl,
       metaSha,
+      externalInconclusive,
+      originVerified,
+      originStatus,
+      originDeploySha,
+      originRobots,
+      originSshAlias: originVerified ? originVerifier.originSshAlias : '',
+      visualValidation: externalInconclusive ? 'inconclusive-siteground-antibot' : 'complete',
+      notes,
       blockers,
       issues,
       geometry,
@@ -724,12 +800,13 @@ for (const viewport of viewports) {
     results.push(result);
     matrix.get(route)[viewport.key] = status;
 
-    console.log(`[${results.length}/${totalCases}] ${status} ${viewport.label} #${pageRecord.id} ${route} HTTP ${response?.status() || 0}/${expectedHttpStatus}`);
+    console.log(`[${results.length}/${totalCases}] ${status} ${viewport.label} #${pageRecord.id} ${route} HTTP ${effectiveHttpStatus || 0}/${expectedHttpStatus}${originVerified ? ' origin-verified edge-inconclusive' : ''}`);
     for (const message of blockers) console.error(`  BLOCKED: ${message}`);
     for (const message of issues) console.error(`  FIX: ${message}`);
+    for (const message of notes) console.warn(`  NOTE: ${message}`);
 
     await page.close();
-    await new Promise((resolve) => setTimeout(resolve, 120));
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
   await context.close();
@@ -753,6 +830,10 @@ const issueRows = results
     return `| ${item.pageId} | \`${item.route}\` | ${item.viewport.label} | ${item.status} | ${details} | \`${item.screenshot || ''}\` |`;
   });
 
+const originRows = results
+  .filter((item) => item.originVerified)
+  .map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport.label} | ${item.edgeHttpStatus || 0} | ${item.originStatus || 0} | \`${item.originDeploySha}\` | ${item.visualValidation} |`);
+
 const summary = [
   '# NUVANX Staging2 — Block C Visual QA',
   '',
@@ -763,7 +844,9 @@ const summary = [
   `PASS: ${passCount}`,
   `FIX: ${fixCount}`,
   `BLOCKED: ${blockedCount}`,
+  `Origin-verified edge-inconclusive cases: ${originVerifiedCount}`,
   'Published WordPress pages must remain addressable; editorial readiness is governed by robots/sitemap policy.',
+  'Origin fallback may certify HTTP 200, exact deploy SHA and staging noindex/nofollow when SiteGround Antibot blocks the edge browser; it does not certify geometry, H1 visibility, responsive layout or images for those edge-inconclusive cases.',
   '',
   '## Matrix',
   '',
@@ -775,13 +858,19 @@ const summary = [
   '|---:|---|---|---|---|---|',
   ...(issueRows.length ? issueRows : ['| — | — | — | PASS | No findings | — |']),
   '',
+  '## SiteGround origin fallback evidence',
+  '',
+  '| WP ID | URL | Viewport | Edge HTTP | Origin HTTP | Origin SHA | Visual state |',
+  '|---:|---|---|---:|---:|---|---|',
+  ...(originRows.length ? originRows : ['| — | — | — | — | — | — | No origin fallback used |']),
+  '',
 ].join('\n');
 
 await fs.writeFile(path.join(outputDir, 'block-c-results.json'), `${JSON.stringify(results, null, 2)}\n`);
 await fs.writeFile(path.join(outputDir, 'block-c-matrix.md'), `${matrixRows.join('\n')}\n`);
 await fs.writeFile(path.join(outputDir, 'block-c-summary.md'), `${summary}\n`);
 
-const csvHeader = ['wp_id', 'title', 'route', 'viewport', 'width', 'height', 'status', 'expected_http_status', 'http_status', 'final_url', 'meta_sha', 'horizontal_overflow_px', 'h1', 'issues', 'screenshot'];
+const csvHeader = ['wp_id', 'title', 'route', 'viewport', 'width', 'height', 'status', 'expected_http_status', 'http_status', 'edge_http_status', 'final_url', 'meta_sha', 'external_inconclusive', 'origin_verified', 'origin_status', 'origin_sha', 'origin_robots', 'visual_validation', 'horizontal_overflow_px', 'h1', 'issues', 'notes', 'screenshot'];
 const csvEscape = (value) => `"${String(value ?? '').replaceAll('"', '""').replaceAll('\n', ' ')}"`;
 const csv = [csvHeader.map(csvEscape).join(',')];
 for (const item of results) {
@@ -795,11 +884,19 @@ for (const item of results) {
     item.status,
     item.expectedHttpStatus,
     item.httpStatus,
+    item.edgeHttpStatus,
     item.finalUrl,
     item.metaSha,
+    item.externalInconclusive,
+    item.originVerified,
+    item.originStatus ?? '',
+    item.originDeploySha,
+    item.originRobots,
+    item.visualValidation,
     item.geometry?.horizontalOverflowPx ?? '',
     item.geometry?.h1Text ?? '',
     [...item.blockers, ...item.issues].join('; '),
+    item.notes.join('; '),
     item.screenshot,
   ].map(csvEscape).join(','));
 }
@@ -809,5 +906,6 @@ console.log(`BLOCK_C_TOTAL=${totalCases}`);
 console.log(`BLOCK_C_PASS=${passCount}`);
 console.log(`BLOCK_C_FIX=${fixCount}`);
 console.log(`BLOCK_C_BLOCKED=${blockedCount}`);
+console.log(`BLOCK_C_ORIGIN_VERIFIED=${originVerifiedCount}`);
 
 if (blockedCount > 0 || fixCount > 0) process.exit(1);

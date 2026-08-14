@@ -177,6 +177,10 @@ async function main() {
   });
 
   const newVersionId = versionRes.data.containerVersion?.containerVersionId;
+  if (!newVersionId) {
+    console.log('  No workspace changes to version — container already up to date. Nothing to publish.');
+    return;
+  }
   const publishRes   = await tagmanager.accounts.containers.versions.publish({
     path: `${containerPath}/versions/${newVersionId}`,
   });

@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
@@ -19,6 +20,30 @@ function runProcess(moduleUrl) {
       resolve(Number.isInteger(code) ? code : 1);
     });
   });
+}
+
+async function disarmRollbackAfterTransientExhaustion(component) {
+  const envFile = (process.env.GITHUB_ENV || '').trim();
+  if (envFile) {
+    try {
+      await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+      console.error(`STAGING_ACCEPTANCE_ROLLBACK=DISARMED component=${component} reason=transient-exhaustion`);
+    } catch (error) {
+      console.warn(`STAGING_ACCEPTANCE_ROLLBACK=DISARM_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
+  if (!summary) return;
+  try {
+    await fs.appendFile(
+      summary,
+      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established, so rollback was disarmed; this run is not eligible for Production acceptance.\n`,
+      'utf8'
+    );
+  } catch (error) {
+    console.warn(`STAGING_ACCEPTANCE_SUMMARY=WRITE_FAILED component=${component} error=${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
@@ -54,22 +79,22 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
     }
   }
 
+  await disarmRollbackAfterTransientExhaustion(name);
   console.error(`STAGING_ACCEPTANCE_COMPONENT=FAIL component=${name} cycles=${maxCycles} exit=${lastExitCode}`);
   process.exit(lastExitCode || 1);
 }
 
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
-  // Wrapper owns bounded retries and only propagates rollback disarm after all
-  // transient cycles are exhausted. Real head-contract failures still fail fast.
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 3 },
-  // Semantic accessibility gate runs after placement/mount has been proven. It
-  // exercises blank validation only and must never create a real HubSpot contact.
-  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
+  // HubSpot is third-party runtime. Each child cycle already performs three
+  // internal attempts; three outer cycles provide bounded resilience without
+  // weakening any accessibility assertion or creating a real contact.
+  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 3, backoffMs: 7000 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 
 for (const stage of stages) {
-  await runStage(stage.name, stage.url, stage.maxCycles);
+  await runStage(stage.name, stage.url, stage.maxCycles, stage.backoffMs);
 }

@@ -377,9 +377,12 @@
       );
       iframes.forEach(function (ifr) {
         const currentTitle = ifr.getAttribute('title');
+        // iframe has a native accessible-name mechanism via title. Keep that
+        // single source of truth and remove aria-label, which Axe flags as a
+        // prohibited ARIA attribute for the embedded HubSpot frame role.
+        if (ifr.hasAttribute('aria-label')) ifr.removeAttribute('aria-label');
         if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
           ifr.setAttribute('title', 'Formulario de valoración médica');
-          ifr.setAttribute('aria-label', 'Formulario de valoración médica');
         }
       });
     }

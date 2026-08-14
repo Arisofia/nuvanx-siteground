@@ -141,5 +141,30 @@ assert.match(
   'production HubSpot probe must expose an auditable zero-submit PASS marker'
 );
 
+// HubSpot iframe naming must use the native iframe title. A prior runtime pass
+// also injected aria-label on the iframe; Axe reports that as aria-prohibited-attr
+// for the embedded frame role. Keep a deterministic source guard so that the
+// invalid attribute cannot return even when the vendor changes its initial title.
+const runtimeGovernance = await fs.readFile(
+  new URL('../../wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js', import.meta.url),
+  'utf8'
+);
+assert.match(
+  runtimeGovernance,
+  /ifr\.setAttribute\('title', 'Formulario de valoración médica'\)/,
+  'HubSpot iframe governance must provide the native accessible title'
+);
+assert.match(
+  runtimeGovernance,
+  /ifr\.removeAttribute\('aria-label'\)/,
+  'HubSpot iframe governance must remove prohibited aria-label attributes'
+);
+assert.doesNotMatch(
+  runtimeGovernance,
+  /ifr\.setAttribute\('aria-label'\s*,/,
+  'HubSpot iframe governance must not assign any aria-label to the iframe'
+);
+
 console.log('HUBSPOT_SUBMISSION_CLASSIFIER_TEST=PASS cases=17');
 console.log(`HUBSPOT_PRODUCTION_ZERO_SUBMIT_GUARD=PASS forbidden_patterns=${HUBSPOT_PRODUCTION_FORBIDDEN_PATTERNS.length}`);
+console.log('HUBSPOT_IFRAME_A11Y_CONTRACT=PASS native_title=1 prohibited_aria_label=0');

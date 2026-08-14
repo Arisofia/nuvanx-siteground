@@ -373,18 +373,22 @@
 
     function isHubSpotIframe(ifr) {
       if (!ifr || ifr.tagName !== 'IFRAME') return false;
-      if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame, #nvx-hubspot-form, #nvx-valoracion-modal'))) {
+      if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
         return true;
       }
-      const rawSrc = ifr.getAttribute('src');
+      const rawSrc = String(ifr.getAttribute('src') || '').trim();
+      const inModalContainer = Boolean(ifr.closest('#nvx-hubspot-form, #nvx-valoracion-modal'));
+      if (inModalContainer && (!rawSrc || rawSrc === 'about:blank')) {
+        return true;
+      }
       if (!rawSrc) return false;
       try {
         const parsed = new URL(rawSrc, window.location.href);
         const host = parsed.hostname.toLowerCase();
         return host === 'hsforms.com' || host.endsWith('.hsforms.com') ||
                host === 'hsforms.net' || host.endsWith('.hsforms.net') ||
-               host === 'hubspot.com' || host.endsWith('.hubspot.com') ||
-               host === 'hscollectedforms.net' || host.endsWith('.hscollectedforms.net');
+               host === 'forms.hubspot.com' || host.endsWith('.forms.hubspot.com') ||
+               host === 'forms-eu1.hubspot.com' || host.endsWith('.forms-eu1.hubspot.com');
       } catch {
         return false;
       }
@@ -642,7 +646,24 @@
       let titlePassScheduled = false;
       const hasRaf = typeof window.requestAnimationFrame === 'function';
 
-      new MutationObserver(function () {
+      new MutationObserver(function (mutations) {
+        let shouldRun = false;
+        for (let i = 0; i < mutations.length; i++) {
+          const m = mutations[i];
+          if (m.type === 'childList') {
+            shouldRun = true;
+            break;
+          }
+          if (m.type === 'attributes') {
+            const target = m.target;
+            if (target && target.tagName === 'IFRAME' && isHubSpotIframe(target)) {
+              shouldRun = true;
+              break;
+            }
+          }
+        }
+        if (!shouldRun) return;
+
         if (titlePassScheduled) return;
         titlePassScheduled = true;
 

@@ -112,6 +112,11 @@ EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/sta
 EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/staging2/valoracion-placement.mjs
 ```
 
+The valuation placement runner adheres to the following exit-code contract:
+- `0`: Validation passed (`VALORACION_PLACEMENT=PASS` / `VALORACION_INTERACTIVITY=PASS`).
+- `1`: Real assertion failure (`VALORACION_PLACEMENT=FAIL_REAL`).
+- `75`: Transient challenge exhaustion (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), preserving rollback readiness and writing diagnostics to GitHub Step Summary.
+
 ## Repository hygiene
 
 Repository hygiene is part of `staging.yml`; it is no longer a separate workflow. It rejects transient one-shot workflows, workflow self-mutation, tracked generated/local debris, empty/editor-residue files and any `.github/workflows` state other than `production.yml` plus `staging.yml`. Gitleaks runs on the applicable trusted Staging workflow paths.

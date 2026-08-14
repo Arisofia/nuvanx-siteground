@@ -1,6 +1,5 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
-import fsSync from 'node:fs';
 import path from 'node:path';
 import {
   isSiteGroundCaptchaInterruption,
@@ -321,14 +320,18 @@ if (realFailure) {
 }
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    fsSync.appendFileSync(process.env.GITHUB_ENV, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+    await fs.appendFile(process.env.GITHUB_ENV, 'STAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8').catch(() => {});
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
-    fsSync.appendFileSync(
-      process.env.GITHUB_STEP_SUMMARY,
-      '## Valoración acceptance inconclusive\n\nSiteGround Antibot exhausted the bounded retries. The candidate remains deployed on Staging2, rollback is suppressed, and no production-eligible acceptance is emitted.\n',
-      'utf8'
-    );
+    const summary = [
+      '### ⚠️ Staging Valoración QA — Transient Exhausted',
+      '> **SiteGround challenge / antibot / transient navigation interruptions prevented complete valuation placement verification.**',
+      `- **Exit code:** \`${transientExitCode}\``,
+      `- **Max attempts:** \`${maxAttempts}\``,
+      '- Staging snapshot rollback remains armed and artifacts are preserved.',
+      '',
+    ].join('\n');
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch(() => {});
   }
   console.error('VALORACION_PLACEMENT=TRANSIENT_ONLY');
   process.exit(transientExitCode);

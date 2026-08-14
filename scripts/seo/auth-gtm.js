@@ -3,9 +3,9 @@ const { google } = require('googleapis');
 const readline = require('readline');
 const fs = require('fs');
 
-if (!process.stdout.isTTY || process.env.CI) {
-  console.error('ERROR: auth-gtm.js is an interactive local setup utility and cannot run in CI or non-interactive environments.');
-  process.exit(1);
+if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !process.stdin.isTTY || !process.stdout.isTTY) {
+  console.error('REFRESH_TOKEN_HELPER=REFUSED: this interactive credential helper may only run in a private local TTY.');
+  process.exit(2);
 }
 
 const envPath = '.env.local';
@@ -23,8 +23,8 @@ const clientId = envVars['GTM_CLIENT_ID'] || envVars['GOOGLE_ADS_CLIENT_ID'];
 const clientSecret = envVars['GTM_CLIENT_SECRET'] || envVars['GOOGLE_ADS_CLIENT_SECRET'];
 
 if (!clientId || !clientSecret) {
-  console.error("❌ No se encontró GOOGLE_ADS_CLIENT_ID ni GOOGLE_ADS_CLIENT_SECRET en .env.local ni en el entorno");
-  process.exit(1);
+  console.error('REFRESH_TOKEN_HELPER=REFUSED: set GTM_CLIENT_ID/GOOGLE_ADS_CLIENT_ID and GTM_CLIENT_SECRET/GOOGLE_ADS_CLIENT_SECRET in .env.local or environment.');
+  process.exit(2);
 }
 
 const oauth2Client = new google.auth.OAuth2(

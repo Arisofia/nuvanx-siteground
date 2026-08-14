@@ -9,14 +9,29 @@ async function runFullAdsAnalysis() {
     developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
   });
 
-  const customer = client.Customer({
+  const customerOptions = {
     customer_id: (process.env.GOOGLE_ADS_CUSTOMER_ID || '').replace(/-/g, ''),
     refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN,
-  });
+  };
+  const loginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MANAGER_ID || '').replace(/-/g, '');
+  if (loginCustomerId) {
+    customerOptions.login_customer_id = loginCustomerId;
+  }
+
+  const customer = client.Customer(customerOptions);
+
+  async function safeQuery(queryName, gaql) {
+    try {
+      return await customer.query(gaql);
+    } catch (err) {
+      console.warn(`[WARN] Query "${queryName}" failed: ${sanitizeAdsError(err)}`);
+      return [];
+    }
+  }
 
   const [campaigns, assetGroups, demographics, geo] = await Promise.all([
     // Campaign metrics
-    customer.query(`
+    safeQuery('campaigns', `
       SELECT
         campaign.id, campaign.name, campaign.status, campaign.advertising_channel_type,
         campaign_budget.amount_micros,
@@ -29,7 +44,7 @@ async function runFullAdsAnalysis() {
     `),
 
     // Asset group details
-    customer.query(`
+    safeQuery('assetGroups', `
       SELECT
         asset_group.id, asset_group.name, asset_group.status, asset_group.ad_strength,
         campaign.id,
@@ -39,7 +54,7 @@ async function runFullAdsAnalysis() {
     `),
 
     // Demographics breakdown (age/gender/device)
-    customer.query(`
+    safeQuery('demographics', `
       SELECT
         age_range_view.resource_name,
         ad_group_criterion.age_range.type,
@@ -50,12 +65,12 @@ async function runFullAdsAnalysis() {
     `),
 
     // Geographic performance
-    customer.query(`
+    safeQuery('geo', `
       SELECT
         geographic_view.country_criterion_id, geographic_view.location_type,
         metrics.impressions, metrics.clicks, metrics.ctr, metrics.cost_micros
       FROM geographic_view
-      WHERE geographic_view.location_type = 'LOCATION_OF_PRESENCE'
+      WHERE geographic_view.location_type = LOCATION_OF_PRESENCE
         AND segments.date DURING LAST_30_DAYS
       LIMIT 10
     `)

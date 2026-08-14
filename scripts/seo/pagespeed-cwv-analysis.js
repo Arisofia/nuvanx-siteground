@@ -22,7 +22,12 @@ function fetchJson(url) {
 }
 
 async function runPagespeedAnalysis() {
-  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY;
+  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY || process.env.PAGESPEED_API_KEY;
+  if (!apiKey) {
+    console.error('ERROR: GOOGLE_PAGESPEED_API_KEY is required to run PageSpeed analysis.');
+    process.exit(1);
+  }
+
   const urls = [
     'https://nuvanx.com/',
     'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
@@ -34,6 +39,10 @@ async function runPagespeedAnalysis() {
   const strategies = ['mobile', 'desktop'];
   const results = {};
 
+  const parseScore = (val) => typeof val === 'number' && !isNaN(val) ? Math.round(val * 100) : null;
+  const parseNum   = (val) => typeof val === 'number' && !isNaN(val) ? Math.round(val) : null;
+  const parseCls   = (val) => typeof val === 'number' && !isNaN(val) ? Number(val.toFixed(3)) : null;
+
   for (const url of urls) {
     results[url] = {};
     for (const strategy of strategies) {
@@ -41,19 +50,31 @@ async function runPagespeedAnalysis() {
         const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${apiKey}&category=performance&category=seo&category=accessibility&category=best-practices`;
         const data = await fetchJson(endpoint);
 
-        const lcp = data.lighthouseResult?.audits?.['largest-contentful-paint']?.numericValue;
-        const cls = data.lighthouseResult?.audits?.['cumulative-layout-shift']?.numericValue;
-        const tbt = data.lighthouseResult?.audits?.['total-blocking-time']?.numericValue;
-        const fcp = data.lighthouseResult?.audits?.['first-contentful-paint']?.numericValue;
-        const ttfb = data.lighthouseResult?.audits?.['server-response-time']?.numericValue;
-        const perf = data.lighthouseResult?.categories?.performance?.score;
-        const seo = data.lighthouseResult?.categories?.seo?.score;
-        const a11y = data.lighthouseResult?.categories?.accessibility?.score;
-        const bp = data.lighthouseResult?.categories?.['best-practices']?.score;
+        const lcpVal  = data.lighthouseResult?.audits?.['largest-contentful-paint']?.numericValue;
+        const clsVal  = data.lighthouseResult?.audits?.['cumulative-layout-shift']?.numericValue;
+        const tbtVal  = data.lighthouseResult?.audits?.['total-blocking-time']?.numericValue;
+        const fcpVal  = data.lighthouseResult?.audits?.['first-contentful-paint']?.numericValue;
+        const ttfbVal = data.lighthouseResult?.audits?.['server-response-time']?.numericValue;
+        const perfVal = data.lighthouseResult?.categories?.performance?.score;
+        const seoVal  = data.lighthouseResult?.categories?.seo?.score;
+        const a11yVal = data.lighthouseResult?.categories?.accessibility?.score;
+        const bpVal   = data.lighthouseResult?.categories?.['best-practices']?.score;
 
-        results[url][strategy] = { lcp: Math.round(lcp), cls: cls?.toFixed(3), tbt: Math.round(tbt), fcp: Math.round(fcp), ttfb: Math.round(ttfb), perf: Math.round(perf * 100), seo: Math.round(seo * 100), a11y: Math.round(a11y * 100), bp: Math.round(bp * 100) };
+        const metrics = {
+          lcp:  parseNum(lcpVal),
+          cls:  parseCls(clsVal),
+          tbt:  parseNum(tbtVal),
+          fcp:  parseNum(fcpVal),
+          ttfb: parseNum(ttfbVal),
+          perf: parseScore(perfVal),
+          seo:  parseScore(seoVal),
+          a11y: parseScore(a11yVal),
+          bp:   parseScore(bpVal)
+        };
+
+        results[url][strategy] = metrics;
         console.log(`[${strategy.toUpperCase()}] ${url}`);
-        console.log(`  Perf: ${Math.round(perf*100)} | SEO: ${Math.round(seo*100)} | A11y: ${Math.round(a11y*100)} | LCP: ${Math.round(lcp)}ms | CLS: ${cls?.toFixed(3)} | TBT: ${Math.round(tbt)}ms | TTFB: ${Math.round(ttfb)}ms`);
+        console.log(`  Perf: ${metrics.perf ?? 'N/A'} | SEO: ${metrics.seo ?? 'N/A'} | A11y: ${metrics.a11y ?? 'N/A'} | LCP: ${metrics.lcp ?? 'N/A'}ms | CLS: ${metrics.cls ?? 'N/A'} | TBT: ${metrics.tbt ?? 'N/A'}ms | TTFB: ${metrics.ttfb ?? 'N/A'}ms`);
       } catch (err) {
         results[url][strategy] = { error: err.message };
         console.error(`Error [${strategy}] ${url}:`, err.message);

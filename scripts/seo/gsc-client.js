@@ -15,15 +15,15 @@ function getGscDateRanges() {
   end.setDate(end.getDate() - 3); // 3 days reporting lag
 
   const start30 = new Date(end);
-  start30.setDate(start30.getDate() - 30);
+  start30.setDate(start30.getDate() - 29); // 30 days inclusive
 
   const start7 = new Date(end);
-  start7.setDate(start7.getDate() - 7);
+  start7.setDate(start7.getDate() - 6); // 7 days inclusive
 
   const prev7End = new Date(start7);
   prev7End.setDate(prev7End.getDate() - 1);
   const prev7Start = new Date(prev7End);
-  prev7Start.setDate(prev7Start.getDate() - 7);
+  prev7Start.setDate(prev7Start.getDate() - 6); // 7 days inclusive
 
   return {
     endDate: formatDate(end),

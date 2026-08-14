@@ -35,7 +35,10 @@ const oauth2Client = new google.auth.OAuth2(
 
 const url = oauth2Client.generateAuthUrl({
   access_type: 'offline',
-  scope: ['https://www.googleapis.com/auth/tagmanager.edit.containers', 'https://www.googleapis.com/auth/tagmanager.publish'],
+  scope: [
+    'https://www.googleapis.com/auth/tagmanager.edit.containers',
+    'https://www.googleapis.com/auth/tagmanager.publish'
+  ],
   prompt: 'consent'
 });
 
@@ -106,6 +109,7 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
       console.log('source .env.local && node scripts/seo/setup-gtm-conversion-trigger.js\n');
     } else {
       console.error('❌ Google no devolvió un refresh_token (quizás no forzó el consentimiento).');
+      process.exitCode = 1;
     }
   } catch (error) {
     console.error('❌ Error intercambiando tokens:', error.message);
@@ -113,6 +117,7 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
       console.error('\n⚠️ El OAuth Client configurado no permite redirecciones a http://localhost.');
       console.error('Solución: En Google Cloud Console > APIs & Services > Credentials, añade "http://localhost" como Authorized Redirect URI en tu OAuth 2.0 Client ID.');
     }
+    process.exitCode = 1;
   }
   
   rl.close();

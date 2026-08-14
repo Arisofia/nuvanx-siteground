@@ -207,27 +207,36 @@ function assertVariableContract(variable) {
 function assertTriggerContract(trigger) {
   const customConditions = Array.isArray(trigger.customEventFilter) ? trigger.customEventFilter : [];
   const extraConditions = Array.isArray(trigger.filter) ? trigger.filter : [];
-  const allConditions = customConditions.concat(extraConditions);
-  const eventMatch = allConditions.some((condition) => conditionMatches(condition, '{{_event}}', 'nvx_conversion_signal'));
-  const nameMatch = allConditions.some((condition) => conditionMatches(condition, `{{${VARIABLE_NAME}}}`, 'generate_lead'));
+  const eventMatch = customConditions.some((condition) => conditionMatches(condition, '{{_event}}', 'nvx_conversion_signal'));
+  const nameMatch = customConditions.some((condition) => conditionMatches(condition, `{{${VARIABLE_NAME}}}`, 'generate_lead'));
 
-  if (trigger.type !== 'customEvent' || !eventMatch || !nameMatch) {
-    safeFail(`Existing GTM trigger "${TRIGGER_NAME}" does not match the canonical event/filter contract. Refusing to overwrite it.`);
+  if (
+    trigger.type !== 'customEvent'
+    || customConditions.length !== 2
+    || extraConditions.length !== 0
+    || !eventMatch
+    || !nameMatch
+  ) {
+    safeFail(`Existing GTM trigger "${TRIGGER_NAME}" does not exactly match the canonical event/filter contract. Refusing to overwrite it.`);
   }
 }
 
 function assertTagContract(tag, triggerId, config) {
   const params = parameterMap(tag.parameter);
   const firing = Array.isArray(tag.firingTriggerId) ? tag.firingTriggerId.map(String) : [];
+  const blocking = Array.isArray(tag.blockingTriggerId) ? tag.blockingTriggerId.map(String) : [];
   if (
     tag.type !== 'awct'
     || params.get('conversionId') !== config.numericConversionId
     || params.get('conversionLabel') !== config.conversionLabel
     || params.get('enableRemarketing') !== 'false'
     || params.get('enableConversionLinker') !== 'true'
-    || !firing.includes(String(triggerId))
+    || firing.length !== 1
+    || firing[0] !== String(triggerId)
+    || blocking.length !== 0
+    || tag.paused === true
   ) {
-    safeFail(`Existing GTM tag "${TAG_NAME}" does not match the canonical conversion contract. Refusing to overwrite it.`);
+    safeFail(`Existing GTM tag "${TAG_NAME}" does not exactly match the canonical conversion/firing contract. Refusing to overwrite it.`);
   }
 }
 

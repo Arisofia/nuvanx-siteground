@@ -13,6 +13,10 @@ const runtime = fs.readFileSync(
   'wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js',
   'utf8',
 );
+const runtimeConfig = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php',
+  'utf8',
+);
 
 const managedHost = managedPage.match(/<div id="nvx-hubspot-native-form"[^>]*>/)?.[0] || '';
 assert.ok(managedHost, 'Managed valoración page must render the canonical HubSpot host');
@@ -46,5 +50,15 @@ assert.match(
   /nvx_valoracion_sanitize_hubspot_host_opening/,
   'Mount governance must sanitize stale HubSpot identity attributes from the presentation host',
 );
+assert.match(
+  runtimeConfig,
+  /'hubspotPortalId'\s*=>\s*\(string\) \$hubspot_config\['portal_id'\]/,
+  'Runtime configuration must include a portal ID when output buffering is bypassed',
+);
+assert.match(
+  runtimeConfig,
+  /'hubspotFormId'\s*=>\s*\(string\) \$hubspot_config\['form_id'\]/,
+  'Runtime configuration must include a form ID when output buffering is bypassed',
+);
 
-console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0');
+console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1');

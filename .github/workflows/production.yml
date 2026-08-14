@@ -1,6 +1,6 @@
 name: Production
 run-name: >-
-  Production · ${{ inputs.deploy && format('release · {0}', inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha) }}
+  Production · ${{ inputs.deploy && format('{0} · {1}', inputs.release_mode, inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha) }}
 
 on:
   workflow_dispatch:
@@ -11,9 +11,17 @@ on:
         default: true
         type: boolean
       candidate_sha:
-        description: Exact 40-character SHA with successful immutable Staging acceptance evidence.
+        description: Exact 40-character SHA with successful immutable Staging acceptance evidence. Normal releases must use the current master HEAD.
         required: true
         type: string
+      release_mode:
+        description: Use rollback only for an intentional historical release; normal requires the current master HEAD.
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - rollback
       run_post_audits:
         description: Run SEO/GEO, Search Console URL Inspection and IndexNow verification/submission.
         required: true
@@ -89,13 +97,20 @@ jobs:
         shell: bash
         env:
           REQUESTED_SHA: ${{ inputs.candidate_sha }}
+          RELEASE_MODE: ${{ inputs.release_mode }}
         run: |
           set -euo pipefail
           candidate="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
           [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'candidate_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          [[ "$RELEASE_MODE" == 'release' || "$RELEASE_MODE" == 'rollback' ]] || { echo "Invalid release_mode: $RELEASE_MODE" >&2; exit 1; }
           git fetch --no-tags origin "$STAGING_ACCEPTANCE_BRANCH"
+          branch_head="$(git rev-parse "origin/$STAGING_ACCEPTANCE_BRANCH")"
           git cat-file -e "${candidate}^{commit}"
           git merge-base --is-ancestor "$candidate" "origin/$STAGING_ACCEPTANCE_BRANCH" || { echo "Candidate is outside origin/$STAGING_ACCEPTANCE_BRANCH: $candidate" >&2; exit 1; }
+          if [[ "$RELEASE_MODE" == 'release' && "$candidate" != "$branch_head" ]]; then
+            echo "PRODUCTION_FRESHNESS=FAIL requested_sha=$candidate current_${STAGING_ACCEPTANCE_BRANCH}_head=$branch_head action=use_current_head_or_explicit_rollback" >&2
+            exit 1
+          fi
           git cat-file -e "${candidate}:wp-content/themes/nuvanx-medical/functions.php"
           theme_tree="$(git rev-parse "${candidate}:wp-content/themes/nuvanx-medical")"
           echo "sha=$candidate" >> "$GITHUB_OUTPUT"
@@ -104,6 +119,8 @@ jobs:
           echo "CANDIDATE_THEME_TREE=$theme_tree" >> "$GITHUB_ENV"
           echo "PRODUCTION_CANDIDATE=$candidate"
           echo "PRODUCTION_CANDIDATE_THEME_TREE=$theme_tree"
+          echo "PRODUCTION_RELEASE_MODE=$RELEASE_MODE"
+          echo "PRODUCTION_FRESHNESS=PASS mode=$RELEASE_MODE candidate=$candidate current_${STAGING_ACCEPTANCE_BRANCH}_head=$branch_head"
 
       - name: Verify successful exact-SHA Staging acceptance evidence
         id: acceptance
@@ -324,7 +341,9 @@ jobs:
             scripts/production/artifacts/*.log
             scripts/seo/artifacts/sitemap-urls.txt
           retention-days: 30
-          if-no-files-found: error
+          # This runs after a failed or skipped audit so it must not mask the
+          # original failure when no audit evidence was produced.
+          if-no-files-found: warn
           compression-level: 6
           overwrite: true
 

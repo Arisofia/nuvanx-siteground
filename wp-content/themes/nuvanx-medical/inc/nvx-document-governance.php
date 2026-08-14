@@ -464,6 +464,13 @@ function nvx_document_governance_enqueue_assets(): void {
 	$page_url = function_exists( 'nvx_cta_valoracion_url' )
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
+	$hubspot_config = function_exists( 'nvx_valoracion_modal_hubspot_config' )
+		? nvx_valoracion_modal_hubspot_config()
+		: array(
+			'portal_id' => '',
+			'form_id'   => '',
+			'region'    => 'eu1',
+		);
 
 	// Never emit a full hsforms URL in server HTML: consent/optimizer scanners
 	// treat any inline mention of that domain as an eager marketing embed and can
@@ -475,6 +482,11 @@ function nvx_document_governance_enqueue_assets(): void {
 		'mobileNavId'      => 'nvx-mobile-nav',
 		'hubspotScriptId'  => 'nvx-hubspot-forms-runtime',
 		'hubspotPageMount' => true,
+		// Keep the page-form runtime self-sufficient if another plugin bypasses
+		// the output buffer that normally injects the canonical frame identity.
+		'hubspotPortalId'  => (string) $hubspot_config['portal_id'],
+		'hubspotFormId'    => (string) $hubspot_config['form_id'],
+		'hubspotRegion'    => (string) $hubspot_config['region'],
 		'debug'            => defined( 'WP_DEBUG' ) && WP_DEBUG === true,
 	);
 

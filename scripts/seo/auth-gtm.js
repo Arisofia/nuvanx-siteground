@@ -98,6 +98,9 @@ function persistRefreshToken(filePath, refreshToken) {
   }
 
   fs.writeFileSync(filePath, currentContent, { mode: 0o600 });
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {}
   console.log(`✅ Token guardado automáticamente en ${filePath}`);
 }
 

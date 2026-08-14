@@ -4,12 +4,13 @@ const https = require('node:https');
 
 function fetchJson(url, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
+    let timer = null;
     const req = https.get(url, (res) => {
       res.setEncoding('utf8');
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
       res.on('end', () => {
-        req.setTimeout(0);
+        if (timer) clearTimeout(timer);
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
           return reject(new Error(`HTTP ${res.statusCode}: ${body.slice(0, 200)}`));
         }
@@ -21,12 +22,15 @@ function fetchJson(url, timeoutMs = 30000) {
       });
     });
 
-    req.setTimeout(timeoutMs, () => {
+    timer = setTimeout(() => {
       const sanitizedUrl = String(url || '').replace(/([?&])key=[^&]+/g, '$1key=[REDACTED]');
       req.destroy(new Error(`Request timed out after ${timeoutMs}ms for ${sanitizedUrl}`));
-    });
+    }, timeoutMs);
 
-    req.on('error', reject);
+    req.on('error', (err) => {
+      if (timer) clearTimeout(timer);
+      reject(err);
+    });
   });
 }
 

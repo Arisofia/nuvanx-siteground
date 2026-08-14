@@ -192,6 +192,22 @@ function buildTagPayload(triggerId) {
   };
 }
 
+function isOurWorkspaceChange(change, ourIds = {}) {
+  if (change.trigger) {
+    if (change.trigger.name === TRIGGER_NAME) return true;
+    if (ourIds.triggerId && String(change.trigger.triggerId) === String(ourIds.triggerId)) return true;
+  }
+  if (change.tag) {
+    if (change.tag.name === TAG_NAME) return true;
+    if (ourIds.tagId && String(change.tag.tagId) === String(ourIds.tagId)) return true;
+  }
+  if (change.variable) {
+    if (change.variable.name === VARIABLE_NAME) return true;
+    if (ourIds.variableId && String(change.variable.variableId) === String(ourIds.variableId)) return true;
+  }
+  return false;
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -211,10 +227,7 @@ async function main() {
   // Pre-mutation check: ensure workspace does not already contain unrelated uncommitted edits
   const initialStatus = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
   const initialChanges = initialStatus.data.workspaceChange || [];
-  const preExistingUnrelated = initialChanges.filter(c => {
-    const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
-    return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
-  });
+  const preExistingUnrelated = initialChanges.filter(c => !isOurWorkspaceChange(c));
   if (preExistingUnrelated.length > 0) {
     throw new Error(`Workspace already contains ${preExistingUnrelated.length} uncommitted external change(s). Please commit or discard them in GTM before running automated setup.`);
   }
@@ -283,10 +296,11 @@ async function main() {
   }
 
   // Ensure only our intended setup entities are pending before publishing
-  const nonOurs = pendingChanges.filter(c => {
-    const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';
-    return entityName !== TRIGGER_NAME && entityName !== TAG_NAME && entityName !== VARIABLE_NAME;
-  });
+  const nonOurs = pendingChanges.filter(c => !isOurWorkspaceChange(c, {
+    triggerId: trigger?.triggerId,
+    tagId: tag?.tagId,
+    variableId: variable?.variableId
+  }));
   if (nonOurs.length > 0) {
     throw new Error(`Workspace contains ${nonOurs.length} uncommitted external change(s). Please commit or discard them in GTM before running automated publish.`);
   }

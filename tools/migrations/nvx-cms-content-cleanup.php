@@ -556,7 +556,7 @@ do {
 			$ok = wp_update_post(
 				array(
 					'ID'           => $post_id,
-					'post_content' => $result['html'],
+					'post_content' => wp_slash( $result['html'] ),
 				),
 				true
 			);

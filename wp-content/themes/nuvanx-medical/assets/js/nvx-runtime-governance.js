@@ -65,6 +65,8 @@
       const open = isOpen();
       const focusWasInside = nav.contains(document.activeElement);
       setInert(nav, !open);
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      trigger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
 
       if (open && !wasOpen) {
         window.setTimeout(function () {

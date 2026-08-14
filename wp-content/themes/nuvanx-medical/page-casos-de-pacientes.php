@@ -38,7 +38,7 @@ if ( is_readable( $css_path ) ) {
 
 get_header();
 ?>
-<main id="main-content" class="nvx-page nvx-brand-page nvx-cases-holding" aria-labelledby="nvx-cases-h1">
+<div class="nvx-page nvx-brand-page nvx-cases-holding" aria-labelledby="nvx-cases-h1">
 	<section class="nvx-brand-hero nvx-cases-holding__hero" aria-labelledby="nvx-cases-h1">
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
@@ -130,6 +130,6 @@ get_header();
 			?>
 		</div>
 	</section>
-</main>
+</div>
 <?php
 get_footer();

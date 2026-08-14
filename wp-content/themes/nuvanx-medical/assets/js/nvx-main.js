@@ -13,7 +13,10 @@
       } else {
         mobileNav.setAttribute('open', 'open');
       }
-      if (ham) ham.setAttribute('aria-expanded', 'true');
+      if (ham) {
+        ham.setAttribute('aria-expanded', 'true');
+        ham.setAttribute('aria-label', 'Cerrar menú');
+      }
       document.body.style.overflow = 'hidden';
     }
 
@@ -23,7 +26,10 @@
       } else {
         mobileNav.removeAttribute('open');
       }
-      if (ham) ham.setAttribute('aria-expanded', 'false');
+      if (ham) {
+        ham.setAttribute('aria-expanded', 'false');
+        ham.setAttribute('aria-label', 'Abrir menú');
+      }
       if (!document.body.classList.contains('nvx-valoracion-modal-open')) {
         document.body.style.overflow = '';
       }

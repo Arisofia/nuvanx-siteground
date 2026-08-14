@@ -13,6 +13,12 @@ command -v curl >/dev/null
 command -v jq >/dev/null
 command -v unzip >/dev/null
 
+api_headers=(
+  -H "Authorization: Bearer $GH_TOKEN"
+  -H 'Accept: application/vnd.github+json'
+  -H 'X-GitHub-Api-Version: 2022-11-28'
+)
+
 # Production candidates must carry the zero-submit HubSpot verification contract.
 # This permanently rejects historical SHAs whose production QA filled and
 # submitted the commercial HubSpot form, even if those SHAs once had successful

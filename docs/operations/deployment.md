@@ -115,7 +115,7 @@ EXPECTED_SHA=<40-char-sha> BASE_URL=https://staging2.nuvanx.com node scripts/sta
 The valuation placement runner adheres to the following exit-code contract:
 - `0`: Validation passed (`VALORACION_PLACEMENT=PASS` / `VALORACION_INTERACTIVITY=PASS`).
 - `1`: Real assertion failure (`VALORACION_PLACEMENT=FAIL_REAL`).
-- `75`: Transient challenge exhaustion (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), preserving rollback readiness and writing diagnostics to GitHub Step Summary.
+- `75`: Transient challenge exhaustion (`VALORACION_PLACEMENT=TRANSIENT_ONLY`), triggering automatic Staging2 rollback and writing diagnostics to GitHub Step Summary.
 
 ## Repository hygiene
 

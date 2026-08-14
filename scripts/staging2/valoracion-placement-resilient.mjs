@@ -317,6 +317,7 @@ if (fatalError) throw fatalError;
 if (realFailure) {
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
+      '',
       '### ❌ Staging Valoración QA — Real Failure',
       '> **One or more viewports failed valuation placement assertions:**',
       ...results
@@ -342,11 +343,12 @@ if (transientExhausted) {
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
+      '',
       '### ⚠️ Staging Valoración QA — Transient Exhausted',
       '> **SiteGround challenge / antibot / transient navigation interruptions prevented complete valuation placement verification.**',
       `- **Exit code:** \`${transientExitCode}\``,
       `- **Max attempts:** \`${maxAttempts}\``,
-      '- Staging snapshot rollback remains armed and artifacts are preserved.',
+      '- Automatic Staging2 rollback executes and artifacts are preserved.',
       '',
     ].join('\n');
     await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {

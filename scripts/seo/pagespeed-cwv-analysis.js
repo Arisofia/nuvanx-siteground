@@ -118,6 +118,18 @@ async function runPagespeedAnalysis() {
   fs.mkdirSync(path.join(__dirname, 'artifacts'), { recursive: true });
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'pagespeed-results.json'), JSON.stringify(results, null, 2));
   console.log('\nSaved PageSpeed results to artifacts/pagespeed-results.json');
+
+  const attempts = urls.length * strategies.length;
+  const failures = Object.values(results)
+    .reduce((acc, byStrategy) => acc + Object.values(byStrategy).filter((r) => r && r.error).length, 0);
+  if (failures > 0) {
+    if (failures === attempts) {
+      console.error(`\n[ERROR] All ${attempts} PageSpeed audits failed. Check API key and network access.`);
+    } else {
+      console.warn(`\n[WARN] ${failures}/${attempts} PageSpeed audits failed.`);
+    }
+    process.exitCode = 1;
+  }
 }
 
 runPagespeedAnalysis().catch(err => {

@@ -45,6 +45,53 @@ function nvx_document_governance_request_path(): string {
 }
 
 /**
+ * Resolve a published post by its exact post_name slug across caches and fallback queries.
+ */
+function nvx_document_governance_get_published_post_by_slug( string $slug ): ?WP_Post {
+	$slug = sanitize_title( $slug );
+	if ( '' === $slug ) {
+		return null;
+	}
+
+	$post = get_page_by_path( $slug, OBJECT, 'post' );
+	if ( $post instanceof WP_Post && 'publish' === $post->post_status && $slug === $post->post_name ) {
+		return $post;
+	}
+
+	$posts = get_posts(
+		array(
+			'name'             => $slug,
+			'post_type'        => 'post',
+			'post_status'      => 'publish',
+			'posts_per_page'   => 1,
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		)
+	);
+	if ( ! empty( $posts ) && $posts[0] instanceof WP_Post && 'publish' === $posts[0]->post_status && $slug === $posts[0]->post_name ) {
+		return $posts[0];
+	}
+
+	global $wpdb;
+	if ( isset( $wpdb ) && $wpdb instanceof wpdb ) {
+		$post_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish' LIMIT 1",
+				$slug
+			)
+		);
+		if ( $post_id > 0 ) {
+			$found = get_post( $post_id );
+			if ( $found instanceof WP_Post && 'publish' === $found->post_status && $slug === $found->post_name ) {
+				return $found;
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
  * Bind an exact governed journal path to its published post before WP_Query runs.
  *
  * With a postname permalink structure WordPress may first parse a one-segment
@@ -73,8 +120,8 @@ function nvx_document_governance_bind_governed_blog_query( array $query_vars ): 
 		return $query_vars;
 	}
 
-	$post = get_page_by_path( $slug, OBJECT, 'post' );
-	if ( ! ( $post instanceof WP_Post ) || 'publish' !== $post->post_status || $slug !== $post->post_name ) {
+	$post = nvx_document_governance_get_published_post_by_slug( $slug );
+	if ( ! ( $post instanceof WP_Post ) ) {
 		return $query_vars;
 	}
 
@@ -86,10 +133,46 @@ function nvx_document_governance_bind_governed_blog_query( array $query_vars ): 
 	);
 	$query_vars['name']      = $slug;
 	$query_vars['post_type'] = 'post';
+	$query_vars['p']         = (int) $post->ID;
 
 	return $query_vars;
 }
 add_filter( 'request', 'nvx_document_governance_bind_governed_blog_query', PHP_INT_MAX );
+
+/**
+ * Guarantee the main query binds to the exact governed post before execution.
+ */
+function nvx_document_governance_bind_blog_pre_get_posts( WP_Query $query ): void {
+	if ( is_admin() || ! $query->is_main_query() || ! function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
+		return;
+	}
+
+	$path = nvx_document_governance_request_path();
+	$slug = trim( $path, '/' );
+	if ( '' === $slug || false !== strpos( $slug, '/' ) ) {
+		return;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
+		return;
+	}
+
+	$post = nvx_document_governance_get_published_post_by_slug( $slug );
+	if ( ! ( $post instanceof WP_Post ) ) {
+		return;
+	}
+
+	$query->set( 'name', $slug );
+	$query->set( 'post_type', 'post' );
+	$query->set( 'p', (int) $post->ID );
+	$query->set( 'pagename', '' );
+	$query->set( 'page_id', 0 );
+	$query->is_page     = false;
+	$query->is_single   = true;
+	$query->is_singular = true;
+}
+add_action( 'pre_get_posts', 'nvx_document_governance_bind_blog_pre_get_posts', 1 );
 
 /**
  * Resolve governed journal metadata by the requested slug rather than a mutable
@@ -164,8 +247,8 @@ function nvx_document_governance_preserve_exact_governed_blog_route( $redirect_u
 		return $redirect_url;
 	}
 
-	$post = get_page_by_path( $slug, OBJECT, 'post' );
-	if ( ! ( $post instanceof WP_Post ) || 'publish' !== $post->post_status || $slug !== $post->post_name ) {
+	$post = nvx_document_governance_get_published_post_by_slug( $slug );
+	if ( ! ( $post instanceof WP_Post ) ) {
 		return $redirect_url;
 	}
 

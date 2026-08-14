@@ -209,3 +209,60 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 	return $content;
 }
 add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', 9 );
+
+/**
+ * Rebind one WP_Query instance to the exact published post.
+ */
+function nvx_single_post_rebind_query( WP_Query $query, WP_Post $exact_post, string $slug ): void {
+	// Bind core post state.
+	$query->queried_object    = $exact_post;
+	$query->queried_object_id = (int) $exact_post->ID;
+	$query->post              = $exact_post;
+	$query->posts             = array( $exact_post );
+	$query->post_count        = 1;
+	$query->found_posts       = 1;
+	$query->max_num_pages     = 1;
+
+	// Normalize query flags to a clean single/singular view.
+	$query->is_404            = false;
+	$query->is_singular       = true;
+	$query->is_single         = ( 'post' === $exact_post->post_type );
+	$query->is_page           = ( 'page' === $exact_post->post_type );
+	$query->is_attachment     = ( 'attachment' === $exact_post->post_type );
+
+	$query->is_home           = false;
+	$query->is_front_page     = false;
+	$query->is_archive        = false;
+	$query->is_category       = false;
+	$query->is_tag            = false;
+	$query->is_tax            = false;
+	$query->is_search         = false;
+	$query->is_author         = false;
+	$query->is_date           = false;
+	$query->is_feed           = false;
+	$query->is_comment_feed   = false;
+	$query->is_paged          = false;
+
+	// Reset query vars that may leak state from previous uses of this WP_Query.
+	$query->query['name']           = $slug;
+	$query->query['post_type']      = $exact_post->post_type;
+	$query->query_vars['p']         = (int) $exact_post->ID;
+	$query->query_vars['name']      = $slug;
+	$query->query_vars['post_type'] = $exact_post->post_type;
+	$query->query_vars['pagename']  = '';
+	$query->query_vars['page_id']   = 0;
+
+	unset(
+		$query->query_vars['page'],
+		$query->query_vars['paged'],
+		$query->query_vars['category_name'],
+		$query->query_vars['cat'],
+		$query->query_vars['tag'],
+		$query->query_vars['tag_id'],
+		$query->query_vars['tax_query'],
+		$query->query_vars['s'],
+		$query->query_vars['author'],
+		$query->query_vars['author_name']
+	);
+}
+

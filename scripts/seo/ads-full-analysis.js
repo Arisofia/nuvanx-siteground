@@ -1,6 +1,6 @@
 const { GoogleAdsApi } = require('google-ads-api');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 async function runFullAdsAnalysis() {
   const client = new GoogleAdsApi({
@@ -10,10 +10,10 @@ async function runFullAdsAnalysis() {
   });
 
   const customerOptions = {
-    customer_id: (process.env.GOOGLE_ADS_CUSTOMER_ID || '').replace(/-/g, ''),
+    customer_id: (process.env.GOOGLE_ADS_CUSTOMER_ID || '').replaceAll('-', ''),
     refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN,
   };
-  const loginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MANAGER_ID || '').replace(/-/g, '');
+  const loginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MANAGER_ID || '').replaceAll('-', '');
   if (loginCustomerId) {
     customerOptions.login_customer_id = loginCustomerId;
   }

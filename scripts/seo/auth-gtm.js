@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { google } = require('googleapis');
-const readline = require('readline');
-const fs = require('fs');
+const readline = require('node:readline');
+const fs = require('node:fs');
 
 if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !process.stdin.isTTY || !process.stdout.isTTY) {
   console.error('REFRESH_TOKEN_HELPER=REFUSED: this interactive credential helper may only run in a private local TTY.');
@@ -10,19 +10,23 @@ if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !proce
 
 const envPath = '.env.local';
 
-const envVars = {};
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach((line) => {
-    const match = line.trim().match(/^(?:export\s+)?([A-Za-z0-9_]+)=['"]?(.*?)['"]?$/);
-    if (match) envVars[match[1]] = match[2];
-  });
-}
-// process.env takes precedence over file contents
-for (const [k, v] of Object.entries(process.env)) {
-  if (v !== undefined && v !== '') envVars[k] = v;
+function loadEnvVars(filePath) {
+  const envVars = {};
+  if (fs.existsSync(filePath)) {
+    const envContent = fs.readFileSync(filePath, 'utf8');
+    const envLineRegex = /^(?:export\s+)?(\w+)=['"]?(.*?)['"]?$/;
+    envContent.split('\n').forEach((line) => {
+      const match = envLineRegex.exec(line.trim());
+      if (match) envVars[match[1]] = match[2];
+    });
+  }
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v !== undefined && v !== '') envVars[k] = v;
+  }
+  return envVars;
 }
 
+const envVars = loadEnvVars(envPath);
 const clientId = envVars['GTM_CLIENT_ID'] || envVars['GOOGLE_ADS_CLIENT_ID'];
 const clientSecret = envVars['GTM_CLIENT_SECRET'] || envVars['GOOGLE_ADS_CLIENT_SECRET'];
 
@@ -46,15 +50,57 @@ const url = oauth2Client.generateAuthUrl({
   prompt: 'consent'
 });
 
-console.log('\n======================================================');
-console.log('Falta autorizar tu sesión para Google Tag Manager.');
-console.log('Como gcloud no está instalado, usaremos este script directo.\n');
-console.log('1. Haz clic o copia este enlace y ábrelo en tu navegador:');
-console.log('\n' + url + '\n');
-console.log('2. Inicia sesión con nuvanx@gmail.com y acepta los permisos.');
-console.log('3. Te redirigirá a una página de error o a localhost.');
-console.log('   Copia la URL completa donde has acabado (debería tener un ?code=...)');
-console.log('======================================================\n');
+function printInstructions(authUrl) {
+  console.log('\n======================================================');
+  console.log('Falta autorizar tu sesión para Google Tag Manager.');
+  console.log('Como gcloud no está instalado, usaremos este script directo.\n');
+  console.log('1. Haz clic o copia este enlace y ábrelo en tu navegador:');
+  console.log('\n' + authUrl + '\n');
+  console.log('2. Inicia sesión con nuvanx@gmail.com y acepta los permisos.');
+  console.log('3. Te redirigirá a una página de error o a localhost.');
+  console.log('   Copia la URL completa donde has acabado (debería tener un ?code=...)');
+  console.log('======================================================\n');
+}
+
+function extractAuthCode(codeUrl) {
+  const raw = String(codeUrl || '').trim();
+  if (!raw.includes('code=')) return raw;
+  try {
+    const urlObj = new URL(raw, 'http://localhost');
+    return urlObj.searchParams.get('code') || raw;
+  } catch {
+    const match = /code=([^&]+)/.exec(raw);
+    return match ? decodeURIComponent(match[1]) : raw;
+  }
+}
+
+function persistRefreshToken(filePath, refreshToken) {
+  const newExportLine = `export GTM_REFRESH_TOKEN='${refreshToken}'`;
+  let currentContent = '';
+
+  if (fs.existsSync(filePath)) {
+    currentContent = fs.readFileSync(filePath, 'utf8');
+    const lines = currentContent.split('\n');
+    const existingIndex = lines.findIndex((line) =>
+      /^(?:export\s+)?GTM_REFRESH_TOKEN=/.test(line.trim())
+    );
+
+    if (existingIndex !== -1) {
+      lines[existingIndex] = newExportLine;
+      currentContent = lines.join('\n');
+      console.log('ℹ️ GTM_REFRESH_TOKEN ya existía en .env.local; se ha actualizado su valor.');
+    } else {
+      currentContent += (currentContent.endsWith('\n') ? '' : '\n') + newExportLine + '\n';
+    }
+  } else {
+    currentContent = `${newExportLine}\n`;
+  }
+
+  fs.writeFileSync(filePath, currentContent);
+  console.log(`✅ Token guardado automáticamente en ${filePath}`);
+}
+
+printInstructions(url);
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -62,18 +108,7 @@ const rl = readline.createInterface({
 });
 
 rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (codeUrl) => {
-  let code = String(codeUrl || '').trim();
-  
-  if (code.includes('code=')) {
-    try {
-      const urlObj = new URL(code, 'http://localhost');
-      code = urlObj.searchParams.get('code') || code;
-    } catch {
-      const match = code.match(/code=([^&]+)/);
-      if (match) code = decodeURIComponent(match[1]);
-    }
-  }
-
+  const code = extractAuthCode(codeUrl);
   if (!code) {
     console.error('❌ No se encontró un código de autorización válido.');
     process.exit(1);
@@ -85,30 +120,7 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
     
     if (tokens.refresh_token) {
       console.log('✅ Refresh Token obtenido exitosamente.');
-
-      const newExportLine = `export GTM_REFRESH_TOKEN='${tokens.refresh_token}'`;
-      let currentContent = '';
-
-      if (fs.existsSync(envPath)) {
-        currentContent = fs.readFileSync(envPath, 'utf8');
-        const lines = currentContent.split('\n');
-        const existingIndex = lines.findIndex((line) =>
-          /^(?:export\s+)?GTM_REFRESH_TOKEN=/.test(line.trim())
-        );
-
-        if (existingIndex !== -1) {
-          lines[existingIndex] = newExportLine;
-          currentContent = lines.join('\n');
-          console.log('ℹ️ GTM_REFRESH_TOKEN ya existía en .env.local; se ha actualizado su valor.');
-        } else {
-          currentContent += (currentContent.endsWith('\n') ? '' : '\n') + newExportLine + '\n';
-        }
-      } else {
-        currentContent = `${newExportLine}\n`;
-      }
-
-      fs.writeFileSync(envPath, currentContent);
-      console.log(`✅ Token guardado automáticamente en ${envPath}`);
+      persistRefreshToken(envPath, tokens.refresh_token);
       console.log('\n¡Todo listo! Ahora ejecuta tu script original:');
       console.log('source .env.local && node scripts/seo/setup-gtm-conversion-trigger.js\n');
     } else {
@@ -122,7 +134,7 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
       console.error('Solución: En Google Cloud Console > APIs & Services > Credentials, añade "http://localhost" como Authorized Redirect URI en tu OAuth 2.0 Client ID.');
     }
     process.exitCode = 1;
+  } finally {
+    rl.close();
   }
-  
-  rl.close();
 });

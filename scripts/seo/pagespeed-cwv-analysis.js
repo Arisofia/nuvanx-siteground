@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
+const fs = require('node:fs');
+const path = require('node:path');
+const https = require('node:https');
 
 function fetchJson(url, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
@@ -46,9 +46,9 @@ async function runPagespeedAnalysis() {
   const strategies = ['mobile', 'desktop'];
   const results = {};
 
-  const parseScore = (val) => typeof val === 'number' && !isNaN(val) ? Math.round(val * 100) : null;
-  const parseNum   = (val) => typeof val === 'number' && !isNaN(val) ? Math.round(val) : null;
-  const parseCls   = (val) => typeof val === 'number' && !isNaN(val) ? Number(val.toFixed(3)) : null;
+  const parseScore = (val) => typeof val === 'number' && !Number.isNaN(val) ? Math.round(val * 100) : null;
+  const parseNum   = (val) => typeof val === 'number' && !Number.isNaN(val) ? Math.round(val) : null;
+  const parseCls   = (val) => typeof val === 'number' && !Number.isNaN(val) ? Number(val.toFixed(3)) : null;
 
   for (const url of urls) {
     results[url] = {};

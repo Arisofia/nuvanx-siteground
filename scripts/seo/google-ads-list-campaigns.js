@@ -1,5 +1,5 @@
 const { GoogleAdsApi, errors } = require('google-ads-api');
-const fs = require('fs');
+const fs = require('node:fs');
 
 const MAX_PROJECTED_ERRORS = 20;
 const SAFE_ERROR_FAMILIES = new Set([

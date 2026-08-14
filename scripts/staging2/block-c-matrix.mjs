@@ -4,6 +4,7 @@ import path from 'node:path';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 import { createSiteGroundOriginVerifier, SITEGROUND_CAPTCHA_PATH } from './siteground-origin-verifier.mjs';
 import { isSiteGroundTransientResponse } from './siteground-transient-classifier.mjs';
+import { isIgnorableExternalConsoleError } from './console-error-classifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -552,6 +553,7 @@ for (const viewport of viewports) {
     const url = `${baseUrl}${route}`;
     const page = await context.newPage();
     const consoleErrors = [];
+    const ignoredExternalConsoleErrors = [];
     const networkErrors = [];
     const imageHttpErrors = [];
     const productionMediaLeaks = [];
@@ -562,7 +564,8 @@ for (const viewport of viewports) {
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
         const text = msg.text();
-        if (!/Failed to load resource/i.test(text)) consoleErrors.push(text);
+        if (isIgnorableExternalConsoleError(text)) ignoredExternalConsoleErrors.push(text);
+        else if (!/Failed to load resource/i.test(text)) consoleErrors.push(text);
       }
     });
     page.on('pageerror', (error) => consoleErrors.push(error.message));
@@ -741,6 +744,9 @@ for (const viewport of viewports) {
           if (geometry.videoRect && (geometry.videoRect.width < 100 || geometry.videoRect.height < 100)) issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
         }
         if (consoleErrors.length > 0) issues.push(`${consoleErrors.length} browser console error(s)`);
+        if (ignoredExternalConsoleErrors.length > 0) {
+          notes.push(`${ignoredExternalConsoleErrors.length} known third-party Google Place console error(s) ignored`);
+        }
         if (networkErrors.length > 0) issues.push(`${networkErrors.length} same-origin network error(s)`);
       }
 

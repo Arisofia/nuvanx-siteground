@@ -450,7 +450,10 @@
     }
 
     function loadHubSpot() {
-      if (window.hbspt && window.hbspt.forms) {
+      // The legacy v2 factory created window.hbspt.forms, but the new portal embed
+      // (forms/embed/{portalId}.js) does not. Only short-circuit if we have the
+      // script element already loaded, not just the global object.
+      if (document.querySelector('script[src*="forms/embed/"], script[src*="forms/v2.js"]')) {
         initializeForms();
         return Promise.resolve();
       }

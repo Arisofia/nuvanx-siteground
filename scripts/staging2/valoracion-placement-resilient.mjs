@@ -33,22 +33,7 @@ const viewports = [
   { key: 'mobile', width: 390, height: 844 },
 ];
 
-const mountedSelector = [
-  '#nvx-hubspot-form .hs-form-frame[data-nvx-hubspot-lazy="1"] iframe[data-test-id^="embedded-form-"]',
-  '#nvx-hubspot-form .hbspt-form',
-  '#nvx-hubspot-form form.hs-form',
-].join(', ');
-
-const legacyControlsSelector = [
-  '#nvx-hubspot-form .hbspt-form input:not([type="hidden"])',
-  '#nvx-hubspot-form .hbspt-form textarea',
-  '#nvx-hubspot-form .hbspt-form select',
-  '#nvx-hubspot-form .hbspt-form button',
-  '#nvx-hubspot-form form.hs-form input:not([type="hidden"])',
-  '#nvx-hubspot-form form.hs-form textarea',
-  '#nvx-hubspot-form form.hs-form select',
-  '#nvx-hubspot-form form.hs-form button',
-].join(', ');
+const mountedSelector = '#nvx-hubspot-form .hs-form-frame[data-nvx-hubspot-lazy="1"] iframe[data-test-id^="embedded-form-"]';
 
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
 await fs.mkdir(outDir, { recursive: true });
@@ -106,16 +91,6 @@ async function inspectHubSpotInteractivity(page, embeddedSrc) {
   }
 
   return state;
-}
-
-async function inspectLegacyControls(page) {
-  const controls = page.locator(legacyControlsSelector);
-  const count = await controls.count().catch(() => 0);
-  let visibleControls = 0;
-  for (let index = 0; index < Math.min(count, 40); index += 1) {
-    if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
-  }
-  return { controls: count, visibleControls };
 }
 
 async function collectPlacement(page) {
@@ -217,11 +192,6 @@ async function validateHubSpotMount(page, mounted, mountState) {
       issues.push('HubSpot iframe element exists but its document frame was not reachable');
     } else if (interactiveState.visibleControls < 1) {
       issues.push(`HubSpot iframe has no visible interactive controls (controls=${interactiveState.controls})`);
-    }
-  } else if (mounted) {
-    interactiveState = await inspectLegacyControls(page);
-    if (interactiveState.visibleControls < 1) {
-      issues.push(`Legacy HubSpot form mounted without visible interactive controls (controls=${interactiveState.controls})`);
     }
   }
 

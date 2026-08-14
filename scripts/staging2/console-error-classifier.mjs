@@ -12,5 +12,5 @@ export function isIgnorableExternalConsoleError(message) {
   if (!GOOGLE_PLACE_WIDGET_METADATA.test(text)) return false;
 
   return /blocked by CORS policy/i.test(text) ||
-    /<gmp-place-details-compact>.*(?:network request error|Rpc failed)/i.test(text);
+    /<gmp-place-details-compact>[\s\S]*(?:network request error|Rpc failed)/i.test(text);
 }

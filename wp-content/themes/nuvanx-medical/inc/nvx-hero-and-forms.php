@@ -491,8 +491,27 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_enforce_single_mount' ) )
 		$html     = nvx_valoracion_remove_divs_by_class( $html, 'hs-form-frame' );
 		$html     = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
 
+		// Enforce single-identity constraint: ensure only one .hs-form-frame with HubSpot attributes
+		// after canonical insertion to prevent duplicate embeds.
 		$canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
-		return str_replace( $marker, $canonical, $html );
+		$html_with_canonical = str_replace( $marker, $canonical, $html );
+
+		// Count .hs-form-frame elements with HubSpot identity attributes
+		$hs_form_frames = [];
+		preg_match_all( '#<div\b[^>]*class=["\'][^"\']*hs-form-frame[^"\']*["\'][^>]*>.*?</div>#is', $html_with_canonical, $hs_form_frames );
+		$identity_count = 0;
+		foreach ( $hs_form_frames[0] as $frame ) {
+			if ( strpos( $frame, 'data-form-id' ) !== false && strpos( $frame, 'data-portal-id' ) !== false ) {
+				$identity_count++;
+			}
+		}
+
+		// Log warning if multiple HubSpot identities detected (development/debug only)
+		if ( $identity_count > 1 && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'NUVANX: Multiple HubSpot form frames with identity attributes detected (' . $identity_count . '). This may cause duplicate embed initialization.' );
+		}
+
+		return $html_with_canonical;
 	}
 }
 

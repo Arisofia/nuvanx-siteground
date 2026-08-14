@@ -303,6 +303,12 @@
       return '';
     }
 
+    // Enforce single-identity constraint: warn if multiple HubSpot frames with identity detected
+    const identityFrames = document.querySelectorAll('.hs-form-frame[data-portal-id][data-form-id]');
+    if (identityFrames.length > 1 && config.debug === true && typeof console !== 'undefined' && console.warn) {
+      console.warn('NUVANX HubSpot: Multiple frames with HubSpot identity attributes detected (' + identityFrames.length + '). This may cause duplicate embed initialization.');
+    }
+
     const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
     const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
     const portalValue = config.hubspotPortalId || (frame ? frame.dataset.portalId : '');

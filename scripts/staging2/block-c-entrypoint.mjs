@@ -12,7 +12,13 @@ import {
 
 const VIEWPORT_COUNT = VIEWPORTS.length;
 
-const maxAttempts = 3;
+// block-c-matrix already retries individual navigation and can verify origin via
+// SSH when SiteGround challenges the browser. The staging workflow additionally
+// provides three sequential fresh runners. Re-running the entire page×viewport
+// matrix several times on the same runner only multiplies the workload and keeps
+// the same network identity, so one complete matrix attempt is the correct outer
+// budget; transient-only evidence exits EX_TEMPFAIL and moves to a fresh runner.
+const maxAttempts = 1;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
@@ -344,4 +350,3 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 }
 
 process.exit(1);
-

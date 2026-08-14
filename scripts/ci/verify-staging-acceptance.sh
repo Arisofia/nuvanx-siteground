@@ -22,15 +22,15 @@ candidate_hubspot_probe="$(git show "${CANDIDATE_SHA}:scripts/staging2/h1-hubspo
   echo "STAGING_ACCEPTANCE=FAIL reason=missing_zero_submit_hubspot_probe sha=$CANDIDATE_SHA" >&2
   exit 1
 }
-printf '%s' "$candidate_hubspot_probe" | grep -Fq 'HUBSPOT_PRODUCTION_CONTRACT_MODE=ZERO_SUBMIT' || {
+if ! grep -Fq 'HUBSPOT_PRODUCTION_CONTRACT_MODE=ZERO_SUBMIT' <<< "$candidate_hubspot_probe"; then
   echo "STAGING_ACCEPTANCE=FAIL reason=hubspot_probe_missing_zero_submit_marker sha=$CANDIDATE_SHA" >&2
   exit 1
-}
-printf '%s' "$candidate_hubspot_probe" | grep -Fq 'PRODUCTION_HUBSPOT_CONTRACT=PASS' || {
+fi
+if ! grep -Fq 'PRODUCTION_HUBSPOT_CONTRACT=PASS' <<< "$candidate_hubspot_probe"; then
   echo "STAGING_ACCEPTANCE=FAIL reason=hubspot_probe_missing_contract_marker sha=$CANDIDATE_SHA" >&2
   exit 1
-}
-if printf '%s' "$candidate_hubspot_probe" | grep -Eqi 'nvxqa-h1-|QA H1 Attribution|wp_set_consent|\?gclid=|\.click[[:space:]]*\(|submissions/v3'; then
+fi
+if grep -Eqi "from[[:space:]]+['\"]playwright['\"]|nvxqa-h1-|QA H1 Attribution|wp_set_consent|\?gclid=|\.click[[:space:]]*\(|submissions/v3" <<< "$candidate_hubspot_probe"; then
   echo "STAGING_ACCEPTANCE=FAIL reason=unsafe_live_hubspot_probe sha=$CANDIDATE_SHA" >&2
   exit 1
 fi

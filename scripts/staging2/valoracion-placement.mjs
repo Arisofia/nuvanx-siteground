@@ -34,14 +34,12 @@ async function writeRollbackState(value, component, reason) {
 }
 
 async function disarmRollbackAfterTransientExhaustion(component) {
-  await writeRollbackState('0', component, 'transient-exhaustion');
-
   const summary = (process.env.GITHUB_STEP_SUMMARY || '').trim();
   if (!summary) return;
   try {
     await fs.appendFile(
       summary,
-      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established, so rollback was disarmed; this run is not eligible for Production acceptance.\n`,
+      `\n### Staging acceptance transient exhaustion\n\nComponent \`${component}\` remained inconclusive after all bounded retry cycles. No deterministic defect was established; this run is not eligible for Production acceptance.\n`,
       'utf8'
     );
   } catch (error) {

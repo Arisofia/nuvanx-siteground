@@ -553,7 +553,7 @@ jobs:
           echo 'STAGING_BLOCK_C=PASS'
 
       - name: Verify production unchanged read-only
-        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -677,7 +677,7 @@ jobs:
           set +e
           if [[ "${{ steps.ssh_preflight.outputs.connected }}" == 'true' && -f "$HOME/.ssh/config" ]]; then
             [[ -z "${REMOTE_RELEASE:-}" ]] || ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
-            if [[ "${{ job.status }}" == 'success' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
+            if [[ "${{ job.status }}" == 'success' && "${{ env.STAGING_ACCEPTANCE_TRANSIENT }}" != '1' && -n "${ROLLBACK_DIR:-}" ]]; then ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac" || true; fi
           fi
           rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 

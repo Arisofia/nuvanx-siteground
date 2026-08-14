@@ -417,6 +417,15 @@ jobs:
           grep -Fq 'INDEXNOW_SUBMIT=PASS' scripts/production/artifacts/indexnow-submit.log
           echo "RELEASE_ORIGIN_EVIDENCE=PASS urls=$(wc -l < scripts/seo/artifacts/sitemap-urls.txt | tr -d ' ')"
 
+      - name: Wait for FIFO environment turn (verification only)
+        if: ${{ inputs.deploy == false }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_ROLE: production-verification
+          MUTATION_WAIT_MAX_SECONDS: 1800
+        run: bash scripts/ci/wait-for-environment-mutation-turn.sh
+
       - name: Configure verification-only production audit SSH
         if: ${{ inputs.deploy == false }}
         shell: bash

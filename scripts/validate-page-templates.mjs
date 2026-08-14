@@ -149,6 +149,14 @@ function extractLocs(xml) {
     .filter(Boolean);
 }
 
+class SitemapTransientError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'SitemapTransientError';
+    this.isTransient = true;
+  }
+}
+
 function isSiteGroundChallenge(response, body) {
   if (TRANSIENT_HTTP.has(Number(response.status))) return true;
   const captchaHeader = String(response.headers.get('sg-captcha') || '').toLowerCase();
@@ -169,7 +177,9 @@ async function fetchXml(url) {
       });
       const body = await response.text();
       if (isSiteGroundChallenge(response, body)) {
-        lastError = new Error(`SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
+        lastError = new SitemapTransientError(`SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
+      } else if (TRANSIENT_HTTP.has(Number(response.status))) {
+        lastError = new SitemapTransientError(`Transient HTTP ${response.status} while fetching sitemap: ${url}`);
       } else if (!response.ok) {
         lastError = new Error(`Sitemap fetch failed for ${url}: HTTP ${response.status}`);
       } else if (!/<(?:sitemapindex|urlset)\b/i.test(body)) {
@@ -184,7 +194,7 @@ async function fetchXml(url) {
       await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
     }
   }
-  throw lastError || new Error(`Unable to fetch sitemap XML: ${url}`);
+  throw lastError || new SitemapTransientError(`Unable to fetch sitemap XML: ${url}`);
 }
 
 function inventoryBaseUrl(pages) {
@@ -211,8 +221,24 @@ async function enrichTrustedInventoryWithSitemap(pages) {
 
   const baseUrl = inventoryBaseUrl(pages);
   const expectedHost = new URL(baseUrl).hostname;
-  const indexUrl = `${baseUrl}/sitemap_index.xml`;
-  const indexXml = await fetchXml(indexUrl);
+  let indexUrl = `${baseUrl}/sitemap_index.xml`;
+  let indexXml;
+  try {
+    indexXml = await fetchXml(indexUrl);
+  } catch (err) {
+    if (!err.isTransient) {
+      const fallbackUrl = `${baseUrl}/wp-sitemap.xml`;
+      try {
+        indexXml = await fetchXml(fallbackUrl);
+        indexUrl = fallbackUrl;
+      } catch {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
+
   const indexLocs = extractLocs(indexXml);
   if (indexLocs.length === 0) {
     throw new Error(`Sitemap index has no <loc> entries: ${indexUrl}`);
@@ -321,6 +347,10 @@ async function validateTemplates() {
     console.log('\n✅ ALL TEMPLATES, PUBLICATION TOPOLOGY AND BLOCK C ROUTE INVENTORY VALIDATED');
     process.exit(0);
   } catch (error) {
+    if (error?.isTransient) {
+      console.error(`\n⚠️ TRANSIENT SITEMAP FAILURE: ${error.message} (exiting with code 75 for runner retry)`);
+      process.exit(75);
+    }
     console.error(`\n❌ FATAL ERROR: ${error.message}`);
     process.exit(1);
   }

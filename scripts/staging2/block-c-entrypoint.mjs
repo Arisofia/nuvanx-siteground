@@ -107,7 +107,8 @@ function isAntiBotOnly(result, blockers, issues, status) {
     blockers.length > 0 &&
     blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
     issues.length === 0 &&
-    SITEGROUND_TRANSIENT_HTTP_STATUSES.has(status)
+    (SITEGROUND_TRANSIENT_HTTP_STATUSES.has(status) ||
+      (typeof result.finalUrl === 'string' && result.finalUrl.includes(SITEGROUND_CAPTCHA_PATH)))
   );
 }
 

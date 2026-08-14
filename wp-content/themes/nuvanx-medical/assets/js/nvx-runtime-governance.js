@@ -371,11 +371,36 @@
       }
     }
 
+    function isHubSpotIframe(ifr) {
+      if (ifr?.tagName !== 'IFRAME') return false;
+      if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
+        return true;
+      }
+      const rawSrc = String(ifr.getAttribute('src') || '').trim();
+      const inModalContainer = Boolean(ifr.closest('#nvx-hubspot-form, #nvx-valoracion-modal'));
+      if (inModalContainer && (!rawSrc || rawSrc === 'about:blank')) {
+        return true;
+      }
+      if (!rawSrc) return false;
+      try {
+        const parsed = new URL(rawSrc, window.location.href);
+        const host = parsed.hostname.toLowerCase();
+        return host === 'hsforms.com' || host.endsWith('.hsforms.com') ||
+               host === 'hsforms.net' || host.endsWith('.hsforms.net') ||
+               host === 'forms.hubspot.com' || host === 'forms-eu1.hubspot.com' ||
+               /^forms(-[a-z0-9]+)?\.hubspot\.com$/.test(host);
+      } catch {
+        return false;
+      }
+    }
+
     function enforceAccessibleIframeTitles() {
       const iframes = document.querySelectorAll(
-        'iframe[src*="hsforms"], iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe'
+        'iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe, iframe[src*="hsforms"], iframe[src*="hubspot"]'
       );
       iframes.forEach(function (ifr) {
+        if (!isHubSpotIframe(ifr)) return;
+
         const currentTitle = ifr.getAttribute('title');
         // iframe has a native accessible-name mechanism via title. Keep that
         // single source of truth and remove aria-label, which Axe flags as a
@@ -623,7 +648,32 @@
       let titlePassScheduled = false;
       const hasRaf = typeof window.requestAnimationFrame === 'function';
 
-      new MutationObserver(function () {
+      new MutationObserver(function (mutations) {
+        let shouldRun = false;
+        for (const m of mutations) {
+          if (m.type === 'childList') {
+            for (const node of m.addedNodes) {
+              if (node?.nodeType === 1 && (node.tagName === 'IFRAME' || node.querySelector?.('iframe'))) {
+                shouldRun = true;
+                break;
+              }
+            }
+            if (shouldRun) break;
+          } else if (m.type === 'attributes') {
+            const target = m.target;
+            if (target?.tagName === 'IFRAME' && isHubSpotIframe(target)) {
+              const currentTitle = target.getAttribute('title');
+              const hasAria = target.hasAttribute('aria-label');
+              const isCompliant = !hasAria && currentTitle === 'Formulario de valoración médica';
+              if (!isCompliant) {
+                shouldRun = true;
+                break;
+              }
+            }
+          }
+        }
+        if (!shouldRun) return;
+
         if (titlePassScheduled) return;
         titlePassScheduled = true;
 
@@ -640,7 +690,12 @@
 
         const timeoutId = window.setTimeout(runTitlePass, 100);
         if (hasRaf) rafId = window.requestAnimationFrame(runTitlePass);
-      }).observe(document.body, { childList: true, subtree: true });
+      }).observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-label', 'title'],
+      });
     }
   }
 

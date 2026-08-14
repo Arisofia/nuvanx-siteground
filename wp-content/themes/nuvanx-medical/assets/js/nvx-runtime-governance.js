@@ -372,7 +372,7 @@
     }
 
     function isHubSpotIframe(ifr) {
-      if (!ifr || ifr.tagName !== 'IFRAME') return false;
+      if (ifr?.tagName !== 'IFRAME') return false;
       if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
         return true;
       }
@@ -648,15 +648,14 @@
 
       new MutationObserver(function (mutations) {
         let shouldRun = false;
-        for (let i = 0; i < mutations.length; i++) {
-          const m = mutations[i];
+        for (const m of mutations) {
           if (m.type === 'childList') {
             shouldRun = true;
             break;
           }
           if (m.type === 'attributes') {
             const target = m.target;
-            if (target && target.tagName === 'IFRAME' && isHubSpotIframe(target)) {
+            if (target?.tagName === 'IFRAME' && isHubSpotIframe(target)) {
               shouldRun = true;
               break;
             }

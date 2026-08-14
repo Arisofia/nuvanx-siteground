@@ -597,4 +597,4 @@ function nvx_seo_handle_route_alias_redirect(): void {
 		exit;
 	}
 }
-add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 1 );
+add_action( 'template_redirect', 'nvx_seo_handle_route_alias_redirect', 0 );

@@ -30,7 +30,7 @@ MAX_WAIT_SECONDS="${MUTATION_WAIT_MAX_SECONDS:-3600}"
 
 [[ "$POLL_SECONDS" =~ ^[0-9]{1,5}$ && "$POLL_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_poll_seconds' >&2; exit 1; }
 [[ "$STABILIZE_SECONDS" =~ ^[0-9]{1,5}$ && "$STABILIZE_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_stabilize_seconds' >&2; exit 1; }
-[[ "$MAX_WAIT_SECONDS" =~ ^[0-9]{1,6}$ && "$MAX_WAIT_SECONDS" -ge 60 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_max_wait_seconds' >&2; exit 1; }
+[[ "$MAX_WAIT_SECONDS" =~ ^[0-9]{1,6}$ && "$MAX_WAIT_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_max_wait_seconds' >&2; exit 1; }
 
 is_mutation_workflow_path() {
   case "$1" in

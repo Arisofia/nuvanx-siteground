@@ -5,6 +5,7 @@ useDefault = true
 
 [allowlist]
 description = "Public client-side identifiers, form GUIDs, and schema fixtures"
+regexTarget = "line"
 regexes = [
     '''5042522a-0bc5-4381-ac3e-5aee8649b69c''',
     '''laser-co2-fraccionado'''

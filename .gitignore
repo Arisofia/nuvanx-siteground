@@ -56,6 +56,7 @@ node_modules/
 .idea/
 mcps/
 Nuvanx-System/
+.agents/
 
 # ============================================================
 # Generated QA / audit / test output

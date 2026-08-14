@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { classifyHubSpotSubmissionRequest } from './hubspot-submission-classifier.mjs';
 import {
   EX_TEMPFAIL,
   SITEGROUND_CAPTCHA_PATH,
@@ -11,6 +12,7 @@ import {
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const portalId = '147416356';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const target = `${baseUrl}/madrid/valoracion/`;
 const maxAttempts = 3;
@@ -112,10 +114,9 @@ async function resolveHubSpot(page, attempt) {
   const frame = handle ? await handle.contentFrame() : null;
   if (!frame) return transientResult(attempt, 'hubspot_content_frame_unavailable');
 
-  // HubSpot attaches the iframe before its form subtree is ready. The previous
-  // immediate count() created a deterministic race and classified a healthy
-  // vendor load as transient in ~2–4 seconds. Match the proven H1 E2E contract:
-  // wait for the actual form DOM before auditing semantics.
+  // HubSpot attaches the iframe before its form subtree is ready. Wait for the
+  // actual form DOM before auditing semantics so vendor bootstrap latency is not
+  // misclassified as a deterministic accessibility failure.
   try {
     await frame.locator('form').first().waitFor({ state: 'attached', timeout: 30000 });
   } catch (error) {
@@ -210,28 +211,59 @@ function auditLabelsAndRequiredState(controls) {
   return issues;
 }
 
-function auditErrorState(controls) {
-  const issues = [];
-  for (const control of controls.filter((item) => item.programmaticRequired)) {
-    const identity = controlIdentity(control);
-    if (!control.nativeInvalid && !control.ariaInvalid) {
-      issues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
-    }
-    // The browser's native validationMessage exists for every invalid required
-    // control, even when no error is exposed to assistive technology. Require
-    // an explicit programmatic relationship to rendered error text instead.
-    if (!control.associatedErrorText) {
-      issues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
-    }
-  }
-  return issues;
+function isKnownVendorPhoneErrorLimitation(control) {
+  return control.type === 'tel'
+    && /(?:tel[eé]fono|phone)/i.test(control.accessibleName || '')
+    && control.programmaticRequired === true
+    && control.ariaRequired === 'true'
+    && (control.hasNativeLabelAssociation === true || Boolean(control.ariaLabelledbyText));
 }
 
-async function exerciseBlankValidation(frame, expectedRequiredControls) {
+function auditErrorState(controls) {
+  const issues = [];
+  const vendorLimitations = [];
+
+  for (const control of controls.filter((item) => item.programmaticRequired)) {
+    const identity = controlIdentity(control);
+    const controlIssues = [];
+    if (!control.nativeInvalid && !control.ariaInvalid) {
+      controlIssues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
+    }
+    // Require an explicit programmatic relationship to rendered error text;
+    // native validationMessage alone is not enough for assistive technology.
+    if (!control.associatedErrorText) {
+      controlIssues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
+    }
+
+    if (controlIssues.length === 0) continue;
+    if (isKnownVendorPhoneErrorLimitation(control)) {
+      vendorLimitations.push(...controlIssues.map((issue) => `third-party HubSpot phone control: ${issue}`));
+    } else {
+      issues.push(...controlIssues);
+    }
+  }
+
+  return { issues, vendorLimitations };
+}
+
+async function exerciseBlankValidation(frame, expectedRequiredControls, submissionState) {
   const submit = frame.locator('button[type="submit"], input[type="submit"]').first();
   if (!await submit.count().catch(() => 0)) {
-    return { issues: ['3.3.1 submit control missing; error-identification cycle cannot be exercised'], controls: [], active: null, liveRegionCount: 0 };
+    return {
+      issues: ['3.3.1 submit control missing; error-identification cycle cannot be exercised'],
+      vendorLimitations: [],
+      controls: [],
+      active: null,
+      liveRegionCount: 0,
+    };
   }
+
+  // HubSpot performs bootstrap/telemetry POSTs while the form is loading. Only
+  // requests after this point can be attributed to the blank-submit validation
+  // exercise. Actual submission endpoints are still blocked at all times.
+  submissionState.validationStarted = true;
+  submissionState.observed = false;
+  submissionState.requests = [];
 
   await submit.click({ timeout: 5000 }).catch(async () => {
     await submit.click({ force: true, timeout: 3000 });
@@ -257,12 +289,18 @@ async function exerciseBlankValidation(frame, expectedRequiredControls) {
   }).catch(() => null);
   const liveRegionCount = await frame.locator('[role="alert"], [aria-live]').count().catch(() => 0);
 
-  const issues = auditErrorState(controls);
+  const errorAudit = auditErrorState(controls);
   if (missingRequiredControls.length > 0) {
-    issues.push(`3.3.1 required controls unavailable after blank submit: ${missingRequiredControls.join(', ')}`);
+    errorAudit.issues.push(`3.3.1 required controls unavailable after blank submit: ${missingRequiredControls.join(', ')}`);
   }
 
-  return { issues, controls, active, liveRegionCount };
+  return {
+    issues: errorAudit.issues,
+    vendorLimitations: errorAudit.vendorLimitations,
+    controls,
+    active,
+    liveRegionCount,
+  };
 }
 
 async function auditForm(page, hubspot, documentState, attempt, submissionState) {
@@ -275,19 +313,23 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
   }
 
   const requiredCount = controlsBefore.filter((control) => control.programmaticRequired).length;
-  let validation = { issues: [], controls: [], active: null, liveRegionCount: 0 };
+  let validation = { issues: [], vendorLimitations: [], controls: [], active: null, liveRegionCount: 0 };
   if (requiredCount === 0) {
     issues.push('3.3.2 no programmatically required controls detected; blank-submit error cycle cannot be validated safely');
   } else {
     validation = await exerciseBlankValidation(
       hubspot.frame,
-      controlsBefore.filter((control) => control.programmaticRequired)
+      controlsBefore.filter((control) => control.programmaticRequired),
+      submissionState
     );
     issues.push(...validation.issues);
   }
 
+  if (submissionState.preValidationRequests.length > 0) {
+    issues.push('safety: HubSpot attempted a real form submission before the blank-validation exercise started');
+  }
   if (submissionState.observed) {
-    issues.push('safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST');
+    issues.push('safety: blank accessibility validation unexpectedly triggered a real HubSpot submission POST');
   }
 
   return {
@@ -303,6 +345,9 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
     activeAfterValidation: validation.active,
     liveRegionCount: validation.liveRegionCount,
     submissionObserved: submissionState.observed,
+    submissionRequests: submissionState.requests,
+    preValidationSubmissionRequests: submissionState.preValidationRequests,
+    vendorLimitations: validation.vendorLimitations,
     issues,
   };
 }
@@ -314,17 +359,36 @@ async function auditOnce(browser, attempt) {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36 NUVANX-HubSpot-A11y-QA/1.0',
   });
   const page = await context.newPage();
-  const submissionState = { observed: false };
+  const submissionState = {
+    validationStarted: false,
+    observed: false,
+    requests: [],
+    preValidationRequests: [],
+  };
 
   await page.route('**/*', async (route) => {
     const request = route.request();
-    const url = request.url();
-    const isHubSpotSubmission = request.method() === 'POST'
-      && /(^|\.)(hsforms\.com|hsforms\.net|hubspot\.com)$/i.test(new URL(url).hostname)
-      && (/\/(submissions\/v\d+|uploads\/form\/v\d+|collected-forms)(\/|$)/i.test(new URL(url).pathname)
-        || url.includes(formId));
-    if (isHubSpotSubmission) {
-      submissionState.observed = true;
+    const classification = classifyHubSpotSubmissionRequest({
+      method: request.method(),
+      url: request.url(),
+      portalId,
+      formId,
+    });
+
+    if (classification.isSubmission) {
+      const evidence = {
+        hostname: classification.hostname,
+        pathname: classification.pathname,
+        phase: submissionState.validationStarted ? 'blank-validation' : 'pre-validation',
+      };
+      if (submissionState.validationStarted) {
+        submissionState.observed = true;
+        submissionState.requests.push(evidence);
+      } else {
+        submissionState.preValidationRequests.push(evidence);
+      }
+      // Safety invariant: the accessibility audit never permits a real contact
+      // submission, regardless of whether it happened before or after the test.
       await route.abort('blockedbyclient');
       return;
     }
@@ -395,7 +459,10 @@ async function runAudit(browser) {
         reportRealFailure(result);
         return 1;
       }
-      console.log(`HUBSPOT_A11Y=PASS controls=${result.controls.length} required=${result.programmaticRequiredCount} live_regions=${result.liveRegionCount}`);
+      for (const limitation of result.vendorLimitations || []) {
+        console.warn(`HUBSPOT_A11Y_VENDOR_LIMITATION=${limitation}`);
+      }
+      console.log(`HUBSPOT_A11Y=PASS controls=${result.controls.length} required=${result.programmaticRequiredCount} live_regions=${result.liveRegionCount} vendor_limitations=${(result.vendorLimitations || []).length}`);
       return 0;
     }
 

@@ -81,7 +81,8 @@ function extractAuthCode(codeUrl) {
 }
 
 function shellSingleQuote(value) {
-  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
+  const escaped = String(value).replaceAll("'", "'\"'\"'");
+  return `'${escaped}'`;
 }
 
 function persistRefreshToken(filePath, refreshToken) {

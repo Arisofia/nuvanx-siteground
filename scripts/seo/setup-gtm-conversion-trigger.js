@@ -32,30 +32,18 @@
 'use strict';
 
 const { google } = require('googleapis');
+const { sanitizeGtmError } = require('./gtm-utils');
 
-const TRIGGER_NAME = 'CE - nvx_conversion_signal - generate_lead';
-const TAG_NAME = 'Google Ads - Formulario Valoración - nvx_signal';
+const TRIGGER_NAME  = 'CE - nvx_conversion_signal - generate_lead';
+const TAG_NAME      = 'Google Ads - Valoración - nvx_signal';
 const VARIABLE_NAME = 'nvx_event_name';
-const WORKSPACE_NAME = 'NVX Conversion Signal Setup';
+const VARIABLE_DLV_NAME = 'DLV - nvx_event_name';
+const WORKSPACE_NAME = 'P0 - Migración formulario valoración';
 
 function safeFail(message) {
   const error = new Error(message);
   error.nvxSafe = true;
   throw error;
-}
-
-function cleanToken(value, fallback = 'UNKNOWN') {
-  const token = String(value || '').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 80);
-  return token || fallback;
-}
-
-function sanitizeGtmError(err) {
-  const status = cleanToken(err?.code || err?.response?.status, 'UNKNOWN');
-  const reason = cleanToken(
-    err?.response?.data?.error?.status || err?.errors?.[0]?.reason || err?.name,
-    'GTM_API_ERROR'
-  );
-  return `status=${status} reason=${reason}`;
 }
 
 function requireManualContext() {
@@ -87,7 +75,7 @@ function loadConfiguration() {
   const conversionLabel = requiredEnv('GOOGLE_ADS_CONVERSION_LABEL');
 
   if (!/^AW-\d+$/.test(conversionId)) {
-    safeFail('GOOGLE_ADS_CONVERSION_ID must use the AW-XXXXXXXX numeric format.');
+    safeFail(`GOOGLE_ADS_CONVERSION_ID must use the AW-XXXXXXXX numeric format (received: ${conversionId.slice(0, 15)}).`);
   }
   if (!/^[A-Za-z0-9_-]+$/.test(conversionLabel)) {
     safeFail('GOOGLE_ADS_CONVERSION_LABEL contains unsupported characters.');
@@ -145,20 +133,31 @@ async function resolveIsolatedWorkspace(tagmanager, containerPath) {
 
   console.log(`  Reusing isolated workspace: ${workspace.workspaceId}`);
   const beforeSync = await getWorkspaceStatus(tagmanager, workspace.path);
-  if (beforeSync.length > 0) {
-    safeFail(`Dedicated workspace already contains ${beforeSync.length} pending change(s). Resolve them manually before running this publisher.`);
+  const foreignChanges = beforeSync.filter((change) => {
+    if (change.variable && change.variable.name === VARIABLE_DLV_NAME) return false;
+    if (change.trigger && change.trigger.name === TRIGGER_NAME) return false;
+    if (change.tag && change.tag.name === TAG_NAME) return false;
+    return true;
+  });
+
+  if (foreignChanges.length > 0) {
+    safeFail(`Dedicated workspace already contains ${foreignChanges.length} foreign pending change(s). Resolve them manually before running this publisher.`);
   }
 
-  const syncRes = await tagmanager.accounts.containers.workspaces.sync({ path: workspace.path });
-  const syncStatus = syncRes.data.syncStatus || {};
-  const conflicts = syncRes.data.mergeConflict || [];
-  if (syncStatus.syncError || syncStatus.mergeConflict || conflicts.length > 0) {
-    safeFail('Dedicated workspace could not be synchronized cleanly to the latest container version. Resolve GTM conflicts manually.');
-  }
+  if (beforeSync.length === 0) {
+    const syncRes = await tagmanager.accounts.containers.workspaces.sync({ path: workspace.path });
+    const syncStatus = syncRes.data.syncStatus || {};
+    const conflicts = syncRes.data.mergeConflict || [];
+    if (syncStatus.syncError || syncStatus.mergeConflict || conflicts.length > 0) {
+      safeFail('Dedicated workspace could not be synchronized cleanly to the latest container version. Resolve GTM conflicts manually.');
+    }
 
-  const afterSync = await getWorkspaceStatus(tagmanager, workspace.path);
-  if (afterSync.length > 0) {
-    safeFail(`Dedicated workspace is not clean after synchronization (${afterSync.length} pending change(s)).`);
+    const afterSync = await getWorkspaceStatus(tagmanager, workspace.path);
+    if (afterSync.length > 0) {
+      safeFail(`Dedicated workspace is not clean after synchronization (${afterSync.length} pending change(s)).`);
+    }
+  } else {
+    console.log(`  Resuming dedicated workspace with ${beforeSync.length} verified canonical change(s)...`);
   }
 
   return workspace;
@@ -188,7 +187,7 @@ function parameterMap(parameters) {
 }
 
 function conditionMatches(condition, left, right) {
-  if (condition?.type !== 'equals') return false;
+  if (!condition || condition.type !== 'equals') return false;
   const params = parameterMap(condition.parameter);
   return params.get('arg0') === left && params.get('arg1') === right;
 }
@@ -200,49 +199,54 @@ function assertVariableContract(variable) {
     || params.get('name') !== VARIABLE_NAME
     || params.get('dataLayerVersion') !== '2'
   ) {
-    safeFail(`Existing GTM variable "${VARIABLE_NAME}" does not match the canonical Data Layer Variable contract. Refusing to overwrite it.`);
+    safeFail(`Existing GTM variable "${VARIABLE_DLV_NAME}" does not match the canonical Data Layer Variable contract. Refusing to overwrite it.`);
   }
 }
 
 function assertTriggerContract(trigger) {
   const customConditions = Array.isArray(trigger.customEventFilter) ? trigger.customEventFilter : [];
-  const extraConditions = Array.isArray(trigger.filter) ? trigger.filter : [];
-  const eventMatch = customConditions.some((condition) => conditionMatches(condition, '{{_event}}', 'nvx_conversion_signal'));
-  const nameMatch = customConditions.some((condition) => conditionMatches(condition, `{{${VARIABLE_NAME}}}`, 'generate_lead'));
+  const filterConditions  = Array.isArray(trigger.filter)           ? trigger.filter           : [];
+  const autoConditions    = Array.isArray(trigger.autoEventFilter)  ? trigger.autoEventFilter  : [];
+
+  const eventMatch = customConditions.some((c) => conditionMatches(c, '{{_event}}', 'nvx_conversion_signal'));
+  const nameMatch  = filterConditions.some((c)  => conditionMatches(c, `{{${VARIABLE_DLV_NAME}}}`, 'generate_lead'));
 
   if (
     trigger.type !== 'customEvent'
-    || customConditions.length !== 2
-    || extraConditions.length !== 0
+    || customConditions.length !== 1
     || !eventMatch
+    || filterConditions.length !== 1
     || !nameMatch
+    || autoConditions.length !== 0
   ) {
-    safeFail(`Existing GTM trigger "${TRIGGER_NAME}" does not exactly match the canonical event/filter contract. Refusing to overwrite it.`);
+    safeFail(`Existing GTM trigger "${TRIGGER_NAME}" does not match the canonical event/filter contract. Refusing to overwrite it.`);
   }
 }
 
 function assertTagContract(tag, triggerId, config) {
   const params = parameterMap(tag.parameter);
   const firing = Array.isArray(tag.firingTriggerId) ? tag.firingTriggerId.map(String) : [];
-  const blocking = Array.isArray(tag.blockingTriggerId) ? tag.blockingTriggerId.map(String) : [];
-  if (
-    tag.type !== 'awct'
-    || params.get('conversionId') !== config.numericConversionId
-    || params.get('conversionLabel') !== config.conversionLabel
-    || params.get('enableRemarketing') !== 'false'
-    || params.get('enableConversionLinker') !== 'true'
-    || firing.length !== 1
-    || firing[0] !== String(triggerId)
-    || blocking.length !== 0
-    || tag.paused === true
-  ) {
-    safeFail(`Existing GTM tag "${TAG_NAME}" does not exactly match the canonical conversion/firing contract. Refusing to overwrite it.`);
+  const blocking = Array.isArray(tag.blockingTriggerId) ? tag.blockingTriggerId : [];
+  if (tag.type !== 'awct') {
+    safeFail(`Existing GTM tag "${TAG_NAME}" is type "${tag.type}" instead of "awct". Refusing to overwrite it.`);
+  }
+  if (params.get('conversionId') !== config.numericConversionId || params.get('conversionLabel') !== config.conversionLabel) {
+    safeFail(`Existing GTM tag "${TAG_NAME}" conversion IDs do not match (expected: ${config.numericConversionId}/${config.conversionLabel}).`);
+  }
+  if (params.get('enableRemarketing') !== 'false' || params.get('enableConversionLinker') !== 'true') {
+    safeFail(`Existing GTM tag "${TAG_NAME}" settings (enableRemarketing/enableConversionLinker) do not match canonical contract.`);
+  }
+  if (blocking.length !== 0) {
+    safeFail(`Existing GTM tag "${TAG_NAME}" has ${blocking.length} unexpected blocking trigger(s).`);
+  }
+  if (firing.length !== 1 || firing[0] !== String(triggerId)) {
+    safeFail(`Existing GTM tag "${TAG_NAME}" firing trigger ID (${firing.join(', ') || 'none'}) does not match current canonical trigger ID (${triggerId}).`);
   }
 }
 
 function variablePayload() {
   return {
-    name: VARIABLE_NAME,
+    name: VARIABLE_DLV_NAME,
     type: 'v',
     parameter: [
       { type: 'template', key: 'name', value: VARIABLE_NAME },
@@ -255,6 +259,7 @@ function triggerPayload() {
   return {
     name: TRIGGER_NAME,
     type: 'customEvent',
+    // GTM API requires exactly ONE customEventFilter entry (the event name).
     customEventFilter: [
       {
         type: 'equals',
@@ -263,10 +268,13 @@ function triggerPayload() {
           { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
         ],
       },
+    ],
+    // Additional conditions go in filter[], not customEventFilter.
+    filter: [
       {
         type: 'equals',
         parameter: [
-          { type: 'template', key: 'arg0', value: `{{${VARIABLE_NAME}}}` },
+          { type: 'template', key: 'arg0', value: `{{${VARIABLE_DLV_NAME}}}` },
           { type: 'template', key: 'arg1', value: 'generate_lead' },
         ],
       },
@@ -285,14 +293,16 @@ function tagPayload(triggerId, config) {
       { type: 'boolean', key: 'enableConversionLinker', value: 'true' },
     ],
     firingTriggerId: [String(triggerId)],
+    blockingTriggerId: [],
   };
 }
 
 async function ensureVariable(tagmanager, workspacePath, createdIds) {
   const variables = await listVariables(tagmanager, workspacePath);
-  let variable = variables.find((item) => item.name === VARIABLE_NAME);
+  let variable = variables.find((item) => item.name === VARIABLE_DLV_NAME);
   if (variable) {
     assertVariableContract(variable);
+    createdIds.variableId = String(variable.variableId);
     console.log(`  Variable verified: ${variable.variableId}`);
     return variable;
   }
@@ -312,6 +322,7 @@ async function ensureTrigger(tagmanager, workspacePath, createdIds) {
   let trigger = triggers.find((item) => item.name === TRIGGER_NAME);
   if (trigger) {
     assertTriggerContract(trigger);
+    createdIds.triggerId = String(trigger.triggerId);
     console.log(`  Trigger verified: ${trigger.triggerId}`);
     return trigger;
   }
@@ -331,6 +342,7 @@ async function ensureTag(tagmanager, workspacePath, trigger, config, createdIds)
   let tag = tags.find((item) => item.name === TAG_NAME);
   if (tag) {
     assertTagContract(tag, trigger.triggerId, config);
+    createdIds.tagId = String(tag.tagId);
     console.log(`  Tag verified: ${tag.tagId}`);
     return tag;
   }
@@ -375,11 +387,6 @@ async function main() {
   const workspace = await resolveIsolatedWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
 
-  const initialChanges = await getWorkspaceStatus(tagmanager, workspacePath);
-  if (initialChanges.length > 0) {
-    safeFail(`Workspace must be clean before mutation; found ${initialChanges.length} pending change(s).`);
-  }
-
   const createdIds = {};
 
   console.log('\n2. Ensuring Data Layer variable...');
@@ -401,7 +408,13 @@ async function main() {
 
   const unexpected = pendingChanges.filter((change) => !isCreatedByThisRun(change, createdIds));
   if (unexpected.length > 0) {
-    safeFail(`Workspace contains ${unexpected.length} pending change(s) not created by this invocation. Refusing to publish.`);
+    const details = unexpected.map((c) => {
+      const type = ['variable', 'trigger', 'tag', 'folder', 'zone', 'client', 'customTemplate'].find((k) => c[k]) || 'unknown';
+      const entity = c[type];
+      const name = entity?.name || entity?.variableId || entity?.triggerId || entity?.tagId || 'unnamed';
+      return `${type}:${name}`;
+    }).join(', ');
+    safeFail(`Workspace contains ${unexpected.length} pending change(s) not created by this invocation (${details}). Refusing to publish.`);
   }
 
   const versionNameBase = process.env.GTM_VERSION_NAME || 'Canonical generate_lead via nvx_conversion_signal';

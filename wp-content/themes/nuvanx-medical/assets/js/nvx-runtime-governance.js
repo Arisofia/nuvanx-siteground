@@ -296,7 +296,12 @@
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 
     const frame = document.querySelector('.hs-form-frame[data-portal-id]');
-    if (!frame && !config.hubspotPortalId) return '';
+    if (!frame && !config.hubspotPortalId) {
+      if (config.debug === true && typeof console !== 'undefined' && console.warn) {
+        console.warn('NUVANX HubSpot: No portal ID available (config.hubspotPortalId and embedded frame missing). HubSpot forms will not load.');
+      }
+      return '';
+    }
 
     const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
     const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';

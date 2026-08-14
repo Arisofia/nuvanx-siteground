@@ -78,7 +78,7 @@
   }
 }
 
-/* Reduced motion: disable nav transitions, videos, and preserve immediate scroll. */
+/* Reduced motion: disable nav transitions/animations, videos, and preserve immediate scroll. */
 @media (prefers-reduced-motion: reduce) {
   .nvx-nav__link::after,
   .nvx-nav__list > li > a::after,
@@ -88,6 +88,10 @@
   .nvx-brand-btn,
   .nvx-toast {
     transition: none !important;
+  }
+
+  .nvx-mobile-nav {
+    animation: none !important;
   }
 
   video[autoplay],

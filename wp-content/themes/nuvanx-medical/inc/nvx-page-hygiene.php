@@ -110,13 +110,14 @@ function nvx_redirect_goya_alias(): void {
 		return;
 	}
 
-	// Preserve query strings (gclid, UTM, etc.) - use wp_parse_url to extract query component
-	$parsed_uri = wp_parse_url( $uri );
-	$query_string = isset( $parsed_uri['query'] ) && '' !== $parsed_uri['query']
-		? '?' . $parsed_uri['query']
-		: '';
-
-	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) . $query_string;
+	// Preserve query strings (gclid, UTM, etc.) - construct target URL manually
+	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
+	
+	// Append query string if present
+	if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
+		$target .= '?' . $_SERVER['QUERY_STRING'];
+	}
+	
 	wp_safe_redirect( $target, 301, 'NUVANX' );
 	exit;
 }

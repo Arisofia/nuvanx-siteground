@@ -10,6 +10,8 @@ on:
       - 'scripts/**'
       - 'tools/**'
       - 'lib/**'
+      - '.gitleaksignore'
+      - '.gitleaks.toml'
       - '.github/workflows/staging.yml'
       - '.github/workflows/production.yml'
   pull_request:
@@ -19,11 +21,16 @@ on:
       - 'scripts/**'
       - 'tools/**'
       - 'lib/**'
+      - '.gitleaksignore'
+      - '.gitleaks.toml'
       - '.github/workflows/staging.yml'
       - '.github/workflows/production.yml'
   pull_request_target:
     branches: [master]
     types: [labeled]
+  schedule:
+    # Weekly audit on Sundays at 00:00 UTC (runs quality & full-history secret scan only)
+    - cron: '0 0 * * 0'
   workflow_dispatch:
     inputs:
       sha:
@@ -158,11 +165,37 @@ jobs:
           ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G
 
       - name: Scan committed history for secrets
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event_name == 'schedule' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          GITLEAKS_VERSION="8.24.0"
+          GITLEAKS_TAR="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          GITLEAKS_SHA256="cb49b7de5ee986510fe8666ca0273a6cc15eb82571f2f14832c9e8920751f3a4"
+          curl -fsSL --proto '=https' --proto-redir '=https' --retry 3 --connect-timeout 10 --max-time 60 "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_TAR}" -o "$RUNNER_TEMP/$GITLEAKS_TAR"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$GITLEAKS_TAR" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$GITLEAKS_TAR" -C "$RUNNER_TEMP" gitleaks
+          chmod +x "$RUNNER_TEMP/gitleaks"
+
+          log_opts=""
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            log_opts="--diff-merges=first-parent origin/master..HEAD"
+          elif [[ "${{ github.event_name }}" == 'push' && "${{ github.event.before }}" != '0000000000000000000000000000000000000000' ]]; then
+            before_sha="${{ github.event.before }}"
+            if git cat-file -e "${before_sha}^{commit}" 2>/dev/null; then
+              log_opts="--diff-merges=first-parent ${before_sha}..${{ github.event.after }}"
+            else
+              echo "Base commit $before_sha is unreachable (e.g. after force-push/rewrite); falling back to full history scan."
+            fi
+          fi
+
+          if [[ -n "$log_opts" ]]; then
+            echo "Scanning commit range: $log_opts"
+            "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml --gitleaks-ignore-path .gitleaksignore --log-opts="$log_opts" --redact --verbose
+          else
+            echo "Scanning entire git commit history"
+            "$RUNNER_TEMP/gitleaks" detect --source . --config .gitleaks.toml --gitleaks-ignore-path .gitleaksignore --redact --verbose
+          fi
 
   deploy_staging_runners:
     name: Staging SSH runner ${{ matrix.runner_attempt }}/3

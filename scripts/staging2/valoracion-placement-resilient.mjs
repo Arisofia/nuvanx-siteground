@@ -45,23 +45,31 @@ function isMatchingHubSpotFrame(frame, page, embeddedSrc) {
 async function frameHasVisibleControl(frame) {
   const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
   const count = Math.min(await controls.count().catch(() => 0), 40);
-  for (let index = 0; index < count; index += 1) {
-    if (await controls.nth(index).isVisible().catch(() => false)) return true;
-  }
-  return false;
-}
-
 async function visibleControlsInHubSpotFrame(page, embeddedSrc) {
   const deadline = Date.now() + 12000;
+  let frameEverFound = false;
+
   while (Date.now() < deadline) {
-    const frames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
-    for (const frame of frames) {
-      if (await frameHasVisibleControl(frame)) return { frameFound: true, visibleControls: 1 };
+    for (const frame of page.frames()) {
+      if (frame === page.mainFrame()) continue;
+      const frameUrl = frame.url() || '';
+      if (!frameUrl.includes(expectedFormId) && (!embeddedSrc || frameUrl !== embeddedSrc)) continue;
+
+      frameEverFound = true;
+
+      const controls = frame.locator('input:not([type="hidden"]), textarea, select, button, [role="button"]');
+      const count = await controls.count().catch(() => 0);
+      for (let index = 0; index < Math.min(count, 40); index += 1) {
+        if (await controls.nth(index).isVisible().catch(() => false)) {
+          return { frameFound: true, visibleControls: 1 };
+        }
+      }
     }
-    if (frames.length > 0) return { frameFound: true, visibleControls: 0 };
+
     await page.waitForTimeout(600);
   }
-  return { frameFound: false, visibleControls: 0 };
+
+  return { frameFound: frameEverFound, visibleControls: 0 };
 }
 
 async function navigateValuation(page) {

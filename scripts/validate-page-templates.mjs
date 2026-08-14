@@ -20,8 +20,8 @@
  * - WORDPRESS_URL: REST/sitemap base URL when no trusted link is available.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
+import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { MIN_MANIFEST_ENTRIES } from './staging2/published-pages-contract.mjs';
 
@@ -190,7 +190,7 @@ function inventoryBaseUrl(pages) {
   if (explicit) return explicit.replace(/\/$/, '');
   const linkedPage = pages.find((page) => typeof page.link === 'string' && page.link.trim());
   if (linkedPage) return new URL(linkedPage.link).origin;
-  return 'https://nuvanx.com';
+  throw new Error('Cannot derive sitemap base URL: WORDPRESS_URL is unset and trusted page inventory has no link');
 }
 
 function normalizeRoutePath(value, baseUrl) {
@@ -202,7 +202,10 @@ function normalizeRoutePath(value, baseUrl) {
 
 async function enrichTrustedInventoryWithSitemap(pages) {
   const pagesFile = String(process.env.WORDPRESS_PAGES_FILE || '').trim();
-  if (!pagesFile) return;
+  if (!pagesFile) {
+    console.log('BLOCK_C_ROUTE_INVENTORY=SKIP reason=WORDPRESS_PAGES_FILE_unset');
+    return;
+  }
 
   const baseUrl = inventoryBaseUrl(pages);
   const expectedHost = new URL(baseUrl).hostname;
@@ -264,7 +267,9 @@ async function enrichTrustedInventoryWithSitemap(pages) {
   }
 
   inventory.sort((left, right) => String(left.link || '').localeCompare(String(right.link || '')));
-  writeFileSync(pagesFile, `${JSON.stringify(inventory)}\n`, 'utf8');
+  const tempFile = join(dirname(pagesFile), `${basename(pagesFile)}.tmp-${process.pid}-${Date.now()}`);
+  writeFileSync(tempFile, `${JSON.stringify(inventory)}\n`, 'utf8');
+  renameSync(tempFile, pagesFile);
   console.log(`BLOCK_C_ROUTE_INVENTORY=PASS published_pages=${pages.length} sitemap_routes=${new Set(routeUrls.map((url) => normalizeRoutePath(url, baseUrl))).size} added_from_sitemap=${added} total_routes=${inventory.length}`);
 }
 

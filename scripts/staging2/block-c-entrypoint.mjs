@@ -8,6 +8,7 @@ const VIEWPORT_COUNT = VIEWPORTS.length;
 
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
@@ -15,6 +16,7 @@ const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', impo
 
 // Provider-specific paths for transient failure detection
 const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+const SITEGROUND_TRANSIENT_HTTP_STATUSES = new Set([202, 429, 503]);
 
 async function prepareTrustedPagesPreload() {
   const pagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
@@ -83,6 +85,18 @@ async function runAttempt(attempt) {
   });
 }
 
+function isAllowedSiteGroundAbort(networkErrors, route) {
+  const expectedDocumentUrl = `${baseUrl}${String(route || '')}`;
+  return (
+    networkErrors.length === 0 ||
+    networkErrors.every(
+      (message) =>
+        message === `${expectedDocumentUrl}: net::ERR_ABORTED` ||
+        (message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) && message.endsWith(': net::ERR_ABORTED'))
+    )
+  );
+}
+
 // Helper functions for transient failure detection
 function isAntiBotOnly(result, blockers, issues, status) {
   return (
@@ -90,18 +104,7 @@ function isAntiBotOnly(result, blockers, issues, status) {
     blockers.length > 0 &&
     blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
     issues.length === 0 &&
-    [202, 429, 503].includes(status)
-  );
-}
-
-function isSiteGroundChallengeAbortOnly(networkErrors) {
-  return (
-    networkErrors.length === 0 ||
-    networkErrors.every(
-      (message) =>
-        message.startsWith(`${baseUrl}${SITEGROUND_CAPTCHA_PATH}`) &&
-        message.endsWith(': net::ERR_ABORTED')
-    )
+    SITEGROUND_TRANSIENT_HTTP_STATUSES.has(status)
   );
 }
 
@@ -113,7 +116,7 @@ function isNavigationNoResponseOnly(result, blockers, issues, networkErrors, sta
     blockers.length > 0 &&
     blockers.every((message) => /^Navigation returned no HTTP response$/i.test(message)) &&
     issues.length === 0 &&
-    isSiteGroundChallengeAbortOnly(networkErrors) &&
+    isAllowedSiteGroundAbort(networkErrors, result.route) &&
     typeof result.finalUrl === 'string' &&
     result.finalUrl.startsWith(`${baseUrl}/`)
   );
@@ -147,7 +150,7 @@ function isTransientFailure(result) {
   const blockers = Array.isArray(result.blockers) ? result.blockers.map(String) : [];
   const issues = Array.isArray(result.issues) ? result.issues.map(String) : [];
   const networkErrors = Array.isArray(result.networkErrors) ? result.networkErrors.map(String) : [];
-  const status = Number(result.httpStatus || 0);
+  const status = Number(result.edgeHttpStatus ?? result.httpStatus ?? 0);
 
   // Check 1: SiteGround Antibot challenge only
   if (isAntiBotOnly(result, blockers, issues, status)) return true;
@@ -169,13 +172,28 @@ function isTransientFailure(result) {
   return false;
 }
 
-async function failedResultsAreTransient() {
+function isOriginVerifiedVisualInconclusive(result) {
+  if (!result || result.status !== 'PASS') return false;
+  if (result.externalInconclusive !== true || result.originVerified !== true) return false;
+  if (result.visualValidation !== 'inconclusive-siteground-antibot' || result.geometry != null) return false;
+  if (Number(result.originStatus || 0) !== 200) return false;
+  if (expectedSha && String(result.originDeploySha || '') !== expectedSha) return false;
+
+  const edgeStatus = Number(result.edgeHttpStatus ?? 0);
+  if (SITEGROUND_TRANSIENT_HTTP_STATUSES.has(edgeStatus)) return true;
+  if (edgeStatus !== 0) return false;
+
+  const networkErrors = Array.isArray(result.networkErrors) ? result.networkErrors.map(String) : [];
+  return isAllowedSiteGroundAbort(networkErrors, result.route);
+}
+
+async function readValidatedResults() {
   let results;
   try {
     results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
   } catch (error) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=RESULTS_UNAVAILABLE reason=${error.message}`);
-    return false;
+    return null;
   }
 
   let manifest;
@@ -183,15 +201,45 @@ async function failedResultsAreTransient() {
     manifest = await loadPublishedPagesManifest();
   } catch (error) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=MANIFEST_INVALID reason=${error.message}`);
-    return false;
+    return null;
   }
 
   const expectedResultsCount = manifest.length * VIEWPORT_COUNT;
-
-  if (!Array.isArray(results) || results.length < expectedResultsCount) {
+  if (!Array.isArray(results) || results.length !== expectedResultsCount) {
     console.error(`BLOCK_C_RETRY_CLASSIFICATION=INVALID_RESULTS count=${Array.isArray(results) ? results.length : 'non-array'} expected=${expectedResultsCount}`);
-    return false;
+    return null;
   }
+
+  return results;
+}
+
+async function successfulResultsAreComplete() {
+  const results = await readValidatedResults();
+  if (!results) return { valid: false, complete: false, transientOnly: false };
+
+  const nonPass = results.filter((result) => result.status !== 'PASS');
+  if (nonPass.length > 0) {
+    console.error(`BLOCK_C_PRODUCTION_ELIGIBILITY=INVALID_SUCCESS non_pass=${nonPass.length}`);
+    return { valid: false, complete: false, transientOnly: false };
+  }
+
+  const inconclusive = results.filter((result) => result.externalInconclusive === true);
+  if (inconclusive.length === 0) {
+    return { valid: true, complete: true, transientOnly: false };
+  }
+
+  const transientOnly = inconclusive.every(isOriginVerifiedVisualInconclusive);
+  console.log(`BLOCK_C_PRODUCTION_ELIGIBILITY=${transientOnly ? 'TRANSIENT_INCONCLUSIVE' : 'INVALID_INCONCLUSIVE'} cases=${inconclusive.length}`);
+  for (const result of inconclusive) {
+    console.log(`BLOCK_C_INCONCLUSIVE route=${result.route} viewport=${result.viewport?.key || 'unknown'} edge_http=${result.edgeHttpStatus ?? 0} origin_http=${result.originStatus ?? 0}`);
+  }
+
+  return { valid: transientOnly, complete: false, transientOnly };
+}
+
+async function failedResultsAreTransient() {
+  const results = await readValidatedResults();
+  if (!results) return false;
 
   const failed = results.filter((result) => result.status !== 'PASS');
   if (failed.length === 0) return false;
@@ -200,10 +248,29 @@ async function failedResultsAreTransient() {
   console.log(`BLOCK_C_RETRY_CLASSIFICATION=${transient ? 'TRANSIENT_ONLY' : 'REAL_FAILURE'} failed=${failed.length}`);
   if (transient) {
     for (const result of failed) {
-      console.log(`BLOCK_C_TRANSIENT route=${result.route} viewport=${result.viewport?.key || 'unknown'} status=${result.status} http=${result.httpStatus || 0}`);
+      console.log(`BLOCK_C_TRANSIENT route=${result.route} viewport=${result.viewport?.key || 'unknown'} status=${result.status} edge_http=${result.edgeHttpStatus ?? 0} effective_http=${result.httpStatus ?? 0}`);
     }
   }
   return transient;
+}
+
+async function disarmRollbackAfterTransientExhaustion() {
+  const envFile = (process.env.GITHUB_ENV || '').trim();
+  if (envFile) {
+    await fs.appendFile(envFile, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+    console.error('BLOCK_C_STAGING_ROLLBACK=DISARMED reason=transient-only-exhaustion');
+  } else {
+    console.warn('BLOCK_C_STAGING_ROLLBACK=NOT_DISARMED reason=GITHUB_ENV_unavailable');
+  }
+
+  const summaryFile = (process.env.GITHUB_STEP_SUMMARY || '').trim();
+  if (summaryFile) {
+    await fs.appendFile(
+      summaryFile,
+      '\n### Block C transient exhaustion\n\nSiteGround Antibot prevented complete browser validation after all bounded retries. No real application defect was established, so the Staging rollback was disarmed. This run remains ineligible for Production acceptance because browser geometry, H1 visibility, responsive layout and images were not completely validated.\n',
+      'utf8'
+    );
+  }
 }
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -216,24 +283,35 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     process.exit(1);
   }
 
-  if (code === 0) {
-    console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
-    process.exit(0);
-  }
+  let transientOnly = false;
 
-  const transientOnly = await failedResultsAreTransient();
-  if (!transientOnly) {
-    console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt}`);
-    process.exit(code || 1);
+  if (code === 0) {
+    const completion = await successfulResultsAreComplete();
+    if (completion.valid && completion.complete) {
+      console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
+      process.exit(0);
+    }
+    if (!completion.valid || !completion.transientOnly) {
+      console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt} reason=incomplete-or-invalid-success-evidence`);
+      process.exit(1);
+    }
+    transientOnly = true;
+  } else {
+    transientOnly = await failedResultsAreTransient();
+    if (!transientOnly) {
+      console.error(`BLOCK_C_RESILIENT=FAIL_REAL attempt=${attempt}`);
+      process.exit(code || 1);
+    }
   }
 
   if (attempt === maxAttempts) {
+    await disarmRollbackAfterTransientExhaustion();
     console.error(`BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
-    process.exit(code || 1);
+    process.exit(75);
   }
 
   const delayMs = 4000 * attempt;
-  console.log(`BLOCK_C_RESILIENT=RETRY delay_ms=${delayMs}`);
+  console.log(`BLOCK_C_RESILIENT=RETRY_TRANSIENT_INCONCLUSIVE attempt=${attempt} delay_ms=${delayMs}`);
   await delay(delayMs);
 }
 

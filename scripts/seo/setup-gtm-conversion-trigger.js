@@ -234,7 +234,7 @@ async function main() {
 
   // 2. Ensure Data Layer variable exists
   console.log('\n2. Ensuring Data Layer variable...');
-  await ensureDataLayerVariable(tagmanager, workspacePath);
+  const variable      = await ensureDataLayerVariable(tagmanager, workspacePath);
 
   // 3. Check / create trigger
   console.log('\n3. Checking for existing trigger...');

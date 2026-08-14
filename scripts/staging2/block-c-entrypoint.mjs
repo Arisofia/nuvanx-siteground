@@ -9,7 +9,6 @@ const VIEWPORT_COUNT = VIEWPORTS.length;
 const maxAttempts = 3;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
-const originFallbackScript = fileURLToPath(new URL('./block-c-origin-fallback.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
 const preloadUrl = new URL('./block-c-artifacts/trusted-pages-preload.mjs', import.meta.url);
@@ -63,33 +62,25 @@ async function prepareTrustedPagesPreload() {
   return preloadUrl.href;
 }
 
-function runNode(script, args = [], extraEnv = {}) {
+async function runAttempt(attempt) {
+  console.log(`BLOCK_C_ATTEMPT=${attempt}/${maxAttempts}`);
+  const preloadModule = await prepareTrustedPagesPreload();
+  const args = preloadModule ? ['--import', preloadModule, attemptScript] : [attemptScript];
+
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [...args, script], {
-      env: { ...process.env, ...extraEnv },
+    const child = spawn(process.execPath, args, {
+      env: process.env,
       stdio: 'inherit',
     });
     child.once('error', reject);
     child.once('exit', (code, signal) => {
       if (signal) {
-        reject(new Error(`Node child ${script} terminated by signal ${signal}`));
+        reject(new Error(`Block C attempt ${attempt} terminated by signal ${signal}`));
         return;
       }
       resolve(Number.isInteger(code) ? code : 1);
     });
   });
-}
-
-async function runAttempt(attempt) {
-  console.log(`BLOCK_C_ATTEMPT=${attempt}/${maxAttempts}`);
-  const preloadModule = await prepareTrustedPagesPreload();
-  const args = preloadModule ? ['--import', preloadModule] : [];
-  return runNode(attemptScript, args);
-}
-
-async function runOriginFallback(attempt) {
-  console.log(`BLOCK_C_ORIGIN_FALLBACK_ATTEMPT=${attempt}`);
-  return runNode(originFallbackScript);
 }
 
 // Helper functions for transient failure detection
@@ -229,18 +220,6 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     console.log(`BLOCK_C_RESILIENT=PASS attempt=${attempt}`);
     process.exit(0);
   }
-
-  let originFallbackCode = 1;
-  try {
-    originFallbackCode = await runOriginFallback(attempt);
-  } catch (error) {
-    console.error(`BLOCK_C_ORIGIN_FALLBACK=ERROR attempt=${attempt} reason=${error.message}`);
-  }
-  if (originFallbackCode === 0) {
-    console.log(`BLOCK_C_RESILIENT=PASS_ORIGIN_FALLBACK attempt=${attempt}`);
-    process.exit(0);
-  }
-  console.log(`BLOCK_C_ORIGIN_FALLBACK=CONTINUE_RETRY attempt=${attempt} exit=${originFallbackCode}`);
 
   const transientOnly = await failedResultsAreTransient();
   if (!transientOnly) {

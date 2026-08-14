@@ -86,7 +86,7 @@ function loadConfiguration() {
   const conversionId = requiredEnv('GOOGLE_ADS_CONVERSION_ID');
   const conversionLabel = requiredEnv('GOOGLE_ADS_CONVERSION_LABEL');
 
-  if (!/^AW-[0-9]+$/.test(conversionId)) {
+  if (!/^AW-\d+$/.test(conversionId)) {
     safeFail('GOOGLE_ADS_CONVERSION_ID must use the AW-XXXXXXXX numeric format.');
   }
   if (!/^[A-Za-z0-9_-]+$/.test(conversionLabel)) {
@@ -182,13 +182,13 @@ async function listVariables(tagmanager, workspacePath) {
 function parameterMap(parameters) {
   const map = new Map();
   for (const parameter of Array.isArray(parameters) ? parameters : []) {
-    if (parameter && parameter.key) map.set(String(parameter.key), String(parameter.value ?? ''));
+    if (parameter?.key) map.set(String(parameter.key), String(parameter.value ?? ''));
   }
   return map;
 }
 
 function conditionMatches(condition, left, right) {
-  if (!condition || condition.type !== 'equals') return false;
+  if (condition?.type !== 'equals') return false;
   const params = parameterMap(condition.parameter);
   return params.get('arg0') === left && params.get('arg1') === right;
 }

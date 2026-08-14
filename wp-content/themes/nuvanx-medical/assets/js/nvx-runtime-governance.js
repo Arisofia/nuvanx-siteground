@@ -583,10 +583,67 @@
     }
   }
 
+  function initHeroVideoGovernance() {
+    const video = document.getElementById('nvx-home-hero-video') || document.querySelector('.nvx-home-hero__video');
+    const toggleBtn = document.getElementById('nvx-hero-video-toggle') || document.querySelector('.nvx-home-hero__video-toggle');
+    if (!video) return;
+
+    // 1. Respect prefers-reduced-motion
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function handleMotionPreference(e) {
+      if (e.matches) {
+        video.pause();
+        if (toggleBtn) {
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          toggleBtn.setAttribute('aria-label', 'Reproducir vídeo de fondo');
+          const icon = toggleBtn.querySelector('.nvx-video-toggle__icon');
+          if (icon) icon.textContent = '▶';
+        }
+      }
+    }
+
+    if (mediaQuery.matches) {
+      video.pause();
+      if (toggleBtn) {
+        toggleBtn.setAttribute('aria-pressed', 'true');
+        toggleBtn.setAttribute('aria-label', 'Reproducir vídeo de fondo');
+        const icon = toggleBtn.querySelector('.nvx-video-toggle__icon');
+        if (icon) icon.textContent = '▶';
+      }
+    }
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleMotionPreference);
+    } else if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleMotionPreference);
+    }
+
+    // 2. Interactive toggle button (WCAG 2.2.2 Pause/Stop/Hide)
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        if (video.paused) {
+          video.play().then(function () {
+            toggleBtn.setAttribute('aria-pressed', 'false');
+            toggleBtn.setAttribute('aria-label', 'Pausar vídeo de fondo');
+            const icon = toggleBtn.querySelector('.nvx-video-toggle__icon');
+            if (icon) icon.textContent = '⏸';
+          }).catch(function () {});
+        } else {
+          video.pause();
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          toggleBtn.setAttribute('aria-label', 'Reproducir vídeo de fondo');
+          const icon = toggleBtn.querySelector('.nvx-video-toggle__icon');
+          if (icon) icon.textContent = '▶';
+        }
+      });
+    }
+  }
+
   function initialize() {
     initMobileNavigationGovernance();
     initValoracionModalGovernance();
     initLazyHubSpot();
+    initHeroVideoGovernance();
   }
 
   if (document.readyState === 'loading') {

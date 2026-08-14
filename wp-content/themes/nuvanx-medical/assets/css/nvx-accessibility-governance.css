@@ -78,12 +78,21 @@
   }
 }
 
-/* Reduced motion: disable nav transitions and preserve immediate scroll. */
+/* Reduced motion: disable nav transitions, videos, and preserve immediate scroll. */
 @media (prefers-reduced-motion: reduce) {
   .nvx-nav__link::after,
   .nvx-nav__list > li > a::after,
-  .nvx-nav__list .sub-menu {
-    transition: none;
+  .nvx-nav__list .sub-menu,
+  .nvx-button,
+  .nvx-btn,
+  .nvx-brand-btn,
+  .nvx-toast {
+    transition: none !important;
+  }
+
+  video[autoplay],
+  .nvx-home-hero__video {
+    display: none !important;
   }
 
   html:focus-within {

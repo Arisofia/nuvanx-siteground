@@ -96,7 +96,7 @@
 	white-space: nowrap;
 }
 
-/* Hero scroll cue */
+/* Hero scroll cue — guaranteed 48px touch target */
 .nvx-home-hero__scroll-cue {
 	position: absolute;
 	bottom: var(--nvx-space-6);
@@ -106,17 +106,62 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 2.5rem;
-	height: 2.5rem;
+	width: var(--nvx-touch-target-min, 48px);
+	height: var(--nvx-touch-target-min, 48px);
+	min-width: var(--nvx-touch-target-min, 48px);
+	min-height: var(--nvx-touch-target-min, 48px);
 	color: var(--nvx-light);
-	opacity: 0.7;
-	transition: opacity 160ms ease, transform 160ms ease;
+	opacity: 0.75;
+	border-radius: 50%;
+	transition: opacity var(--nvx-transition-fast), transform var(--nvx-transition-fast);
 }
 
 .nvx-home-hero__scroll-cue:hover,
 .nvx-home-hero__scroll-cue:focus-visible {
 	opacity: 1;
 	transform: translateX(-50%) translateY(2px);
+	outline: 2px solid var(--nvx-light);
+	outline-offset: 2px;
+}
+
+/* Hero video pause/play toggle button (WCAG 2.2.2) */
+.nvx-home-hero__video-toggle {
+	position: absolute;
+	bottom: var(--nvx-space-6);
+	right: var(--nvx-gutter-inner);
+	z-index: 4;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--nvx-touch-target-min, 48px);
+	height: var(--nvx-touch-target-min, 48px);
+	min-width: var(--nvx-touch-target-min, 48px);
+	min-height: var(--nvx-touch-target-min, 48px);
+	padding: 0;
+	background: var(--nvx-charcoal);
+	color: var(--nvx-light);
+	border: var(--nvx-border-hairline) solid var(--nvx-border-on-dark-45);
+	border-radius: 50%;
+	cursor: pointer;
+	font-size: var(--nvx-type-small);
+	transition: background-color var(--nvx-transition-fast), transform var(--nvx-transition-fast);
+}
+
+.nvx-home-hero__video-toggle:hover,
+.nvx-home-hero__video-toggle:focus-visible {
+	background: var(--nvx-ink);
+	transform: scale(1.05);
+	outline: 2px solid var(--nvx-light);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nvx-home-hero__video {
+		display: none;
+	}
+	.nvx-home-hero__video-toggle {
+		display: none;
+	}
 }
 
 /* =========================================================

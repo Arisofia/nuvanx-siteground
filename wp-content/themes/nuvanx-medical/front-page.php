@@ -33,6 +33,9 @@ ob_start();
 		<a href="#nvx-home-philosophy-title" class="nvx-home-hero__scroll-cue" aria-label="<?php esc_attr_e( 'Desplazarse al contenido', 'nuvanx-medical' ); ?>">
 			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
 		</a>
+		<button type="button" id="nvx-hero-video-toggle" class="nvx-home-hero__video-toggle" aria-label="<?php esc_attr_e( 'Pausar vídeo de fondo', 'nuvanx-medical' ); ?>" aria-pressed="false">
+			<span class="nvx-video-toggle__icon" aria-hidden="true">⏸</span>
+		</button>
 	</section>
 
 	<section class="nvx-home-philosophy" aria-labelledby="nvx-home-philosophy-title">

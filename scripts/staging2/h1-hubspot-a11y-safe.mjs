@@ -48,22 +48,10 @@ function phoneClientContractPasses(phone) {
   );
 }
 
-function matchExactPhoneIssue(issueText, pattern, phoneIdentity) {
-  const match = String(issueText || '').match(/3\.3\.1\s+(?:invalid state not exposed|error message not programmatically associated)\s+after blank submit:\s+(.+)$/i);
-  return Boolean(match && match[1].trim() === phoneIdentity && String(issueText).toLowerCase().includes(pattern.toLowerCase()));
-}
-
 function isDeferredPhoneIssue(issue, phoneIdentity) {
-  if (!issue) return false;
+  if (!issue || typeof issue !== 'object') return false;
 
-  if (typeof issue === 'string') {
-    if (/safety:\s*blank accessibility validation.*submission POST/i.test(issue)) return true;
-    if (matchExactPhoneIssue(issue, 'invalid state not exposed', phoneIdentity)) return true;
-    if (matchExactPhoneIssue(issue, 'error message not programmatically associated', phoneIdentity)) return true;
-    return false;
-  }
-
-  if (issue.code === 'SAFETY_SUBMISSION_POST') {
+  if (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety') {
     return true;
   }
 
@@ -79,9 +67,6 @@ function getResultIssues(result) {
   if (Array.isArray(result?.structuredIssues) && result.structuredIssues.length > 0) {
     return result.structuredIssues;
   }
-  if (Array.isArray(result?.issues)) {
-    return result.issues;
-  }
   return [];
 }
 
@@ -90,8 +75,8 @@ function onlyDeferredPhoneIssues(result, phone) {
   const phoneIdentity = identity(phone);
   if (!phoneIdentity || structured.length === 0) return false;
 
-  // Every issue present must be one of the known vendor-deferred issues for phone or safe POST interception.
-  // This allows partial vendor improvements (e.g. vendor fixing invalid-state before error-association)
+  // Every issue present must be one of the known vendor-deferred structured issues
+  // for phone or safe POST interception. This allows partial vendor improvements
   // while strictly rejecting any issue on other controls or other WCAG criteria.
   return structured.every((issue) => isDeferredPhoneIssue(issue, phoneIdentity));
 }

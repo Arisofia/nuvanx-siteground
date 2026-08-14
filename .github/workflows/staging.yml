@@ -10,6 +10,8 @@ on:
       - 'scripts/**'
       - 'tools/**'
       - 'lib/**'
+      - '.gitleaksignore'
+      - '.gitleaks.toml'
       - '.github/workflows/staging.yml'
       - '.github/workflows/production.yml'
   pull_request:
@@ -19,6 +21,8 @@ on:
       - 'scripts/**'
       - 'tools/**'
       - 'lib/**'
+      - '.gitleaksignore'
+      - '.gitleaks.toml'
       - '.github/workflows/staging.yml'
       - '.github/workflows/production.yml'
   pull_request_target:
@@ -163,6 +167,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITLEAKS_LOG_OPTS: "--all --full-history"
 
   deploy_staging_runners:
     name: Staging SSH runner ${{ matrix.runner_attempt }}/3

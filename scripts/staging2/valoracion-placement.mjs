@@ -164,6 +164,7 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   return lastExitCode || 1;
 }
 
+// Outer retry budgets: configurable via environment for single-runner workflows (e.g. PR preview).
 const VALORACION_PLACEMENT_CYCLES = Number.parseInt(process.env.VALORACION_PLACEMENT_CYCLES || '3', 10) || 3;
 const HUBSPOT_A11Y_CYCLES = Number.parseInt(process.env.HUBSPOT_A11Y_CYCLES || '3', 10) || 3;
 
@@ -173,10 +174,6 @@ const stages = [
   { name: 'hubspot-a11y-safe-unit', url: new URL('./test-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: VALORACION_PLACEMENT_CYCLES },
-  // The strict HubSpot probe remains unchanged. The safe-scope wrapper may only
-  // convert the exact zero-submit/server-validation boundary into PASS after it
-  // verifies all observable client-side semantics and all other required fields.
-  // Three outer cycles provide bounded resilience for third-party transient behavior.
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];

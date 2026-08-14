@@ -209,7 +209,7 @@ async function validateHubSpotMount(page, mounted, mountState) {
   return { issues, interactiveState };
 }
 
-async function saveScreenshot(page, viewportKey, attempt, isTransient = false) {
+async function saveScreenshot(page, viewportKey, attempt, isTransient = false, tolerateFailure = isTransient) {
   const filename = isTransient
     ? `valoracion-${viewportKey}-attempt-${attempt}-transient.jpg`
     : `valoracion-${viewportKey}-attempt-${attempt}.jpg`;
@@ -219,7 +219,7 @@ async function saveScreenshot(page, viewportKey, attempt, isTransient = false) {
     quality: 78,
     fullPage: true,
   };
-  if (isTransient) {
+  if (tolerateFailure) {
     await page.screenshot(options).catch(() => {});
   } else {
     await page.screenshot(options);

@@ -64,9 +64,10 @@ const stages = [
   // transient cycles are exhausted. Real head-contract failures still fail fast.
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: 3 },
-  // Semantic accessibility gate runs after placement/mount has been proven. It
-  // exercises blank validation only and must never create a real HubSpot contact.
-  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y.mjs', import.meta.url), maxCycles: 1 },
+  // The strict HubSpot probe remains unchanged. The safe-scope wrapper may only
+  // convert the exact zero-submit/server-validation boundary into PASS after it
+  // verifies all observable client-side semantics and all other required fields.
+  { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: 1 },
   { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
 

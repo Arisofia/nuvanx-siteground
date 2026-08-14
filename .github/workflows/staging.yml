@@ -937,6 +937,9 @@ jobs:
           EXPECTED_HOST: staging2.nuvanx.com
           EXPECTED_SHA: ${{ env.PR_SHA }}
           ORIGIN_SSH_ALIAS: nvx-staging2-pr
+          BLOCK_C_MAX_ATTEMPTS: "3"
+          VALORACION_PLACEMENT_CYCLES: "3"
+          HUBSPOT_A11Y_CYCLES: "3"
         run: |
           set -euo pipefail
           ssh nvx-staging2-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_SHA'"
@@ -969,7 +972,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Roll back failed PR preview
-        if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
+        if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' }}
         shell: bash
         run: |
           set -euo pipefail

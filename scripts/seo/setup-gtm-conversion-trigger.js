@@ -98,7 +98,7 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
     ws = workspaces.find(w => w.name === 'Default Workspace') || workspaces[0];
     if (!ws) throw new Error('No workspace found in container ' + containerPath);
 
-    const statusRes = await tagmanager.accounts.containers.workspaces.get_status({ path: ws.path });
+    const statusRes = await tagmanager.accounts.containers.workspaces.getStatus({ path: ws.path });
     const changes = statusRes.data.workspaceChange || [];
     const nonOurs = changes.filter(c => {
       const entityName = c.tag?.name || c.trigger?.name || c.variable?.name || '';

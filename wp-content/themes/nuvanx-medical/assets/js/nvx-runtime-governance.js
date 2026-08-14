@@ -388,7 +388,7 @@
         return host === 'hsforms.com' || host.endsWith('.hsforms.com') ||
                host === 'hsforms.net' || host.endsWith('.hsforms.net') ||
                host === 'forms.hubspot.com' || host === 'forms-eu1.hubspot.com' ||
-               host.endsWith('.hubspot.com') || host.endsWith('.hubspotusercontent.com');
+               /^forms(-[a-z0-9]+)?\.hubspot\.com$/.test(host);
       } catch {
         return false;
       }

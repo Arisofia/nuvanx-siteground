@@ -63,7 +63,7 @@ function isDeferredPhoneIssue(issue, phoneIdentity) {
     return false;
   }
 
-  if (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety') {
+  if (issue.code === 'SAFETY_SUBMISSION_POST') {
     return true;
   }
 

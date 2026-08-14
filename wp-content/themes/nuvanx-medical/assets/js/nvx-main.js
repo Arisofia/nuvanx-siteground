@@ -114,4 +114,63 @@
       }
     });
   }
+
+  /* --- Complianz Accessible Name Sanitizer (WCAG 2.4.4 / 4.1.2) --- */
+  function sanitizeComplianzAccessibleNames() {
+    var banners = document.querySelectorAll(
+      '.cmplz-cookiebanner, #cmplz-cookiebanner-container, .cmplz-banner, .cmplz-manage-consent-container'
+    );
+    if (!banners || banners.length === 0) return;
+
+    banners.forEach(function (banner) {
+      var links = banner.querySelectorAll('a, button, [role="button"]');
+      links.forEach(function (el) {
+        var text = (el.textContent || '').trim();
+        var ariaLabel = el.getAttribute('aria-label') || '';
+        var href = el.getAttribute('href') || '';
+
+        if (
+          text === '{title}' ||
+          ariaLabel === '{title}' ||
+          text.indexOf('{title}') !== -1 ||
+          ariaLabel.indexOf('{title}') !== -1
+        ) {
+          var fallback = 'Política de cookies';
+          if (href.indexOf('privacidad') !== -1 || href.indexOf('privacy') !== -1) {
+            fallback = 'Política de privacidad';
+          } else if (href.indexOf('aviso-legal') !== -1 || href.indexOf('legal') !== -1) {
+            fallback = 'Aviso legal';
+          }
+
+          if (text === '{title}' || text.indexOf('{title}') !== -1) {
+            el.textContent = text.replace(/\{title\}/g, fallback);
+          }
+          if (ariaLabel === '{title}' || ariaLabel.indexOf('{title}') !== -1) {
+            el.setAttribute('aria-label', ariaLabel.replace(/\{title\}/g, fallback));
+          }
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sanitizeComplianzAccessibleNames);
+  } else {
+    sanitizeComplianzAccessibleNames();
+  }
+  window.addEventListener('load', sanitizeComplianzAccessibleNames);
+
+  if (typeof MutationObserver === 'function') {
+    var complianzObserver = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
+          sanitizeComplianzAccessibleNames();
+          break;
+        }
+      }
+    });
+    if (document.body) {
+      complianzObserver.observe(document.body, { childList: true, subtree: true });
+    }
+  }
 })();

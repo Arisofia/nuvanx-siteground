@@ -9,7 +9,8 @@
     "lint:styles": "node scripts/lint/no-inline-layout-styles.mjs",
     "lint:routes": "node scripts/lint/validate-routes-schema.mjs",
     "lint:contrast": "node scripts/lint/test-hero-wcag-contrast.mjs",
-    "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes && npm run lint:contrast",
+    "lint:complianz": "node scripts/lint/test-complianz-a11y-sanitizer.mjs",
+    "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes && npm run lint:contrast && npm run lint:complianz",
     "seo:nap-audit": "node scripts/seo/google-business-profile-audit.js"
   },
   "dependencies": {

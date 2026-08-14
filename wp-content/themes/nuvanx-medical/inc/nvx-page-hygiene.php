@@ -511,3 +511,47 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 	return is_string( $filtered ) ? $filtered : $content;
 }
 add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', NVX_HOOK_PRIO_TRUST_BADGES );
+
+/**
+ * Sanitize Complianz cookie banner HTML to prevent unreplaced placeholder tokens ({title}, {url})
+ * from reaching the accessibility tree (WCAG 2.4.4, 4.1.2).
+ *
+ * @param string $html Complianz cookie banner HTML or template markup.
+ * @return string Sanitized markup.
+ */
+function nvx_sanitize_complianz_banner_html( string $html ): string {
+	if ( false === strpos( $html, '{title}' ) && false === strpos( $html, '{url}' ) ) {
+		return $html;
+	}
+
+	// Substitute {title} with appropriate document titles based on destination URL or context.
+	$html = (string) preg_replace_callback(
+		'/<a\s+([^>]*?)href=([\'"])(.*?)\2([^>]*)>(.*?)<\/a>/is',
+		static function ( array $matches ): string {
+			$attr_before = $matches[1];
+			$quote       = $matches[2];
+			$href        = $matches[3];
+			$attr_after  = $matches[4];
+			$inner_text  = $matches[5];
+
+			if ( false !== strpos( $inner_text, '{title}' ) ) {
+				$title = 'Política de cookies';
+				if ( false !== strpos( $href, 'privacidad' ) || false !== strpos( $href, 'privacy' ) ) {
+					$title = 'Política de privacidad';
+				} elseif ( false !== strpos( $href, 'aviso-legal' ) || false !== strpos( $href, 'legal' ) ) {
+					$title = 'Aviso legal';
+				}
+				$inner_text = str_replace( '{title}', $title, $inner_text );
+			}
+
+			return '<a ' . $attr_before . 'href=' . $quote . $href . $quote . $attr_after . '>' . $inner_text . '</a>';
+		},
+		$html
+	);
+
+	// Fallback replacement for any remaining bare {title}
+	return str_replace( '{title}', 'Política de cookies', $html );
+}
+add_filter( 'cmplz_banner_html', 'nvx_sanitize_complianz_banner_html', 20 );
+add_filter( 'cmplz_template', 'nvx_sanitize_complianz_banner_html', 20 );
+

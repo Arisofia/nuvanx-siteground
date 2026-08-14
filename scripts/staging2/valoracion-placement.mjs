@@ -67,9 +67,6 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     if (lastExitCode === 0) {
       if (sawTransient) {
-        // A child may have written STAGING_MUTATION_ARMED=0 during an earlier
-        // transient cycle. Recovery restores the normal rollback contract for
-        // any later deterministic failure in this job.
         await writeRollbackState('1', name, 'transient-recovered');
       }
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
@@ -83,6 +80,11 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     sawTransient = true;
     if (cycle < maxCycles) {
+      // Some child validators disarm rollback when their own bounded attempts
+      // are exhausted. The outer orchestrator is about to continue testing, so
+      // restore rollback protection before the next cycle can discover a real
+      // deterministic defect.
+      await writeRollbackState('1', name, 'outer-transient-retry');
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);
       await delay(delayMs);

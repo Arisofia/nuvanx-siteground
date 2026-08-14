@@ -1,5 +1,5 @@
 const { OAuth2Client } = require('google-auth-library');
-const readline = require('readline');
+const readline = require('node:readline');
 
 if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || !process.stdin.isTTY || !process.stdout.isTTY) {
   console.error('REFRESH_TOKEN_HELPER=REFUSED: this interactive credential helper may only run in a private local TTY.');

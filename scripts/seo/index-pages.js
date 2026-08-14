@@ -7,8 +7,8 @@
  */
 
 const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const args = process.argv.slice(2);
 let property = '';

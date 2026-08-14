@@ -129,6 +129,31 @@ async function runTests() {
   const phone = sample.controls[1];
   assert.equal(onlyDeferredPhoneIssues(sample, phone), true);
 
+  console.log('Testing onlyDeferredPhoneIssues accepts partial vendor improvements...');
+  const partialVendorImprovementPayload = makeSamplePayload({
+    structuredIssues: [
+      {
+        code: 'WCAG_3_3_1_ERROR_ASSOCIATION_MISSING',
+        criterion: '3.3.1',
+        category: 'error-association',
+        control: 'phone',
+        message: '3.3.1 error message not programmatically associated after blank submit: phone',
+      },
+      {
+        code: 'SAFETY_SUBMISSION_POST',
+        category: 'safety',
+        message: 'safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST',
+      },
+    ],
+  });
+  assert.equal(onlyDeferredPhoneIssues(partialVendorImprovementPayload, phone), true);
+
+  console.log('Testing onlyDeferredPhoneIssues accepts phone issues without safety POST...');
+  const withoutSafetyPostPayload = makeSamplePayload({
+    structuredIssues: sample.structuredIssues.slice(0, 2),
+  });
+  assert.equal(onlyDeferredPhoneIssues(withoutSafetyPostPayload, phone), true);
+
   console.log('Testing onlyDeferredPhoneIssues rejection on foreign issue...');
   const foreignIssuePayload = makeSamplePayload({
     structuredIssues: [
@@ -144,20 +169,17 @@ async function runTests() {
   });
   assert.equal(onlyDeferredPhoneIssues(foreignIssuePayload, phone), false);
 
-  console.log('Testing onlyDeferredPhoneIssues rejection without safety issue...');
-  const missingSafetyPayload = makeSamplePayload({
-    structuredIssues: sample.structuredIssues.slice(0, 2),
-  });
-  assert.equal(onlyDeferredPhoneIssues(missingSafetyPayload, phone), false);
-
   console.log('Testing canAcceptSafeScope happy path...');
   assert.equal(await canAcceptSafeScope(makeSamplePayload()), true);
+
+  console.log('Testing canAcceptSafeScope happy path without submission POST (interception installed)...');
+  assert.equal(await canAcceptSafeScope(makeSamplePayload({ submissionObserved: false, submissionInterceptionPolicy: 'none' })), true);
 
   console.log('Testing canAcceptSafeScope rejects missing interception installed...');
   assert.equal(await canAcceptSafeScope(makeSamplePayload({ submissionInterceptionInstalled: false })), false);
 
-  console.log('Testing canAcceptSafeScope rejects invalid interception policy...');
-  assert.equal(await canAcceptSafeScope(makeSamplePayload({ submissionInterceptionPolicy: 'allow' })), false);
+  console.log('Testing canAcceptSafeScope rejects submission observed without blockedbyclient policy...');
+  assert.equal(await canAcceptSafeScope(makeSamplePayload({ submissionObserved: true, submissionInterceptionPolicy: 'allow' })), false);
 
   console.log('Testing canAcceptSafeScope rejects duplicate control identity...');
   const duplicateControlsPayload = makeSamplePayload({

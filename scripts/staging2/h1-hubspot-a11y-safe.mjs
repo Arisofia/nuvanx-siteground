@@ -90,38 +90,20 @@ function onlyDeferredPhoneIssues(result, phone) {
   const phoneIdentity = identity(phone);
   if (!phoneIdentity || structured.length === 0) return false;
 
-  const allDeferred = structured.every((issue) => isDeferredPhoneIssue(issue, phoneIdentity));
-  if (!allDeferred) return false;
-
-  const hasSafety = structured.some((issue) =>
-    typeof issue === 'string'
-      ? /safety:\s*blank accessibility validation.*submission POST/i.test(issue)
-      : (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety')
-  );
-  if (!hasSafety) return false;
-
-  const hasInvalidState = structured.some((issue) =>
-    typeof issue === 'string'
-      ? matchExactPhoneIssue(issue, 'invalid state not exposed', phoneIdentity)
-      : (issue.criterion === '3.3.1' && (issue.category === 'invalid-state' || issue.code === 'WCAG_3_3_1_INVALID_STATE_MISSING') && issue.control === phoneIdentity)
-  );
-  if (!hasInvalidState) return false;
-
-  const hasErrorAssociation = structured.some((issue) =>
-    typeof issue === 'string'
-      ? matchExactPhoneIssue(issue, 'error message not programmatically associated', phoneIdentity)
-      : (issue.criterion === '3.3.1' && (issue.category === 'error-association' || issue.code === 'WCAG_3_3_1_ERROR_ASSOCIATION_MISSING') && issue.control === phoneIdentity)
-  );
-  if (!hasErrorAssociation) return false;
-
-  return true;
+  // Every issue present must be one of the known vendor-deferred issues for phone or safe POST interception.
+  // This allows partial vendor improvements (e.g. vendor fixing invalid-state before error-association)
+  // while strictly rejecting any issue on other controls or other WCAG criteria.
+  return structured.every((issue) => isDeferredPhoneIssue(issue, phoneIdentity));
 }
 
 function isAuditResultEligible(result, expectedSha) {
-  if (!result || result.transient || !result.realFailure || result.submissionObserved !== true) {
+  if (!result || result.transient || !result.realFailure) {
     return false;
   }
-  if (result.submissionInterceptionInstalled !== true || result.submissionInterceptionPolicy !== 'blockedbyclient') {
+  if (result.submissionInterceptionInstalled !== true) {
+    return false;
+  }
+  if (result.submissionObserved && result.submissionInterceptionPolicy !== 'blockedbyclient') {
     return false;
   }
   return /^[0-9a-f]{40}$/.test(expectedSha) && result.deploySha === expectedSha;

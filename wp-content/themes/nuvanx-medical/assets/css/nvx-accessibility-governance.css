@@ -90,6 +90,10 @@
     transition: none !important;
   }
 
+  .nvx-mobile-nav {
+    animation: none !important;
+  }
+
   video[autoplay],
   .nvx-home-hero__video {
     display: none !important;

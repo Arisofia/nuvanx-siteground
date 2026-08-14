@@ -188,7 +188,13 @@
       document.body.classList.add('nvx-valoracion-modal-open');
       document.body.style.overflow = 'hidden';
 
-      // HubSpot initialization is handled by initLazyHubSpot via MutationObserver
+      // Guarantee immediate visible focus (WCAG 2.4.3 Focus Order)
+      window.setTimeout(function () {
+        const closeBtn = modal.querySelector('.nvx-valoracion-modal__close') || modal.querySelector('button, [tabindex="0"]');
+        if (closeBtn && typeof closeBtn.focus === 'function') {
+          closeBtn.focus();
+        }
+      }, 50);
     }
 
     function closeModal() {
@@ -358,6 +364,19 @@
       }
     }
 
+    function enforceAccessibleIframeTitles() {
+      const iframes = document.querySelectorAll(
+        'iframe[src*="hsforms"], iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe'
+      );
+      iframes.forEach(function (ifr) {
+        const currentTitle = ifr.getAttribute('title');
+        if (!currentTitle || currentTitle === 'Form' || currentTitle.toLowerCase() === 'hubspot form' || currentTitle.toLowerCase() === 'hs-form-iframe') {
+          ifr.setAttribute('title', 'Formulario de valoración médica');
+          ifr.setAttribute('aria-label', 'Formulario de valoración médica');
+        }
+      });
+    }
+
     /**
      * Initializes eligible HubSpot form frames and connects supported attribution callbacks.
      */
@@ -401,10 +420,7 @@
                   const fb = wrapper.querySelector('.nvx-hubspot-fallback');
                   if (fb) fb.style.display = 'none';
                 }
-                const ifr = frame.querySelector('iframe');
-                if (ifr && (!ifr.getAttribute('title') || ifr.getAttribute('title') === 'Form')) {
-                  ifr.setAttribute('title', 'Formulario de solicitud de valoración médica');
-                }
+                enforceAccessibleIframeTitles();
                 invokeLegacyAttributionHook('onFormReady', $form, frame.dataset.formId);
               },
               onBeforeFormSubmit: function ($form) {
@@ -582,6 +598,12 @@
         },
         true
       );
+    }
+
+    if (typeof MutationObserver === 'function') {
+      new MutationObserver(function () {
+        enforceAccessibleIframeTitles();
+      }).observe(document.body, { childList: true, subtree: true });
     }
   }
 

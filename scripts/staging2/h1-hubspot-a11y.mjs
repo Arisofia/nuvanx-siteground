@@ -23,6 +23,12 @@ const maxAttempts = 3;
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
 const outFile = path.join(outDir, 'hubspot-a11y.json');
 
+const NAVIGATION_TIMEOUT_MS = Number(process.env.HUBSPOT_A11Y_NAV_TIMEOUT_MS || 45000);
+const FRAME_ATTACH_TIMEOUT_MS = Number(process.env.HUBSPOT_A11Y_FRAME_TIMEOUT_MS || 20000);
+const FORM_ATTACH_TIMEOUT_MS = Number(process.env.HUBSPOT_A11Y_FORM_TIMEOUT_MS || 30000);
+const SUBMIT_ACTION_TIMEOUT_MS = Number(process.env.HUBSPOT_A11Y_SUBMIT_TIMEOUT_MS || 5000);
+const RETRY_BACKOFF_MS = Number(process.env.HUBSPOT_A11Y_BACKOFF_MS || 3500);
+
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('HUBSPOT_A11Y=FAIL_REAL reason=EXPECTED_SHA_must_be_40_hex');
   process.exit(1);
@@ -56,7 +62,7 @@ async function grantConsent(page) {
 async function navigateExpectedDocument(page, attempt) {
   let response;
   try {
-    response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: NAVIGATION_TIMEOUT_MS });
   } catch (error) {
     const currentUrl = page.url() || target;
     if (isSiteGroundCaptchaInterruption(error, currentUrl)) {
@@ -107,7 +113,7 @@ async function resolveHubSpot(page, attempt) {
   ).first();
 
   try {
-    await iframe.waitFor({ state: 'attached', timeout: 20000 });
+    await iframe.waitFor({ state: 'attached', timeout: FRAME_ATTACH_TIMEOUT_MS });
   } catch (error) {
     return transientResult(attempt, `hubspot_frame_not_mounted:${error instanceof Error ? error.message : String(error)}`);
   }
@@ -122,7 +128,7 @@ async function resolveHubSpot(page, attempt) {
   // actual form DOM before auditing semantics so vendor bootstrap latency is not
   // misclassified as a deterministic accessibility failure.
   try {
-    await frame.locator('form').first().waitFor({ state: 'attached', timeout: 30000 });
+    await frame.locator('form').first().waitFor({ state: 'attached', timeout: FORM_ATTACH_TIMEOUT_MS });
   } catch (error) {
     return transientResult(
       attempt,
@@ -293,7 +299,7 @@ async function exerciseBlankValidation(frame, expectedRequiredControls, submissi
   submissionState.observed = false;
   submissionState.requests = [];
 
-  await submit.click({ timeout: 5000 }).catch(async () => {
+  await submit.click({ timeout: SUBMIT_ACTION_TIMEOUT_MS }).catch(async () => {
     await submit.click({ force: true, timeout: 3000 });
   });
   await delay(750);
@@ -544,7 +550,7 @@ async function runAudit(browser) {
       console.error(`HUBSPOT_A11Y=FAIL_TRANSIENT_EXHAUSTED attempts=${maxAttempts}`);
       return EX_TEMPFAIL;
     }
-    await delay(3500 * attempt);
+    await delay(RETRY_BACKOFF_MS * attempt);
   }
 
   return 1;

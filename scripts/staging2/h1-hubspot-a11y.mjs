@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { classifyHubSpotSubmissionRequest } from './hubspot-submission-classifier.mjs';
 import {
   EX_TEMPFAIL,
   SITEGROUND_CAPTCHA_PATH,
@@ -11,6 +12,7 @@ import {
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const portalId = '147416356';
 const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const target = `${baseUrl}/madrid/valoracion/`;
 const maxAttempts = 3;
@@ -112,10 +114,9 @@ async function resolveHubSpot(page, attempt) {
   const frame = handle ? await handle.contentFrame() : null;
   if (!frame) return transientResult(attempt, 'hubspot_content_frame_unavailable');
 
-  // HubSpot attaches the iframe before its form subtree is ready. The previous
-  // immediate count() created a deterministic race and classified a healthy
-  // vendor load as transient in ~2–4 seconds. Match the proven H1 E2E contract:
-  // wait for the actual form DOM before auditing semantics.
+  // HubSpot attaches the iframe before its form subtree is ready. Wait for the
+  // actual form DOM before auditing semantics so vendor bootstrap latency is not
+  // misclassified as a deterministic accessibility failure.
   try {
     await frame.locator('form').first().waitFor({ state: 'attached', timeout: 30000 });
   } catch (error) {
@@ -149,7 +150,7 @@ async function collectControls(frame) {
       .filter(Boolean)
       .map((id) => ({ id, text: text(document.getElementById(id)?.textContent || '') }));
 
-    return nodes.filter(isVisible).map((node, index) => {
+    return nodes.filter(isVisible).map((node) => {
       const labels = Array.from(node.labels || []);
       const labelText = text(labels.map((label) => label.textContent || '').join(' '));
       const ariaLabel = text(node.getAttribute('aria-label'));
@@ -169,7 +170,7 @@ async function collectControls(frame) {
       const name = node.getAttribute('name') || '';
       const tag = node.tagName.toLowerCase();
       const type = String(node.getAttribute('type') || '').toLowerCase();
-      const uid = id || name || `${tag}:${type || 'unknown'}:${index}`;
+      const uid = id || name || `${tag}:${type || 'unknown'}`;
 
       return {
         uid,
@@ -265,7 +266,7 @@ function auditErrorState(controls) {
   return issues;
 }
 
-async function exerciseBlankValidation(frame, expectedRequiredControls) {
+async function exerciseBlankValidation(frame, expectedRequiredControls, submissionState) {
   const submit = frame.locator('button[type="submit"], input[type="submit"]').first();
   if (!await submit.count().catch(() => 0)) {
     return {
@@ -280,6 +281,13 @@ async function exerciseBlankValidation(frame, expectedRequiredControls) {
       liveRegionCount: 0,
     };
   }
+
+  // HubSpot performs bootstrap/telemetry POSTs while the form is loading. Only
+  // requests after this point can be attributed to the blank-submit validation
+  // exercise. Actual submission endpoints are still blocked at all times.
+  submissionState.validationStarted = true;
+  submissionState.observed = false;
+  submissionState.requests = [];
 
   await submit.click({ timeout: 5000 }).catch(async () => {
     await submit.click({ force: true, timeout: 3000 });
@@ -350,11 +358,19 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
   } else {
     validation = await exerciseBlankValidation(
       hubspot.frame,
-      controlsBefore.filter((control) => control.programmaticRequired)
+      controlsBefore.filter((control) => control.programmaticRequired),
+      submissionState
     );
     issues.push(...validation.issues);
   }
 
+  if (submissionState.preValidationRequests.length > 0) {
+    issues.push({
+      code: 'SAFETY_PREVALIDATION_SUBMISSION',
+      category: 'safety',
+      message: 'safety: HubSpot attempted a real form submission before the blank-validation exercise started',
+    });
+  }
   if (submissionState.observed) {
     issues.push({
       code: 'SAFETY_SUBMISSION_POST',
@@ -380,7 +396,9 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
     liveRegionCount: validation.liveRegionCount,
     submissionObserved: submissionState.observed,
     submissionInterceptionInstalled: submissionState.interceptionInstalled === true,
-    submissionInterceptionPolicy: submissionState.policy || 'blockedbyclient',
+    submissionInterceptionPolicy: submissionState.policy || (submissionState.observed ? 'blockedbyclient' : 'none'),
+    submissionRequests: submissionState.requests,
+    preValidationSubmissionRequests: submissionState.preValidationRequests,
     issues: rawIssueMessages,
     structuredIssues,
   };
@@ -394,25 +412,44 @@ async function auditOnce(browser, attempt) {
   });
   const page = await context.newPage();
   const submissionState = {
+    validationStarted: false,
     observed: false,
-    interceptionInstalled: true,
-    policy: 'blockedbyclient',
+    interceptionInstalled: false,
+    policy: null,
+    requests: [],
+    preValidationRequests: [],
   };
 
   await page.route('**/*', async (route) => {
     const request = route.request();
-    const url = request.url();
-    const isHubSpotSubmission = request.method() === 'POST'
-      && /(^|\.)(hsforms\.com|hsforms\.net|hubspot\.com)$/i.test(new URL(url).hostname)
-      && (/\/(submissions\/v\d+|uploads\/form\/v\d+|collected-forms)(\/|$)/i.test(new URL(url).pathname)
-        || url.includes(formId));
-    if (isHubSpotSubmission) {
-      submissionState.observed = true;
+    const classification = classifyHubSpotSubmissionRequest({
+      method: request.method(),
+      url: request.url(),
+      portalId,
+      formId,
+    });
+
+    if (classification.isSubmission) {
+      const evidence = {
+        hostname: classification.hostname,
+        pathname: classification.pathname,
+        phase: submissionState.validationStarted ? 'blank-validation' : 'pre-validation',
+      };
+      if (submissionState.validationStarted) {
+        submissionState.observed = true;
+        submissionState.policy = 'blockedbyclient';
+        submissionState.requests.push(evidence);
+      } else {
+        submissionState.preValidationRequests.push(evidence);
+      }
+      // Safety invariant: the accessibility audit never permits a real contact
+      // submission, regardless of whether it happened before or after the test.
       await route.abort('blockedbyclient');
       return;
     }
     await route.continue();
   });
+  submissionState.interceptionInstalled = true;
 
   try {
     const documentState = await navigateExpectedDocument(page, attempt);

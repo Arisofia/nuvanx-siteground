@@ -46,8 +46,11 @@ permissions:
   actions: read
   pull-requests: read
 
+# GitHub concurrency groups retain at most one pending run and may replace an
+# older pending SHA. Every mutating run therefore gets its own group; the FIFO
+# lease below provides the cross-workflow serialization without cancelling SHAs.
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('nuvanx-quality-{0}', github.event.pull_request.number) || 'nuvanx-environment-mutation' }}
+  group: ${{ github.event_name == 'pull_request' && format('nuvanx-quality-{0}', github.event.pull_request.number) || format('nuvanx-mutation-run-{0}', github.run_id) }}
   cancel-in-progress: false
 
 env:
@@ -137,6 +140,7 @@ jobs:
           if [[ -f "$schema" && -f "$data" ]]; then node scripts/lint/validate-routes-schema.mjs "$schema" "$data"; fi
           bash -n tools/deploy/deploy-to-staging2.sh
           bash -n tools/deploy/deploy-required-mu-plugins.sh
+          bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           find scripts/staging2 -maxdepth 1 -name '*.mjs' -type f -print0 | xargs -0 -r -n1 node --check
           echo 'STATIC_GATES=PASS'
 
@@ -199,6 +203,15 @@ jobs:
           ref: master
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Wait for FIFO environment mutation turn
+        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_ROLE: staging
+          MUTATION_WAIT_MAX_SECONDS: 5400
+        run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Resolve immutable candidate
         if: ${{ steps.prior_completion.outputs.complete != 'true' }}
@@ -510,10 +523,30 @@ jobs:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_HOST: staging2.nuvanx.com
         run: |
-          set -euo pipefail
+          set -uo pipefail
           mkdir -p scripts/staging2/block-c-artifacts scripts/staging2/valoracion-artifacts
+
+          set +e
           node scripts/staging2/block-c-entrypoint.mjs
+          block_rc=$?
+          set -e
+          if [[ "$block_rc" -eq 75 ]]; then
+            echo 'STAGING_ACCEPTANCE_TRANSIENT=1' >> "$GITHUB_ENV"
+            echo 'STAGING_ACCEPTANCE=RETRY_FRESH_RUNNER component=block-c exit=75'
+            exit 0
+          fi
+          [[ "$block_rc" -eq 0 ]] || exit "$block_rc"
+
+          set +e
           node scripts/staging2/valoracion-placement.mjs
+          valoracion_rc=$?
+          set -e
+          if [[ "$valoracion_rc" -eq 75 ]]; then
+            echo 'STAGING_ACCEPTANCE_TRANSIENT=1' >> "$GITHUB_ENV"
+            echo 'STAGING_ACCEPTANCE=RETRY_FRESH_RUNNER component=valoracion-or-a11y exit=75'
+            exit 0
+          fi
+          [[ "$valoracion_rc" -eq 0 ]] || exit "$valoracion_rc"
           echo 'STAGING_BLOCK_C=PASS'
 
       - name: Verify production unchanged read-only
@@ -533,7 +566,7 @@ jobs:
           REMOTE
 
       - name: Write immutable Staging acceptance manifest
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -552,7 +585,7 @@ jobs:
           echo "STAGING_ACCEPTANCE_MANIFEST=PASS sha=$CANDIDATE_SHA run_id=$GITHUB_RUN_ID"
 
       - name: Upload production-eligible acceptance evidence
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-block-c-${{ env.CANDIDATE_SHA }}
@@ -565,7 +598,7 @@ jobs:
           compression-level: 6
 
       - name: Write fresh-runner completion marker
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && (env.RUN_ACCEPTANCE != 'true' || env.STAGING_ACCEPTANCE_TRANSIENT != '1') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -582,7 +615,7 @@ jobs:
           echo "STAGING_COMPLETION_MARKER=$marker" >> "$GITHUB_ENV"
 
       - name: Upload fresh-runner completion marker
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && (env.RUN_ACCEPTANCE != 'true' || env.STAGING_ACCEPTANCE_TRANSIENT != '1') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-deploy-complete-${{ env.CANDIDATE_SHA }}
@@ -591,8 +624,8 @@ jobs:
           if-no-files-found: error
           compression-level: 0
 
-      - name: Upload failed Staging diagnostic evidence
-        if: ${{ failure() && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
+      - name: Upload failed or transient Staging diagnostic evidence
+        if: ${{ (failure() || env.STAGING_ACCEPTANCE_TRANSIENT == '1') && steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: staging2-block-c-diagnostic-${{ env.CANDIDATE_SHA }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}-runner-${{ matrix.runner_attempt }}
@@ -646,7 +679,7 @@ jobs:
           rm -f "$HOME/.ssh/staging_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
       - name: Write staging success summary
-        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' }}
+        if: ${{ success() && steps.ssh_preflight.outputs.connected == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}
         shell: bash
         run: |
           {
@@ -655,8 +688,21 @@ jobs:
             echo "- Exact SHA: \`$CANDIDATE_SHA\`"
             echo "- Fresh runner: \`$RUNNER_ATTEMPT_NO/3\`"
             echo '- Single workflow owns static gates, deployment, rollback and acceptance.'
-            echo '- Staging/Production mutations are serialized through one repository-wide concurrency group.'
+            echo '- Cross-environment mutation order is protected by the repository FIFO lease.'
             echo "- Block C production eligibility: \`$RUN_ACCEPTANCE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write transient retry summary
+        if: ${{ success() && env.STAGING_ACCEPTANCE_TRANSIENT == '1' }}
+        shell: bash
+        run: |
+          {
+            echo '## Staging acceptance transient'
+            echo
+            echo "- Exact SHA remains deployed: \`$CANDIDATE_SHA\`"
+            echo "- Fresh runner \`$RUNNER_ATTEMPT_NO/3\` could not complete third-party/edge acceptance."
+            echo '- No production-eligible manifest or completion marker was created.'
+            echo '- The next fresh runner will retry the same immutable SHA.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Write transport retry summary
@@ -694,7 +740,17 @@ jobs:
           artifact_name="staging2-deploy-complete-${candidate}"
           response="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${artifact_name}&per_page=100")"
           count="$(printf '%s' "$response" | jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length')"
-          (( count >= 1 )) || { echo "STAGING_SSH=FAIL_TRANSPORT all 3 fresh runners exhausted without a completed deployment for $candidate" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          if (( count < 1 )); then
+            diagnostic_prefix="staging2-block-c-diagnostic-${candidate}-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}-runner-"
+            all_artifacts="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100")"
+            transient_count="$(printf '%s' "$all_artifacts" | jq -r --arg prefix "$diagnostic_prefix" '[.artifacts[] | select(.expired == false and (.name | startswith($prefix)))] | length')"
+            if (( transient_count > 0 )); then
+              echo "STAGING_ACCEPTANCE=FAIL_TRANSIENT_EXHAUSTED sha=$candidate diagnostic_artifacts=$transient_count" >&2
+              exit 75
+            fi
+            echo "STAGING_SSH=FAIL_TRANSPORT all 3 fresh runners exhausted without a completed deployment for $candidate" >&2
+            exit "$SSH_TRANSPORT_EXIT_CODE"
+          fi
           echo "STAGING_FRESH_RUNNER_GATE=PASS artifact=$artifact_name count=$count sha=$candidate"
 
   pr_preview:
@@ -730,7 +786,7 @@ jobs:
           git merge-base --is-ancestor origin/master "$PR_SHA" || { echo 'Rebase PR onto current master before preview.' >&2; exit 1; }
           mapfile -t changed < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' | sort -u)
           (( ${#changed[@]} > 0 ))
-          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*|release/production-candidate.txt) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
+          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
           git diff --check origin/master "$PR_SHA"
           ! git ls-tree -r "$PR_SHA" wp-content/themes/nuvanx-medical/ | awk '$1 == "120000" { found=1 } END { exit(found ? 0 : 1) }'
           CANDIDATE_ROOT="$RUNNER_TEMP/nvx-pr-${PR_NUMBER}-${PR_SHA}"
@@ -739,6 +795,14 @@ jobs:
           find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
           find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null
           echo 'PR_BOUNDARY=PASS'
+
+      - name: Wait for FIFO environment mutation turn
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_ROLE: pr-preview
+          MUTATION_WAIT_MAX_SECONDS: 5400
+        run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

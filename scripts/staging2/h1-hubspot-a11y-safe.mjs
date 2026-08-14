@@ -48,13 +48,18 @@ function phoneClientContractPasses(phone) {
   );
 }
 
+function matchExactPhoneIssue(issueText, pattern, phoneIdentity) {
+  const match = String(issueText || '').match(/3\.3\.1\s+(?:invalid state not exposed|error message not programmatically associated)\s+after blank submit:\s+(.+)$/i);
+  return Boolean(match && match[1].trim() === phoneIdentity && String(issueText).toLowerCase().includes(pattern.toLowerCase()));
+}
+
 function isDeferredPhoneIssue(issue, phoneIdentity) {
   if (!issue) return false;
 
   if (typeof issue === 'string') {
     if (/safety:\s*blank accessibility validation.*submission POST/i.test(issue)) return true;
-    if (/3\.3\.1\s+invalid state not exposed/i.test(issue) && issue.includes(phoneIdentity)) return true;
-    if (/3\.3\.1\s+error message not programmatically associated/i.test(issue) && issue.includes(phoneIdentity)) return true;
+    if (matchExactPhoneIssue(issue, 'invalid state not exposed', phoneIdentity)) return true;
+    if (matchExactPhoneIssue(issue, 'error message not programmatically associated', phoneIdentity)) return true;
     return false;
   }
 
@@ -94,6 +99,20 @@ function onlyDeferredPhoneIssues(result, phone) {
       : (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety')
   );
   if (!hasSafety) return false;
+
+  const hasInvalidState = structured.some((issue) =>
+    typeof issue === 'string'
+      ? matchExactPhoneIssue(issue, 'invalid state not exposed', phoneIdentity)
+      : (issue.criterion === '3.3.1' && (issue.category === 'invalid-state' || issue.code === 'WCAG_3_3_1_INVALID_STATE_MISSING') && issue.control === phoneIdentity)
+  );
+  if (!hasInvalidState) return false;
+
+  const hasErrorAssociation = structured.some((issue) =>
+    typeof issue === 'string'
+      ? matchExactPhoneIssue(issue, 'error message not programmatically associated', phoneIdentity)
+      : (issue.criterion === '3.3.1' && (issue.category === 'error-association' || issue.code === 'WCAG_3_3_1_ERROR_ASSOCIATION_MISSING') && issue.control === phoneIdentity)
+  );
+  if (!hasErrorAssociation) return false;
 
   return true;
 }

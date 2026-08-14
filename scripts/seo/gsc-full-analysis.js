@@ -2,8 +2,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createGscClient, getGscDateRanges, queryGsc } = require('./gsc-client');
 
+function sanitizeGscError(err) {
+  if (!err) return 'UNKNOWN_ERROR';
+  const code = String(err.code || err.status || 'GSC_API_ERROR').replace(/[^a-zA-Z0-9_]/g, '');
+  const reason = err.errors?.[0]?.reason || err.response?.data?.error?.status || '';
+  const cleanReason = String(reason).replace(/[^a-zA-Z0-9_]/g, '');
+  return `code=${code}${cleanReason ? ` reason=${cleanReason}` : ''}`;
+}
+
 async function runFullGscAnalysis() {
-  const property = 'https://nuvanx.com/';
+  const property = process.env.GSC_SITE_URL || process.env.WORDPRESS_URL || 'https://nuvanx.com/';
   const sc = createGscClient();
   const dates = getGscDateRanges();
 
@@ -15,9 +23,9 @@ async function runFullGscAnalysis() {
     try {
       return await queryGsc(sc, property, body);
     } catch (err) {
-      const errMsg = err?.message || String(err);
-      console.warn(`[WARN] GSC query "${name}" failed:`, errMsg);
-      queryErrors[name] = errMsg;
+      const sanitized = sanitizeGscError(err);
+      console.warn(`[WARN] GSC query "${name}" failed: ${sanitized}`);
+      queryErrors[name] = sanitized;
       return [];
     }
   };
@@ -89,4 +97,7 @@ async function runFullGscAnalysis() {
   }
 }
 
-runFullGscAnalysis().catch(err => { console.error('GSC Error:', err.message); process.exit(1); });
+runFullGscAnalysis().catch(err => {
+  console.error('GSC_FULL_ANALYSIS=FAIL', sanitizeGscError(err));
+  process.exit(1);
+});

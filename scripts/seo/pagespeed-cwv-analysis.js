@@ -23,7 +23,7 @@ function sanitizeError(err) {
   return err;
 }
 
-function fetchJson(url, options = {}, timeoutMs = 30000) {
+function fetchJson(url, options = {}, timeoutMs = 60000) {
   return new Promise((resolve, reject) => {
     let timer = null;
     const req = https.get(url, options, (res) => {
@@ -59,6 +59,21 @@ function fetchJson(url, options = {}, timeoutMs = 30000) {
   });
 }
 
+async function fetchJsonWithRetry(url, options = {}, timeoutMs = 60000, maxRetries = 2) {
+  let lastErr = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchJson(url, options, timeoutMs);
+    } catch (err) {
+      lastErr = err;
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function runPagespeedAnalysis() {
   const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY || process.env.PAGESPEED_API_KEY;
   if (!apiKey) {
@@ -67,12 +82,17 @@ async function runPagespeedAnalysis() {
   }
   currentApiKey = apiKey;
 
-  const urls = [
-    'https://nuvanx.com/',
-    'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-    'https://nuvanx.com/endolift-facial-papada-mandibula/',
-    'https://nuvanx.com/medicina-estetica/',
-    'https://nuvanx.com/madrid/valoracion/'
+  const baseSite = process.env.WORDPRESS_URL || 'https://nuvanx.com';
+  const customUrls = process.env.PAGESPEED_TARGET_URLS
+    ? process.env.PAGESPEED_TARGET_URLS.split(',').map((u) => u.trim()).filter(Boolean)
+    : null;
+
+  const urls = customUrls || [
+    `${baseSite.replace(/\/$/, '')}/`,
+    `${baseSite.replace(/\/$/, '')}/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/`,
+    `${baseSite.replace(/\/$/, '')}/endolift-facial-papada-mandibula/`,
+    `${baseSite.replace(/\/$/, '')}/medicina-estetica/`,
+    `${baseSite.replace(/\/$/, '')}/madrid/valoracion/`
   ];
 
   const strategies = ['mobile', 'desktop'];
@@ -87,7 +107,7 @@ async function runPagespeedAnalysis() {
     for (const strategy of strategies) {
       try {
         const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&category=performance&category=seo&category=accessibility&category=best-practices`;
-        const data = await fetchJson(endpoint, {
+        const data = await fetchJsonWithRetry(endpoint, {
           headers: {
             'X-Goog-Api-Key': apiKey,
             Accept: 'application/json',

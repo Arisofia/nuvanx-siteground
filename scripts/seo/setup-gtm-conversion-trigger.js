@@ -101,8 +101,9 @@ async function resolveOrCreateWorkspace(tagmanager, containerPath) {
     return ws;
   } catch (err) {
     const status = err.code || err.response?.status;
-    if (status === 400 || status === 409 || err.message?.includes('limit') || err.message?.includes('quota') || err.message?.includes('workspace')) {
-      console.log('  Could not create dedicated workspace (workspace limit or conflict). Using Default Workspace...');
+    const msg = String(err.message || '').toLowerCase();
+    if (status === 400 || status === 409 || msg.includes('limit') || msg.includes('quota') || msg.includes('maximum')) {
+      console.log('  Could not create dedicated workspace (workspace limit reached). Using Default Workspace...');
     } else {
       throw err;
     }
@@ -134,9 +135,10 @@ async function ensureDataLayerVariable(tagmanager, wsPath) {
   const variables = await listVariables(tagmanager, wsPath);
   let v = variables.find(varItem => varItem.name === VARIABLE_NAME);
   if (v) {
-    console.log(`  Data Layer Variable already exists: "${VARIABLE_NAME}" (ID: ${v.variableId})`);
+    console.log(`  Data Layer variable "${VARIABLE_NAME}" already exists (ID: ${v.variableId})`);
     return v;
   }
+
   console.log(`  Creating Data Layer variable: "${VARIABLE_NAME}"...`);
   const res = await tagmanager.accounts.containers.workspaces.variables.create({
     parent: wsPath,
@@ -144,10 +146,10 @@ async function ensureDataLayerVariable(tagmanager, wsPath) {
       name: VARIABLE_NAME,
       type: 'v',
       parameter: [
-        { type: 'integer', key: 'dataLayerVersion', value: '2' },
-        { type: 'template', key: 'name', value: 'nvx_event_name' }
-      ]
-    }
+        { type: 'template', key: 'name', value: 'event' },
+        { type: 'integer',  key: 'dataLayerVersion', value: '2' },
+      ],
+    },
   });
   v = res.data;
   console.log(`  Created variable ID: ${v.variableId}`);
@@ -166,12 +168,10 @@ function buildTriggerPayload() {
           { type: 'template', key: 'arg1', value: 'nvx_conversion_signal' },
         ],
       },
-    ],
-    filter: [
       {
         type: 'equals',
         parameter: [
-          { type: 'template', key: 'arg0', value: '{{nvx_event_name}}' },
+          { type: 'template', key: 'arg0', value: `{{${VARIABLE_NAME}}}` },
           { type: 'template', key: 'arg1', value: 'generate_lead' },
         ],
       },
@@ -225,12 +225,11 @@ async function main() {
   const workspace     = await resolveOrCreateWorkspace(tagmanager, containerPath);
   const workspacePath = workspace.path;
 
-  // Pre-mutation check: ensure workspace does not already contain unrelated uncommitted edits
+  // Pre-mutation check: workspace MUST be completely clean before automated setup
   const initialStatus = await tagmanager.accounts.containers.workspaces.getStatus({ path: workspacePath });
   const initialChanges = initialStatus.data.workspaceChange || [];
-  const preExistingUnrelated = initialChanges.filter(c => !isOurWorkspaceChange(c));
-  if (preExistingUnrelated.length > 0) {
-    throw new Error(`Workspace already contains ${preExistingUnrelated.length} uncommitted external change(s). Please commit or discard them in GTM before running automated setup.`);
+  if (initialChanges.length > 0) {
+    throw new Error(`Workspace already contains ${initialChanges.length} uncommitted change(s). Please commit or discard them in GTM before running automated setup.`);
   }
 
   // 2. Ensure Data Layer variable exists

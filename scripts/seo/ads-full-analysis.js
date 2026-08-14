@@ -3,6 +3,19 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 async function runFullAdsAnalysis() {
+  const requiredEnv = [
+    'GOOGLE_ADS_CLIENT_ID',
+    'GOOGLE_ADS_CLIENT_SECRET',
+    'GOOGLE_ADS_DEVELOPER_TOKEN',
+    'GOOGLE_ADS_REFRESH_TOKEN',
+    'GOOGLE_ADS_CUSTOMER_ID',
+  ];
+  const missing = requiredEnv.filter((k) => !String(process.env[k] || '').trim());
+  if (missing.length > 0) {
+    console.error(`[ERROR] Missing required Google Ads environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+
   const client = new GoogleAdsApi({
     client_id: process.env.GOOGLE_ADS_CLIENT_ID,
     client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET,
@@ -10,10 +23,10 @@ async function runFullAdsAnalysis() {
   });
 
   const customerOptions = {
-    customer_id: (process.env.GOOGLE_ADS_CUSTOMER_ID || '').replaceAll('-', ''),
+    customer_id: String(process.env.GOOGLE_ADS_CUSTOMER_ID).replaceAll('-', '').trim(),
     refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN,
   };
-  const loginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MANAGER_ID || '').replaceAll('-', '');
+  const loginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || process.env.GOOGLE_ADS_MANAGER_ID || '').replaceAll('-', '').trim();
   if (loginCustomerId) {
     customerOptions.login_customer_id = loginCustomerId;
   }

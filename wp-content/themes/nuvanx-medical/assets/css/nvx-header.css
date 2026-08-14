@@ -79,7 +79,7 @@
   flex: 0 1 auto;
   min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -101,7 +101,7 @@
   display: inline-flex;
   min-height: var(--nvx-control-size);
   align-items: center;
-  padding-inline: calc(var(--nvx-space-1) * 0.75);
+  padding-inline: calc(var(--nvx-space-1) * 0.5);
   padding-block: var(--nvx-space-2);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav-compact);
@@ -328,4 +328,26 @@
 
 .nvx-nav {
   min-width: 0;
+}
+
+/* Responsive handling for longer menus - adjust font size and spacing on medium screens */
+@media (max-width: 1280px) {
+  .nvx-nav__link,
+  .nvx-nav__list > li > a {
+    font-size: calc(var(--nvx-type-nav-compact) * 0.9);
+    padding-inline: calc(var(--nvx-space-1) * 0.4);
+    letter-spacing: calc(var(--nvx-track-nav) * 0.9);
+  }
+  
+  .nvx-nav__list {
+    gap: 1px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .nvx-nav__link,
+  .nvx-nav__list > li > a {
+    font-size: calc(var(--nvx-type-nav-compact) * 0.85);
+    padding-inline: calc(var(--nvx-space-1) * 0.35);
+  }
 }

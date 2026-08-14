@@ -248,6 +248,10 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 			'label' => __( 'Soluciones médicas', 'nuvanx-medical' ),
 		),
 		array(
+			'url'   => home_url( '/protocolo-novias-madrid/' ),
+			'label' => __( 'Protocolo Novias', 'nuvanx-medical' ),
+		),
+		array(
 			'url'      => home_url( '/protocolos-signature/' ),
 			'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
 			'children' => $signature_children,

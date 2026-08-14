@@ -421,7 +421,6 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
 async function auditOnce(browser, attempt) {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
-    ignoreHTTPSErrors: true,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36 NUVANX-HubSpot-A11y-QA/1.0',
   });
   const page = await context.newPage();

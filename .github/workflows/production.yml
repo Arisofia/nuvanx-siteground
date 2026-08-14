@@ -25,7 +25,7 @@ on:
         default: false
         type: boolean
       run_hubspot_e2e:
-        description: Run the live HubSpot E2E. This creates a real QA contact.
+        description: Run the zero-submit production HubSpot verification contract.
         required: true
         default: false
         type: boolean
@@ -697,7 +697,7 @@ jobs:
           retention-days: 14
 
   hubspot_e2e:
-    name: Live production HubSpot attribution E2E
+    name: Production zero-submit HubSpot contract verification
     needs: release
     if: >-
       always() &&
@@ -719,7 +719,7 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Verify production and run live H1 E2E
+      - name: Verify zero-submit contract and run HubSpot verification
         shell: bash
         env:
           EXPECTED_SHA: ${{ inputs.candidate_sha }}
@@ -728,8 +728,9 @@ jobs:
           BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$EXPECTED_SHA" node scripts/production/verify-production-boundary.mjs
           cd scripts/staging2
           npm ci --ignore-scripts
-          ./node_modules/.bin/playwright install --with-deps chromium
           cd ../..
+          # Enforce zero-submit contract regression guard on candidate probe before execution
+          node scripts/staging2/test-hubspot-submission-classifier.mjs
           mkdir -p scripts/staging2/h1-artifacts
           node scripts/staging2/h1-hubspot-e2e.mjs 2>&1 | tee scripts/staging2/h1-artifacts/h1-e2e.log
 

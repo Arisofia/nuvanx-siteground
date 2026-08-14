@@ -6,8 +6,7 @@ useDefault = true
 [allowlist]
 description = "Public client-side identifiers, form GUIDs, and schema fixtures"
 regexes = [
-    '''5042522a-0bc5-4381-ac3e-5aee8649b69c''',
-    '''147416356'''
+    '''5042522a-0bc5-4381-ac3e-5aee8649b69c'''
 ]
 paths = [
     '''wp-content/themes/nuvanx-medical/inc/data/treatment-hub-schema\.json''',

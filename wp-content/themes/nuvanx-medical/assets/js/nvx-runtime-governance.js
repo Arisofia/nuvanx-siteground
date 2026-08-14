@@ -201,7 +201,14 @@
       if (!modal) return;
       modal.close();
       document.body.classList.remove('nvx-valoracion-modal-open');
-      document.body.style.overflow = '';
+      // Don't release the scroll lock if the mobile nav is still open; it owns
+      // its own overflow lock (see nvx-main.js) and would otherwise be left
+      // open over a scrollable page.
+      const mobileNav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
+      const mobileNavOpen = mobileNav && (mobileNav.classList.contains('is-open') || mobileNav.hasAttribute('open'));
+      if (!mobileNavOpen) {
+        document.body.style.overflow = '';
+      }
       if (lastFocus && typeof lastFocus.focus === 'function') {
         lastFocus.focus();
       }
@@ -445,7 +452,10 @@
         });
       }
 
-      // Schedule fallback check in case script is blocked or network times out
+      // Schedule fallback check in case script is blocked or network times out.
+      // The per-frame guard below only reveals the fallback for mounts that
+      // still contain neither .hbspt-form nor an iframe, so a working form is
+      // never covered even when other mounts on the page fail.
       setTimeout(function () {
         const uninitialized = document.querySelectorAll('.hs-form-frame, #nvx-hubspot-native-form');
         uninitialized.forEach(function (f) {
@@ -601,8 +611,32 @@
     }
 
     if (typeof MutationObserver === 'function') {
+      // Coalesce bursts of DOM mutations into a single title pass per frame:
+      // the observer fires on every insertion across document.body, so running
+      // the query synchronously each time is wasteful on form-heavy pages.
+      // Schedule via requestAnimationFrame when available, but always keep a
+      // setTimeout floor so the pass still runs in background/hidden tabs where
+      // rAF is throttled or suspended (e.g. an automated a11y audit).
+      let titlePassScheduled = false;
+      const hasRaf = typeof window.requestAnimationFrame === 'function';
+
       new MutationObserver(function () {
-        enforceAccessibleIframeTitles();
+        if (titlePassScheduled) return;
+        titlePassScheduled = true;
+
+        let rafId = 0;
+        const runTitlePass = function () {
+          if (!titlePassScheduled) return;
+          titlePassScheduled = false;
+          if (rafId && typeof window.cancelAnimationFrame === 'function') {
+            window.cancelAnimationFrame(rafId);
+          }
+          window.clearTimeout(timeoutId);
+          enforceAccessibleIframeTitles();
+        };
+
+        const timeoutId = window.setTimeout(runTitlePass, 100);
+        if (hasRaf) rafId = window.requestAnimationFrame(runTitlePass);
       }).observe(document.body, { childList: true, subtree: true });
     }
   }

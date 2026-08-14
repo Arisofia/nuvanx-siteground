@@ -51,6 +51,12 @@
     '(prefers-reduced-motion: reduce)'
   ).matches;
 
+  var heroVideo = document.getElementById('nvx-home-hero-video');
+  if (heroVideo && prefersReducedMotion) {
+    heroVideo.pause();
+    heroVideo.removeAttribute('autoplay');
+  }
+
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
       var href = a.getAttribute('href');

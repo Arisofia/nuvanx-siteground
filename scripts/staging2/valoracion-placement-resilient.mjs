@@ -18,7 +18,8 @@ const transientExitCode = EX_TEMPFAIL;
 const maxAttempts = 5;
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
-  throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
+  console.error('VALORACION_PLACEMENT=FAIL_REAL reason=EXPECTED_SHA_must_be_40_hex');
+  process.exit(1);
 }
 
 const viewports = [

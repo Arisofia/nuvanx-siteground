@@ -110,16 +110,16 @@ function nvx_redirect_goya_alias(): void {
 		return;
 	}
 
-	// Preserve query strings (gclid, UTM, etc.).
-	$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+	// Preserve query strings (gclid, UTM, etc.) - get the full query string
+	$query_string = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
 		? '?' . $_SERVER['QUERY_STRING']
 		: '';
 
-	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) . $query;
+	$target = home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) . $query_string;
 	wp_safe_redirect( $target, 301, 'NUVANX' );
 	exit;
 }
-add_action( 'template_redirect', 'nvx_redirect_goya_alias', 0 );
+add_action( 'template_redirect', 'nvx_redirect_goya_alias', 1 );
 
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).

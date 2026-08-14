@@ -88,14 +88,12 @@ async function disarmRollbackAfterTransientExhaustion(reason = 'transient-challe
   }
 }
 
-function shellQuote(value) {
-  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
-}
-
 async function loadPublishedStagingPosts() {
   const command = [
-    `cd ${shellQuote(stagingRoot)}`,
-    'wp post list',
+    'wp',
+    `--path=${stagingRoot}`,
+    'post',
+    'list',
     '--post_type=post',
     '--post_status=publish',
     '--posts_per_page=-1',

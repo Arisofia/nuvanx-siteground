@@ -70,10 +70,14 @@ async function runFullGscAnalysis() {
   fs.writeFileSync(path.join(__dirname, 'artifacts', 'gsc-full-analysis.json'), JSON.stringify(results, null, 2));
   console.log(JSON.stringify(results, null, 2));
 
-  if (Object.keys(queryErrors).length === totalQueries && totalQueries > 0) {
-    console.error('\n[ERROR] All GSC queries failed. Check credentials and property permissions.');
+  if (Object.keys(queryErrors).length > 0) {
+    if (Object.keys(queryErrors).length === totalQueries) {
+      console.error('\n[ERROR] All GSC queries failed. Check credentials and property permissions.');
+    } else {
+      console.warn(`\n[WARN] ${Object.keys(queryErrors).length}/${totalQueries} GSC queries failed.`);
+    }
     process.exitCode = 1;
   }
 }
 
-runFullGscAnalysis().catch(err => { console.error('GSC Full Analysis Error:', err?.message); process.exit(1); });
+runGscAnalysis().catch(err => { console.error('GSC Error:', err.message); process.exit(1); });

@@ -31,9 +31,9 @@ const { google } = require('googleapis');
 
 const ACCOUNT_ID    = process.env.GTM_ACCOUNT_ID    || '6362896218';
 const CONTAINER_ID  = process.env.GTM_CONTAINER_ID  || '256599823';
-const CONVERSION_ID = 'AW-18182220789';
+const CONVERSION_ID = process.env.GOOGLE_ADS_CONVERSION_ID || 'AW-18182220789';
 const NUMERIC_CONVERSION_ID = CONVERSION_ID.replace(/^AW-/, '');
-const CONV_LABEL    = '86RgCI2dht4cEPXX-t1D';
+const CONV_LABEL    = process.env.GOOGLE_ADS_CONVERSION_LABEL || '86RgCI2dht4cEPXX-t1D';
 
 const TRIGGER_NAME  = 'CE - nvx_conversion_signal - generate_lead';
 const TAG_NAME      = 'Google Ads - Formulario Valoración - nvx_signal';

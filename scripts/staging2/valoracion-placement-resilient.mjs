@@ -50,15 +50,22 @@ async function frameHasVisibleControl(frame) {
 
 async function visibleControlsInHubSpotFrame(page, embeddedSrc) {
   const deadline = Date.now() + 12000;
+  let frameEverFound = false;
+
   while (Date.now() < deadline) {
     const frames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
+    if (frames.length > 0) frameEverFound = true;
+
     for (const frame of frames) {
-      if (await frameHasVisibleControl(frame)) return { frameFound: true, visibleControls: 1 };
+      if (await frameHasVisibleControl(frame)) {
+        return { frameFound: true, visibleControls: 1 };
+      }
     }
-    if (frames.length > 0) return { frameFound: true, visibleControls: 0 };
+
     await page.waitForTimeout(600);
   }
-  return { frameFound: false, visibleControls: 0 };
+
+  return { frameFound: frameEverFound, visibleControls: 0 };
 }
 
 async function navigateValuation(page) {
@@ -174,7 +181,15 @@ async function validateAttempt(browser, viewport, attempt) {
 
   try {
     const navigation = await navigateValuation(page);
-    if (navigation.transient) return navigation;
+    if (navigation.transient) {
+      await page.screenshot({
+        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
+        type: 'jpeg',
+        quality: 78,
+        fullPage: true,
+      }).catch(() => {});
+      return navigation;
+    }
 
     const issues = [];
     if (!navigation.response) issues.push('Valuation navigation returned no HTTP response');

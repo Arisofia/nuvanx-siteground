@@ -9,11 +9,16 @@ import {
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
 
+import {
+  HUBSPOT_PORTAL_ID,
+  HUBSPOT_FORM_ID,
+} from './hubspot-config.mjs';
+
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const valuationUrl = `${baseUrl}/madrid/valoracion/`;
-const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-const expectedPortalId = '147416356';
+const expectedFormId = HUBSPOT_FORM_ID;
+const expectedPortalId = HUBSPOT_PORTAL_ID;
 const transientExitCode = EX_TEMPFAIL;
 const maxAttempts = 5;
 

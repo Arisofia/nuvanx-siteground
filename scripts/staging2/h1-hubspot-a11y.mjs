@@ -4,6 +4,10 @@ import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { classifyHubSpotSubmissionRequest } from './hubspot-submission-classifier.mjs';
 import {
+  HUBSPOT_PORTAL_ID,
+  HUBSPOT_FORM_ID,
+} from './hubspot-config.mjs';
+import {
   EX_TEMPFAIL,
   SITEGROUND_CAPTCHA_PATH,
   isSiteGroundCaptchaInterruption,
@@ -12,8 +16,8 @@ import {
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-const portalId = '147416356';
-const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+const portalId = HUBSPOT_PORTAL_ID;
+const formId = HUBSPOT_FORM_ID;
 const target = `${baseUrl}/madrid/valoracion/`;
 const maxAttempts = 3;
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');

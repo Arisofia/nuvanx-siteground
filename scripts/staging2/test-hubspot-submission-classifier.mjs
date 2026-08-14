@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
+import {
+  HUBSPOT_PORTAL_ID,
+  HUBSPOT_FORM_ID,
+} from './hubspot-config.mjs';
 import { classifyHubSpotSubmissionRequest } from './hubspot-submission-classifier.mjs';
 
-const portalId = '147416356';
-const formId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+const portalId = HUBSPOT_PORTAL_ID;
+const formId = HUBSPOT_FORM_ID;
 
 const classify = (method, url) => classifyHubSpotSubmissionRequest({ method, url, portalId, formId });
 

@@ -24,6 +24,16 @@ const mountedSelector = [
   '#nvx-hubspot-form .hbspt-form',
   '#nvx-hubspot-form form.hs-form',
 ].join(', ');
+const legacyControlsSelector = [
+  '#nvx-hubspot-form .hbspt-form input:not([type="hidden"])',
+  '#nvx-hubspot-form .hbspt-form textarea',
+  '#nvx-hubspot-form .hbspt-form select',
+  '#nvx-hubspot-form .hbspt-form button',
+  '#nvx-hubspot-form form.hs-form input:not([type="hidden"])',
+  '#nvx-hubspot-form form.hs-form textarea',
+  '#nvx-hubspot-form form.hs-form select',
+  '#nvx-hubspot-form form.hs-form button',
+].join(', ');
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA');
@@ -54,14 +64,10 @@ async function visibleControlsInHubSpotFrame(page, embeddedSrc) {
 
   while (Date.now() < deadline) {
     const frames = page.frames().filter((frame) => isMatchingHubSpotFrame(frame, page, embeddedSrc));
-    if (frames.length > 0) frameEverFound = true;
-
+    frameEverFound ||= frames.length > 0;
     for (const frame of frames) {
-      if (await frameHasVisibleControl(frame)) {
-        return { frameFound: true, visibleControls: 1 };
-      }
+      if (await frameHasVisibleControl(frame)) return { frameFound: true, visibleControls: 1 };
     }
-
     await page.waitForTimeout(600);
   }
 
@@ -92,6 +98,13 @@ async function navigateValuation(page) {
       currentUrl: page.url(),
     };
   }
+}
+
+async function settleLayout(page) {
+  await page.evaluate(async () => {
+    if (document.fonts) await document.fonts.ready;
+  }).catch(() => {});
+  await page.waitForTimeout(350);
 }
 
 async function collectPlacement(page) {
@@ -151,6 +164,16 @@ async function collectMountState(page) {
   }, { formId: expectedFormId, portalId: expectedPortalId });
 }
 
+async function inspectLegacyControls(page) {
+  const controls = page.locator(legacyControlsSelector);
+  const count = Math.min(await controls.count().catch(() => 0), 40);
+  let visibleControls = 0;
+  for (let index = 0; index < count; index += 1) {
+    if (await controls.nth(index).isVisible().catch(() => false)) visibleControls += 1;
+  }
+  return { controls: count, visibleControls };
+}
+
 async function validateHubSpotMount(page, mounted, mountState) {
   const issues = [];
   if (!mounted) issues.push('HubSpot form did not mount inside #nvx-hubspot-form within 12s');
@@ -165,10 +188,30 @@ async function validateHubSpotMount(page, mounted, mountState) {
   }
 
   if (mounted) {
-    const visibleLegacy = await page.locator('#nvx-hubspot-form input:not([type="hidden"]):visible, #nvx-hubspot-form textarea:visible, #nvx-hubspot-form select:visible, #nvx-hubspot-form button:visible').count().catch(() => 0);
-    if (visibleLegacy < 1) issues.push('Legacy HubSpot form mounted without visible interactive controls');
+    const legacy = await inspectLegacyControls(page);
+    if (legacy.visibleControls < 1) {
+      issues.push(`Legacy HubSpot form mounted without visible interactive controls (controls=${legacy.controls})`);
+    }
   }
   return issues;
+}
+
+async function captureScreenshot(page, viewport, attempt, suffix = '') {
+  const filename = `valoracion-${viewport.key}-attempt-${attempt}${suffix}.jpg`;
+  await page.screenshot({ path: path.join(outDir, filename), type: 'jpeg', quality: 78, fullPage: true }).catch(() => {});
+}
+
+function normalizedTransientResult(navigation) {
+  return {
+    transient: true,
+    status: navigation.status,
+    currentUrl: navigation.currentUrl,
+    reason: navigation.reason,
+    placement: null,
+    mounted: false,
+    mountState: null,
+    issues: [],
+  };
 }
 
 async function validateAttempt(browser, viewport, attempt) {
@@ -182,13 +225,8 @@ async function validateAttempt(browser, viewport, attempt) {
   try {
     const navigation = await navigateValuation(page);
     if (navigation.transient) {
-      await page.screenshot({
-        path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}-transient.jpg`),
-        type: 'jpeg',
-        quality: 78,
-        fullPage: true,
-      }).catch(() => {});
-      return navigation;
+      await captureScreenshot(page, viewport, attempt, '-transient');
+      return normalizedTransientResult(navigation);
     }
 
     const issues = [];
@@ -198,24 +236,30 @@ async function validateAttempt(browser, viewport, attempt) {
     const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
     if (metaSha !== expectedSha) issues.push(`SHA mismatch ${metaSha || 'missing'} != ${expectedSha}`);
 
+    await settleLayout(page);
     const placement = await collectPlacement(page);
     issues.push(...validatePlacement(placement));
 
     await page.waitForLoadState('load').catch(() => {});
+    await page.waitForTimeout(250);
     await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
     const mounted = await page.locator(mountedSelector).first().waitFor({ state: 'attached', timeout: 12000 }).then(() => true).catch(() => false);
     const mountState = await collectMountState(page);
     issues.push(...await validateHubSpotMount(page, mounted, mountState));
 
-    await page.screenshot({ path: path.join(outDir, `valoracion-${viewport.key}-attempt-${attempt}.jpg`), type: 'jpeg', quality: 78, fullPage: true });
+    await captureScreenshot(page, viewport, attempt);
     return {
       transient: false,
       status: navigation.status,
       currentUrl: navigation.currentUrl,
       placement,
+      mounted,
       mountState,
       issues,
     };
+  } catch (error) {
+    await captureScreenshot(page, viewport, attempt, '-fatal');
+    throw error;
   } finally {
     await context.close();
   }
@@ -252,6 +296,7 @@ const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] }
 const results = [];
 let realFailure = false;
 let transientExhausted = false;
+let fatalError = null;
 
 try {
   for (const viewport of viewports) {
@@ -261,19 +306,29 @@ try {
     realFailure ||= classification === 'real';
     transientExhausted ||= classification === 'transient';
   }
+} catch (error) {
+  fatalError = error;
+  console.error(`VALORACION_PLACEMENT=FAIL_FATAL reason=${error instanceof Error ? error.message : String(error)}`);
 } finally {
   await browser.close();
+  await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 }
 
-await fs.writeFile(path.join(outDir, 'results.json'), `${JSON.stringify(results, null, 2)}\n`, 'utf8');
-
+if (fatalError) throw fatalError;
 if (realFailure) {
   console.error('VALORACION_PLACEMENT=FAIL_REAL');
   process.exit(1);
 }
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    fsSync.appendFileSync(process.env.GITHUB_ENV, 'STAGING_MUTATION_ARMED=0\nSTAGING_ACCEPTANCE_TRANSIENT=1\n', 'utf8');
+    fsSync.appendFileSync(process.env.GITHUB_ENV, 'STAGING_MUTATION_ARMED=0\n', 'utf8');
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fsSync.appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY,
+      '## Valoración acceptance inconclusive\n\nSiteGround Antibot exhausted the bounded retries. The candidate remains deployed on Staging2, rollback is suppressed, and no production-eligible acceptance is emitted.\n',
+      'utf8'
+    );
   }
   console.error('VALORACION_PLACEMENT=TRANSIENT_ONLY');
   process.exit(transientExitCode);

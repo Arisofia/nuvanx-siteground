@@ -24,7 +24,7 @@ ob_start();
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 		</video>
 		<div class="nvx-home-hero__content nvx-home-hero__copy">
-			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">En NUVANX, si no hay indicación, no se trata.<span class="nvx-hero-title-location"> Madrid.</span></h1>
+			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Primero el diagnóstico médico. Luego, el tratamiento adecuado.<span class="nvx-hero-title-location"> Madrid.</span></h1>
 			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
 			<div class="nvx-brand-actions">
 				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
@@ -221,7 +221,7 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
-		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">En NUVANX, si no hay indicación, no se trata</h2>
+		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Primero el diagnóstico médico. Luego, el tratamiento adecuado</h2>
 		<p class="nvx-home-closure__desc">Presupuesto y plan documentado por escrito en la primera visita. Tiempos de recuperación informados según el protocolo.</p>
 		<div class="nvx-home-closure__actions">
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Definir mi plan clínico</a>

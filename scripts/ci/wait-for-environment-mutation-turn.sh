@@ -73,22 +73,43 @@ started_epoch="$(date +%s)"
 clear_scans=0
 
 while :; do
-  declare -A blockers=()
+  blockers=""
+  scan_failed=0
 
   for status in queued in_progress waiting requested pending; do
+    raw_status_runs=""
+    if ! raw_status_runs="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100" \
+      --jq '.workflow_runs[] | [(.id|tostring),(.status // ""),(.event // ""),(.path // ""),(.head_sha // "")] | @tsv' 2>/dev/null)"; then
+      scan_failed=1
+      break
+    fi
+
     while IFS=$'\t' read -r run_id run_status run_event run_path run_sha; do
+      [[ -n "$run_id" ]] || continue
       [[ "$run_id" =~ ^[0-9]{1,20}$ ]] || continue
       (( run_id < CURRENT_RUN_ID )) || continue
       is_mutation_workflow_path "$run_path" || continue
       is_mutation_event "$run_event" || continue
-      blockers["$run_id"]="$run_status|$run_event|$run_path|$run_sha"
-    done < <(
-      gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100" \
-        --jq '.workflow_runs[] | [(.id|tostring),(.status // ""),(.event // ""),(.path // ""),(.head_sha // "")] | @tsv'
-    )
+      blockers="${blockers}${run_id}\t${run_status}|${run_event}|${run_path}|${run_sha}\n"
+    done <<< "$raw_status_runs"
   done
 
-  if (( ${#blockers[@]} == 0 )); then
+  if (( scan_failed != 0 )); then
+    clear_scans=0
+    echo "MUTATION_FIFO=WARN reason=api_query_failed retrying=true" >&2
+    sleep "$POLL_SECONDS"
+    continue
+  fi
+
+  if [[ -n "$blockers" ]]; then
+    unique_blockers="$(printf '%b' "$blockers" | grep -v '^[[:space:]]*$' | sort -u -k1,1)"
+    blocker_count="$(printf '%s\n' "$unique_blockers" | grep -c . || true)"
+  else
+    unique_blockers=""
+    blocker_count=0
+  fi
+
+  if (( blocker_count == 0 )); then
     clear_scans=$((clear_scans + 1))
     if (( clear_scans >= 2 )); then
       waited=$(( $(date +%s) - started_epoch ))
@@ -104,16 +125,18 @@ while :; do
   now_epoch="$(date +%s)"
   waited=$(( now_epoch - started_epoch ))
   if (( waited >= MAX_WAIT_SECONDS )); then
-    echo "MUTATION_FIFO=FAIL reason=wait_timeout role=$ROLE run_id=$CURRENT_RUN_ID waited_seconds=$waited blockers=${#blockers[@]}" >&2
-    for run_id in $(printf '%s\n' "${!blockers[@]}" | sort -n); do
-      echo "MUTATION_FIFO_BLOCKER run_id=$run_id meta=${blockers[$run_id]}" >&2
-    done
+    echo "MUTATION_FIFO=FAIL reason=wait_timeout role=$ROLE run_id=$CURRENT_RUN_ID waited_seconds=$waited blockers=$blocker_count" >&2
+    while IFS=$'\t' read -r b_run_id b_meta; do
+      [[ -n "$b_run_id" ]] || continue
+      echo "MUTATION_FIFO_BLOCKER run_id=$b_run_id meta=$b_meta" >&2
+    done <<< "$unique_blockers"
     exit 1
   fi
 
-  echo "MUTATION_FIFO=WAIT role=$ROLE run_id=$CURRENT_RUN_ID waited_seconds=$waited blockers=${#blockers[@]}"
-  for run_id in $(printf '%s\n' "${!blockers[@]}" | sort -n); do
-    echo "MUTATION_FIFO_BLOCKER run_id=$run_id meta=${blockers[$run_id]}"
-  done
+  echo "MUTATION_FIFO=WAIT role=$ROLE run_id=$CURRENT_RUN_ID waited_seconds=$waited blockers=$blocker_count"
+  while IFS=$'\t' read -r b_run_id b_meta; do
+    [[ -n "$b_run_id" ]] || continue
+    echo "MUTATION_FIFO_BLOCKER run_id=$b_run_id meta=$b_meta"
+  done <<< "$unique_blockers"
   sleep "$POLL_SECONDS"
 done

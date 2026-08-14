@@ -68,6 +68,15 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
     if (lastExitCode === 0) {
       if (sawTransient) {
         await writeRollbackState('1', name, 'transient-recovered');
+        const envFile = (process.env.GITHUB_ENV || '').trim();
+        if (envFile) {
+          try {
+            await fs.appendFile(envFile, 'STAGING_ACCEPTANCE_TRANSIENT=0\n', 'utf8');
+            console.log(`STAGING_ACCEPTANCE_TRANSIENT=RESET component=${name} reason=transient-recovered`);
+          } catch (err) {
+            console.warn(`STAGING_ACCEPTANCE_TRANSIENT=RESET_FAILED component=${name} error=${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
       }
       console.log(`STAGING_ACCEPTANCE_COMPONENT=PASS component=${name}${maxCycles > 1 ? ` cycle=${cycle}` : ''}`);
       return;

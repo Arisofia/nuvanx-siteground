@@ -69,13 +69,9 @@ Staging and production use the same `nuvanx-environment-mutation` concurrency gr
 
 ## Production authorization
 
-Production can be started manually from the `Production` workflow. The `release/production` branch also remains a release-control path, but its push trigger is scoped to:
+Production is dispatched manually from the `Production` workflow with the requested candidate SHA.
 
-```text
-release/production-candidate.txt
-```
-
-That file is an **authorization signal only**. Its stored SHA is not used as the production payload source. On every release, `production.yml` resolves the current live Staging2 deploy marker and requires exact successful acceptance evidence for that live SHA before any production mutation.
+On every release, `production.yml` runs `scripts/ci/verify-staging-acceptance.sh` to require exact, immutable, successful acceptance evidence (`staging2-block-c-<sha>`) from a completed canonical `master` Staging run before any production mutation. Production also acquires a FIFO environment mutation turn via `scripts/ci/wait-for-environment-mutation-turn.sh`.
 
 This removes the stale-manifest race that can occur when Staging2 advances after a release candidate file was written.
 

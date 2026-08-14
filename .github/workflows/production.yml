@@ -77,6 +77,8 @@ jobs:
           set -euo pipefail
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
+          bash -n scripts/ci/test-mutation-fifo-contract.sh
+          bash scripts/ci/test-mutation-fifo-contract.sh
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
@@ -253,10 +255,12 @@ jobs:
           set -euo pipefail
           pass=0
           for attempt in {1..6}; do
-            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" PRODUCTION_BOUNDARY_ARTIFACTS_DIR="$GITHUB_WORKSPACE/scripts/production/artifacts" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
             sleep 10
           done
           test "$pass" = 1
+          mkdir -p "$GITHUB_WORKSPACE/scripts/production/artifacts"
+          cp -f "$CANDIDATE_ROOT/scripts/production/artifacts/production-boundary.json" "$GITHUB_WORKSPACE/scripts/production/artifacts/" 2>/dev/null || true
           ssh nvx-prod "PROD_ROOT='$PROD_ROOT' CANDIDATE_SHA='$CANDIDATE_SHA' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
           set -Eeuo pipefail
           cd "$PROD_ROOT"

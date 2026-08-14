@@ -26,7 +26,7 @@ Both environment-mutating paths share the `nuvanx-environment-mutation` concurre
 
 Relevant pushes to `master` can automatically deploy **Staging2 only** through `staging.yml`. They never deploy production.
 
-Production can be launched manually. The `release/production` branch remains an explicit release-control path, but only changes to `release/production-candidate.txt` trigger `production.yml`. That file is an authorization signal, not the payload source: Production resolves the SHA actually deployed on Staging2 and requires successful exact-SHA acceptance evidence before mutation.
+Production is dispatched manually via `production.yml` with the candidate SHA. Production verifies immutable exact-SHA Staging2 acceptance evidence (`staging2-block-c-<sha>`) from `master` and serializes mutation through the FIFO gate before any deployment.
 
 The repository hygiene gate inside `staging.yml` rejects any future `.github/workflows` state other than `production.yml` plus `staging.yml`.
 

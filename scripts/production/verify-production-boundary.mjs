@@ -32,7 +32,9 @@ if (!Number.isInteger(requestTimeoutMs) || requestTimeoutMs < 1000 || requestTim
 }
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const outputDir = path.join(scriptDir, 'artifacts');
+const outputDir = (process.env.PRODUCTION_BOUNDARY_ARTIFACTS_DIR || process.env.ARTIFACTS_DIR)
+  ? path.resolve(process.env.PRODUCTION_BOUNDARY_ARTIFACTS_DIR || process.env.ARTIFACTS_DIR)
+  : path.join(scriptDir, 'artifacts');
 await fs.mkdir(outputDir, { recursive: true });
 
 function extractMetaContent(html, name) {

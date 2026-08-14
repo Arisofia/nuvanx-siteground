@@ -560,20 +560,12 @@ function nvx_seo_route_alias_destination( string $path ): ?string {
 	$destination = home_url( $target );
 
 	// Only forward the request query string when the alias target has none of
-	// its own; wp_parse_str + add_query_arg re-encode it so raw request input
-	// never reaches the Location header verbatim.
+	// its own. wp_safe_redirect handles sanitization.
 	if ( false === strpos( $target, '?' ) ) {
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-		$query       = wp_parse_url( $request_uri, PHP_URL_QUERY );
-		$query       = is_string( $query ) ? $query : '';
-		if ( '' === $query && isset( $_SERVER['QUERY_STRING'] ) ) {
-			$query = (string) wp_unslash( $_SERVER['QUERY_STRING'] );
-		}
-		$args  = array();
-		wp_parse_str( $query, $args );
-		if ( ! empty( $args ) ) {
-			$destination = add_query_arg( $args, $destination );
-		}
+		$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+			? '?' . $_SERVER['QUERY_STRING']
+			: '';
+		$destination .= $query;
 	}
 
 	return $destination;

@@ -126,6 +126,7 @@ SOURCE_REQUIRED_FILES=(
   inc/nvx-page-hygiene.php
   inc/nvx-solutions-page.php
   inc/nvx-clinics-hub.php
+  inc/nvx-valoracion-modal.php
 )
 
 for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do

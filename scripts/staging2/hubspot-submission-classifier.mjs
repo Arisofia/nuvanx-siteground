@@ -12,7 +12,7 @@ export function buildHubSpotSubmissionPathPattern(portalId = HUBSPOT_PORTAL_ID, 
   const expectedPortal = escapeRegExp(portalId);
   const expectedForm = escapeRegExp(formId);
   return new RegExp(
-    `^/submissions/v3/integration/(?:secure/)?submit/${expectedPortal}/${expectedForm}/?$`,
+    `^/submissions/v3/(?:integration/(?:(?:secure|async)/)?submit|public/submit/formsnext/(?:multipart|json))/${expectedPortal}/${expectedForm}/?$`,
     'i'
   );
 }
@@ -24,7 +24,7 @@ export function classifyHubSpotSubmissionRequest({
   formId = HUBSPOT_FORM_ID,
 }) {
   const normalizedMethod = String(method || '').toUpperCase();
-  if (normalizedMethod !== 'POST') return { isSubmission: false, reason: 'method' };
+  if (normalizedMethod !== 'POST') return { isSubmission: false, reason: 'method', method: normalizedMethod };
 
   let parsed;
   try {

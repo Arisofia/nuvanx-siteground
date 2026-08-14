@@ -369,17 +369,21 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
   }
 
   if (submissionState.preValidationRequests.length > 0) {
+    const endpoints = submissionState.preValidationRequests.map((r) => `${r.hostname || 'unknown'}${r.pathname || ''}`).join(', ');
     issues.push({
       code: 'SAFETY_PREVALIDATION_SUBMISSION',
       category: 'safety',
-      message: 'safety: HubSpot attempted a real form submission before the blank-validation exercise started',
+      requests: submissionState.preValidationRequests,
+      message: `safety: HubSpot attempted a real form submission before the blank-validation exercise started (${endpoints})`,
     });
   }
   if (submissionState.observed) {
+    const endpoints = submissionState.requests.map((r) => `${r.hostname || 'unknown'}${r.pathname || ''}`).join(', ');
     issues.push({
       code: 'SAFETY_SUBMISSION_POST',
       category: 'safety',
-      message: 'safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST',
+      requests: submissionState.requests,
+      message: `safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST (${endpoints})`,
     });
   }
 
@@ -435,6 +439,7 @@ async function auditOnce(browser, attempt) {
 
     if (classification.isSubmission) {
       const evidence = {
+        reason: classification.reason,
         hostname: classification.hostname,
         pathname: classification.pathname,
         phase: submissionState.validationStarted ? 'blank-validation' : 'pre-validation',

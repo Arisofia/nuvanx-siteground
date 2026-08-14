@@ -46,7 +46,6 @@ const legacyControlsSelector = [
 ].join(', ');
 
 const outDir = path.resolve('scripts/staging2/valoracion-artifacts');
-await fs.rm(outDir, { recursive: true, force: true });
 await fs.mkdir(outDir, { recursive: true });
 
 function formatTransientReason(status, headers, currentUrl) {

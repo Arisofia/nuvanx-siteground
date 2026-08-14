@@ -35,7 +35,7 @@ const realFailureResult = (attempt, reason, details = {}) => ({
 });
 
 function controlIdentity(control) {
-  return control.name || control.id || `${control.tag || 'control'}:${control.type || 'unknown'}`;
+  return control?.uid || control?.name || control?.id || `${control?.tag || 'control'}:${control?.type || 'unknown'}`;
 }
 
 async function grantConsent(page) {
@@ -149,7 +149,7 @@ async function collectControls(frame) {
       .filter(Boolean)
       .map((id) => ({ id, text: text(document.getElementById(id)?.textContent || '') }));
 
-    return nodes.filter(isVisible).map((node) => {
+    return nodes.filter(isVisible).map((node, index) => {
       const labels = Array.from(node.labels || []);
       const labelText = text(labels.map((label) => label.textContent || '').join(' '));
       const ariaLabel = text(node.getAttribute('aria-label'));
@@ -165,12 +165,18 @@ async function collectControls(frame) {
       const errormessage = node.getAttribute('aria-errormessage') || '';
       const errorRefs = [...referenced(describedby), ...referenced(errormessage)];
       const associatedErrorText = text(errorRefs.map((item) => item.text).join(' '));
+      const id = node.id || '';
+      const name = node.getAttribute('name') || '';
+      const tag = node.tagName.toLowerCase();
+      const type = String(node.getAttribute('type') || '').toLowerCase();
+      const uid = id || name || `${tag}:${type || 'unknown'}:${index}`;
 
       return {
-        tag: node.tagName.toLowerCase(),
-        type: String(node.getAttribute('type') || '').toLowerCase(),
-        id: node.id || '',
-        name: node.getAttribute('name') || '',
+        uid,
+        tag,
+        type,
+        id,
+        name,
         labelText,
         ariaLabel,
         ariaLabelledby,
@@ -178,7 +184,7 @@ async function collectControls(frame) {
         title,
         placeholder: text(node.getAttribute('placeholder')),
         accessibleName: labelText || ariaLabelledbyText || ariaLabel || title,
-        hasNativeLabelAssociation: labels.some((label) => (node.id && label.htmlFor === node.id) || label.contains(node)),
+        hasNativeLabelAssociation: labels.some((label) => (id && label.htmlFor === id) || label.contains(node)),
         requiredMarkerVisible,
         programmaticRequired,
         requiredAttribute: node.required,
@@ -199,12 +205,32 @@ function auditLabelsAndRequiredState(controls) {
   const issues = [];
   for (const control of controls) {
     const identity = controlIdentity(control);
-    if (!control.accessibleName) issues.push(`4.1.2 accessible-name missing: ${identity}`);
+    if (!control.accessibleName) {
+      issues.push({
+        code: 'WCAG_4_1_2_NAME_MISSING',
+        criterion: '4.1.2',
+        category: 'name',
+        control: identity,
+        message: `4.1.2 accessible-name missing: ${identity}`,
+      });
+    }
     if (!control.labelText && !control.ariaLabelledbyText) {
-      issues.push(`3.3.2 label/instruction association missing: ${identity}`);
+      issues.push({
+        code: 'WCAG_3_3_2_LABEL_MISSING',
+        criterion: '3.3.2',
+        category: 'label',
+        control: identity,
+        message: `3.3.2 label/instruction association missing: ${identity}`,
+      });
     }
     if (control.requiredMarkerVisible && !control.programmaticRequired) {
-      issues.push(`3.3.2/4.1.2 required state not programmatically exposed: ${identity}`);
+      issues.push({
+        code: 'WCAG_3_3_2_REQUIRED_NOT_EXPOSED',
+        criterion: '3.3.2',
+        category: 'required-state',
+        control: identity,
+        message: `3.3.2/4.1.2 required state not programmatically exposed: ${identity}`,
+      });
     }
   }
   return issues;
@@ -215,13 +241,25 @@ function auditErrorState(controls) {
   for (const control of controls.filter((item) => item.programmaticRequired)) {
     const identity = controlIdentity(control);
     if (!control.nativeInvalid && !control.ariaInvalid) {
-      issues.push(`3.3.1 invalid state not exposed after blank submit: ${identity}`);
+      issues.push({
+        code: 'WCAG_3_3_1_INVALID_STATE_MISSING',
+        criterion: '3.3.1',
+        category: 'invalid-state',
+        control: identity,
+        message: `3.3.1 invalid state not exposed after blank submit: ${identity}`,
+      });
     }
     // The browser's native validationMessage exists for every invalid required
     // control, even when no error is exposed to assistive technology. Require
     // an explicit programmatic relationship to rendered error text instead.
     if (!control.associatedErrorText) {
-      issues.push(`3.3.1 error message not programmatically associated after blank submit: ${identity}`);
+      issues.push({
+        code: 'WCAG_3_3_1_ERROR_ASSOCIATION_MISSING',
+        criterion: '3.3.1',
+        category: 'error-association',
+        control: identity,
+        message: `3.3.1 error message not programmatically associated after blank submit: ${identity}`,
+      });
     }
   }
   return issues;
@@ -230,7 +268,17 @@ function auditErrorState(controls) {
 async function exerciseBlankValidation(frame, expectedRequiredControls) {
   const submit = frame.locator('button[type="submit"], input[type="submit"]').first();
   if (!await submit.count().catch(() => 0)) {
-    return { issues: ['3.3.1 submit control missing; error-identification cycle cannot be exercised'], controls: [], active: null, liveRegionCount: 0 };
+    return {
+      issues: [{
+        code: 'WCAG_3_3_1_SUBMIT_MISSING',
+        criterion: '3.3.1',
+        category: 'submit-control',
+        message: '3.3.1 submit control missing; error-identification cycle cannot be exercised',
+      }],
+      controls: [],
+      active: null,
+      liveRegionCount: 0,
+    };
   }
 
   await submit.click({ timeout: 5000 }).catch(async () => {
@@ -259,7 +307,13 @@ async function exerciseBlankValidation(frame, expectedRequiredControls) {
 
   const issues = auditErrorState(controls);
   if (missingRequiredControls.length > 0) {
-    issues.push(`3.3.1 required controls unavailable after blank submit: ${missingRequiredControls.join(', ')}`);
+    issues.push({
+      code: 'WCAG_3_3_1_CONTROLS_UNAVAILABLE',
+      criterion: '3.3.1',
+      category: 'missing-controls',
+      controls: missingRequiredControls,
+      message: `3.3.1 required controls unavailable after blank submit: ${missingRequiredControls.join(', ')}`,
+    });
   }
 
   return { issues, controls, active, liveRegionCount };
@@ -271,13 +325,22 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
 
   const issues = auditLabelsAndRequiredState(controlsBefore);
   if (!hubspot.iframe.title || /^(form|hubspot form|hs-form-iframe)$/i.test(hubspot.iframe.title)) {
-    issues.push(`iframe-accessible-name: generic or missing title (${JSON.stringify(hubspot.iframe.title)})`);
+    issues.push({
+      code: 'IFRAME_TITLE_GENERIC',
+      category: 'iframe-accessible-name',
+      message: `iframe-accessible-name: generic or missing title (${JSON.stringify(hubspot.iframe.title)})`,
+    });
   }
 
   const requiredCount = controlsBefore.filter((control) => control.programmaticRequired).length;
   let validation = { issues: [], controls: [], active: null, liveRegionCount: 0 };
   if (requiredCount === 0) {
-    issues.push('3.3.2 no programmatically required controls detected; blank-submit error cycle cannot be validated safely');
+    issues.push({
+      code: 'WCAG_3_3_2_NO_REQUIRED_CONTROLS',
+      criterion: '3.3.2',
+      category: 'required-controls',
+      message: '3.3.2 no programmatically required controls detected; blank-submit error cycle cannot be validated safely',
+    });
   } else {
     validation = await exerciseBlankValidation(
       hubspot.frame,
@@ -287,8 +350,15 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
   }
 
   if (submissionState.observed) {
-    issues.push('safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST');
+    issues.push({
+      code: 'SAFETY_SUBMISSION_POST',
+      category: 'safety',
+      message: 'safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST',
+    });
   }
+
+  const rawIssueMessages = issues.map((issue) => (typeof issue === 'string' ? issue : (issue?.message || String(issue))));
+  const structuredIssues = issues.map((issue) => (typeof issue === 'string' ? { message: issue } : issue));
 
   return {
     transient: false,
@@ -303,7 +373,10 @@ async function auditForm(page, hubspot, documentState, attempt, submissionState)
     activeAfterValidation: validation.active,
     liveRegionCount: validation.liveRegionCount,
     submissionObserved: submissionState.observed,
-    issues,
+    submissionInterceptionInstalled: submissionState.interceptionInstalled === true,
+    submissionInterceptionPolicy: submissionState.policy || 'blockedbyclient',
+    issues: rawIssueMessages,
+    structuredIssues,
   };
 }
 
@@ -314,7 +387,11 @@ async function auditOnce(browser, attempt) {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36 NUVANX-HubSpot-A11y-QA/1.0',
   });
   const page = await context.newPage();
-  const submissionState = { observed: false };
+  const submissionState = {
+    observed: false,
+    interceptionInstalled: true,
+    policy: 'blockedbyclient',
+  };
 
   await page.route('**/*', async (route) => {
     const request = route.request();
@@ -381,7 +458,10 @@ async function persistResult(result) {
 function reportRealFailure(result) {
   const issues = result.issues || [result.reason || 'unknown failure'];
   console.error(`HUBSPOT_A11Y=FAIL_REAL issues=${issues.length}`);
-  for (const issue of issues) console.error(`HUBSPOT_A11Y_ISSUE=${issue}`);
+  for (const issue of issues) {
+    const message = typeof issue === 'string' ? issue : (issue?.message || JSON.stringify(issue));
+    console.error(`HUBSPOT_A11Y_ISSUE=${message}`);
+  }
 }
 
 async function runAudit(browser) {

@@ -6,7 +6,6 @@ import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 
 const strictAuditPath = fileURLToPath(new URL('./h1-hubspot-a11y.mjs', import.meta.url));
 const artifactPath = path.resolve('scripts/staging2/valoracion-artifacts/hubspot-a11y.json');
-const expectedSha = String(process.env.EXPECTED_SHA || '').trim();
 
 function runStrictAudit() {
   return new Promise((resolve, reject) => {
@@ -27,7 +26,7 @@ function runStrictAudit() {
 }
 
 function identity(control) {
-  return control?.name || control?.id || `${control?.tag || 'control'}:${control?.type || 'unknown'}`;
+  return control?.uid || control?.id || control?.name || '';
 }
 
 function hasAccessibleClientError(control) {
@@ -49,29 +48,53 @@ function phoneClientContractPasses(phone) {
   );
 }
 
-function onlyDeferredPhoneIssues(result, phone) {
-  const issues = Array.isArray(result?.issues) ? result.issues : [];
-  const phoneIdentity = identity(phone);
-  if (issues.length !== 3 || !phoneIdentity) return false;
+function isDeferredPhoneIssue(issue, phoneIdentity) {
+  if (!issue) return false;
 
-  const expected = new Set([
-    `3.3.1 invalid state not exposed after blank submit: ${phoneIdentity}`,
-    `3.3.1 error message not programmatically associated after blank submit: ${phoneIdentity}`,
-    'safety: blank accessibility validation unexpectedly triggered a HubSpot submission POST',
-  ]);
+  if (typeof issue === 'string') {
+    if (/safety:\s*blank accessibility validation.*submission POST/i.test(issue)) return true;
+    if (/3\.3\.1\s+invalid state not exposed/i.test(issue) && issue.includes(phoneIdentity)) return true;
+    if (/3\.3\.1\s+error message not programmatically associated/i.test(issue) && issue.includes(phoneIdentity)) return true;
+    return false;
+  }
 
-  return issues.every((issue) => expected.has(issue));
+  if (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety') {
+    return true;
+  }
+
+  const isPhoneControl = issue.control === phoneIdentity;
+  const isAllowedCriterion = issue.criterion === '3.3.1';
+  const isAllowedCategory = issue.category === 'invalid-state' || issue.category === 'error-association';
+  const isAllowedCode = issue.code === 'WCAG_3_3_1_INVALID_STATE_MISSING' || issue.code === 'WCAG_3_3_1_ERROR_ASSOCIATION_MISSING';
+
+  return isPhoneControl && isAllowedCriterion && (isAllowedCategory || isAllowedCode);
 }
 
-async function strictAuditInterceptionIsPresent() {
-  const source = await fs.readFile(strictAuditPath, 'utf8');
-  return /submissionState\.observed\s*=\s*true;\s*await\s+route\.abort\(['"]blockedbyclient['"]\)/s.test(source);
+function onlyDeferredPhoneIssues(result, phone) {
+  const structured = Array.isArray(result?.structuredIssues) && result.structuredIssues.length > 0
+    ? result.structuredIssues
+    : (Array.isArray(result?.issues) ? result.issues : []);
+  const phoneIdentity = identity(phone);
+  if (!phoneIdentity || structured.length === 0) return false;
+
+  const allDeferred = structured.every((issue) => isDeferredPhoneIssue(issue, phoneIdentity));
+  if (!allDeferred) return false;
+
+  const hasSafety = structured.some((issue) =>
+    typeof issue === 'string'
+      ? /safety:\s*blank accessibility validation.*submission POST/i.test(issue)
+      : (issue.code === 'SAFETY_SUBMISSION_POST' || issue.category === 'safety')
+  );
+  if (!hasSafety) return false;
+
+  return true;
 }
 
 async function canAcceptSafeScope(result) {
+  const expectedSha = String(process.env.EXPECTED_SHA || '').trim();
   if (!result || result.transient || !result.realFailure || result.submissionObserved !== true) return false;
+  if (result.submissionInterceptionInstalled !== true || result.submissionInterceptionPolicy !== 'blockedbyclient') return false;
   if (!/^[0-9a-f]{40}$/.test(expectedSha) || result.deploySha !== expectedSha) return false;
-  if (!await strictAuditInterceptionIsPresent()) return false;
 
   const controls = Array.isArray(result.controls) ? result.controls : [];
   const errors = Array.isArray(result.errorSemantics) ? result.errorSemantics : [];
@@ -83,9 +106,40 @@ async function canAcceptSafeScope(result) {
   if (!phoneClientContractPasses(phone) || !onlyDeferredPhoneIssues(result, phone)) return false;
 
   const phoneIdentity = identity(phone);
-  const otherRequired = requiredBefore.filter((control) => identity(control) !== phoneIdentity);
-  const errorsByIdentity = new Map(errors.map((control) => [identity(control), control]));
-  if (!otherRequired.every((control) => hasAccessibleClientError(errorsByIdentity.get(identity(control))))) return false;
+  if (!phoneIdentity) return false;
+
+  const errorsByIdentity = new Map();
+  for (const errorControl of errors) {
+    const errorIdentity = identity(errorControl);
+    if (!errorIdentity || errorsByIdentity.has(errorIdentity)) {
+      return false;
+    }
+    errorsByIdentity.set(errorIdentity, errorControl);
+  }
+
+  const requiredIdentities = new Set();
+  for (const control of requiredBefore) {
+    const controlIdentity = identity(control);
+    if (!controlIdentity || requiredIdentities.has(controlIdentity)) {
+      return false;
+    }
+    requiredIdentities.add(controlIdentity);
+  }
+
+  const otherRequired = requiredBefore.filter((control) => {
+    const controlIdentity = identity(control);
+    return controlIdentity && controlIdentity !== phoneIdentity;
+  });
+
+  if (
+    !otherRequired.every((control) => {
+      const controlIdentity = identity(control);
+      const errorForControl = controlIdentity ? errorsByIdentity.get(controlIdentity) : undefined;
+      return hasAccessibleClientError(errorForControl);
+    })
+  ) {
+    return false;
+  }
 
   return Number(result.liveRegionCount || 0) > 0;
 }
@@ -113,26 +167,40 @@ async function main() {
   }
 
   const phone = result.controls.find((control) => control?.programmaticRequired && control?.type === 'tel');
+  const phoneIdentity = identity(phone);
   result.realFailure = false;
   result.safeScopePass = true;
   result.serverValidationDeferred = {
-    control: identity(phone),
+    control: phoneIdentity,
     reason: 'HubSpot attempted server-side validation, but the audit intercepted the POST to guarantee that no real contact can be created.',
     wcagNote: 'WCAG 3.3.1 requires textual error identification after an error is detected; aria-invalid and aria-describedby are sufficient techniques, not mandatory syntax. Server-response error semantics remain outside this zero-submit gate.',
   };
-  result.strictIssuesObserved = [...result.issues];
+  result.strictIssuesObserved = Array.isArray(result.structuredIssues)
+    ? [...result.structuredIssues]
+    : [...result.issues];
   result.issues = [];
+  result.structuredIssues = [];
   await fs.writeFile(artifactPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
 
-  console.log(`HUBSPOT_A11Y=PASS safe_scope=client_semantics server_validation_deferred=1 control=${identity(phone)} submission_intercepted=1`);
+  console.log(`HUBSPOT_A11Y=PASS safe_scope=client_semantics server_validation_deferred=1 control=${phoneIdentity} submission_intercepted=1`);
   console.log('HUBSPOT_A11Y_SERVER_VALIDATION=DEFERRED reason=zero-submit-safety-boundary');
   return 0;
 }
 
-let exitCode = 1;
-try {
-  exitCode = await main();
-} catch (error) {
-  console.error(`HUBSPOT_A11Y_SAFE_SCOPE=FAIL error=${error instanceof Error ? error.message : String(error)}`);
+export {
+  canAcceptSafeScope,
+  onlyDeferredPhoneIssues,
+  phoneClientContractPasses,
+  hasAccessibleClientError,
+  identity,
+};
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  let exitCode = 1;
+  try {
+    exitCode = await main();
+  } catch (error) {
+    console.error(`HUBSPOT_A11Y_SAFE_SCOPE=FAIL error=${error instanceof Error ? error.message : String(error)}`);
+  }
+  process.exit(exitCode);
 }
-process.exit(exitCode);

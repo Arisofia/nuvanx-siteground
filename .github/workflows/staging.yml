@@ -172,7 +172,7 @@ jobs:
 
           log_opts=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            log_opts="origin/master...HEAD"
+            log_opts="origin/master..HEAD"
           elif [[ "${{ github.event_name }}" == 'push' && "${{ github.event.before }}" != '0000000000000000000000000000000000000000' ]]; then
             log_opts="${{ github.event.before }}..${{ github.event.after }}"
           fi

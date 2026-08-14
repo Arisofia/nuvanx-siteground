@@ -437,22 +437,29 @@ async function auditOnce(browser, attempt) {
       formId,
     });
 
-    if (classification.isSubmission) {
+    if (classification.shouldBlock || classification.isSubmission) {
+      const isConfirmed = Boolean(classification.isConfirmedSubmission ?? classification.isSubmission);
       const evidence = {
         reason: classification.reason,
         hostname: classification.hostname,
         pathname: classification.pathname,
         phase: submissionState.validationStarted ? 'blank-validation' : 'pre-validation',
+        confirmed: isConfirmed,
       };
-      if (submissionState.validationStarted) {
-        submissionState.observed = true;
-        submissionState.policy = 'blockedbyclient';
-        submissionState.requests.push(evidence);
-      } else {
-        submissionState.preValidationRequests.push(evidence);
+
+      if (isConfirmed) {
+        if (submissionState.validationStarted) {
+          submissionState.observed = true;
+          submissionState.policy = 'blockedbyclient';
+          submissionState.requests.push(evidence);
+        } else {
+          submissionState.preValidationRequests.push(evidence);
+        }
       }
-      // Safety invariant: the accessibility audit never permits a real contact
-      // submission, regardless of whether it happened before or after the test.
+
+      // Safety invariant: abort ANY plausible submission endpoint with blockedbyclient
+      // to guarantee that no real contact record can ever be created during the audit.
+      submissionState.policy = submissionState.policy || 'blockedbyclient';
       await route.abort('blockedbyclient');
       return;
     }

@@ -87,6 +87,10 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     sawTransient = true;
     if (cycle < maxCycles) {
+      // Some child validators disarm rollback when their own bounded attempts
+      // are exhausted. The outer orchestrator is about to continue testing, so
+      // restore rollback protection before the next cycle can discover a real
+      // deterministic defect.
       await writeRollbackState('1', name, 'outer-transient-retry');
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);

@@ -18,7 +18,7 @@ const VIEWPORT_COUNT = VIEWPORTS.length;
 // matrix several times on the same runner only multiplies the workload and keeps
 // the same network identity, so one complete matrix attempt is the correct outer
 // budget; transient-only evidence exits EX_TEMPFAIL and moves to a fresh runner.
-const maxAttempts = 1;
+const maxAttempts = Number.parseInt(process.env.BLOCK_C_MAX_ATTEMPTS || '1', 10) || 1;
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const attemptScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));

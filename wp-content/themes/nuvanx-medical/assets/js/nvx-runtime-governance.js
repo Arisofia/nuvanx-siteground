@@ -395,7 +395,9 @@
     }
 
     function enforceAccessibleIframeTitles() {
-      const iframes = document.querySelectorAll('iframe');
+      const iframes = document.querySelectorAll(
+        'iframe.hs-form-iframe, .hs-form-frame iframe, #nvx-hubspot-form iframe, #nvx-valoracion-modal iframe, iframe[src*="hsforms"], iframe[src*="hubspot"]'
+      );
       iframes.forEach(function (ifr) {
         if (!isHubSpotIframe(ifr)) return;
 

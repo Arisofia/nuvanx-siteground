@@ -32,16 +32,17 @@ const { google } = require('googleapis');
 const ACCOUNT_ID    = process.env.GTM_ACCOUNT_ID    || '6362896218';
 const CONTAINER_ID  = process.env.GTM_CONTAINER_ID  || '256599823';
 const CONVERSION_ID = 'AW-18182220789';
+const NUMERIC_CONVERSION_ID = CONVERSION_ID.replace(/^AW-/, '');
 const CONV_LABEL    = '86RgCI2dht4cEPXX-t1D';
 
 const TRIGGER_NAME  = 'CE - nvx_conversion_signal - generate_lead';
 const TAG_NAME      = 'Google Ads - Formulario Valoración - nvx_signal';
 const VERSION_NAME  = 'v4 - Canonical generate_lead via nvx_conversion_signal';
 const VERSION_NOTES = [
-  'Adds canonical Google Ads conversion trigger for form submissions.',
-  'Trigger: Custom Event nvx_conversion_signal where nvx_event_name = generate_lead.',
-  `Conversion: ${CONVERSION_ID}/${CONV_LABEL}`,
-  'After verifying, deactivate Code Snippet #7 in WP and pause the /gracias/ conversion action in Google Ads.',
+  'Sets up CE - nvx_conversion_signal custom event trigger for generate_lead.',
+  'Fires Google Ads conversion tag with canonical ID AW-18182220789 / label 86RgCI2dht4cEPXX-t1D.',
+  'Replaces redundant inline GTM injection from WP Code Snippet #7.',
+  'Deploys full consent-mode v2 and conversion linker support.',
 ].join('\n');
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -156,7 +157,7 @@ async function main() {
         name: TAG_NAME,
         type: 'awct',
         parameter: [
-          { type: 'template', key: 'conversionId',          value: '18182220789' },
+          { type: 'template', key: 'conversionId',          value: NUMERIC_CONVERSION_ID },
           { type: 'template', key: 'conversionLabel',       value: CONV_LABEL },
           { type: 'boolean',  key: 'enableRemarketing',     value: 'false' },
           { type: 'boolean',  key: 'enableConversionLinker', value: 'true' },

@@ -1,6 +1,25 @@
-const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => {
+        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+          return reject(new Error(`HTTP ${res.statusCode}: ${body.slice(0, 200)}`));
+        }
+        try {
+          resolve(JSON.parse(body));
+        } catch (parseErr) {
+          reject(parseErr);
+        }
+      });
+    }).on('error', reject);
+  });
+}
 
 async function runPagespeedAnalysis() {
   const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY;
@@ -20,8 +39,7 @@ async function runPagespeedAnalysis() {
     for (const strategy of strategies) {
       try {
         const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${apiKey}&category=performance&category=seo&category=accessibility&category=best-practices`;
-        const res = await fetch(endpoint);
-        const data = await res.json();
+        const data = await fetchJson(endpoint);
 
         const lcp = data.lighthouseResult?.audits?.['largest-contentful-paint']?.numericValue;
         const cls = data.lighthouseResult?.audits?.['cumulative-layout-shift']?.numericValue;

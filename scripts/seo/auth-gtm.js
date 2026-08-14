@@ -69,9 +69,29 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
     
     if (tokens.refresh_token) {
       console.log('✅ Refresh Token obtenido exitosamente.');
-      
-      const newExport = `\nexport GTM_REFRESH_TOKEN='${tokens.refresh_token}'\n`;
-      fs.appendFileSync(envPath, newExport);
+
+      const newExportLine = `export GTM_REFRESH_TOKEN='${tokens.refresh_token}'`;
+      let currentContent = '';
+
+      if (fs.existsSync(envPath)) {
+        currentContent = fs.readFileSync(envPath, 'utf8');
+        const lines = currentContent.split('\n');
+        const existingIndex = lines.findIndex((line) =>
+          line.trim().startsWith('export GTM_REFRESH_TOKEN=')
+        );
+
+        if (existingIndex !== -1) {
+          lines[existingIndex] = newExportLine;
+          currentContent = lines.join('\n');
+          console.log('ℹ️ GTM_REFRESH_TOKEN ya existía en .env.local; se ha actualizado su valor.');
+        } else {
+          currentContent += (currentContent.endsWith('\n') ? '' : '\n') + newExportLine + '\n';
+        }
+      } else {
+        currentContent = `${newExportLine}\n`;
+      }
+
+      fs.writeFileSync(envPath, currentContent);
       console.log(`✅ Token guardado automáticamente en ${envPath}`);
       console.log('\n¡Todo listo! Ahora ejecuta tu script original:');
       console.log('source .env.local && node scripts/seo/setup-gtm-conversion-trigger.js\n');

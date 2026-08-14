@@ -1,52 +1,41 @@
-const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
+const { createGscClient, getGscDateRanges, queryGsc } = require('./gsc-client');
 
 async function runGscAnalytics() {
   const property = 'https://nuvanx.com/';
   console.log('Consultando Google Search Console Search Analytics API para:', property);
 
-  const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
-  });
-
-  const searchconsole = google.searchconsole({ version: 'v1', auth });
+  const searchconsole = createGscClient();
+  const dates = getGscDateRanges();
 
   // 1. Top Search Queries (Últimos 30 días)
-  const queriesRes = await searchconsole.searchanalytics.query({
-    siteUrl: property,
-    requestBody: {
-      startDate: '2026-07-01',
-      endDate: '2026-08-11',
-      dimensions: ['query'],
-      rowLimit: 15
-    }
+  const topQueries = await queryGsc(searchconsole, property, {
+    startDate: dates.startDate30,
+    endDate: dates.endDate,
+    dimensions: ['query'],
+    rowLimit: 15,
   });
 
   // 2. Top Pages by Traffic
-  const pagesRes = await searchconsole.searchanalytics.query({
-    siteUrl: property,
-    requestBody: {
-      startDate: '2026-07-01',
-      endDate: '2026-08-11',
-      dimensions: ['page'],
-      rowLimit: 15
-    }
+  const topPages = await queryGsc(searchconsole, property, {
+    startDate: dates.startDate30,
+    endDate: dates.endDate,
+    dimensions: ['page'],
+    rowLimit: 15,
   });
 
   // 3. Overall Performance Summary
-  const summaryRes = await searchconsole.searchanalytics.query({
-    siteUrl: property,
-    requestBody: {
-      startDate: '2026-07-01',
-      endDate: '2026-08-11'
-    }
+  const summary = await queryGsc(searchconsole, property, {
+    startDate: dates.startDate30,
+    endDate: dates.endDate,
   });
 
   const results = {
-    summary: summaryRes.data.rows || [],
-    topQueries: queriesRes.data.rows || [],
-    topPages: pagesRes.data.rows || []
+    dateRange: { startDate: dates.startDate30, endDate: dates.endDate },
+    summary,
+    topQueries,
+    topPages,
   };
 
   console.log('\n=== GSC ANALYTICS RESULTS ===');

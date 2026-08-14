@@ -483,73 +483,84 @@ if ( $apply && class_exists( 'WP_CLI' ) ) {
 	WP_CLI::runcommand( 'db export nvx-cms-cleanup-backup-' . gmdate( 'Y-m-d-His' ) . '.sql' );
 }
 
-$q = new WP_Query(
-	array(
-		'post_type'              => array( 'page', 'post' ),
-		'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future' ),
-		'posts_per_page'         => -1,
-		'orderby'                => 'ID',
-		'order'                  => 'ASC',
-		'no_found_rows'          => true,
-		'update_post_meta_cache' => false,
-		'update_post_term_cache' => false,
-	)
-);
-
 $siteurl = (string) get_option( 'siteurl' );
 $mode    = $apply ? 'APPLY' : 'DRY-RUN';
 echo "NUVANX CMS cleanup mode={$mode} siteurl={$siteurl}\n";
 
-$scanned  = 0;
-$touched  = 0;
-$updated  = 0;
-$hit_sum  = array();
-$examples = array();
+$scanned    = 0;
+$touched    = 0;
+$updated    = 0;
+$hit_sum    = array();
+$examples   = array();
+$batch_size = 100;
+$paged      = 1;
 
-foreach ( $q->posts as $post ) {
-	if ( ! $post instanceof WP_Post ) {
-		continue;
-	}
-	++$scanned;
-	$content = (string) $post->post_content;
-	if ( '' === trim( $content ) ) {
-		continue;
-	}
-
-	$result = nvx_cms_cleanup_apply( $content );
-	if ( array() === $result['hits'] || $result['html'] === $content ) {
-		continue;
-	}
-
-	++$touched;
-	foreach ( $result['hits'] as $id => $n ) {
-		$hit_sum[ $id ] = ( $hit_sum[ $id ] ?? 0 ) + $n;
-	}
-
-	$examples[] = sprintf(
-		'ID=%d type=%s status=%s slug=%s hits=%s',
-		(int) $post->ID,
-		$post->post_type,
-		$post->post_status,
-		$post->post_name,
-		wp_json_encode( $result['hits'] )
+do {
+	$q = new WP_Query(
+		array(
+			'post_type'              => array( 'page', 'post' ),
+			'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future' ),
+			'posts_per_page'         => $batch_size,
+			'paged'                  => $paged,
+			'orderby'                => 'ID',
+			'order'                  => 'ASC',
+			'no_found_rows'          => false,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		)
 	);
 
-	if ( $apply ) {
-		$ok = wp_update_post(
-			array(
-				'ID'           => (int) $post->ID,
-				'post_content' => $result['html'],
-			),
-			true
+	if ( ! $q->have_posts() ) {
+		break;
+	}
+
+	foreach ( $q->posts as $post ) {
+		if ( ! $post instanceof WP_Post ) {
+			continue;
+		}
+		++$scanned;
+		$content = (string) $post->post_content;
+		if ( '' === trim( $content ) ) {
+			continue;
+		}
+
+		$result = nvx_cms_cleanup_apply( $content );
+		if ( array() === $result['hits'] || $result['html'] === $content ) {
+			continue;
+		}
+
+		++$touched;
+		foreach ( $result['hits'] as $id => $n ) {
+			$hit_sum[ $id ] = ( $hit_sum[ $id ] ?? 0 ) + $n;
+		}
+
+		$examples[] = sprintf(
+			'ID=%d type=%s status=%s slug=%s hits=%s',
+			(int) $post->ID,
+			$post->post_type,
+			$post->post_status,
+			$post->post_name,
+			wp_json_encode( $result['hits'] )
 		);
-		if ( is_wp_error( $ok ) ) {
-			echo 'ERROR update ID=' . (int) $post->ID . ' ' . $ok->get_error_message() . "\n";
-		} else {
-			++$updated;
+
+		if ( $apply ) {
+			$ok = wp_update_post(
+				array(
+					'ID'           => (int) $post->ID,
+					'post_content' => $result['html'],
+				),
+				true
+			);
+			if ( is_wp_error( $ok ) ) {
+				echo 'ERROR update ID=' . (int) $post->ID . ' ' . $ok->get_error_message() . "\n";
+			} else {
+				++$updated;
+			}
 		}
 	}
-}
+
+	++$paged;
+} while ( $paged <= $q->max_num_pages );
 
 echo "scanned={$scanned} dirty={$touched} updated={$updated}\n";
 echo 'hit_totals=' . wp_json_encode( $hit_sum, JSON_UNESCAPED_UNICODE ) . "\n";

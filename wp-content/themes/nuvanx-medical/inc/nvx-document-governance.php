@@ -53,42 +53,51 @@ function nvx_document_governance_get_published_post_by_slug( string $slug ): ?WP
 		return null;
 	}
 
+	$result = null;
+
+	// Try get_page_by_path first (cache-aware).
 	$post = get_page_by_path( $slug, OBJECT, 'post' );
 	if ( $post instanceof WP_Post && 'publish' === $post->post_status && $slug === $post->post_name ) {
-		return $post;
+		$result = $post;
 	}
 
-	$posts = get_posts(
-		array(
-			'name'             => $slug,
-			'post_type'        => 'post',
-			'post_status'      => 'publish',
-			'posts_per_page'   => 1,
-			'no_found_rows'    => true,
-			'suppress_filters' => true,
-		)
-	);
-	if ( ! empty( $posts ) && $posts[0] instanceof WP_Post && 'publish' === $posts[0]->post_status && $slug === $posts[0]->post_name ) {
-		return $posts[0];
-	}
-
-	global $wpdb;
-	if ( isset( $wpdb ) && $wpdb instanceof wpdb ) {
-		$post_id = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish' LIMIT 1",
-				$slug
+	// Fallback to get_posts if first attempt failed.
+	if ( null === $result ) {
+		$posts = get_posts(
+			array(
+				'name'             => $slug,
+				'post_type'        => 'post',
+				'post_status'      => 'publish',
+				'posts_per_page'   => 1,
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
 			)
 		);
-		if ( $post_id > 0 ) {
-			$found = get_post( $post_id );
-			if ( $found instanceof WP_Post && 'publish' === $found->post_status && $slug === $found->post_name ) {
-				return $found;
+		if ( ! empty( $posts ) && $posts[0] instanceof WP_Post && 'publish' === $posts[0]->post_status && $slug === $posts[0]->post_name ) {
+			$result = $posts[0];
+		}
+	}
+
+	// Final fallback to direct DB query.
+	if ( null === $result ) {
+		global $wpdb;
+		if ( isset( $wpdb ) && $wpdb instanceof wpdb ) {
+			$post_id = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish' LIMIT 1",
+					$slug
+				)
+			);
+			if ( $post_id > 0 ) {
+				$found = get_post( $post_id );
+				if ( $found instanceof WP_Post && 'publish' === $found->post_status && $slug === $found->post_name ) {
+					$result = $found;
+				}
 			}
 		}
 	}
 
-	return null;
+	return $result;
 }
 
 /**
@@ -143,26 +152,32 @@ add_filter( 'request', 'nvx_document_governance_bind_governed_blog_query', PHP_I
  * Guarantee the main query binds to the exact governed post before execution.
  */
 function nvx_document_governance_bind_blog_pre_get_posts( WP_Query $query ): void {
+	// Early exit if not applicable.
 	if ( is_admin() || ! $query->is_main_query() || ! function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
 		return;
 	}
 
 	$path = nvx_document_governance_request_path();
 	$slug = trim( $path, '/' );
+
+	// Validate slug format.
 	if ( '' === $slug || false !== strpos( $slug, '/' ) ) {
 		return;
 	}
 
+	// Check if slug is in governed catalog.
 	$catalog = nvx_seo_blog_post_metadata_catalog();
 	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
 		return;
 	}
 
+	// Resolve the exact published post.
 	$post = nvx_document_governance_get_published_post_by_slug( $slug );
 	if ( ! ( $post instanceof WP_Post ) ) {
 		return;
 	}
 
+	// Bind query to exact post.
 	$query->set( 'name', $slug );
 	$query->set( 'post_type', 'post' );
 	$query->set( 'p', (int) $post->ID );
@@ -340,17 +355,9 @@ function nvx_document_governance_production_public_url(): string {
 		return '';
 	}
 
-	if ( function_exists( 'nvx_seo_current_path' ) ) {
-		$path = nvx_seo_current_path();
-	} else {
-		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
-		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
-	}
-
-	$path = '/' . trim( (string) $path, '/' );
-	if ( '/' !== $path ) {
-		$path .= '/';
-	}
+	$path = function_exists( 'nvx_seo_current_path' )
+		? nvx_seo_current_path()
+		: nvx_document_governance_request_path();
 
 	return 'https://nuvanx.com' . $path;
 }

@@ -253,8 +253,6 @@ function nvx_single_post_rebind_query( WP_Query $query, WP_Post $exact_post, str
 	$query->query_vars['page_id']   = 0;
 
 	unset(
-		$query->query_vars['page'],
-		$query->query_vars['paged'],
 		$query->query_vars['category_name'],
 		$query->query_vars['cat'],
 		$query->query_vars['tag'],
@@ -264,5 +262,10 @@ function nvx_single_post_rebind_query( WP_Query $query, WP_Post $exact_post, str
 		$query->query_vars['author'],
 		$query->query_vars['author_name']
 	);
+
+	// Preserve page/paged for multipage articles (<!--nextpage--> support).
+	if ( isset( $query->query_vars['page'] ) ) {
+		$query->is_paged = true;
+	}
 }
 

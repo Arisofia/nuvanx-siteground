@@ -45,6 +45,53 @@ function nvx_document_governance_request_path(): string {
 }
 
 /**
+ * Bind an exact governed journal path to its published post before WP_Query runs.
+ *
+ * With a postname permalink structure WordPress may first parse a one-segment
+ * route through a verbose page rule (`pagename`). If that intermediate context
+ * survives into canonical/SEO resolution, a neighbouring singular can leak into
+ * the rendered head even though a distinct published post exists for the path.
+ * Resolve only version-governed journal slugs that have an exact published post;
+ * every other request keeps WordPress core query behaviour unchanged.
+ *
+ * @param array<string,mixed> $query_vars Parsed request query variables.
+ * @return array<string,mixed>
+ */
+function nvx_document_governance_bind_governed_blog_query( array $query_vars ): array {
+	if ( is_admin() || wp_doing_ajax() || ! function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
+		return $query_vars;
+	}
+
+	$path = nvx_document_governance_request_path();
+	$slug = trim( $path, '/' );
+	if ( '' === $slug || false !== strpos( $slug, '/' ) ) {
+		return $query_vars;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	if ( ! isset( $catalog[ $slug ] ) || ! is_array( $catalog[ $slug ] ) ) {
+		return $query_vars;
+	}
+
+	$post = get_page_by_path( $slug, OBJECT, 'post' );
+	if ( ! ( $post instanceof WP_Post ) || 'publish' !== $post->post_status || $slug !== $post->post_name ) {
+		return $query_vars;
+	}
+
+	unset(
+		$query_vars['pagename'],
+		$query_vars['page_id'],
+		$query_vars['attachment'],
+		$query_vars['attachment_id']
+	);
+	$query_vars['name']      = $slug;
+	$query_vars['post_type'] = 'post';
+
+	return $query_vars;
+}
+add_filter( 'request', 'nvx_document_governance_bind_governed_blog_query', PHP_INT_MAX );
+
+/**
  * Resolve governed journal metadata by the requested slug rather than a mutable
  * global query object. This is the final head-contract guard against a stale
  * Yoast/indexable/global-post context leaking metadata from a neighbouring post.

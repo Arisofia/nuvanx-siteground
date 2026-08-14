@@ -1,14 +1,19 @@
 import { chromium } from 'playwright';
+import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
+import { promisify } from 'node:util';
 import {
   EX_TEMPFAIL,
   isSiteGroundCaptchaInterruption,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
 
+const execFileAsync = promisify(execFile);
 const base = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const prod = 'https://nuvanx.com';
 const sha = (process.env.EXPECTED_SHA || '').trim();
+const stagingRoot = (process.env.STAGING_ROOT || '/home/customer/www/staging2.nuvanx.com/public_html').trim();
+const sshAlias = (process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2').trim();
 if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('EXPECTED_SHA must be a full 40-character SHA');
 
 const catalogUrl = new URL('../../wp-content/themes/nuvanx-medical/inc/data/seo-blog-post-metadata.json', import.meta.url);
@@ -83,23 +88,62 @@ async function disarmRollbackAfterTransientExhaustion(reason = 'transient-challe
   }
 }
 
-// The versioned catalog is the source of truth for governed journal routes.
-// Do not discover it through public wp-json: SiteGround Antibot can challenge
-// REST independently from the HTML route under test. Every catalog slug must
-// resolve as a real public article; an unpublished/missing route therefore
-// fails naturally with a non-200 response.
-const governed = Object.keys(catalog)
-  .map((slug) => String(slug || '').trim())
-  .filter(Boolean)
-  .map((slug) => ({ slug }));
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
+}
+
+async function loadPublishedStagingPosts() {
+  const command = [
+    `cd ${shellQuote(stagingRoot)}`,
+    'wp post list',
+    '--post_type=post',
+    '--post_status=publish',
+    '--posts_per_page=-1',
+    '--orderby=ID',
+    '--order=ASC',
+    '--fields=ID,post_name',
+    '--format=json',
+  ].join(' ');
+
+  try {
+    const { stdout } = await execFileAsync('ssh', ['-n', sshAlias, command], {
+      encoding: 'utf8',
+      maxBuffer: 5 * 1024 * 1024,
+      timeout: 60000,
+    });
+    const posts = JSON.parse(stdout);
+    if (!Array.isArray(posts)) throw new TypeError('WP-CLI post inventory is not an array');
+    return posts;
+  } catch (error) {
+    console.error(`GOVERNED_BLOG_HEAD=FAIL_REAL reason=wp_cli_inventory_failed error=${error.message}`);
+    await browser.close();
+    process.exit(1);
+  }
+}
+
+// Source publication state from the origin WordPress instance over the already
+// authenticated SSH channel. This avoids public wp-json, which SiteGround can
+// challenge independently of the HTML pages under test. The versioned catalog
+// remains the metadata source of truth; only routes actually published in this
+// Staging database are eligible for Staging head validation.
+const publishedPosts = await loadPublishedStagingPosts();
+const governed = publishedPosts
+  .map((post) => ({ id: Number(post.ID), slug: String(post.post_name || '').trim() }))
+  .filter((post) => post.slug && Object.hasOwn(catalog, post.slug));
 
 if (governed.length === 0) {
   await browser.close();
-  console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=no_governed_posts_in_catalog');
+  console.error('GOVERNED_BLOG_HEAD=FAIL_REAL reason=no_published_governed_posts_found');
   process.exit(1);
 }
 
-console.log(`GOVERNED_BLOG_HEAD_SOURCE=versioned-catalog routes=${governed.length}`);
+const catalogCount = Object.keys(catalog).length;
+console.log(
+  `GOVERNED_BLOG_HEAD_SOURCE=staging-wp-cli published_posts=${publishedPosts.length} governed_published=${governed.length} catalog_routes=${catalogCount}`
+);
+if (governed.length < catalogCount) {
+  console.log(`GOVERNED_BLOG_HEAD_CATALOG_NOT_PUBLISHED_IN_STAGING=${catalogCount - governed.length}`);
+}
 
 let realFailures = 0;
 let transientFailures = 0;

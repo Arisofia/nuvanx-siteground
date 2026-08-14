@@ -1,5 +1,8 @@
 import { spawnSync } from 'node:child_process';
-import { SITEGROUND_CAPTCHA_PATH } from './siteground-transient-classifier.mjs';
+import {
+  SITEGROUND_CAPTCHA_PATH,
+  SITEGROUND_TRANSIENT_HTTP_STATUSES,
+} from './siteground-transient-classifier.mjs';
 
 export { SITEGROUND_CAPTCHA_PATH };
 export const ALLOWED_ORIGIN_SSH_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
@@ -113,7 +116,7 @@ export function isBlockCTransientSiteGroundFailure(result, baseUrl) {
     blockers.length > 0 &&
     blockers.every((message) => /SiteGround Antibot challenge prevented visual validation/i.test(message)) &&
     issues.length === 0 &&
-    ([202, 429, 503].includes(status) || (typeof result.finalUrl === 'string' && result.finalUrl.includes(SITEGROUND_CAPTCHA_PATH)))
+    (SITEGROUND_TRANSIENT_HTTP_STATUSES.has(status) || (typeof result.finalUrl === 'string' && result.finalUrl.includes(SITEGROUND_CAPTCHA_PATH)))
   ) return true;
 
   if (

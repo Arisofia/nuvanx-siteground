@@ -32,8 +32,12 @@ const STAGE_EVIDENCE_MAP = {
 
 async function prepareAllStageEvidence() {
   for (const config of Object.values(STAGE_EVIDENCE_MAP)) {
-    await fs.rm(config.source, { force: true }).catch(() => {});
-    await fs.rm(config.destination, { force: true }).catch(() => {});
+    await fs.rm(config.source, { recursive: true, force: true }).catch((err) => {
+      console.warn(`STAGING_ACCEPTANCE_EVIDENCE=CLEANUP_WARN path=${config.source} error=${err instanceof Error ? err.message : String(err)}`);
+    });
+    await fs.rm(config.destination, { recursive: true, force: true }).catch((err) => {
+      console.warn(`STAGING_ACCEPTANCE_EVIDENCE=CLEANUP_WARN path=${config.destination} error=${err instanceof Error ? err.message : String(err)}`);
+    });
   }
 }
 

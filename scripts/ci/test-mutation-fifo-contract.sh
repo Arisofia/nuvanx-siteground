@@ -45,7 +45,18 @@ if [[ "${1:-}" == --paginate ]]; then
 fi
 case "${1:-}" in
   */actions/runs/42)
-    printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"in_progress","run_attempt":1}'
+    printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"in_progress","run_attempt":1,"head_sha":"0123456789abcdef0123456789abcdef01234567"}'
+    ;;
+  */actions/workflows/staging.yml/runs*)
+    branch_scenario="${TEST_BRANCH_SCENARIO:-none}"
+    case "$branch_scenario" in
+      superseded)
+        printf '%s\n' '{"workflow_runs":[{"id":43,"head_sha":"9999999999abcdef0123456789abcdef01234567","head_branch":"master","event":"push"}]}'
+        ;;
+      none|*)
+        printf '%s\n' '{"workflow_runs":[{"id":42,"head_sha":"0123456789abcdef0123456789abcdef01234567","head_branch":"master","event":"push"}]}'
+        ;;
+    esac
     ;;
   *)
     echo "unexpected gh api target: ${1:-missing}" >&2
@@ -99,4 +110,14 @@ env "${common_env[@]}" GITHUB_RUN_ATTEMPT=1 TEST_SCENARIO=transient_api_fail bas
 grep -Fq 'MUTATION_FIFO=WARN reason=api_query_failed retrying=true' "$transient_log"
 grep -Fq 'MUTATION_FIFO=PASS' "$transient_log"
 
-echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=4'
+# Case 5: Superseded push run rejection (exit 78)
+superseded_log="$TMP/superseded.log"
+set +e
+env "${common_env[@]}" GITHUB_RUN_ATTEMPT=1 MUTATION_ROLE=staging TEST_BRANCH_SCENARIO=superseded bash "$SUBJECT" >"$superseded_log" 2>&1
+superseded_rc=$?
+set -e
+[[ "$superseded_rc" -eq 78 ]]
+grep -Fq 'MUTATION_FIFO=SUPERSEDED' "$superseded_log"
+grep -Fq 'mutation=forbidden' "$superseded_log"
+
+echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=5'

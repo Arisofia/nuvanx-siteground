@@ -70,28 +70,46 @@ is_mutation_event "$current_event" || {
   exit 1
 }
 
-# A push-triggered Staging run is useful only while its push SHA is still the
-# canonical master HEAD. In an active repository, deploying every superseded
-# push serially creates a long queue and repeatedly rewinds Staging through
-# obsolete states. Reject those runs before any snapshot, SSH mutation, or
-# browser acceptance. Historical workflow_dispatch runs remain supported, and
-# Production is intentionally outside this rule because it deploys an explicitly
-# authorized candidate SHA that may differ from the authorization commit HEAD.
-if [[ "$ROLE" == 'staging' && "$current_event" == 'push' ]]; then
-  [[ "$current_head_sha" =~ ^[0-9a-f]{40}$ ]] || {
-    echo "MUTATION_FIFO=FAIL reason=invalid_current_head_sha value=$current_head_sha" >&2
-    exit 1
-  }
-  latest_master_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/master" --jq '.sha' | tr -d '[:space:]')"
-  [[ "$latest_master_sha" =~ ^[0-9a-f]{40}$ ]] || {
-    echo "MUTATION_FIFO=FAIL reason=invalid_latest_master_sha value=$latest_master_sha" >&2
-    exit 1
-  }
-  if [[ "$current_head_sha" != "$latest_master_sha" ]]; then
-    echo "MUTATION_FIFO=SUPERSEDED role=staging run_id=$CURRENT_RUN_ID head_sha=$current_head_sha latest_master_sha=$latest_master_sha mutation=forbidden" >&2
-    exit 78
+# Exit code for superseded push runs (aligned with sysexits.h EX_CONFIG / EX_TEMPFAIL convention)
+EX_SUPERSEDED=78
+DEFAULT_BRANCH="${STAGING_ACCEPTANCE_BRANCH:-${DEFAULT_BRANCH:-master}}"
+
+# A push-triggered Staging run is useful only while it is the latest mutating Staging
+# push run. In an active repository, deploying every superseded push serially creates
+# a long queue and repeatedly rewinds Staging through obsolete states. When a newer
+# push triggers a newer Staging run, older queued runs gracefully exit 78 without
+# executing any snapshot, SSH mutation, or browser acceptance. Non-triggering commits
+# (docs, configs outside paths) do not create Staging runs, so they do not supersede.
+check_for_superseding_staging_run() {
+  if [[ "$ROLE" != 'staging' || "$current_event" != 'push' ]]; then
+    return 0
   fi
-fi
+
+  local recent_runs=""
+  for attempt in 1 2 3; do
+    if recent_runs="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/staging.yml/runs?event=push&per_page=30" 2>/dev/null)"; then
+      break
+    fi
+    sleep 2
+  done
+
+  [[ -n "$recent_runs" ]] || return 0
+
+  local newer_run
+  newer_run="$(printf '%s' "$recent_runs" | jq -r --arg current_id "$CURRENT_RUN_ID" --arg branch "$DEFAULT_BRANCH" '
+    [.workflow_runs[]? | select((.id > ($current_id | tonumber)) and (.head_branch == $branch or .head_branch == null))] | first // empty | [(.id|tostring), (.head_sha // "")] | @tsv
+  ' 2>/dev/null || true)"
+
+  if [[ -n "$newer_run" ]]; then
+    IFS=$'\t' read -r newer_id newer_sha <<< "$newer_run"
+    if [[ -n "$newer_id" ]]; then
+      echo "MUTATION_FIFO=SUPERSEDED role=staging run_id=$CURRENT_RUN_ID newer_run_id=$newer_id newer_sha=$newer_sha branch=$DEFAULT_BRANCH mutation=forbidden" >&2
+      exit "$EX_SUPERSEDED"
+    fi
+  fi
+}
+
+check_for_superseding_staging_run
 
 started_epoch="$(date +%s)"
 clear_scans=0
@@ -136,6 +154,7 @@ while :; do
   if (( blocker_count == 0 )); then
     clear_scans=$((clear_scans + 1))
     if (( clear_scans >= 2 )); then
+      check_for_superseding_staging_run
       waited=$(( $(date +%s) - started_epoch ))
       echo "MUTATION_FIFO=PASS role=$ROLE run_id=$CURRENT_RUN_ID attempt=$CURRENT_RUN_ATTEMPT waited_seconds=$waited stable_scans=$clear_scans"
       exit 0

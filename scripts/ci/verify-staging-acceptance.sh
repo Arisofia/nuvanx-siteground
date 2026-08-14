@@ -13,6 +13,29 @@ command -v curl >/dev/null
 command -v jq >/dev/null
 command -v unzip >/dev/null
 
+# Production candidates must carry the zero-submit HubSpot verification contract.
+# This permanently rejects historical SHAs whose production QA filled and
+# submitted the commercial HubSpot form, even if those SHAs once had successful
+# Staging acceptance artifacts.
+candidate_hubspot_probe="$(git show "${CANDIDATE_SHA}:scripts/staging2/h1-hubspot-e2e.mjs" 2>/dev/null || true)"
+[[ -n "$candidate_hubspot_probe" ]] || {
+  echo "STAGING_ACCEPTANCE=FAIL reason=missing_zero_submit_hubspot_probe sha=$CANDIDATE_SHA" >&2
+  exit 1
+}
+printf '%s' "$candidate_hubspot_probe" | grep -Fq 'HUBSPOT_PRODUCTION_CONTRACT_MODE=ZERO_SUBMIT' || {
+  echo "STAGING_ACCEPTANCE=FAIL reason=hubspot_probe_missing_zero_submit_marker sha=$CANDIDATE_SHA" >&2
+  exit 1
+}
+printf '%s' "$candidate_hubspot_probe" | grep -Fq 'PRODUCTION_HUBSPOT_CONTRACT=PASS' || {
+  echo "STAGING_ACCEPTANCE=FAIL reason=hubspot_probe_missing_contract_marker sha=$CANDIDATE_SHA" >&2
+  exit 1
+}
+if printf '%s' "$candidate_hubspot_probe" | grep -Eqi 'nvxqa-h1-|QA H1 Attribution|wp_set_consent|\?gclid=|\.click[[:space:]]*\(|submissions/v3'; then
+  echo "STAGING_ACCEPTANCE=FAIL reason=unsafe_live_hubspot_probe sha=$CANDIDATE_SHA" >&2
+  exit 1
+fi
+echo "STAGING_ACCEPTANCE_HUBSPOT_SAFETY=PASS sha=$CANDIDATE_SHA zero_submit=1"
+
 artifact_name="staging2-block-c-${CANDIDATE_SHA}"
 api_headers=(-H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json')
 response="$(curl -fsSL --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${artifact_name}&per_page=100")"

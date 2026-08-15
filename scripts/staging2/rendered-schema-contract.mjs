@@ -18,6 +18,9 @@ const ALLOWED_MEDICAL_SPECIALTIES = new Set([
   'Rheumatologic', 'SpeechPathology', 'Surgical', 'Toxicologic', 'Urologic',
 ].map((member) => `https://schema.org/${member}`));
 
+// Runtime validation is intentionally scoped to routes that are part of the
+// published staging topology. Draft seed pages remain source-linted until they
+// are promoted to publish and therefore enter Block C/public acceptance.
 const DEFAULT_ROUTES = [
   '/',
   '/clinicas-de-medicina-estetica-nuvanx/',
@@ -29,7 +32,6 @@ const DEFAULT_ROUTES = [
   '/endolaser-corporal-grasa-localizada/',
   '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
   '/estetica-avanzada/',
-  '/labios-acido-hialuronico-madrid/',
   '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/',
 ];
 
@@ -37,7 +39,6 @@ const TREATMENT_ROUTES = new Set([
   '/endolift-facial-papada-mandibula/',
   '/endolaser-corporal-grasa-localizada/',
   '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-  '/labios-acido-hialuronico-madrid/',
 ]);
 
 function assertSafeConfig({ expectedHost, expectedSha, originSshAlias, routes }) {
@@ -66,7 +67,7 @@ function fetchOriginHtml({ route, expectedHost, originSshAlias }) {
   const remoteScript = [
     'set -Eeuo pipefail',
     'url="https://${EXPECTED_HOST}${ROUTE}"',
-    'curl -ksS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Rendered-Schema-Contract/1.0\' "$url"',
+    'curl -ksS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Rendered-Schema-Contract/1.0\' -w \'\\nNVX_HTTP_STATUS:%{http_code}\\n\' "$url"',
     '',
   ].join('\n');
   const remoteCommand = `EXPECTED_HOST=${expectedHost} ROUTE=${route} bash -se`;
@@ -79,7 +80,16 @@ function fetchOriginHtml({ route, expectedHost, originSshAlias }) {
     const diagnostic = (result.stderr || result.error?.message || `exit ${result.status}`).trim();
     throw new Error(`Origin HTML fetch failed for ${route}: ${diagnostic}`);
   }
-  return result.stdout || '';
+
+  const stdout = result.stdout || '';
+  const marker = '\nNVX_HTTP_STATUS:';
+  const markerIndex = stdout.lastIndexOf(marker);
+  if (markerIndex < 0) throw new Error(`Origin HTML fetch for ${route} did not expose an HTTP status marker`);
+  const httpStatus = Number(stdout.slice(markerIndex + marker.length).trim());
+  if (!Number.isInteger(httpStatus) || httpStatus < 100 || httpStatus > 599) {
+    throw new Error(`Origin HTML fetch for ${route} exposed invalid HTTP status: ${stdout.slice(markerIndex + marker.length).trim()}`);
+  }
+  return { html: stdout.slice(0, markerIndex), httpStatus };
 }
 
 function extractJsonLd(html, route) {
@@ -114,6 +124,21 @@ function isEventType(types) {
   return types.some((type) => type === 'Event' || type.endsWith('Event'));
 }
 
+function isMedicalProcedureType(types) {
+  const medicalProcedureTypes = new Set([
+    'MedicalProcedure',
+    'DiagnosticProcedure',
+    'PalliativeProcedure',
+    'PhysicalExam',
+    'PhysicalTherapy',
+    'PsychologicalTreatment',
+    'RadiationTherapy',
+    'SurgicalProcedure',
+    'TherapeuticProcedure',
+  ]);
+  return types.some((type) => medicalProcedureTypes.has(type));
+}
+
 function normalizeSchemaValue(value) {
   if (typeof value === 'string') return value;
   if (value && typeof value === 'object' && typeof value['@id'] === 'string') return value['@id'];
@@ -145,7 +170,7 @@ function doctoraliaUrls(value) {
   return values.map((item) => normalizeSchemaValue(item) || String(item || '')).filter((item) => /doctoralia\.es/i.test(item));
 }
 
-function validateRouteGraph({ route, html, blocks, expectedHost }) {
+function validateRouteGraph({ route, html, blocks, expectedHost, httpStatus }) {
   const issues = [];
   const warnings = [];
   const canonicalOrgId = `https://${expectedHost}/#organization`;
@@ -155,40 +180,46 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
   let canonicalOrgSeen = false;
   let treatmentDefinitionCount = 0;
 
-  for (const block of blocks) {
+  if (httpStatus !== 200) issues.push(`expected public HTTP 200, got ${httpStatus}`);
+
+  blocks.forEach((block, blockIndex) => {
     walkObjects(block, (obj, context) => {
       if (Array.isArray(obj)) return;
       const types = asTypes(obj['@type']);
       const id = typeof obj['@id'] === 'string' ? obj['@id'] : '';
+      const location = `block[${blockIndex}]${context.path}`;
 
       if (id === canonicalOrgId) canonicalOrgSeen = true;
       if (id.includes('/#/schema/organization/') || /#\/schema\/organization\//.test(id)) {
-        issues.push(`${context.path}: legacy Organization @id ${id}`);
+        issues.push(`${location}: legacy Organization @id ${id}`);
       }
 
       if (id) {
         const substantiveKeys = Object.keys(obj).filter((key) => !['@id', '@type'].includes(key));
         if (substantiveKeys.length > 0) {
           if (!substantiveDefinitions.has(id)) substantiveDefinitions.set(id, []);
-          substantiveDefinitions.get(id).push(context.path);
+          substantiveDefinitions.get(id).push(location);
         }
       }
 
       if (Object.hasOwn(obj, 'reviewedBy') && !isWebPageType(types)) {
-        issues.push(`${context.path}: reviewedBy on non-WebPage type ${types.join('|') || '(missing @type)'}`);
+        issues.push(`${location}: reviewedBy on non-WebPage type ${types.join('|') || '(missing @type)'}`);
       }
       if (Object.hasOwn(obj, 'performer') && !isEventType(types)) {
-        issues.push(`${context.path}: performer on non-Event type ${types.join('|') || '(missing @type)'}`);
+        issues.push(`${location}: performer on non-Event type ${types.join('|') || '(missing @type)'}`);
       }
       if (Object.hasOwn(obj, 'priceRange') && !types.some((type) => type === 'LocalBusiness' || type === 'MedicalClinic')) {
-        issues.push(`${context.path}: priceRange on disallowed type ${types.join('|') || '(missing @type)'}`);
+        issues.push(`${location}: priceRange on disallowed type ${types.join('|') || '(missing @type)'}`);
       }
       if (Object.hasOwn(obj, 'procedureType')) {
+        if (!isMedicalProcedureType(types)) {
+          issues.push(`${location}: procedureType on non-MedicalProcedure type ${types.join('|') || '(missing @type)'}`);
+        }
         const values = Array.isArray(obj.procedureType) ? obj.procedureType : [obj.procedureType];
         for (const rawValue of values) {
           const value = normalizeSchemaValue(rawValue);
           if (!ALLOWED_PROCEDURE_TYPES.has(value)) {
-            issues.push(`${context.path}: invalid procedureType ${value || JSON.stringify(rawValue)}`);
+            issues.push(`${location}: invalid procedureType ${value || JSON.stringify(rawValue)}`);
           }
         }
       }
@@ -197,21 +228,21 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
         for (const rawValue of values) {
           const value = normalizeSchemaValue(rawValue);
           if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
-            issues.push(`${context.path}: invalid MedicalSpecialty enum ${value || JSON.stringify(rawValue)}`);
+            issues.push(`${location}: invalid MedicalSpecialty enum ${value || JSON.stringify(rawValue)}`);
           }
         }
       }
       if (Object.hasOwn(obj, 'recognizingAuthority')) {
         const serialized = JSON.stringify(obj.recognizingAuthority);
         if (/SEME|Sociedad Española de Medicina Estética|seme\.org/i.test(serialized)) {
-          issues.push(`${context.path}: ungoverned SEME recognizingAuthority claim`);
+          issues.push(`${location}: ungoverned SEME recognizingAuthority claim`);
         }
       }
 
       if (id === canonicalOrgId) {
         const localDoctoralia = doctoraliaUrls(obj.sameAs).filter((url) => /\/clinicas\//i.test(url));
         if (localDoctoralia.length > 0) {
-          issues.push(`${context.path}: corporate Organization sameAs contains clinic Doctoralia URL(s): ${localDoctoralia.join(', ')}`);
+          issues.push(`${location}: corporate Organization sameAs contains clinic Doctoralia URL(s): ${localDoctoralia.join(', ')}`);
         }
       }
 
@@ -220,7 +251,7 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
         if (itemId.endsWith('#medical-procedure')) {
           const keys = Object.keys(obj.item);
           if (keys.length !== 1 || keys[0] !== '@id') {
-            issues.push(`${context.path}.item: treatment hub item must be reference-only @id; keys=${keys.join(',')}`);
+            issues.push(`${location}.item: treatment hub item must be reference-only @id; keys=${keys.join(',')}`);
           }
         }
       }
@@ -230,7 +261,7 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
         if (substantiveKeys.length > 0) treatmentDefinitionCount += 1;
       }
     });
-  }
+  });
 
   for (const [id, paths] of substantiveDefinitions.entries()) {
     if (paths.length > 1 && (id === canonicalOrgId || id.endsWith('#medical-procedure'))) {
@@ -265,7 +296,7 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
   }
 
   const deploySha = extractMetaContent(html, 'nvx-deploy-sha');
-  return { route, blocks: blocks.length, topLevelNodes: allTopNodes.length, deploySha, issues, warnings };
+  return { route, httpStatus, blocks: blocks.length, topLevelNodes: allTopNodes.length, deploySha, issues, warnings };
 }
 
 export async function runRenderedSchemaContract(options = {}) {
@@ -279,7 +310,7 @@ export async function runRenderedSchemaContract(options = {}) {
   await fs.mkdir(outputDir, { recursive: true });
 
   const report = {
-    schema: 1,
+    schema: 2,
     checkedAt: new Date().toISOString(),
     expectedHost,
     expectedSha,
@@ -290,20 +321,21 @@ export async function runRenderedSchemaContract(options = {}) {
 
   for (const route of routes) {
     try {
-      const html = fetchOriginHtml({ route, expectedHost, originSshAlias });
+      const { html, httpStatus } = fetchOriginHtml({ route, expectedHost, originSshAlias });
       const deploySha = extractMetaContent(html, 'nvx-deploy-sha');
       if (deploySha !== expectedSha) {
         report.issues.push(`${route}: deploy SHA mismatch meta=${deploySha || '(missing)'} expected=${expectedSha}`);
-        report.routes.push({ route, deploySha, blocks: 0, topLevelNodes: 0, issues: ['deploy SHA mismatch'], warnings: [] });
+        report.routes.push({ route, httpStatus, deploySha, blocks: 0, topLevelNodes: 0, issues: ['deploy SHA mismatch'], warnings: [] });
         continue;
       }
       const blocks = extractJsonLd(html, route);
-      const routeResult = validateRouteGraph({ route, html, blocks, expectedHost });
+      const routeResult = validateRouteGraph({ route, html, blocks, expectedHost, httpStatus });
+      if (routeResult.issues.length > 0) routeResult.diagnosticJsonLdBlocks = blocks;
       report.routes.push(routeResult);
       report.issues.push(...routeResult.issues.map((issue) => `${route}: ${issue}`));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      report.routes.push({ route, deploySha: '', blocks: 0, topLevelNodes: 0, issues: [message], warnings: [] });
+      report.routes.push({ route, httpStatus: 0, deploySha: '', blocks: 0, topLevelNodes: 0, issues: [message], warnings: [] });
       report.issues.push(`${route}: ${message}`);
     }
   }

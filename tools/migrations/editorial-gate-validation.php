@@ -14,6 +14,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/publication-contract-lib.php';
 
+/**
+ * Return only affirmative absolute-claim matches.
+ *
+ * Clinical content often explains that a treatment is NOT "sin riesgo" or NOT
+ * "100% efectivo". Those safety warnings must not be flagged as promises. A
+ * negation in the same short clause suppresses the match; sentence punctuation
+ * resets the context so a previous negation cannot hide a later positive claim.
+ *
+ * @return array<int,string>
+ */
+function nvxEditorialAffirmativeClaimMatches( string $content, string $pattern ): array {
+    $matches = array();
+    preg_match_all( $pattern, $content, $matches, PREG_OFFSET_CAPTURE );
+    if ( empty( $matches[0] ) ) {
+        return array();
+    }
+
+    $affirmative = array();
+    foreach ( $matches[0] as $match ) {
+        $text = (string) ( $match[0] ?? '' );
+        $offset = (int) ( $match[1] ?? 0 );
+        $prefix = substr( $content, max( 0, $offset - 160 ), min( 160, $offset ) );
+        $prefix = html_entity_decode( wp_strip_all_tags( (string) $prefix ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+        // A negation in the current clause turns the matched wording into a
+        // warning/limitation rather than an absolute marketing promise.
+        if ( preg_match( '/\b(?:no|nunca|jam[aá]s|tampoco|ni)\b[^.!?;:]{0,120}$/iu', $prefix ) ) {
+            continue;
+        }
+
+        $affirmative[] = $text;
+    }
+
+    return array_values( array_unique( $affirmative ) );
+}
+
 $editorialRules = array(
     'nvx_tokens' => array(
         'pattern'     => '/@nvx-[a-z0-9_:-]+/i',
@@ -89,14 +125,13 @@ foreach ( $ids as $postId ) {
     }
 
     foreach ( $blockedClaimPatterns as $pattern => $label ) {
-        $matches = array();
-        preg_match_all( $pattern, $content, $matches );
-        if ( ! empty( $matches[0] ) ) {
+        $matches = nvxEditorialAffirmativeClaimMatches( $content, $pattern );
+        if ( ! empty( $matches ) ) {
             $errors[] = array(
                 'rule'        => 'blocked_claim',
-                'description' => 'Blocked absolute marketing/clinical claim',
-                'matches'     => array_values( array_unique( array_slice( $matches[0], 0, 5 ) ) ),
-                'count'       => count( $matches[0] ),
+                'description' => 'Blocked affirmative absolute marketing/clinical claim',
+                'matches'     => array_slice( $matches, 0, 5 ),
+                'count'       => count( $matches ),
                 'label'       => $label,
             );
         }

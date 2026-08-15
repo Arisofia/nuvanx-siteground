@@ -69,21 +69,32 @@ class wpdb {
 
 	public function get_row( string $query ) {
 		unset( $query );
+		$GLOBALS['nvx_test_db_row_calls']++;
 		return $GLOBALS['nvx_test_db_row'] ?? null;
 	}
 }
 
 function clean_post_cache( $post_id ) {
-	// Cache repair function for production implementation
+	$GLOBALS['nvx_test_clean_post_cache_calls'][] = (int) $post_id;
 }
 
 function wp_cache_set( $key, $value, $group ) {
-	// Cache repair function for production implementation
+	$GLOBALS['nvx_test_wp_cache_set_calls'][] = array(
+		'key'   => (int) $key,
+		'value' => $value,
+		'group' => (string) $group,
+	);
+	return true;
 }
 
 $GLOBALS['nvx_test_path'] = '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/';
 $GLOBALS['nvx_test_404']  = true;
 $GLOBALS['nvx_test_poison_cache'] = false;
+$GLOBALS['nvx_test_page_by_path_calls'] = 0;
+$GLOBALS['nvx_test_get_posts_calls'] = 0;
+$GLOBALS['nvx_test_db_row_calls'] = 0;
+$GLOBALS['nvx_test_clean_post_cache_calls'] = array();
+$GLOBALS['nvx_test_wp_cache_set_calls'] = array();
 $GLOBALS['nvx_test_posts'] = array(
 	'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' => new WP_Post( 3310, 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' ),
 	'matriz-diagnostico-facial-estructura-piel-musculo-grasa'   => new WP_Post( 3334, 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' ),
@@ -113,12 +124,16 @@ function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $compon
 function home_url( $path = '' ) { return 'https://nuvanx.com' . $path; }
 function sanitize_title( $value ) { return strtolower( trim( (string) $value ) ); }
 function get_page_by_path( $slug ) {
+	$GLOBALS['nvx_test_page_by_path_calls']++;
 	if ( ! empty( $GLOBALS['nvx_test_poison_cache'] ) ) {
 		return $GLOBALS['nvx_test_posts']['tratamientos-faciales-sin-cirugia-guia-medica-diagnostico'];
 	}
 	return $GLOBALS['nvx_test_posts'][ $slug ] ?? null;
 }
-function get_posts() { return array(); }
+function get_posts() {
+	$GLOBALS['nvx_test_get_posts_calls']++;
+	return array();
+}
 function get_post( $post_id ) {
 	if ( ! empty( $GLOBALS['nvx_test_poison_cache'] ) ) {
 		return $GLOBALS['nvx_test_posts']['tratamientos-faciales-sin-cirugia-guia-medica-diagnostico'];
@@ -142,6 +157,58 @@ function nvx_seo_blog_post_metadata_catalog() {
 }
 
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php';
+
+// Exercise the DB-authoritative fallback before any successful lookup can be
+// memoized. Both cache-aware lookup layers deliberately fail for the matrix:
+// get_page_by_path() returns neighbouring post 3310 and get_posts() is empty.
+$GLOBALS['nvx_test_poison_cache'] = true;
+$resolved = nvx_document_governance_get_published_post_by_slug(
+	'matriz-diagnostico-facial-estructura-piel-musculo-grasa'
+);
+$GLOBALS['nvx_test_poison_cache'] = false;
+
+$cache_set_call = $GLOBALS['nvx_test_wp_cache_set_calls'][0] ?? null;
+if ( ! ( $resolved instanceof WP_Post )
+	|| 3334 !== $resolved->ID
+	|| 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' !== $resolved->post_name
+	|| 1 !== $GLOBALS['nvx_test_page_by_path_calls']
+	|| 1 !== $GLOBALS['nvx_test_get_posts_calls']
+	|| 1 !== $GLOBALS['nvx_test_db_row_calls']
+	|| array( 3334 ) !== $GLOBALS['nvx_test_clean_post_cache_calls']
+	|| ! is_array( $cache_set_call )
+	|| 3334 !== ( $cache_set_call['key'] ?? 0 )
+	|| 'posts' !== ( $cache_set_call['group'] ?? '' )
+	|| ! ( ( $cache_set_call['value'] ?? null ) instanceof WP_Post )
+	|| 3334 !== ( $cache_set_call['value']->ID ?? 0 ) ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_DB_AUTHORITATIVE_FALLBACK=FAIL' . PHP_EOL );
+	exit( 1 );
+}
+
+// A second resolution in the same request must use memoization and therefore
+// must not repeat any cache-aware lookup, SQL query, or cache-repair write.
+$lookup_counts_before_memo = array(
+	'page_by_path' => $GLOBALS['nvx_test_page_by_path_calls'],
+	'get_posts'    => $GLOBALS['nvx_test_get_posts_calls'],
+	'db_row'       => $GLOBALS['nvx_test_db_row_calls'],
+	'clean'        => count( $GLOBALS['nvx_test_clean_post_cache_calls'] ),
+	'cache_set'    => count( $GLOBALS['nvx_test_wp_cache_set_calls'] ),
+);
+$resolved_memoized = nvx_document_governance_get_published_post_by_slug(
+	'matriz-diagnostico-facial-estructura-piel-musculo-grasa'
+);
+$lookup_counts_after_memo = array(
+	'page_by_path' => $GLOBALS['nvx_test_page_by_path_calls'],
+	'get_posts'    => $GLOBALS['nvx_test_get_posts_calls'],
+	'db_row'       => $GLOBALS['nvx_test_db_row_calls'],
+	'clean'        => count( $GLOBALS['nvx_test_clean_post_cache_calls'] ),
+	'cache_set'    => count( $GLOBALS['nvx_test_wp_cache_set_calls'] ),
+);
+if ( ! ( $resolved_memoized instanceof WP_Post )
+	|| 3334 !== $resolved_memoized->ID
+	|| $lookup_counts_before_memo !== $lookup_counts_after_memo ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_REQUEST_MEMOIZATION=FAIL' . PHP_EOL );
+	exit( 1 );
+}
 
 $title = nvx_document_governance_governed_blog_title( 'Wrong neighbouring title' );
 $canonical = nvx_document_governance_canonical_url();
@@ -167,22 +234,6 @@ if ( 3334 !== $query->get( 'p' )
 	exit( 1 );
 }
 
-// The last resolver layer must not re-enter get_post() after a direct SQL hit.
-// Simulate a poisoned persistent object cache that maps the requested matrix
-// route to neighbouring post 3310 while the database row itself is correct.
-$GLOBALS['nvx_test_poison_cache'] = true;
-$resolved = nvx_document_governance_get_published_post_by_slug(
-	'matriz-diagnostico-facial-estructura-piel-musculo-grasa'
-);
-$GLOBALS['nvx_test_poison_cache'] = false;
-
-if ( ! ( $resolved instanceof WP_Post )
-	|| 3334 !== $resolved->ID
-	|| 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' !== $resolved->post_name ) {
-	fwrite( STDERR, 'GOVERNED_BLOG_DB_AUTHORITATIVE_FALLBACK=FAIL' . PHP_EOL );
-	exit( 1 );
-}
-
 // The final single-post entrypoint must resolve the real public path before it
 // ever falls back to a potentially stale WP_Query name.
 $single_entrypoint = file_get_contents( dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/single-post.php' );
@@ -193,5 +244,6 @@ if ( false === $request_path_pos || false === $query_name_pos || $request_path_p
 	exit( 1 );
 }
 
-echo 'GOVERNED_BLOG_DB_AUTHORITATIVE_FALLBACK=PASS requested_post=3334 poisoned_cache_post=3310' . PHP_EOL;
+echo 'GOVERNED_BLOG_DB_AUTHORITATIVE_FALLBACK=PASS requested_post=3334 poisoned_cache_post=3310 cache_repair=posts:3334' . PHP_EOL;
+echo 'GOVERNED_BLOG_REQUEST_MEMOIZATION=PASS lookups_after_first_resolution=0' . PHP_EOL;
 echo 'GOVERNED_BLOG_STALE_CONTEXT=PASS requested_post=3334 neighbouring_post=3310 path_authority=REQUEST_URI' . PHP_EOL;

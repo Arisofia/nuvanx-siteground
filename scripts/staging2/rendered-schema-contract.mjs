@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { DEFAULT_ROUTES } from './shared-routes.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const ALLOWED_ORIGIN_SSH_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
@@ -21,19 +22,6 @@ const ALLOWED_MEDICAL_SPECIALTIES = new Set([
 // Runtime validation is intentionally scoped to routes that are part of the
 // published staging topology. Draft seed pages remain source-linted until they
 // are promoted to publish and therefore enter Block C/public acceptance.
-const DEFAULT_ROUTES = [
-  '/',
-  '/clinicas-de-medicina-estetica-nuvanx/',
-  '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-  '/medicina-estetica-chamberi/',
-  '/equipo-medico/',
-  '/tratamientos/',
-  '/endolift-facial-papada-mandibula/',
-  '/endolaser-corporal-grasa-localizada/',
-  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-  '/estetica-avanzada/',
-  '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/',
-];
 
 const TREATMENT_ROUTES = new Set([
   '/endolift-facial-papada-mandibula/',

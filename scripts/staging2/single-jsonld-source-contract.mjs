@@ -1,23 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { DEFAULT_ROUTES } from './shared-routes.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const ALLOWED_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
-
-const DEFAULT_ROUTES = [
-  '/',
-  '/clinicas-de-medicina-estetica-nuvanx/',
-  '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-  '/medicina-estetica-chamberi/',
-  '/equipo-medico/',
-  '/tratamientos/',
-  '/endolift-facial-papada-mandibula/',
-  '/endolaser-corporal-grasa-localizada/',
-  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-  '/estetica-avanzada/',
-  '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/',
-];
 
 function assertConfig(host, sha, alias) {
   if (!/^[a-z0-9.-]+$/.test(host)) throw new Error('EXPECTED_HOST contains unsupported characters');

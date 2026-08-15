@@ -417,7 +417,10 @@ if (realFailure) {
 
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    await fs.appendFile(process.env.GITHUB_ENV, 'BLOCK_A11Y_TRANSIENT=1\n', 'utf8').catch(() => {});
+    await fs.appendFile(process.env.GITHUB_ENV, 'BLOCK_A11Y_TRANSIENT=1\n', 'utf8').catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to append to GITHUB_ENV: ${message}`);
+    });
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
@@ -427,7 +430,10 @@ if (transientExhausted) {
       '- No production-eligible completion marker is allowed.',
       '',
     ].join('\n');
-    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch(() => {});
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`Failed to append to GITHUB_STEP_SUMMARY: ${message}`);
+    });
   }
   console.error('BLOCK_A11Y=TRANSIENT_ONLY');
   process.exit(EX_TEMPFAIL);

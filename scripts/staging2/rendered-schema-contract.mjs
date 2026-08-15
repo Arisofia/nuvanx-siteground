@@ -18,64 +18,10 @@ const ALLOWED_MEDICAL_SPECIALTIES = new Set([
   'Rheumatologic', 'SpeechPathology', 'Surgical', 'Toxicologic', 'Urologic',
 ].map((member) => `https://schema.org/${member}`));
 
-// Transient error patterns that should trigger EX_TEMPFAIL (75) rather than hard failure
-const TRANSIENT_ERROR_PATTERNS = [
-  /connection refused/i,
-  /connection timed out/i,
-  /no route to host/i,
-  /network is unreachable/i,
-  /host key verification failed/i,
-  /permission denied/i,
-  /ssh.*error/i,
-  /curl.*error/i,
-  /timeout/i,
-  /antibot/i,
-  /captcha/i,
-  /challenge/i,
-  /siteground/i,
-  /403\s*forbidden/i,
-  /502\s*bad gateway/i,
-  /503\s*service unavailable/i,
-  /504\s*gateway timeout/i,
-];
-
-function isTransientError(message) {
-  return TRANSIENT_ERROR_PATTERNS.some(pattern => pattern.test(message));
-}
-
-function classifyError(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (isTransientError(message)) {
-    return { type: 'transient', message };
-  }
-  return { type: 'semantic', message };
-}
-
-// Transient error patterns that should trigger EX_TEMPFAIL (75) rather than hard failure
-const TRANSIENT_ERROR_PATTERNS = [
-  /connection refused/i,
-  /connection timed out/i,
-  /no route to host/i,
-  /network is unreachable/i,
-  /host key verification failed/i,
-  /permission denied/i,
-  /ssh.*error/i,
-  /curl.*error/i,
-  /timeout/i,
-  /antibot/i,
-  /captcha/i,
-  /challenge/i,
-  /siteground/i,
-  /403\s*forbidden/i,
-  /502\s*bad gateway/i,
-  /503\s*service unavailable/i,
-  /504\s*gateway timeout/i,
-];
-
 // Runtime validation is intentionally scoped to routes that are part of the
 // published staging topology. Draft seed pages remain source-linted until they
 // are promoted to publish and therefore enter Block C/public acceptance.
-export const DEFAULT_ROUTES = [
+const DEFAULT_ROUTES = [
   '/',
   '/clinicas-de-medicina-estetica-nuvanx/',
   '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
@@ -148,25 +94,17 @@ function fetchOriginHtml({ route, expectedHost, originSshAlias }) {
 
 function extractJsonLd(html, route) {
   const blocks = [];
-  // Match <script> tags with any attributes, capturing both attributes and body
-  // [\s\S]*? is non-greedy to avoid performance issues on large pages
-  const scriptRe = /<script\b([^>]*)>([\s\S]{0,32768}?)<\/script>/gi;
+  const scriptRe = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = scriptRe.exec(html)) !== null) {
     const attrs = match[1] || '';
-    // Check for type="application/ld+json" with flexible quote handling
-    // Supports: type="application/ld+json", type='application/ld+json', and variations with whitespace
-    if (!/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(attrs)) continue;
+    if (!/\btype\s*=\s*["']application\/ld\+json["']/i.test(attrs)) continue;
     const raw = (match[2] || '').trim();
     if (!raw) continue;
     try {
       blocks.push(JSON.parse(raw));
     } catch (error) {
-      // Don't throw on malformed JSON-LD - record it as a block-level issue
-      blocks.push({
-        _parseError: `Invalid JSON-LD: ${error.message}`,
-        _rawContent: raw.substring(0, 200),
-      });
+      throw new Error(`Invalid JSON-LD on ${route}: ${error.message}`);
     }
   }
   if (blocks.length === 0) throw new Error(`No application/ld+json blocks rendered on ${route}`);
@@ -396,15 +334,9 @@ export async function runRenderedSchemaContract(options = {}) {
       report.routes.push(routeResult);
       report.issues.push(...routeResult.issues.map((issue) => `${route}: ${issue}`));
     } catch (error) {
-      const classification = classifyError(error);
-      if (classification.type === 'transient') {
-        report.issues.push(`${route}: TRANSIENT ${classification.message}`);
-        report.routes.push({ route, httpStatus: 0, deploySha: '', blocks: 0, topLevelNodes: 0, issues: [classification.message], warnings: [], transient: true });
-      } else {
-        const message = error instanceof Error ? error.message : String(error);
-        report.routes.push({ route, httpStatus: 0, deploySha: '', blocks: 0, topLevelNodes: 0, issues: [message], warnings: [] });
-        report.issues.push(`${route}: ${message}`);
-      }
+      const message = error instanceof Error ? error.message : String(error);
+      report.routes.push({ route, httpStatus: 0, deploySha: '', blocks: 0, topLevelNodes: 0, issues: [message], warnings: [] });
+      report.issues.push(`${route}: ${message}`);
     }
   }
 

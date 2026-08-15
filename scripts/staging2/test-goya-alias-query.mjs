@@ -6,7 +6,6 @@ import {
 } from './siteground-transient-classifier.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
-import { runJsonLdStorageDiagnostic } from './jsonld-storage-diagnostic.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
 assert.ok(base.startsWith('https://'), 'STAGING_URL must be HTTPS');
@@ -94,40 +93,11 @@ console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
 
-const renderedOptions = {
+const runtimeOptions = {
   expectedHost: new URL(base).hostname,
   expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
   originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
 };
 
-try {
-  await runRenderedSchemaContract(renderedOptions);
-  await runSingleJsonLdSourceContract(renderedOptions);
-} catch (error) {
-  // Distinguish between configuration errors and semantic contract failures
-  const isConfigError = error.message?.includes('Expected deploy SHA') ||
-                        error.message?.includes('STAGING_ROOT') ||
-                        error.message?.includes('unsafe') ||
-                        error.message?.includes('missing');
-  const failureReason = isConfigError ? 'config-validation-failure' : 'rendered-contract-failure';
-  console.error(`RENDERED_SCHEMA_FORENSICS=START reason=${failureReason}`);
-  try {
-    const diagnostic = await runJsonLdStorageDiagnostic({
-      originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
-    });
-    // Use RAN/NO_EVIDENCE instead of PASS when no evidence was found
-    const hasEvidence = (diagnostic.report?.core_matches ?? 0) > 0 ||
-                       (diagnostic.report?.custom_columns ?? 0) > 0 ||
-                       (diagnostic.report?.runtime_emitters ?? 0) > 0;
-    const forensicStatus = hasEvidence ? 'PASS' : 'RAN_NO_EVIDENCE';
-    console.error(
-      `RENDERED_SCHEMA_FORENSICS=${forensicStatus} ` +
-      `core_matches=${diagnostic.report?.core_matches ?? 'unknown'} ` +
-      `custom_columns=${diagnostic.report?.custom_columns ?? 'unknown'} ` +
-      `runtime_emitters=${diagnostic.report?.runtime_emitters ?? 'unknown'}`,
-    );
-  } catch (diagnosticError) {
-    console.error(`RENDERED_SCHEMA_FORENSICS=UNAVAILABLE reason=${String(diagnosticError?.message || diagnosticError).replace(/\s+/g, '_').slice(0, 500)}`);
-  }
-  throw error;
-}
+await runRenderedSchemaContract(runtimeOptions);
+await runSingleJsonLdSourceContract(runtimeOptions);

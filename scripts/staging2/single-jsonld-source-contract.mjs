@@ -1,10 +1,23 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { DEFAULT_ROUTES } from './rendered-schema-contract.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const ALLOWED_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
+
+const DEFAULT_ROUTES = [
+  '/',
+  '/clinicas-de-medicina-estetica-nuvanx/',
+  '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+  '/medicina-estetica-chamberi/',
+  '/equipo-medico/',
+  '/tratamientos/',
+  '/endolift-facial-papada-mandibula/',
+  '/endolaser-corporal-grasa-localizada/',
+  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+  '/estetica-avanzada/',
+  '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/',
+];
 
 function assertConfig(host, sha, alias) {
   if (!/^[a-z0-9.-]+$/.test(host)) throw new Error('EXPECTED_HOST contains unsupported characters');
@@ -38,7 +51,6 @@ function fetchOriginHtml(route, host, alias) {
   if (httpStatus !== 200) {
     throw new Error(`Origin fetch failed for ${route}: expected HTTP 200, got ${httpStatus}`);
   }
-  // Remove the status marker from the HTML
   const markerIndex = stdout.lastIndexOf('NVX_HTTP_STATUS:');
   return markerIndex > 0 ? stdout.slice(0, markerIndex).trim() : stdout;
 }
@@ -60,9 +72,7 @@ function jsonLdBlocks(html) {
   while ((match = regex.exec(html)) !== null) {
     if (/\btype\s*=\s*["']application\/ld\+json["']/i.test(match[1] || '')) {
       const content = (match[2] || '').trim();
-      if (content) {
-        blocks.push(content);
-      }
+      if (content) blocks.push(content);
     }
   }
   return blocks;

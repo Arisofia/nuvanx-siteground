@@ -8,6 +8,7 @@ import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
 import { runJsonLdStorageDiagnostic } from './jsonld-storage-diagnostic.mjs';
 import { runPublicationManifestContract } from './test-publication-manifest-contract.mjs';
+import { runEditorialGateContract } from './test-editorial-gate-contract.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
 assert.ok(base.startsWith('https://'), 'STAGING_URL must be HTTPS');
@@ -107,6 +108,9 @@ try {
 
   // Run publication manifest contract to validate topology
   await runPublicationManifestContract(runtimeOptions);
+
+  // Run editorial gate contract to validate content standards
+  await runEditorialGateContract(runtimeOptions);
 } catch (error) {
   // Distinguish between configuration errors and semantic contract failures
   const isConfigError = error.message?.includes('Expected deploy SHA') ||

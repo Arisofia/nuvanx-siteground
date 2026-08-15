@@ -73,7 +73,8 @@ function jsonLdBlocks(html) {
   const regex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = regex.exec(html)) !== null) {
-    if (/\btype\s*=\s*["']application\/ld\+json["']/i.test(match[1] || '')) {
+    // Match type attribute with optional quotes to align with rendered-schema-contract.mjs and content-hygiene PCRE
+    if (/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(match[1] || '')) {
       const content = (match[2] || '').trim();
       if (content) blocks.push(content);
     }

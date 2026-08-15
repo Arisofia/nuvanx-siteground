@@ -4,19 +4,26 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
   SITEGROUND_CAPTCHA_PATH,
-  SITEGROUND_TRANSIENT_HTTP_STATUSES,
   EX_TEMPFAIL,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
+import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const expectedHost = new URL(baseUrl).hostname;
 const maxAttempts = 3;
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('BLOCK_A11Y=FAIL_REAL reason=EXPECTED_SHA_must_be_40_hex');
   process.exit(1);
 }
+if (expectedHost !== 'staging2.nuvanx.com') {
+  console.error(`BLOCK_A11Y=FAIL_REAL reason=unexpected_host host=${expectedHost}`);
+  process.exit(1);
+}
+
+const originVerifier = createSiteGroundOriginVerifier({ expectedHost, expectedSha });
 
 const viewports = [
   { key: 'desktop', width: 1440, height: 1100 },
@@ -27,7 +34,6 @@ const viewports = [
 const outDir = path.resolve('scripts/staging2/block-a11y-artifacts');
 await fs.mkdir(outDir, { recursive: true });
 
-// Critical routes to audit for accessibility
 const criticalRoutes = [
   '/',
   '/politica-privacidad/',
@@ -39,14 +45,11 @@ const criticalRoutes = [
   '/madrid/valoracion/',
 ];
 
-// WCAG 2.1 Level AA tags to enforce
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-
-// Disable rules that are handled by other checks or are false positives
 const disabledRules = [
-  'color-contrast', // Handled by dedicated contrast checks
-  'skip-link', // May be acceptable for certain layouts
-  'region', // May have valid single-page layouts
+  'color-contrast',
+  'skip-link',
+  'region',
 ];
 
 async function handleCookieConsent(page) {
@@ -129,11 +132,68 @@ async function runA11yAudit(page, route, viewport) {
   };
 }
 
-async function validateRoute(context, route, viewport, attempt) {
+async function installOriginDocumentFallback(page, route) {
+  if (!originVerifier.isAvailable()) {
+    return { pass: false, transient: true, reason: 'SiteGround origin SSH unavailable' };
+  }
+
+  const origin = originVerifier.fetchHtml(route);
+  if (!origin.pass) {
+    const details = origin.stderr || origin.error || `origin status ${origin.originStatus ?? 0}`;
+    return {
+      pass: false,
+      transient: origin.transportFailure === true,
+      reason: `Origin HTML verification failed: ${details}`,
+    };
+  }
+  if (origin.originStatus !== 200 || origin.originDeploySha !== expectedSha || !origin.html) {
+    return {
+      pass: false,
+      transient: false,
+      reason: `Origin HTML contract mismatch: status=${origin.originStatus ?? 0} sha=${origin.originDeploySha || 'missing'} bytes=${Buffer.byteLength(origin.html || '', 'utf8')}`,
+    };
+  }
+
+  const targetUrl = `${baseUrl}${route}`;
+  await page.route(targetUrl, async (routeHandle) => {
+    if (!routeHandle.request().isNavigationRequest()) {
+      await routeHandle.continue();
+      return;
+    }
+    await routeHandle.fulfill({
+      status: 200,
+      contentType: 'text/html; charset=utf-8',
+      headers: {
+        'cache-control': 'no-store',
+        'x-nvx-validation-transport': 'siteground-origin-document',
+      },
+      body: origin.html,
+    });
+  }, { times: 1 });
+
+  return { pass: true, transient: false, origin };
+}
+
+async function validateRoute(context, route, viewport, attempt, { useOriginDocument = false } = {}) {
   const page = await context.newPage();
   const url = `${baseUrl}${route}`;
+  let originFallback = null;
 
   try {
+    if (useOriginDocument) {
+      originFallback = await installOriginDocumentFallback(page, route);
+      if (!originFallback.pass) {
+        return {
+          transient: originFallback.transient,
+          route,
+          viewport,
+          attempt,
+          validationTransport: 'siteground-origin-document',
+          reason: originFallback.reason,
+        };
+      }
+    }
+
     let response = null;
     let navError = null;
 
@@ -147,7 +207,7 @@ async function validateRoute(context, route, viewport, attempt) {
 
     if (navError) {
       const navMessage = navError instanceof Error ? navError.message : String(navError);
-      if (currentUrl.includes(SITEGROUND_CAPTCHA_PATH)) {
+      if (!useOriginDocument && currentUrl.includes(SITEGROUND_CAPTCHA_PATH)) {
         return {
           transient: true,
           route,
@@ -157,24 +217,26 @@ async function validateRoute(context, route, viewport, attempt) {
         };
       }
       return {
-        transient: false,
+        transient: useOriginDocument ? false : true,
         route,
         viewport,
         attempt,
+        validationTransport: useOriginDocument ? 'siteground-origin-document' : 'public-edge',
         reason: `Navigation failed: ${navMessage}`,
       };
     }
 
     const headers = response ? await response.allHeaders() : {};
     const status = response?.status() || 0;
-    const isTransientStatus = isSiteGroundTransientResponse(status, headers, currentUrl);
+    const isTransientStatus = !useOriginDocument && isSiteGroundTransientResponse(status, headers, currentUrl);
 
-    if (currentUrl.includes(SITEGROUND_CAPTCHA_PATH) || isTransientStatus) {
+    if (!useOriginDocument && (currentUrl.includes(SITEGROUND_CAPTCHA_PATH) || isTransientStatus)) {
       return {
         transient: true,
         route,
         viewport,
         attempt,
+        validationTransport: 'public-edge',
         reason: `SiteGround transient response: HTTP ${status}`,
       };
     }
@@ -185,11 +247,11 @@ async function validateRoute(context, route, viewport, attempt) {
         route,
         viewport,
         attempt,
+        validationTransport: useOriginDocument ? 'siteground-origin-document' : 'public-edge',
         reason: `Expected HTTP 200, got ${status}`,
       };
     }
 
-    // Verify deployment SHA
     const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
     if (metaSha !== expectedSha) {
       return {
@@ -197,18 +259,15 @@ async function validateRoute(context, route, viewport, attempt) {
         route,
         viewport,
         attempt,
+        validationTransport: useOriginDocument ? 'siteground-origin-document' : 'public-edge',
         reason: `SHA mismatch: ${metaSha || 'missing'} != ${expectedSha}`,
       };
     }
 
-    // Handle cookie consent and wait for stability
     await handleCookieConsent(page);
     await waitForVisualStability(page);
 
-    // Check Complianz anchors for unreplaced template tokens
     const complianzIssues = await checkComplianzAnchors(page);
-
-    // Run axe-core audit
     const a11yResults = await runA11yAudit(page, route, viewport);
 
     return {
@@ -216,6 +275,10 @@ async function validateRoute(context, route, viewport, attempt) {
       route,
       viewport,
       attempt,
+      validationTransport: useOriginDocument ? 'siteground-origin-document' : 'public-edge',
+      originVerified: useOriginDocument,
+      originStatus: useOriginDocument ? originFallback?.origin?.originStatus : undefined,
+      originDeploySha: useOriginDocument ? originFallback?.origin?.originDeploySha : undefined,
       complianzIssues,
       ...a11yResults,
     };
@@ -249,15 +312,23 @@ async function runViewport(browser, viewport) {
             await new Promise((resolve) => setTimeout(resolve, backoff));
             continue;
           }
+
+          console.warn(`BLOCK_A11Y_ORIGIN_FALLBACK=ATTEMPT route=${route} viewport=${viewport.key} public_attempts=${maxAttempts}`);
+          const originResult = await validateRoute(context, route, viewport, attempt, { useOriginDocument: true });
+          if (!originResult.transient && !originResult.reason) {
+            console.log(`BLOCK_A11Y_ORIGIN_FALLBACK=PASS route=${route} viewport=${viewport.key} sha=${originResult.originDeploySha}`);
+          } else {
+            console.warn(`BLOCK_A11Y_ORIGIN_FALLBACK=${originResult.transient ? 'TRANSIENT' : 'FAIL_REAL'} route=${route} viewport=${viewport.key} reason=${originResult.reason || 'unknown'}`);
+          }
+          finalResult = originResult;
+          break;
         }
 
         finalResult = result;
         break;
       }
 
-      if (finalResult) {
-        results.push(finalResult);
-      }
+      if (finalResult) results.push(finalResult);
     }
 
     return results;
@@ -279,7 +350,7 @@ try {
     for (const result of viewportResults) {
       if (result.transient) {
         transientExhausted = true;
-      } else if (result.reason && !result.totalViolations) {
+      } else if (result.reason && result.totalViolations === undefined) {
         realFailure = true;
       } else if (result.criticalViolations > 0 || result.moderateViolations > 5 || result.complianzIssues?.length > 0) {
         realFailure = true;
@@ -295,7 +366,6 @@ try {
   }
 }
 
-// Report results
 for (const result of allResults) {
   if (result.transient) {
     console.warn(`TRANSIENT route=${result.route} viewport=${result.viewport.key} reason=${result.reason}`);
@@ -306,9 +376,7 @@ for (const result of allResults) {
       console.error(`CRITICAL route=${result.route} viewport=${result.viewport.key} violations=${result.criticalViolations}`);
       for (const v of result.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')) {
         console.error(`  ${v.id}: ${v.help}`);
-        for (const node of v.nodes) {
-          console.error(`    Target: ${node.target.join(', ')}`);
-        }
+        for (const node of v.nodes) console.error(`    Target: ${node.target.join(', ')}`);
       }
     }
     if (result.moderateViolations > 5) {
@@ -316,12 +384,10 @@ for (const result of allResults) {
     }
     if (result.complianzIssues?.length > 0) {
       console.error(`COMPLIANZ route=${result.route} viewport=${result.viewport.key} issues=${result.complianzIssues.length}`);
-      for (const issue of result.complianzIssues) {
-        console.error(`  ${issue}`);
-      }
+      for (const issue of result.complianzIssues) console.error(`  ${issue}`);
     }
     if (result.criticalViolations === 0 && result.moderateViolations <= 5 && (!result.complianzIssues || result.complianzIssues.length === 0)) {
-      console.log(`PASS route=${result.route} viewport=${result.viewport.key} violations=${result.totalViolations}`);
+      console.log(`PASS route=${result.route} viewport=${result.viewport.key} violations=${result.totalViolations} transport=${result.validationTransport || 'public-edge'}`);
     }
   }
 }
@@ -331,21 +397,19 @@ if (realFailure) {
     const summary = [
       '',
       '### ❌ Block A11y — Real Failure',
-      '> **Accessibility audit found critical or moderate violations:**',
+      '> **Accessibility audit found a real application failure:**',
       ...allResults
-        .filter((r) => !r.transient && (r.criticalViolations > 0 || r.moderateViolations > 5 || r.complianzIssues?.length > 0))
+        .filter((r) => !r.transient && (r.reason || r.criticalViolations > 0 || r.moderateViolations > 5 || r.complianzIssues?.length > 0))
         .flatMap((r) => [
-          `- **Route:** \`${r.route}\` | **Viewport:** \`${r.viewport.key}\``,
+          `- **Route:** \`${r.route}\` | **Viewport:** \`${r.viewport.key}\` | **Transport:** \`${r.validationTransport || 'public-edge'}\``,
+          ...(r.reason ? [`  - 🔴 ${r.reason}`] : []),
           ...(r.criticalViolations > 0 ? [`  - 🔴 Critical violations: ${r.criticalViolations}`] : []),
           ...(r.moderateViolations > 5 ? [`  - 🟡 Moderate violations: ${r.moderateViolations}`] : []),
           ...(r.complianzIssues?.length > 0 ? [`  - 🔴 Complianz issues: ${r.complianzIssues.length}`] : []),
         ]),
       '',
     ].join('\n');
-    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
-      const message = err instanceof Error ? err.message : String(err);
-      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
-    });
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch(() => {});
   }
   console.error('BLOCK_A11Y=FAIL_REAL');
   process.exit(1);
@@ -353,23 +417,17 @@ if (realFailure) {
 
 if (transientExhausted) {
   if (process.env.GITHUB_ENV) {
-    await fs.appendFile(process.env.GITHUB_ENV, 'BLOCK_A11Y_TRANSIENT=1\n', 'utf8').catch((err) => {
-      const message = err instanceof Error ? err.message : String(err);
-      console.warn(`Failed to append to GITHUB_ENV: ${message}`);
-    });
+    await fs.appendFile(process.env.GITHUB_ENV, 'BLOCK_A11Y_TRANSIENT=1\n', 'utf8').catch(() => {});
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
     const summary = [
       '',
       '### ⚠️ Block A11y — Transient Exhausted',
-      '> **SiteGround challenge / antibot / transient navigation interruptions prevented complete accessibility audit.**',
-      '- Automatic Staging2 rollback executes and artifacts are preserved.',
+      '> **Both the public edge and the exact-SHA SiteGround origin were unavailable for at least one accessibility case.**',
+      '- No production-eligible completion marker is allowed.',
       '',
     ].join('\n');
-    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch((err) => {
-      const message = err instanceof Error ? err.message : String(err);
-      console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${message}`);
-    });
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8').catch(() => {});
   }
   console.error('BLOCK_A11Y=TRANSIENT_ONLY');
   process.exit(EX_TEMPFAIL);

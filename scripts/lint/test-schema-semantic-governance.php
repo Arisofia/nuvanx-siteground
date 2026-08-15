@@ -11,6 +11,9 @@ function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_registered_filters'][] = array( $hook, $callback, $priority, $accepted_args );
 	return true;
 }
+function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+	return true;
+}
 function is_admin(): bool { return false; }
 function is_feed(): bool { return false; }
 function wp_json_encode( $value ) { return json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); }
@@ -107,8 +110,8 @@ foreach ( nvx_hygiene_regex_reps() as $rule ) {
 }
 nvx_test_assert( is_array( $jsonld_rule ), 'shared content hygiene must define the embedded Schema JSON-LD rule' );
 
-$schema_one = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"MedicalClinic","name":"Legacy"}</script>';
-$schema_two = '<script nonce="abc" data-source="legacy" type=\'application/ld+json\'>{"@graph":[{"@type":"BlogPosting"}]}</script>';
+$schema_one = '<script type="application/ld+json">{"@context":"https://schema.org","@type":"MedicalClinic","name":"Schema fixture"}</script>';
+$schema_two = '<script nonce="abc" data-source="schema-fixture" type=\'application/ld+json\'>{"@graph":[{"@type":"BlogPosting"}]}</script>';
 $non_schema = '<script type="application/ld+json">{"configuration":{"feature":"keep-me"}}</script>';
 $mixed      = '<p>before</p>' . $non_schema . '<p>middle</p>' . $schema_one . '<p>after</p>' . $schema_two;
 $pcre       = '/' . $jsonld_rule['pattern'] . '/' . $jsonld_rule['flags'];

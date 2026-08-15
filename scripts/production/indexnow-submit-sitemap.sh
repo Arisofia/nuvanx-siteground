@@ -13,7 +13,6 @@ pass() { printf 'PASS %s\n' "$*"; }
 
 [[ "$INDEXNOW_KEY" =~ ^[A-Za-z0-9_-]{8,128}$ ]] || fail 'INDEXNOW_KEY_INVALID'
 [[ "$BASE_URL" == "https://$EXPECTED_HOST" ]] || fail "BASE_URL_HOST_MISMATCH base=$BASE_URL expected=$EXPECTED_HOST"
-command -v cmp >/dev/null || fail 'CMP_UNAVAILABLE'
 
 cd "$PROD_ROOT"
 release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
@@ -31,7 +30,8 @@ key_file="$PROD_ROOT/$INDEXNOW_KEY.txt"
 umask 022
 printf '%s' "$INDEXNOW_KEY" > "$key_file"
 chmod 0644 "$key_file"
-cmp -s "$key_file" <(printf '%s' "$INDEXNOW_KEY") || fail 'INDEXNOW_KEY_FILE_WRITE'
+written_key="$(tr -d '\r\n' < "$key_file")"
+[[ "$written_key" == "$INDEXNOW_KEY" ]] || fail 'INDEXNOW_KEY_FILE_WRITE'
 
 public_key_file="$tmpdir/indexnow-public-key.txt"
 public_key_error="$tmpdir/indexnow-public-key.err"
@@ -57,13 +57,8 @@ if (( public_key_rc != 0 )); then
 fi
 [[ "$public_key_http" == '200' ]] || fail "INDEXNOW_KEY_PUBLIC_HTTP status=$public_key_http"
 
-if cmp -s "$public_key_file" <(printf '%s' "$INDEXNOW_KEY") \
-  || cmp -s "$public_key_file" <(printf '%s\n' "$INDEXNOW_KEY") \
-  || cmp -s "$public_key_file" <(printf '%s\r\n' "$INDEXNOW_KEY"); then
-  :
-else
-  fail 'INDEXNOW_KEY_PUBLIC_CONTENT_MISMATCH'
-fi
+public_key_value="$(tr -d '\r\n' < "$public_key_file")"
+[[ "$public_key_value" == "$INDEXNOW_KEY" ]] || fail 'INDEXNOW_KEY_PUBLIC_CONTENT_MISMATCH'
 pass "INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt source=public-origin http=200"
 
 curl -fsS --max-time 30 "$BASE_URL/sitemap_index.xml" -o "$tmpdir/sitemap-index.xml"

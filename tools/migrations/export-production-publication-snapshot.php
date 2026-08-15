@@ -2,10 +2,13 @@
 /**
  * Export the canonical public page/post snapshot from Production (read-only).
  *
+ * This file is executed through `wp eval-file`. Do not add a strict_types
+ * declaration here: WP-CLI evaluates the file inside an existing PHP execution
+ * context, where `declare(strict_types=1)` is no longer the first statement and
+ * causes a fatal error before the publication contract can run.
+ *
  * @package NVX\Migrations
  */
-
-declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
     fwrite( STDERR, "PRODUCTION_PUBLICATION_EXPORT=FAIL reason=wordpress_not_loaded\n" );

@@ -7,11 +7,10 @@ set -Eeuo pipefail
 : "${PRIMARY_USER:?Missing primary SSH user}"
 : "${PRIMARY_KEY:?Missing primary SSH private key}"
 : "${PRIMARY_KNOWN_HOSTS:?Missing primary SSH known_hosts}"
-# Fallback SSH credentials are optional - if unset, fallback path is skipped
-FALLBACK_HOST="${FALLBACK_HOST:-}"
-FALLBACK_USER="${FALLBACK_USER:-}"
-FALLBACK_KEY="${FALLBACK_KEY:-}"
-FALLBACK_KNOWN_HOSTS="${FALLBACK_KNOWN_HOSTS:-}"
+: "${FALLBACK_HOST:?Missing fallback SSH host}"
+: "${FALLBACK_USER:?Missing fallback SSH user}"
+: "${FALLBACK_KEY:?Missing fallback SSH private key}"
+: "${FALLBACK_KNOWN_HOSTS:?Missing fallback SSH known_hosts}"
 
 SSH_RETRY_ATTEMPTS="${SSH_RETRY_ATTEMPTS:-5}"
 SSH_RETRY_BASE_DELAY_SECONDS="${SSH_RETRY_BASE_DELAY_SECONDS:-15}"
@@ -124,12 +123,6 @@ fi
 # Fallback is permitted only after a transport-class failure on the primary
 # endpoint. Authentication and host-key failures remain fail-closed and never
 # cross over to the fallback identity.
-# Skip fallback if fallback credentials are not configured
-if [[ -z "$FALLBACK_HOST" || -z "$FALLBACK_USER" || -z "$FALLBACK_KEY" || -z "$FALLBACK_KNOWN_HOSTS" ]]; then
-  echo "SITEGROUND_SSH=FAIL mode=no_fallback_configured primary_reason=$primary_reason" >&2
-  exit 255
-fi
-
 echo "SITEGROUND_SSH=FALLBACK_ARMED primary_reason=$primary_reason" >&2
 write_identity fallback "$FALLBACK_HOST" "$FALLBACK_PORT" "$FALLBACK_USER" "$FALLBACK_KEY" "$FALLBACK_KNOWN_HOSTS"
 set +e

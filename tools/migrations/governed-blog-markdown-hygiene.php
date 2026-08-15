@@ -99,6 +99,17 @@ if ( ! is_readable( $catalogFile ) ) {
             ++$total_updated;
 
             if ( ! $dry_run ) {
+                // Keep the shared migration's in-memory snapshot in sync with
+                // the database. Blocks A/B execute later and must never write
+                // stale pre-normalization Markdown back over this content.
+                foreach ( $posts as &$loadedPost ) {
+                    if ( (int) ( $loadedPost['ID'] ?? 0 ) === (int) $row['ID'] ) {
+                        $loadedPost['post_content'] = $normalized;
+                        break;
+                    }
+                }
+                unset( $loadedPost );
+
                 clean_post_cache( (int) $row['ID'] );
                 $storedPost = get_post( (int) $row['ID'] );
                 if ( ! ( $storedPost instanceof WP_Post ) ) {

@@ -1,12 +1,14 @@
 <?php
 /**
- * Migrate Recent Posts to Valid HTML/Blocks
+ * Normalize governed NUVANX journal posts that still contain legacy Markdown.
  *
- * Batch migration of recent posts to normalized HTML/Blocks content.
- * Uses the content normalizer to convert Markdown artifacts to valid HTML.
+ * Dry-run is the default. Apply only with NVX_MIGRATION_APPLY=yes after the
+ * report has been reviewed. The migration selects posts from the versioned SEO
+ * catalogue instead of an arbitrary "latest N posts" window.
  *
- * Run with:
- *   wp eval "require 'tools/migrations/migrate-recent-posts-to-blocks.php';" --allow-root
+ * Usage:
+ *   wp eval-file tools/migrations/migrate-recent-posts-to-blocks.php --allow-root
+ *   NVX_MIGRATION_APPLY=yes wp eval-file tools/migrations/migrate-recent-posts-to-blocks.php --allow-root
  *
  * @package NVX\Migrations
  */
@@ -14,137 +16,135 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
+	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval-file.\n" );
 	exit( 1 );
 }
 
-// Load content normalizer
 require_once __DIR__ . '/content-normalizer.php';
 
-// Configuration
-$POST_COUNT = 12; // Number of recent posts to migrate
-$DRY_RUN = true; // Set to false to actually apply changes
-
-// Get recent posts
-$recent_posts = get_posts( [
-	'post_type'      => 'post',
-	'post_status'    => 'publish',
-	'posts_per_page' => $POST_COUNT,
-	'orderby'        => 'date',
-	'order'          => 'DESC',
-	'fields'         => 'ids',
-] );
-
-$migration_results = [
-	'total_checked' => count( $recent_posts ),
-	'needs_migration' => 0,
-	'migrated' => 0,
-	'validation_failed' => 0,
-	'posts' => [],
-];
-
-foreach ( $recent_posts as $post_id ) {
-	$post = get_post( $post_id );
-	if ( ! $post instanceof WP_Post ) {
-		continue;
-	}
-
-	$post_result = [
-		'post_id' => $post_id,
-		'title' => $post->post_title,
-		'needs_migration' => false,
-		'migrated' => false,
-		'validation' => [],
-	];
-
-	$original_content = $post->post_content;
-
-	// Check if content needs migration
-	$validation_original = nvx_validate_normalized_content( $original_content );
-	if ( $validation_original['valid'] ) {
-		$post_result['validation'] = $validation_original;
-		$migration_results['posts'][] = $post_result;
-		continue;
-	}
-
-	$post_result['needs_migration'] = true;
-	$migration_results['needs_migration']++;
-
-	// Normalize content
-	$normalized_content = nvx_normalize_to_blocks( $original_content );
-
-	// Validate normalized content
-	$validation_normalized = nvx_validate_normalized_content( $normalized_content );
-	$post_result['validation'] = $validation_normalized;
-
-	if ( ! $validation_normalized['valid'] ) {
-		$migration_results['validation_failed']++;
-		fwrite( STDERR, "SKIP: Post {$post_id} ({$post->post_title}) - validation failed after normalization\n" );
-		foreach ( $validation_normalized['issues'] as $issue ) {
-			fwrite( STDERR, "  - {$issue}\n" );
-		}
-		$migration_results['posts'][] = $post_result;
-		continue;
-	}
-
-	// Apply migration (if not dry run)
-	if ( ! $DRY_RUN ) {
-		wp_update_post( [
-			'ID' => $post_id,
-			'post_content' => $normalized_content,
-		] );
-		$post_result['migrated'] = true;
-		$migration_results['migrated']++;
-		fwrite( STDERR, "MIGRATED: Post {$post_id} ({$post->post_title})\n" );
-	} else {
-		fwrite( STDERR, "DRY RUN: Post {$post_id} ({$post->post_title}) - would be migrated\n" );
-	}
-
-	$migration_results['posts'][] = $post_result;
-}
-
-// Output migration report
-$report = [
-	'schema' => 'recent-posts-migration',
-	'migrated_at' => gmdate( 'c' ),
-	'source' => home_url( '/' ),
-	'dry_run' => $DRY_RUN,
-	'summary' => [
-		'total_checked' => $migration_results['total_checked'],
-		'needs_migration' => $migration_results['needs_migration'],
-		'migrated' => $migration_results['migrated'],
-		'validation_failed' => $migration_results['validation_failed'],
-	],
-	'posts' => $migration_results['posts'],
-];
-
-echo json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-
-// Console summary
-fwrite( STDERR, "\n=== RECENT POSTS MIGRATION ===\n" );
-fwrite( STDERR, "Dry run: " . ( $DRY_RUN ? 'YES' : 'NO' ) . "\n" );
-fwrite( STDERR, "Total checked: " . $migration_results['total_checked'] . "\n" );
-fwrite( STDERR, "Needs migration: " . $migration_results['needs_migration'] . "\n" );
-fwrite( STDERR, "Migrated: " . $migration_results['migrated'] . "\n" );
-fwrite( STDERR, "Validation failed: " . $migration_results['validation_failed'] . "\n" );
-
-if ( $DRY_RUN && $migration_results['needs_migration'] > 0 ) {
-	fwrite( STDERR, "\nTo apply changes, set \$DRY_RUN = false in the script and run again.\n" );
-}
-
-// Exit with error if any posts failed validation
-if ( $migration_results['validation_failed'] > 0 ) {
-	fwrite( STDERR, "\nMIGRATION_VALIDATION=FAIL failed={$migration_results['validation_failed']}\n" );
+$apply = 'yes' === strtolower( trim( (string) getenv( 'NVX_MIGRATION_APPLY' ) ) );
+$catalog_file = get_template_directory() . '/inc/data/seo-blog-post-metadata.json';
+if ( ! is_readable( $catalog_file ) ) {
+	fwrite( STDERR, "MIGRATION_VALIDATION=FAIL reason=seo_catalog_unavailable\n" );
 	exit( 1 );
 }
 
-if ( $migration_results['needs_migration'] > 0 && $DRY_RUN ) {
-	fwrite( STDERR, "\nMIGRATION_VALIDATION=DRY_RUN needs_migration={$migration_results['needs_migration']}\n" );
+$catalog = json_decode( (string) file_get_contents( $catalog_file ), true );
+if ( ! is_array( $catalog ) ) {
+	fwrite( STDERR, "MIGRATION_VALIDATION=FAIL reason=seo_catalog_invalid\n" );
+	exit( 1 );
+}
+
+$results = array(
+	'total_catalogued'  => count( $catalog ),
+	'published_checked' => 0,
+	'needs_migration'   => 0,
+	'migrated'          => 0,
+	'validation_failed' => 0,
+	'posts'             => array(),
+);
+
+foreach ( array_keys( $catalog ) as $slug ) {
+	$post = get_page_by_path( (string) $slug, OBJECT, 'post' );
+	if ( ! ( $post instanceof WP_Post ) || 'publish' !== $post->post_status ) {
+		continue;
+	}
+
+	++$results['published_checked'];
+	$original_validation = nvx_validate_normalized_content( (string) $post->post_content );
+	$post_result = array(
+		'post_id'         => (int) $post->ID,
+		'slug'            => (string) $post->post_name,
+		'needs_migration' => ! $original_validation['valid'],
+		'migrated'        => false,
+		'issues_before'   => $original_validation['issues'],
+		'issues_after'    => array(),
+	);
+
+	if ( $original_validation['valid'] ) {
+		$results['posts'][] = $post_result;
+		continue;
+	}
+
+	++$results['needs_migration'];
+	$normalized = nvx_normalize_to_blocks( (string) $post->post_content );
+	$after      = nvx_validate_normalized_content( $normalized );
+	$post_result['issues_after'] = $after['issues'];
+
+	if ( ! $after['valid'] ) {
+		++$results['validation_failed'];
+		$results['posts'][] = $post_result;
+		fwrite( STDERR, sprintf( "SKIP id=%d slug=%s validation_failed=%s\n", $post->ID, $post->post_name, implode( '|', $after['issues'] ) ) );
+		continue;
+	}
+
+	if ( $apply ) {
+		$updated = wp_update_post(
+			array(
+				'ID'           => (int) $post->ID,
+				'post_content' => wp_slash( $normalized ),
+			),
+			true
+		);
+		if ( is_wp_error( $updated ) || (int) $updated !== (int) $post->ID ) {
+			++$results['validation_failed'];
+			$post_result['issues_after'][] = is_wp_error( $updated ) ? $updated->get_error_message() : 'unexpected_update_id';
+			$results['posts'][] = $post_result;
+			continue;
+		}
+
+		clean_post_cache( (int) $post->ID );
+		$verified = get_post( (int) $post->ID );
+		$verified_validation = $verified instanceof WP_Post
+			? nvx_validate_normalized_content( (string) $verified->post_content )
+			: array( 'valid' => false, 'issues' => array( 'post_missing_after_update' ) );
+
+		if ( ! $verified_validation['valid'] ) {
+			++$results['validation_failed'];
+			$post_result['issues_after'] = $verified_validation['issues'];
+			$results['posts'][] = $post_result;
+			continue;
+		}
+
+		$post_result['migrated'] = true;
+		++$results['migrated'];
+	}
+
+	$results['posts'][] = $post_result;
+}
+
+$report = array(
+	'schema'      => 'governed-blog-content-migration',
+	'generated_at'=> gmdate( 'c' ),
+	'source'      => home_url( '/' ),
+	'apply'       => $apply,
+	'summary'     => array(
+		'total_catalogued'  => $results['total_catalogued'],
+		'published_checked' => $results['published_checked'],
+		'needs_migration'   => $results['needs_migration'],
+		'migrated'          => $results['migrated'],
+		'validation_failed' => $results['validation_failed'],
+	),
+	'posts'       => $results['posts'],
+);
+
+echo wp_json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+
+if ( $results['validation_failed'] > 0 ) {
+	fwrite( STDERR, sprintf( "\nMIGRATION_VALIDATION=FAIL failed=%d\n", $results['validation_failed'] ) );
+	exit( 1 );
+}
+
+if ( ! $apply && $results['needs_migration'] > 0 ) {
+	fwrite( STDERR, sprintf( "\nMIGRATION_VALIDATION=DRY_RUN needs_migration=%d\n", $results['needs_migration'] ) );
 	exit( 0 );
 }
 
-if ( $migration_results['migrated'] > 0 ) {
-	fwrite( STDERR, "\nMIGRATION_VALIDATION=PASS migrated={$migration_results['migrated']}\n" );
-} else {
-	fwrite( STDERR, "\nMIGRATION_VALIDATION=PASS no_migration_needed\n" );
-}
+fwrite(
+	STDERR,
+	sprintf(
+		"\nMIGRATION_VALIDATION=PASS checked=%d migrated=%d\n",
+		$results['published_checked'],
+		$results['migrated']
+	)
+);

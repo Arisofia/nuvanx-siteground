@@ -5,6 +5,7 @@ import {
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
 import { runStagingPublicationParitySync } from './sync-publication-parity.mjs';
+import { runGovernedBlogNormalization } from './apply-governed-blog-normalization.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
 import { runPublicationManifestContract } from './test-publication-manifest-contract.mjs';
@@ -96,10 +97,15 @@ const runtimeOptions = {
 };
 
 try {
-  // Establish the exact approved Production page/post topology on Staging2
-  // before any renderer/schema/editorial acceptance. Production is read-only;
-  // the synchronizer is transactionally restricted to canonical Staging2.
+  // Establish the approved Production topology first. Production is read-only;
+  // writes are restricted to canonical Staging2 by the parity synchronizer.
   await runStagingPublicationParitySync(runtimeOptions);
+
+  // Production still contains legacy Markdown that this same candidate will
+  // normalize during its rollback-protected deployment. Normalize the copied
+  // Staging content now so acceptance exercises that post-migration state.
+  await runGovernedBlogNormalization(runtimeOptions);
+
   await runRenderedSchemaContract(runtimeOptions);
   await runSingleJsonLdSourceContract(runtimeOptions);
   await runPublicationManifestContract(runtimeOptions);

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) ) {
-	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-manual-canonical-v3' );
+	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-wp-bootstrap-v2' );
 }
 
 /** Actual one-segment public slug, independent of WP_Query/global post state. */
@@ -148,9 +148,8 @@ function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	$post = $resolved;
 	setup_postdata( $post );
 
-	// Governed routes have one canonical owner below. Remove WordPress core's
-	// singular canonical emitter so indexing-state differences cannot create a
-	// duplicate alongside the path-authoritative contract.
+	// The governed canonical contract below is the single owner. Remove core's
+	// singular canonical emitter for this request to prevent duplicate tags.
 	remove_action( 'wp_head', 'rel_canonical' );
 
 	return $resolved;
@@ -176,17 +175,25 @@ function nvx_governed_blog_runtime_description( $description ) {
 	return '' !== $value ? $value : $description;
 }
 
+/** Path-authoritative canonical value, also used by tests and diagnostics. */
+function nvx_governed_blog_runtime_canonical( $canonical ) {
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return $canonical;
+	}
+	return home_url( $context['path'] );
+}
+
 /**
- * Suppress Yoast's canonical only for governed routes.
+ * Prevent Yoast from emitting a second canonical on governed routes.
  *
- * Staging intentionally has blog_public=0, where Yoast may omit a canonical;
- * Production emits one. Depending on Yoast therefore creates environment drift.
- * The explicit wp_head contract below is the single stable owner in both.
+ * Staging intentionally has blog_public=0 and Yoast can omit canonical there,
+ * while Production emits one. The explicit contract below avoids that drift.
  *
- * @param mixed $canonical Existing Yoast canonical.
+ * @param mixed $canonical Existing Yoast canonical after path normalization.
  * @return mixed
  */
-function nvx_governed_blog_runtime_canonical( $canonical ) {
+function nvx_governed_blog_runtime_suppress_yoast_canonical( $canonical ) {
 	return null !== nvx_governed_blog_runtime_context() ? false : $canonical;
 }
 
@@ -212,7 +219,8 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 
 	$title       = trim( (string) ( $runtime['metadata']['title'] ?? '' ) );
 	$description = trim( (string) ( $runtime['metadata']['description'] ?? '' ) );
-	$og_url      = nvx_governed_blog_runtime_opengraph_url( home_url( $runtime['path'] ) );
+	$canonical   = home_url( $runtime['path'] );
+	$og_url      = nvx_governed_blog_runtime_opengraph_url( $canonical );
 
 	if ( '' !== $title ) {
 		$presentation->title            = $title;
@@ -224,30 +232,40 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 		$presentation->open_graph_description = $description;
 		$presentation->twitter_description    = $description;
 	}
+	$presentation->canonical      = $canonical;
 	$presentation->open_graph_url = $og_url;
 
 	return $presentation;
 }
 
-/**
- * Emit the single canonical owner plus document/runtime sentinels.
- */
+/** Emit the governed canonical as the sole stable owner. */
+function nvx_governed_blog_runtime_print_canonical(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
+		return;
+	}
+
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return;
+	}
+
+	echo '<link rel="canonical" href="' . esc_url( home_url( $context['path'] ) ) . '" />' . "\n";
+}
+
+/** Keep document/runtime sentinels and legacy fallback for non-governed routes. */
 function nvx_governed_blog_runtime_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
 
 	$context = nvx_governed_blog_runtime_context();
-	if ( null !== $context ) {
-		$canonical = home_url( $context['path'] );
-	} else {
+	if ( null === $context ) {
 		$canonical = function_exists( 'nvx_document_governance_canonical_url' )
 			? nvx_document_governance_canonical_url()
 			: '';
-	}
-
-	if ( '' !== $canonical ) {
-		echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+		if ( '' !== $canonical ) {
+			echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+		}
 	}
 
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
@@ -262,6 +280,7 @@ function nvx_governed_blog_runtime_print_head_contract(): void {
 add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 );
 
 remove_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
+add_action( 'wp_head', 'nvx_governed_blog_runtime_print_canonical', 1 );
 add_action( 'wp_head', 'nvx_governed_blog_runtime_print_head_contract', 2 );
 
 add_filter( 'wpseo_title', 'nvx_governed_blog_runtime_title', PHP_INT_MAX );
@@ -272,5 +291,6 @@ add_filter( 'wpseo_metadesc', 'nvx_governed_blog_runtime_description', PHP_INT_M
 add_filter( 'wpseo_opengraph_desc', 'nvx_governed_blog_runtime_description', PHP_INT_MAX );
 add_filter( 'wpseo_twitter_description', 'nvx_governed_blog_runtime_description', PHP_INT_MAX );
 add_filter( 'wpseo_canonical', 'nvx_governed_blog_runtime_canonical', PHP_INT_MAX );
+add_filter( 'wpseo_canonical', 'nvx_governed_blog_runtime_suppress_yoast_canonical', PHP_INT_MAX );
 add_filter( 'wpseo_opengraph_url', 'nvx_governed_blog_runtime_opengraph_url', PHP_INT_MAX );
 add_filter( 'wpseo_frontend_presentation', 'nvx_governed_blog_runtime_yoast_presentation', PHP_INT_MAX, 2 );

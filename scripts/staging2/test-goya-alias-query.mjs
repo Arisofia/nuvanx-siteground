@@ -100,13 +100,24 @@ try {
     originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
   });
 } catch (error) {
-  console.error('RENDERED_SCHEMA_FORENSICS=START reason=semantic-contract-failure');
+  // Distinguish between configuration errors and semantic contract failures
+  const isConfigError = error.message?.includes('Expected deploy SHA') ||
+                        error.message?.includes('STAGING_ROOT') ||
+                        error.message?.includes('unsafe') ||
+                        error.message?.includes('missing');
+  const failureReason = isConfigError ? 'config-validation-failure' : 'semantic-contract-failure';
+  console.error(`RENDERED_SCHEMA_FORENSICS=START reason=${failureReason}`);
   try {
     const diagnostic = await runJsonLdStorageDiagnostic({
       originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
     });
+    // Use RAN/NO_EVIDENCE instead of PASS when no evidence was found
+    const hasEvidence = (diagnostic.report?.core_matches ?? 0) > 0 ||
+                       (diagnostic.report?.custom_columns ?? 0) > 0 ||
+                       (diagnostic.report?.runtime_emitters ?? 0) > 0;
+    const forensicStatus = hasEvidence ? 'PASS' : 'RAN_NO_EVIDENCE';
     console.error(
-      `RENDERED_SCHEMA_FORENSICS=${diagnostic.pass ? 'PASS' : 'INCOMPLETE'} ` +
+      `RENDERED_SCHEMA_FORENSICS=${forensicStatus} ` +
       `core_matches=${diagnostic.report?.core_matches ?? 'unknown'} ` +
       `custom_columns=${diagnostic.report?.custom_columns ?? 'unknown'} ` +
       `runtime_emitters=${diagnostic.report?.runtime_emitters ?? 'unknown'}`,

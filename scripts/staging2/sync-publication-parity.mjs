@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -19,7 +20,7 @@ function resolveRelease() {
 function getExpectedManifestInfo() {
   const manifestPath = path.resolve('wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
   try {
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     if (manifest.routes && typeof manifest.routes === 'object') {
       return {
         routeCount: Object.keys(manifest.routes).length,

@@ -69,11 +69,6 @@
 			nvx_event_name: normalizedName,
 		}, params));
 
-		window.gtag = window.gtag || function () {
-			window.dataLayer.push(arguments);
-		};
-		window.gtag('event', normalizedName, params);
-
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));

@@ -343,6 +343,10 @@
     if (identity.portalId) frame.dataset.portalId = identity.portalId;
     if (identity.formId) frame.dataset.formId = identity.formId;
     frame.dataset.nvxHubspotLazy = '1';
+    // WCAG 4.1.2: Ensure iframe has accessible title for screen readers
+    if (!frame.getAttribute('title')) {
+      frame.setAttribute('title', 'Formulario de contacto NUVANX - Valoración médica');
+    }
   }
 
   function normalizeNativeHubSpotMounts() {

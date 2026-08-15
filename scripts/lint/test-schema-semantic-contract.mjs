@@ -185,7 +185,7 @@ for (const file of phpFiles) {
       addViolation(file, 'function', 'Use nvx_endolift_price_papada_eur()', wrongPapadaMatches.length);
     }
 
-    const hubSpecificIds = content.match(/[\$]?url\s*\.\s*['"`]#(?!faq|organization|medical-clinic|physician|main|treatments-list|medical-procedure)[a-z-]+['"`]/g) || [];
+    const hubSpecificIds = content.match(/\$?url\s*\.\s*['"`]#(?!(?:faq|organization|medical-clinic|physician|main|treatments-list|medical-procedure)['"`])[a-z-]+['"`]/g) || [];
     if (hubSpecificIds.length > 0) {
       addViolation(file, 'duplicateIdentity', 'Treatment entities must use canonical #medical-procedure IDs', hubSpecificIds.length);
     }
@@ -202,7 +202,11 @@ for (const file of phpFiles) {
       }
     }
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+    if (error.code === 'ENOENT') {
+      addViolation(file, 'missingSource', `Required PHP file not found: ${file}`);
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -256,7 +260,11 @@ for (const file of jsonFiles) {
 
     searchInObject(json);
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+    if (error.code === 'ENOENT') {
+      addViolation(file, 'missingSource', `Required JSON catalog not found: ${file}`);
+    } else {
+      throw error;
+    }
   }
 }
 

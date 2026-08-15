@@ -90,7 +90,9 @@ jobs:
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
-          echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2'
+          bash -n scripts/production/compensating-rollback.sh
+          grep -Fq 'PRODUCTION_COMPENSATING_ROLLBACK=PASS' scripts/production/compensating-rollback.sh
+          echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2 compensating_rollback=enforced'
 
       - name: Resolve immutable requested candidate
         id: candidate
@@ -143,14 +145,16 @@ jobs:
           bash -n "$CANDIDATE_ROOT/scripts/production/document-head-title-audit.sh"
           bash -n "$CANDIDATE_ROOT/scripts/production/seo-geo-origin-audit.sh"
           bash -n "$CANDIDATE_ROOT/scripts/production/diagnose-title-emitters.sh"
+          bash -n "$CANDIDATE_ROOT/scripts/production/compensating-rollback.sh"
           bash -n "$CANDIDATE_ROOT/scripts/production/indexnow-submit-sitemap.sh"
           grep -Fq 'ROLLBACK_SNAPSHOT=PASS' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
           grep -Fq 'ROLLBACK_PRODUCTION=PASS' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
+          grep -Fq 'PRODUCTION_COMPENSATING_ROLLBACK=PASS' "$CANDIDATE_ROOT/scripts/production/compensating-rollback.sh"
           grep -Fq '.nvx-deploy-sha' "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           echo "AUDIT_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           echo "CANONICAL_AUDIT_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
-          echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA"
+          echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA compensating_rollback=enforced"
 
       - name: Wait for FIFO environment mutation turn
         shell: bash
@@ -261,12 +265,14 @@ jobs:
           echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
 
       - name: Execute guarded atomic production cutover
+        id: cutover
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-prod "NVX_RUN_TOKEN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-prod.sh' --prod-root '$PROD_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
 
       - name: Verify production public boundary and exact disk SHA
+        id: production_boundary
         shell: bash
         run: |
           set -euo pipefail
@@ -323,6 +329,19 @@ jobs:
           fi
           exit 0
 
+      - name: Compensate failed post-cutover production gate
+        id: compensating_rollback
+        if: ${{ always() && steps.cutover.outcome == 'success' && (steps.production_boundary.outcome == 'failure' || steps.origin_audits.outcome == 'failure') }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p scripts/production/artifacts
+          test -f "$HOME/.ssh/config"
+          test -n "${CANDIDATE_ROOT:-}"
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' bash -s" < "$CANDIDATE_ROOT/scripts/production/compensating-rollback.sh" | tee scripts/production/artifacts/compensating-rollback.log
+          grep -Fq 'PRODUCTION_COMPENSATING_ROLLBACK=PASS' scripts/production/artifacts/compensating-rollback.log
+          echo 'PRODUCTION_POST_CUTOVER_COMPENSATION=PASS'
+
       - name: Upload production boundary evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -333,7 +352,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload production origin audit evidence
-        if: ${{ always() && inputs.run_post_audits }}
+        if: ${{ always() && (inputs.run_post_audits || steps.production_boundary.outcome == 'failure') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-origin-audit-${{ env.CANDIDATE_SHA }}
@@ -369,6 +388,7 @@ jobs:
             echo "- Deploy/audit tooling SHA: \`$CANONICAL_AUDIT_SHA\`"
             echo '- FIFO lease prevented newer Staging/Production mutations from overtaking this release.'
             echo '- Atomic production cutover + rollback contract: PASS.'
+            echo '- Post-cutover boundary/origin audit failure compensation: enforced.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:

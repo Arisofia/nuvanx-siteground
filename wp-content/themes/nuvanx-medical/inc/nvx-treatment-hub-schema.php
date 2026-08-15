@@ -29,24 +29,21 @@ function nvx_treatment_hub_schema_upsert_node( array $graph, array $node ): arra
 	return $graph;
 }
 
-/** Canonical services and procedures represented by the visible catalogue. */
-function nvx_treatment_hub_schema_items( string $organization_id ): array {
+/** Canonical treatment references represented by the visible catalogue. */
+function nvx_treatment_hub_schema_items(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	// Raw JSON intentionally preserves the previous non-translated schema labels.
 	$definitions = nvx_catalog_filter_records(
 		nvx_catalog_json_load( 'treatment-hub-schema.json' ),
-		array( 'path', 'types', 'key', 'name', 'description', 'procedureType', 'additionalFields' ),
+		array( 'path', 'types', 'key', 'name', 'description', 'procedureType' ),
 		'treatment-hub-schema.json'
 	);
 
 	$items = array();
 	foreach ( $definitions as $index => $definition ) {
-		$url  = home_url( $definition['path'] );
-		// Hub references canonical treatment entity defined by treatment page
-		// This prevents contradictory properties between hub and page definitions
+		$url                    = home_url( $definition['path'] );
 		$canonical_treatment_id = $url . '#medical-procedure';
-		$items[] = array(
+		$items[]                = array(
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'url'      => $url,
@@ -72,14 +69,8 @@ function nvx_treatment_hub_extend_yoast_graph( $graph, $context = null ) {
 		return $graph;
 	}
 
-	$organization    = function_exists( 'nvx_schema_find_organization' )
-		? nvx_schema_find_organization( $graph )
-		: array( 'id' => function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
-	$organization_id = ! empty( $organization['id'] )
-		? (string) $organization['id']
-		: ( function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
-	$list_id         = $permalink . '#treatments-list';
-	$items           = nvx_treatment_hub_schema_items( $organization_id );
+	$list_id = $permalink . '#treatments-list';
+	$items   = nvx_treatment_hub_schema_items();
 
 	$graph = nvx_treatment_hub_schema_upsert_node(
 		$graph,

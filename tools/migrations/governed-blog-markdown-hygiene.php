@@ -100,7 +100,21 @@ if ( ! is_readable( $catalogFile ) ) {
 
             if ( ! $dry_run ) {
                 clean_post_cache( (int) $row['ID'] );
-                $stored = (string) get_post_field( 'post_content', (int) $row['ID'], 'raw' );
+                $storedPost = get_post( (int) $row['ID'] );
+                if ( ! ( $storedPost instanceof WP_Post ) ) {
+                    fwrite(
+                        STDERR,
+                        sprintf(
+                            "[BLOG MARKDOWN FAIL] ID=%d slug=%s verification_failed=post_missing_after_write\n",
+                            (int) $row['ID'],
+                            (string) $slug
+                        )
+                    );
+                    ++$blogErrors;
+                    continue;
+                }
+
+                $stored = (string) $storedPost->post_content;
                 $storedValidation = nvxValidateNormalizedContent( $stored );
                 if ( ! $storedValidation['valid'] || nvxNeedsMarkdownNormalization( $stored ) ) {
                     fwrite(

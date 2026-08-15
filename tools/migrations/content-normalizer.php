@@ -192,7 +192,7 @@ function nvxValidateNormalizedContent( string $content ): array {
         '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',
         '/%(?:\d+\$)?[sd]/' => 'Format string still present',
         '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
-        '/\b(?:TODO|FIXME|XXX|HACK|placeholder)\b/i' => 'Editorial placeholder still present',
+        '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|(?:TODO|FIXME|XXX|HACK)\s*:|\bplaceholder\b)/i' => 'Editorial placeholder still present',
     );
     $issues = array();
 

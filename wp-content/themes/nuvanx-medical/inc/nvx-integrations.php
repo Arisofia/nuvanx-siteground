@@ -89,9 +89,10 @@ add_action(
 );
 
 // Public document head contract is owned solely by nvx-document-governance.php
-// (wp_head emission + Yoast suppress). Full-document buffer rewrites were retired;
-// eager script/style strips use dequeue + script_loader_tag below. Page hygiene
-// is required once from functions.php.
+// (wp_head emission + Yoast suppress). Full-document buffer rewrites are ACTIVE
+// in template_redirect hook below to strip third-party scripts that bypass WordPress
+// enqueue hooks (e.g., SiteGround Optimizer). Eager script/style strips use
+// dequeue + script_loader_tag. Page hygiene is required once from functions.php.
 
 // Contact SEO/schema: nvx-contacto-valoracion-page.php (loaded from functions.php).
 // Non-production OG host policy: nvx-document-governance.php.

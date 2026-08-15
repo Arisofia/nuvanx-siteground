@@ -429,7 +429,7 @@ function nvx_contacto_normalize_organization( $organization ): array {
 
 	$org_id    = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
 		? $organization['id']
-		: home_url( '/#/schema/organization/nuvanx' );
+		: ( function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
 	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
 	if ( null !== $org_index && ! is_int( $org_index ) && ! ( is_string( $org_index ) && ctype_digit( (string) $org_index ) ) ) {
 		$org_index = null;

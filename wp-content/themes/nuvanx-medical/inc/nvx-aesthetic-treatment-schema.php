@@ -213,8 +213,8 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 	$permalink       = get_permalink( get_queried_object_id() );
 	$organization    = function_exists( 'nvx_schema_find_organization' )
 		? nvx_schema_find_organization( $graph )
-		: array( 'id' => home_url( '/#/schema/organization/nuvanx' ) );
-	$organization_id = ! empty( $organization['id'] ) ? $organization['id'] : home_url( '/#/schema/organization/nuvanx' );
+		: array( 'id' => function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
+	$organization_id = ! empty( $organization['id'] ) ? $organization['id'] : ( function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
 	$procedure       = nvx_aesthetic_schema_procedure_node(
 		$schema_catalog[ $key ],
 		$catalog[ $key ],

@@ -342,9 +342,9 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 		? nvx_schema_find_organization( $graph )
 		: array(
 			'index' => null,
-			'id'    => home_url( '/#/schema/organization/nuvanx' ),
+			'id'    => function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ),
 		);
-	$organization_id = ! empty( $organization['id'] ) ? (string) $organization['id'] : home_url( '/#/schema/organization/nuvanx' );
+	$organization_id = ! empty( $organization['id'] ) ? (string) $organization['id'] : ( function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
 
 	$graph = _nvx_seo_schema_enrich_organization( $graph, $organization_id );
 	$graph = _nvx_seo_schema_enrich_clinics( $graph, $organization_id );

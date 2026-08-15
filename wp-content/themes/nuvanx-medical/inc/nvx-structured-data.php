@@ -546,6 +546,7 @@ function nvx_schema_clinics() {
 					'closes'    => '18:00',
 				),
 			),
+			'priceRange'                => '€€€',
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
 			),
@@ -588,11 +589,24 @@ function nvx_schema_clinics() {
 					'closes'    => '20:00',
 				),
 			),
+			'priceRange'                => '€€€',
 			'sameAs'                    => array(
-				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
+				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser-sede-goya',
 			),
 		),
 	);
+}
+
+/**
+ * Return the canonical Organization identifier.
+ *
+ * There is exactly one Organization entity in the graph: #organization.
+ * This function ensures all schema producers reference the same ID.
+ *
+ * @return string Canonical Organization @id
+ */
+function nvx_schema_organization_id(): string {
+	return home_url( '/#organization' );
 }
 
 /**
@@ -617,7 +631,7 @@ function nvx_schema_find_organization( $graph ) {
 
 	return array(
 		'index' => null,
-		'id'    => home_url( '/#/schema/organization/nuvanx' ),
+		'id'    => nvx_schema_organization_id(),
 	);
 }
 
@@ -972,7 +986,7 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 			'provider'          => array( '@id' => $organization_id ),
 			'description'       => 'Endolift® premium con dirección médica especializada en láser intersticial. Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello. Valoración anatómica exhaustiva por Dr. Javier Rivera Tejeda (Máster Universitario en Medicina Estética UCM). PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €. Tarifa premium por autoridad clínica y protocolo médico personalizado.',
 			'bodyLocation'      => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
-			'procedureType'     => 'https://schema.org/MinimallyInvasiveProcedure',
+			'procedureType'     => 'https://schema.org/PercutaneousProcedure',
 			'preparation'       => 'Valoración médica presencial exhaustiva de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía. Planificación individualizada por médico especialista.',
 			'howPerformed'      => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona. Protocolo médico personalizado según anatomía y objetivos.',
 			'followup'          => 'Seguimiento clínico protocolizado por dirección médica (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
@@ -1010,7 +1024,7 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 			'provider'          => array( '@id' => $organization_id ),
 			'description'       => 'Laserlipólisis médica intervencionista: lipólisis de adipocitos y estímulo de retracción dérmica en un acto ambulatorio por zonas (abdomen, flancos, muslos, brazos, submandibular). No trata obesidad ni pérdida masiva de peso; el presupuesto se personaliza tras valoración.',
 			'bodyLocation'      => array( 'Abdomen', 'Flancos', 'Cara interna de muslos', 'Rodillas', 'Brazos', 'Región submandibular' ),
-			'procedureType'     => 'https://schema.org/MinimallyInvasiveProcedure',
+			'procedureType'     => 'https://schema.org/PercutaneousProcedure',
 			'preparation'       => 'Peso estable, grasa focal y flacidez leve–moderada. Exclusión de exceso cutáneo severo (derivación a cirugía excisional, p. ej. abdominoplastia).',
 			'howPerformed'      => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis selectiva y estímulo térmico de retracción en la cuadrícula de zonas planificada.',
 			'followup'          => 'Cuidados post-procedimiento y revisiones según zona y protocolo médico.',
@@ -1176,7 +1190,7 @@ function nvx_schema_physician_director( $organization_id ) {
 		'jobTitle'         => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
 		'description'      => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. ' . NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Perfil público en Doctoralia.',
 		'url'              => $equipo . '#physician-rivera-tejeda',
-		'medicalSpecialty' => array( 'Aesthetic Medicine', 'Laser Medicine' ),
+		'knowsAbout'       => array( 'Medicina estética', 'Medicina estética láser', 'Endolift', 'Láser CO₂', 'Tricología' ),
 		'worksFor'         => array( '@id' => $organization_id ),
 		'hasCredential'    => array(
 			array(
@@ -1575,7 +1589,6 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
 	$graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
 	$graph[ $index ]['email']                  = NVX_CONTACT_EMAIL;
 	$graph[ $index ]['telephone']              = $chamberi_tel;
-	$graph[ $index ]['priceRange']             = '€€€';
 	$graph[ $index ]['isAcceptingNewPatients'] = true;
 	$graph[ $index ]['address']                = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
 	$graph[ $index ]['contactPoint']           = array(
@@ -1594,7 +1607,6 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
 			'availableLanguage' => array( 'es', 'en' ),
 		),
 	);
-	$graph[ $index ]['medicalSpecialty']       = array( 'Aesthetic Medicine', 'Laser Medicine', 'Geriatric Medicine' );
 	$graph[ $index ]['knowsAbout']             = array(
 		'Medicina estética',
 		'Medicina estética láser',
@@ -1678,7 +1690,6 @@ function nvx_schema_enrich_article( array &$graph, int $post_id, string $org_id,
 		if ( in_array( 'Article', $types, true ) || in_array( 'BlogPosting', $types, true ) || in_array( 'NewsArticle', $types, true ) ) {
 			$graph[ $index ]['publisher']  = array( '@id' => $org_id );
 			$graph[ $index ]['author']     = array( '@id' => $author_id );
-			$graph[ $index ]['reviewedBy'] = array( '@id' => $author_id );
 			$graph[ $index ]['inLanguage'] = 'es';
 		}
 	}
@@ -1795,10 +1806,6 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
 
 	$treatment = nvx_schema_treatment_node( $page_id, $org_id );
 	if ( null !== $treatment ) {
-		if ( null !== $physician ) {
-			$treatment['performer']  = array( '@id' => $physician['@id'] );
-			$treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
-		}
 		$graph[] = $treatment;
 		if ( ! empty( $treatment['@id'] ) && ! empty( $treatment['url'] ) ) {
 			$graph = nvxSchemaLinkWebpageMainEntity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );

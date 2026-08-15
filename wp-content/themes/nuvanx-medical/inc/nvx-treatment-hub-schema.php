@@ -94,10 +94,10 @@ function nvx_treatment_hub_extend_yoast_graph( $graph, $context = null ) {
 
 	$organization    = function_exists( 'nvx_schema_find_organization' )
 		? nvx_schema_find_organization( $graph )
-		: array( 'id' => home_url( '/#/schema/organization/nuvanx' ) );
+		: array( 'id' => function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
 	$organization_id = ! empty( $organization['id'] )
 		? (string) $organization['id']
-		: home_url( '/#/schema/organization/nuvanx' );
+		: ( function_exists( 'nvx_schema_organization_id' ) ? nvx_schema_organization_id() : home_url( '/#organization' ) );
 	$list_id         = $permalink . '#treatments-list';
 	$items           = nvx_treatment_hub_schema_items( $organization_id );
 

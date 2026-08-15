@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const SUDO_BIN = '/usr/bin/sudo';
@@ -153,6 +154,14 @@ function resultIsFullyVisualPass(result) {
 async function validateAndMarkFallbackResults() {
   const results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
   if (!Array.isArray(results) || results.length === 0) throw new Error('Origin browser fallback produced no Block C results');
+  
+  // Validate manifest coverage to match core path validation
+  const manifest = await loadPublishedPagesManifest();
+  const expectedResultsCount = manifest.length * VIEWPORTS.length;
+  if (results.length < expectedResultsCount || results.length % VIEWPORTS.length !== 0) {
+    throw new Error(`Origin browser fallback results count invalid: ${results.length} expected >=${expectedResultsCount} and divisible by ${VIEWPORTS.length}`);
+  }
+  
   const invalid = results.filter((result) => !resultIsFullyVisualPass(result));
   if (invalid.length > 0) {
     console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL incomplete=${invalid.length}`);

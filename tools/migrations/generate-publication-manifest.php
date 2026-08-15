@@ -123,15 +123,16 @@ foreach ( $routes_config as $route => $config ) {
 
 	// Build route entry
 	$manifest['routes'][ $route ] = [
-		'post_id'   => $post_id,
-		'post_type' => $post_type,
-		'slug'      => $slug,
-		'status'    => $status,
-		'renderer'  => $renderer,
-		'canonical' => $canonical,
-		'robots'    => $robots,
-		'schema'    => $schema,
-		'seo'       => $seo,
+		'post_id'               => $post_id,
+		'post_type'             => $post_type,
+		'slug'                  => $slug,
+		'status'                => $status,
+		'renderer'              => $renderer,
+		'canonical'             => $canonical,
+		'robots'                => $robots,
+		'schema'                => $schema,
+		'seo'                   => $seo,
+		'reconciliation_status' => 'none', // Will be updated by reconciliation process
 	];
 }
 

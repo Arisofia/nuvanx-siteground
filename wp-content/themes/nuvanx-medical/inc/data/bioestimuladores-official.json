@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NUVANX Bioestimuladores - Single Source of Truth",
+  "description": "Official clinical and commercial parameters for bioestimuladores - single source consumed by card, ficha, FAQ, and schema",
+  "version": "1.0.0",
+  "last_updated": "2026-08-15",
+  "products": {
+    "polynucleotides_cara": {
+      "offer_id": "bioestimulator_polynucleotides_face",
+      "treatment": "Bioestimulador Polinucleótidos Cara",
+      "product_family": "bioestimuladores",
+      "product": "Polinucleótidos",
+      "zone": "facial",
+      "price": 348.00,
+      "unit": "session",
+      "sessions": 3,
+      "interval": "4 weeks",
+      "downtime": "2-3 days",
+      "duration": "30-45 minutes",
+      "schema": {
+        "key": "bioestimulacion-colageno",
+        "types": ["MedicalProcedure", "Service"],
+        "procedureType": "https://schema.org/PercutaneousProcedure",
+        "path": "/bioestimuladores-colageno-madrid/"
+      },
+      "catalog": {
+        "meta": "07 / Bioestimulación",
+        "title": "Bioestimulación",
+        "body": "Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.",
+        "url": "/bioestimuladores-colageno-madrid/"
+      },
+      "content": {
+        "description": "Valoración médica de bioestimulación con polinucleótidos según calidad cutánea, anatomía y objetivo terapéutico. Chamberí (CS20144) y Salamanca–Goya (CS20073).",
+        "kicker": "Medicina regenerativa estética · Madrid",
+        "lead": "Los polinucleótidos son materiales de soporte dérmico que inducen colágeno de forma progresiva. La indicación comienza por la calidad cutánea y el soporte, no por una marca."
+      },
+      "faqs": [
+        {
+          "q": "¿Cuántas sesiones necesito?",
+          "a": "El protocolo estándar es de 3 sesiones separadas 4 semanas, seguido de mantenimiento anual. El número exacto depende del punto de partida y el objetivo."
+        },
+        {
+          "q": "¿Cuánto cuesta?",
+          "a": "348€ por sesión de cara. Se requiere valoración médica previa para establecer el protocolo completo."
+        }
+      ]
+    },
+    "polynucleotides_cuello": {
+      "offer_id": "bioestimulator_polynucleotides_neck",
+      "treatment": "Bioestimulador Polinucleótidos Cuello",
+      "product_family": "bioestimuladores",
+      "product": "Polinucleótidos",
+      "zone": "cuello",
+      "price": 298.00,
+      "unit": "session",
+      "sessions": 3,
+      "interval": "4 weeks",
+      "downtime": "1-2 days",
+      "duration": "30-45 minutes",
+      "schema": {
+        "key": "bioestimulacion-colageno",
+        "types": ["MedicalProcedure", "Service"],
+        "procedureType": "https://schema.org/PercutaneousProcedure",
+        "path": "/bioestimuladores-colageno-madrid/"
+      },
+      "catalog": {
+        "meta": "07 / Bioestimulación",
+        "title": "Bioestimulación",
+        "body": "Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.",
+        "url": "/bioestimuladores-colageno-madrid/"
+      },
+      "content": {
+        "description": "Bioestimulador de cuello con polinucleótidos para calidad cutánea según diagnóstico médico.",
+        "kicker": "Medicina regenerativa estética · Madrid",
+        "lead": "Protocolo específico para la zona cervical, adaptado a la anatomía y necesidades de soporte."
+      }
+    },
+    "polynucleotides_manos": {
+      "offer_id": "bioestimulator_polynucleotides_hands",
+      "treatment": "Bioestimulador Polinucleótidos Manos",
+      "product_family": "bioestimuladores",
+      "product": "Polinucleótidos",
+      "zone": "manos",
+      "price": 248.00,
+      "unit": "session",
+      "sessions": 3,
+      "interval": "4 weeks",
+      "downtime": "1-2 days",
+      "duration": "30-45 minutes",
+      "schema": {
+        "key": "bioestimulacion-colageno",
+        "types": ["MedicalProcedure", "Service"],
+        "procedureType": "https://schema.org/PercutaneousProcedure",
+        "path": "/bioestimuladores-colageno-madrid/"
+      },
+      "catalog": {
+        "meta": "07 / Bioestimulación",
+        "title": "Bioestimulación",
+        "body": "Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.",
+        "url": "/bioestimuladores-colageno-madrid/"
+      },
+      "content": {
+        "description": "Bioestimulador de manos con polinucleótidos para calidad cutánea según diagnóstico médico.",
+        "kicker": "Medicina regenerativa estética · Madrid",
+        "lead": "Protocolo específico para las manos, adaptado a la anatomía y necesidades de soporte."
+      }
+    }
+  }
+}

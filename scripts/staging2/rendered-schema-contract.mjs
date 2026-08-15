@@ -10,7 +10,7 @@ const ALLOWED_PROCEDURE_TYPES = new Set([
   'https://schema.org/NoninvasiveProcedure',
 ]);
 const ALLOWED_MEDICAL_SPECIALTIES = new Set([
-  'Anesthesia', 'Cardiovascular', 'CommunityHealth', 'Dentistry', 'Dermatologic', 'Dermatology', 'DietNutrition',
+  'Anesthesia', 'Cardiovascular', 'CommunityHealth', 'Dentistry', 'Dermatology', 'DietNutrition',
   'Emergency', 'Endocrine', 'Gastroenterologic', 'Genetic', 'Geriatric', 'Gynecologic', 'Hematologic', 'Infectious',
   'LaboratoryScience', 'Midwifery', 'Musculoskeletal', 'Neurologic', 'Nursing', 'Obstetric', 'Oncologic', 'Optometric',
   'Otolaryngologic', 'Pathology', 'Pediatric', 'PharmacySpecialty', 'Physiotherapy', 'PlasticSurgery', 'Podiatric',

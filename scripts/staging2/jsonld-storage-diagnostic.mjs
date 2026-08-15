@@ -49,17 +49,21 @@ export async function runJsonLdStorageDiagnostic(options = {}) {
   process.stdout.write(stdout);
   if (stderr) process.stderr.write(stderr);
 
-  const line = stdout.split(/\r?\n/).find((entry) => entry.startsWith('JSONLD_STORAGE_DIAGNOSTIC_JSON='));
+  const line = stdout.split(/\r?\n).find((entry) => entry.startsWith('JSONLD_STORAGE_DIAGNOSTIC_JSON='));
   let report = null;
+  let parseError = null;
   if (line) {
     try {
       report = JSON.parse(line.slice('JSONLD_STORAGE_DIAGNOSTIC_JSON='.length));
       await fs.writeFile(path.join(outputDir, 'jsonld-storage-diagnostic.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
     } catch (error) {
-      console.error(`JSONLD_STORAGE_DIAGNOSTIC_PARSE=FAIL reason=${String(error.message || error).replace(/\s+/g, '_')}`);
+      const errorMessage = String(error.message || error).replace(/\s+/g, '_');
+      console.error(`JSONLD_STORAGE_DIAGNOSTIC_PARSE=FAIL reason=${errorMessage}`);
+      parseError = errorMessage;
     }
   }
 
   const pass = stdout.includes('JSONLD_STORAGE_DIAGNOSTIC=PASS');
-  return { pass, report, reason: pass ? '' : 'missing PASS marker' };
+  const reason = parseError ? `parse_error_${parseError}` : (pass ? '' : 'missing PASS marker');
+  return { pass, report, reason, parseError };
 }

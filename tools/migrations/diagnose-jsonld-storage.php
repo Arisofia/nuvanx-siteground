@@ -259,6 +259,14 @@ if ( 0 === count( $matches ) ) {
 
 // 6. Runtime emitter inventory: only plugin/MU-plugin callbacks attached to the
 // output-oriented hooks. This reveals candidate owners without executing hooks or values.
+//
+// LIMITATION: WP-CLI boots WordPress up to init, so callbacks registered later in
+// a front-end request lifecycle (inside wp, template_redirect, wp_enqueue_scripts,
+// or conditionally on is_singular()/is_page()) are not present in $wp_filter yet.
+// This diagnostic may report runtime_emitters=0 even when an emitter exists that
+// registers conditionally on front-end requests. For NUVANX, the primary JSON-LD
+// emitter (Yoast SEO wpseo_schema_graph) registers at plugin load time, so this
+// limitation is acceptable for the current architecture.
 $runtime_emitters = [];
 $hooks = [ 'wp_head', 'wp_footer', 'wp_body_open' ];
 foreach ( $hooks as $hook_name ) {
@@ -312,14 +320,15 @@ foreach ( $hooks as $hook_name ) {
 }
 
 $summary = [
-    'schema'           => 1,
-    'site'             => home_url( '/' ),
-    'core_matches'     => count( $matches ),
-    'custom_columns'   => count( $custom_columns ),
-    'runtime_emitters' => count( $runtime_emitters ),
-    'matches'          => $matches,
-    'custom_storage'   => $custom_columns,
-    'emitters'         => $runtime_emitters,
+    'schema'                => 1,
+    'site'                  => home_url( '/' ),
+    'core_matches'          => count( $matches ),
+    'custom_columns'        => count( $custom_columns ),
+    'runtime_emitters'      => count( $runtime_emitters ),
+    'matches'               => $matches,
+    'custom_storage'        => $custom_columns,
+    'emitters'              => $runtime_emitters,
+    'inventory_limitation'  => 'wpcli_inventory_only',
 ];
 
 foreach ( $matches as $match ) {

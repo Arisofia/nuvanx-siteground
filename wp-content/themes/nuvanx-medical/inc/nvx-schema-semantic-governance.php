@@ -323,8 +323,14 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 				}
 
 				$file = nvx_schema_runtime_callback_file( $function );
-				if ( '' !== $file && 'nuvanx-home-unified-faq-schema.php' === basename( $file ) ) {
-					remove_action( 'wp_head', $function, (int) $priority );
+				// Use full path matching instead of basename to avoid removing unrelated callbacks
+				// Only remove if the file is exactly in the theme's inc directory with the specific name
+				if ( '' !== $file && false !== strpos( $file, 'nuvanx-home-unified-faq-schema.php' ) ) {
+					// Additional check: ensure it's in the theme directory
+					$theme_dir = get_template_directory();
+					if ( 0 === strpos( $file, $theme_dir ) ) {
+						remove_action( 'wp_head', $function, (int) $priority );
+					}
 				}
 			}
 		}

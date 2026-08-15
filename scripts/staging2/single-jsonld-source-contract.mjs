@@ -34,7 +34,10 @@ function fetchOriginHtml(route, host, alias) {
   const remoteScript = [
     'set -Eeuo pipefail',
     'url="https://${EXPECTED_HOST}${ROUTE}"',
-    'curl -ksS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Single-JSONLD-Contract/1.0\' -w "\nNVX_HTTP_STATUS:%{http_code}\n" "$url"',
+    // SECURITY NOTE: -k is used because --resolve points to 127.0.0.1 which invalidates the cert.
+    // This is acceptable in controlled staging environment with manual DNS resolution.
+    // For production deployments, proper TLS verification would be required.
+    'curl -kS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Single-JSONLD-Contract/1.0\' -w "\nNVX_HTTP_STATUS:%{http_code}\n" "$url"',
   ].join('\n');
   const remoteCommand = `EXPECTED_HOST='${host}' ROUTE='${route}' bash -se`;
   const result = spawnSync(

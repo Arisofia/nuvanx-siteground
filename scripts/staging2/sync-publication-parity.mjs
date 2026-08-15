@@ -16,10 +16,25 @@ function resolveRelease() {
   return release;
 }
 
+function getExpectedRouteCount() {
+  const manifestPath = path.resolve('wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (manifest.routes && typeof manifest.routes === 'object') {
+      return Object.keys(manifest.routes).length;
+    }
+  } catch (error) {
+    throw new Error(`Failed to read publication manifest at ${manifestPath}: ${error.message}`);
+  }
+  throw new Error('Publication manifest missing or invalid routes object');
+}
+
 export async function runStagingPublicationParitySync(options = {}) {
   const alias = options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');
   if (!ALLOWED_ALIASES.has(alias)) throw new Error(`Unsupported ORIGIN_SSH_ALIAS: ${alias}`);
+
+  const expectedRouteCount = getExpectedRouteCount();
 
   const release = resolveRelease();
   const manifest = `${release}/theme/inc/data/publication-manifest.json`;
@@ -59,8 +74,8 @@ export async function runStagingPublicationParitySync(options = {}) {
     throw new Error(`Publication parity synchronizer returned invalid JSON: ${error.message}`);
   }
 
-  if (report.schema !== 'nuvanx-staging-publication-parity' || report.route_count !== 71) {
-    throw new Error(`Unexpected publication parity report: schema=${report.schema} routes=${report.route_count}`);
+  if (report.schema !== 'nuvanx-staging-publication-parity' || report.route_count !== expectedRouteCount) {
+    throw new Error(`Unexpected publication parity report: schema=${report.schema} routes=${report.route_count} expected=${expectedRouteCount}`);
   }
 
   await fs.mkdir(outputDir, { recursive: true });

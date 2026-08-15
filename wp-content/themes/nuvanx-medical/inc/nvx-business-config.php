@@ -76,13 +76,13 @@ function nvx_get_clinics_config(): array {
 /** Render one clinic map card from the canonical clinic configuration. */
 function nvx_contact_map_card_markup( array $clinic ): string {
 	$address = sprintf(
-		'%s, %s %s',
+		'%s, %s, %s',
 		(string) ( $clinic['address'] ?? '' ),
 		(string) ( $clinic['postal_code'] ?? '' ),
 		(string) ( $clinic['locality'] ?? 'Madrid' )
 	);
 	$src   = 'https://www.google.com/maps?q=' . rawurlencode( $address ) . '&output=embed';
-	$title = sprintf( 'Mapa %s', (string) ( $clinic['name'] ?? 'NUVANX' ) );
+	$title = sprintf( esc_html__( 'Mapa %s', 'nuvanx-medical' ), (string) ( $clinic['name'] ?? 'NUVANX' ) );
 
 	$html  = '<article class="nvx-contact-clinic nvx-location-map-card">';
 	$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( (string) ( $clinic['name'] ?? '' ) ) . '</h3>';
@@ -116,11 +116,13 @@ function nvx_contact_append_maps( string $content ): string {
 	if ( is_admin() || ! function_exists( 'nvx_is_contacto_page_request' ) || ! nvx_is_contacto_page_request() ) {
 		return $content;
 	}
-	// Use only the id attribute marker to avoid false positives on generic class name matches
-	if ( false === strpos( $content, 'id="nvx-contacto-maps"' ) ) {
+	// Guard against duplicate maps by checking for the section id
+	// Note: This only sees content at priority 20. If MU producer injects outside the_content
+	// or at a later priority, both sections would be emitted with duplicate DOM id.
+	if ( false !== strpos( $content, 'nvx-contacto-maps' ) ) {
 		return $content;
 	}
 
 	return $content . nvx_contact_maps_markup();
 }
-add_filter( 'the_content', 'nvx_contact_append_maps', 20 );
+add_filter( 'the_content', 'nvx_contact_append_maps', NVX_HOOK_PRIO_CONTACT_MAPS );

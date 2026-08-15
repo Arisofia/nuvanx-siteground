@@ -62,6 +62,7 @@ const NVX_HOOK_PRIO_PROFIHILO_MODULE   = 19;
 
 // Global Enhancements
 const NVX_HOOK_PRIO_PRESENTATION_ENHANCE = 20;
+const NVX_HOOK_PRIO_CONTACT_MAPS         = 20; // Collides with NVX_HOOK_PRIO_PRESENTATION_ENHANCE (intentional, load-order dependent)
 const NVX_HOOK_PRIO_GLOBAL_TREATMENT     = 21;
 const NVX_HOOK_PRIO_SIGNATURE_HUB        = 21;
 const NVX_HOOK_PRIO_TRUST_BADGES         = 22;

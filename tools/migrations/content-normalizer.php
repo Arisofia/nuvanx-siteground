@@ -17,25 +17,51 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
         return false;
     }
 
-    return 1 === preg_match( '/\[[^\]]+\]\([^)]+\)/', $content )
+    // Use the same restrictive pattern as nvxNormalizeMarkdownInline to avoid
+    // detecting links that cannot be converted (links with spaces or titles)
+    return 1 === preg_match( '/\[[^\]]+\]\(([^)\s]+)\)/', $content )
         || 1 === preg_match( '/^#{1,6}\s+.+$/m', $content )
         || 1 === preg_match( '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m', $content );
 }
 
 function nvxNormalizeMarkdownInline( string $text ): string {
     $escaped = esc_html( $text );
+
+    // First, extract Markdown links and replace with placeholders to protect them
+    // from emphasis replacement. This prevents emphasis tags from being injected
+    // into href attributes when URLs contain underscores or asterisks.
+    $linkPlaceholders = array();
     $escaped = preg_replace_callback(
         '/\[([^\]]+)\]\(([^)\s]+)\)/',
-        static function ( array $matches ): string {
+        static function ( array $matches ) use ( &$linkPlaceholders ): string {
+            $label = (string) $matches[1];
             $url = html_entity_decode( (string) $matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-            return '<a href="' . esc_url( $url ) . '">' . (string) $matches[1] . '</a>';
+            $placeholder = 'NVX_LINK_PLACEHOLDER_' . count( $linkPlaceholders );
+            $linkPlaceholders[ $placeholder ] = array(
+                'label' => $label,
+                'url' => $url,
+            );
+            return $placeholder;
         },
         $escaped
     ) ?? $escaped;
+
+    // Apply emphasis replacements to the text (now safe since links are placeholdered)
     $escaped = preg_replace( '/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/__([^_\n]+)__/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $escaped ) ?? $escaped;
-    return preg_replace( '/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $escaped ) ?? $escaped;
+    $escaped = preg_replace( '/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $escaped ) ?? $escaped;
+
+    // Replace placeholders with final anchor markup
+    foreach ( $linkPlaceholders as $placeholder => $link ) {
+        $escaped = str_replace(
+            $placeholder,
+            '<a href="' . esc_url( $link['url'] ) . '">' . $link['label'] . '</a>',
+            $escaped
+        );
+    }
+
+    return $escaped;
 }
 
 /** @param array<int,string> $paragraph @param array<int,string> $output */
@@ -186,7 +212,9 @@ function nvxNormalizeToHtml( string $content ): string {
 /** @return array{valid:bool,issues:array<int,string>} */
 function nvxValidateNormalizedContent( string $content ): array {
     $checks = array(
-        '/\[[^\]]+\]\([^)]+\)/' => 'Markdown links still present',
+        // Use the same restrictive pattern as nvxNormalizeMarkdownInline to avoid
+        // requiring conversion for links that cannot be converted (links with spaces or titles)
+        '/\[[^\]]+\]\(([^)\s]+)\)/' => 'Markdown links still present',
         '/^#{1,6}\s+.+$/m' => 'Markdown headings still present',
         '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
         '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',

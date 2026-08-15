@@ -17,7 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! isset( $write_field ) || ! is_callable( $write_field ) ) {
     fwrite( STDERR, "[BLOG MARKDOWN FAIL] Shared guarded write helper is unavailable.\n" );
-    $blocks_fail++;
+    return;
+}
+
+// Guard against missing context variables to avoid silent breakage if reused elsewhere
+$blocks_fail = $blocks_fail ?? 0;
+$blocks_ok = $blocks_ok ?? 0;
+$total_checked = $total_checked ?? 0;
+$total_updated = $total_updated ?? 0;
+$posts = $posts ?? array();
+$dry_run = $dry_run ?? false;
+global $wpdb;
+if ( ! isset( $wpdb ) || ! ( $wpdb instanceof wpdb ) ) {
+    fwrite( STDERR, "[BLOG MARKDOWN FAIL] WordPress database object is unavailable.\n" );
     return;
 }
 

@@ -200,8 +200,6 @@ jobs:
           test "$(wp option get siteurl)" = "$BASE_URL"
           test "$(wp option get blog_public)" = '1'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          for legacy_mu in nuvanx-valoracion-native-hubspot-form.php nuvanx-contacto-hubspot-form.php nvx-disable-public-facebook-pixel.php nuvanx-google-attribution.php; do test ! -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"; done
-          test ! -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
           echo 'PRODUCTION_PREFLIGHT=PASS'
           REMOTE
 

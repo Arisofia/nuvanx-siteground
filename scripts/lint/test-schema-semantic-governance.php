@@ -6,28 +6,10 @@ declare(strict_types=1);
 define( 'ABSPATH', __DIR__ );
 
 $GLOBALS['nvx_registered_filters'] = array();
-$GLOBALS['nvx_registered_actions'] = array();
 
 function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_registered_filters'][] = array( $hook, $callback, $priority, $accepted_args );
 	return true;
-}
-function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
-	$GLOBALS['nvx_registered_actions'][] = array( $hook, $callback, $priority, $accepted_args );
-	return true;
-}
-function remove_action( $hook, $callback, $priority = 10 ) {
-	global $wp_filter;
-	if ( empty( $wp_filter[ $hook ]->callbacks[ $priority ] ) ) {
-		return false;
-	}
-	foreach ( $wp_filter[ $hook ]->callbacks[ $priority ] as $id => $registered ) {
-		if ( ( $registered['function'] ?? null ) === $callback ) {
-			unset( $wp_filter[ $hook ]->callbacks[ $priority ][ $id ] );
-			return true;
-		}
-	}
-	return false;
 }
 function is_admin(): bool { return false; }
 function is_feed(): bool { return false; }
@@ -56,19 +38,6 @@ foreach ( $GLOBALS['nvx_registered_filters'] as $filter ) {
 	}
 }
 nvx_test_assert( $filter_registered, 'final filter must be registered at PHP_INT_MAX - 2' );
-
-$runtime_retirement_registered = false;
-foreach ( $GLOBALS['nvx_registered_actions'] as $action ) {
-	if (
-		'wp_loaded' === $action[0]
-		&& 'nvx_schema_runtime_retire_legacy_emitters' === $action[1]
-		&& PHP_INT_MAX === $action[2]
-	) {
-		$runtime_retirement_registered = true;
-		break;
-	}
-}
-nvx_test_assert( $runtime_retirement_registered, 'legacy emitter retirement must run at wp_loaded/PHP_INT_MAX' );
 
 $graph = array(
 	array(
@@ -105,7 +74,7 @@ $graph = array(
 	),
 	array(
 		'@type'                => 'MedicalProcedure',
-		'@id'                  => 'https://example.test/#legacy-procedure',
+		'@id'                  => 'https://example.test/#procedure',
 		'procedureType'        => 'https://schema.org/NoninvasiveProcedure',
 		'recognizingAuthority' => array(
 			'@type' => 'Organization',
@@ -155,39 +124,5 @@ nvx_test_assert( false !== strpos( $cleaned, '<p>after</p>' ), 'content after Sc
 $only_non_schema = preg_replace( $pcre, $jsonld_rule['replacement'], $non_schema );
 nvx_test_assert( $non_schema === $only_non_schema, 'non-Schema JSON-LD must be byte-preserved when no Schema block exists' );
 
-// Runtime ownership contract. Only the proven legacy NUVANX Schema callbacks
-// may be removed. Yoast remains canonical and generic Code Snippets survives.
-function nvx_seo_geo_output_jsonld(): void {}
-function nvx_seo_geo_output_breadcrumb(): void {}
-$legacy_faq_closure = require __DIR__ . '/fixtures/nuvanx-home-unified-faq-schema.php';
-$code_snippet_closure = static function (): void {};
-
-$wp_filter = array(
-	'wp_head' => (object) array(
-		'callbacks' => array(
-			6 => array(
-				'legacy-jsonld' => array( 'function' => 'nvx_seo_geo_output_jsonld' ),
-			),
-			7 => array(
-				'legacy-breadcrumb' => array( 'function' => 'nvx_seo_geo_output_breadcrumb' ),
-			),
-			9 => array(
-				'legacy-faq' => array( 'function' => $legacy_faq_closure ),
-			),
-			10 => array(
-				'code-snippets' => array( 'function' => $code_snippet_closure ),
-			),
-		),
-	),
-);
-
-nvx_schema_runtime_retire_legacy_emitters();
-
-nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[6] ), 'legacy nvx_seo_geo_output_jsonld callback must be removed' );
-nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[7] ), 'legacy standalone SEO/GEO breadcrumb Schema callback must be removed' );
-nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[9] ), 'legacy standalone home FAQ Schema callback must be removed' );
-nvx_test_assert( isset( $wp_filter['wp_head']->callbacks[10]['code-snippets'] ), 'generic Code Snippets callback must survive' );
-
-echo "LEGACY_SCHEMA_EMITTER_RETIREMENT_TEST=PASS\n";
 echo "JSONLD_CONTENT_HYGIENE_TEST=PASS\n";
 echo "SCHEMA_SEMANTIC_GOVERNANCE_TEST=PASS\n";

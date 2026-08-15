@@ -5,7 +5,6 @@ Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 | Script | Purpose |
 |--------|---------|
 | `deploy-to-staging2.sh` | Guard Staging2 identity, PHP lint, backup, rsync theme, stamp SHA and purge caches |
-| `deploy-required-mu-plugins.sh` | Validate WordPress root identity and retire absorbed MU plugins |
 | `deploy-to-prod.sh` | Guarded production promotion tooling for an explicitly authorized exact SHA |
 | `flush-prod-cache.sh` | Flush WordPress and SiteGround optimizer caches for the production root |
 

@@ -116,7 +116,8 @@ function nvx_contact_append_maps( string $content ): string {
 	if ( is_admin() || ! function_exists( 'nvx_is_contacto_page_request' ) || ! nvx_is_contacto_page_request() ) {
 		return $content;
 	}
-	if ( false !== strpos( $content, 'id="nvx-contacto-maps"' ) || false !== strpos( $content, 'nvx-contacto-maps' ) ) {
+	// Use only the id attribute marker to avoid false positives on generic class name matches
+	if ( false === strpos( $content, 'id="nvx-contacto-maps"' ) ) {
 		return $content;
 	}
 

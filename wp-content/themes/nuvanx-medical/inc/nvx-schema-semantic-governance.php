@@ -369,7 +369,15 @@ function nvx_schema_is_legacy_emitter( $callback ): bool {
 function nvx_schema_runtime_retire_legacy_emitters(): void {
 	global $wp_filter;
 
-	if ( isset( $wp_filter['wp_head']->callbacks ) && is_array( $wp_filter['wp_head']->callbacks ) ) {
+	// Guard access by checking that wp_head is a WP_Hook instance
+	// This avoids brittle coupling to internal structure if the global is modified or filtered elsewhere
+	if ( ! isset( $wp_filter['wp_head'] ) || ! ( $wp_filter['wp_head'] instanceof WP_Hook ) ) {
+		return;
+	}
+
+	if ( ! isset( $wp_filter['wp_head']->callbacks ) || ! is_array( $wp_filter['wp_head']->callbacks ) ) {
+		return;
+	}
 		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				$function = $callback['function'] ?? null;

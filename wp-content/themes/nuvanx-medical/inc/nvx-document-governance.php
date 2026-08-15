@@ -36,7 +36,9 @@ add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical
  * Normalized path from the actual HTTP request, independent of the global post.
  */
 function nvx_document_governance_request_path(): string {
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$uri = function_exists( 'nvx_governed_blog_runtime_original_request_uri' )
+		? nvx_governed_blog_runtime_original_request_uri()
+		: ( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/' );
 	$path = wp_parse_url( $uri, PHP_URL_PATH );
 	$path = is_string( $path ) && '' !== $path ? $path : '/';
 	$path = '/' . trim( $path, '/' );

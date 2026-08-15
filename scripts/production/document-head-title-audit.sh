@@ -10,7 +10,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 matrix_url="$BASE_URL/matriz-diagnostico-facial-estructura-piel-musculo-grasa/"
 expected_matrix_title='Matriz de diagnóstico facial | NUVANX Madrid'
 expected_matrix_h1='Matriz de diagnóstico facial: estructura, músculo, piel y grasa'
-expected_runtime_contract='20260815-db-authoritative-wp-bootstrap-v2'
+expected_runtime_contract='20260815-immutable-request-final-query-lock-v3'
 neighbouring_slug='tratamientos-faciales-sin-cirugia-guia-medica-diagnostico'
 
 fetch() {

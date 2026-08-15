@@ -19,7 +19,7 @@ const expectedOgUrl = baseUrl === 'https://nuvanx.com'
   : `https://nuvanx.com${route}`;
 const expectedTitle = 'Matriz de diagnóstico facial | NUVANX Madrid';
 const expectedH1 = 'Matriz de diagnóstico facial: estructura, músculo, piel y grasa';
-const expectedRuntimeContract = '20260815-db-authoritative-wp-bootstrap-v2';
+const expectedRuntimeContract = '20260815-immutable-request-final-query-lock-v3';
 const neighbouringSlug = 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico';
 const originFallbackAllowed = baseUrl === 'https://staging2.nuvanx.com';
 

@@ -14,12 +14,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) ) {
-	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-wp-bootstrap-v2' );
+	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-immutable-request-final-query-lock-v3' );
+}
+
+// Capture the public request URI once during theme bootstrap. Later query/SEO
+// callbacks must never trust a mutable $_SERVER['REQUEST_URI']: production-only
+// integrations can otherwise make every PHP_INT_MAX guard follow a neighbouring
+// singular after the original route has already been parsed.
+if ( ! defined( 'NVX_GOVERNED_BLOG_BOOT_REQUEST_URI' ) ) {
+	define(
+		'NVX_GOVERNED_BLOG_BOOT_REQUEST_URI',
+		isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : ''
+	);
+}
+
+/** Immutable public request URI captured before the main query lifecycle. */
+function nvx_governed_blog_runtime_original_request_uri(): string {
+	return defined( 'NVX_GOVERNED_BLOG_BOOT_REQUEST_URI' )
+		? (string) NVX_GOVERNED_BLOG_BOOT_REQUEST_URI
+		: '';
 }
 
 /** Actual one-segment public slug, independent of WP_Query/global post state. */
 function nvx_governed_blog_runtime_request_slug(): string {
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+	$uri  = nvx_governed_blog_runtime_original_request_uri();
 	$path = wp_parse_url( $uri, PHP_URL_PATH );
 	$path = is_string( $path ) ? trim( $path, '/' ) : '';
 
@@ -142,6 +160,40 @@ function nvx_governed_blog_runtime_pre_get_posts( WP_Query $query ): void {
 	$query->set( 'page_id', 0 );
 }
 
+
+/**
+ * Last-word post-array lock after SQL/cache filters have run.
+ *
+ * Production may have plugins/snippets that mutate the main query after our
+ * pre_get_posts callback. For an exact governed public path, the versioned
+ * catalog + immutable request URI + authoritative DB row are the only valid
+ * identity, so replace a neighbouring result before the loop can observe it.
+ *
+ * @param WP_Post[] $posts Query result posts.
+ * @return WP_Post[]
+ */
+function nvx_governed_blog_runtime_force_the_posts( array $posts, WP_Query $query ): array {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return $posts;
+	}
+
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return $posts;
+	}
+
+	$resolved = $context['post'];
+	$slug     = $context['slug'];
+	$query->set( 'p', (int) $resolved->ID );
+	$query->set( 'name', $slug );
+	$query->set( 'post_type', 'post' );
+	$query->set( 'post_status', 'publish' );
+	$query->set( 'pagename', '' );
+	$query->set( 'page_id', 0 );
+
+	return array( $resolved );
+}
+
 /**
  * Rebind both public query globals and the loop post before downstream SEO and
  * template consumers observe stale singular state.
@@ -187,6 +239,18 @@ function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	remove_action( 'wp_head', 'rel_canonical' );
 
 	return $resolved;
+}
+
+
+/** Force the canonical post entrypoint for an exact governed request. */
+function nvx_governed_blog_runtime_template_include( $template ) {
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return $template;
+	}
+
+	$single_post = get_template_directory() . '/single-post.php';
+	return is_readable( $single_post ) ? $single_post : $template;
 }
 
 /** Final title derived only from the governed request path/catalog. */
@@ -308,10 +372,15 @@ function nvx_governed_blog_runtime_print_head_contract(): void {
 	}
 }
 
-// Loaded from nvx-blog-system.php during functions.php bootstrap. Pin the exact
-// governed row before WP_Query executes, then rebind on `wp` as a final guard.
-add_action( 'pre_get_posts', 'nvx_governed_blog_runtime_pre_get_posts', -999999 );
-add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 );
+// Loaded from nvx-blog-system.php during functions.php bootstrap. Every phase
+// below is a final-word lock for exact governed paths. Plugins load before the
+// theme, so PHP_INT_MAX also places this callback after peer-priority plugin
+// callbacks registered earlier.
+add_action( 'pre_get_posts', 'nvx_governed_blog_runtime_pre_get_posts', PHP_INT_MAX );
+add_filter( 'the_posts', 'nvx_governed_blog_runtime_force_the_posts', PHP_INT_MAX, 2 );
+add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', PHP_INT_MAX );
+add_action( 'template_redirect', 'nvx_governed_blog_runtime_rebind_queries', PHP_INT_MAX );
+add_filter( 'template_include', 'nvx_governed_blog_runtime_template_include', PHP_INT_MAX );
 
 remove_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
 add_action( 'wp_head', 'nvx_governed_blog_runtime_print_canonical', 1 );

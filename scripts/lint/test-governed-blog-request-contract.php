@@ -124,6 +124,7 @@ function is_singular() { return false; }
 function get_queried_object_id() { return 0; }
 function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
 function home_url( $path = '' ) { return 'https://nuvanx.com' . $path; }
+function get_template_directory() { return dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical'; }
 function sanitize_title( $value ) { return strtolower( trim( (string) $value ) ); }
 function esc_url( $value ) { return (string) $value; }
 function esc_attr( $value ) { return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' ); }
@@ -186,7 +187,15 @@ function nvx_single_post_rebind_query( WP_Query $query, WP_Post $post, ?string $
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php';
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-governed-blog-runtime.php';
 
-$expected_contract = '20260815-db-authoritative-wp-bootstrap-v2';
+$matrix_slug = 'matriz-diagnostico-facial-estructura-piel-musculo-grasa';
+$_SERVER['REQUEST_URI'] = '/tratamientos-faciales-sin-cirugia-guia-medica-diagnostico/';
+if ( $matrix_slug !== nvx_governed_blog_runtime_request_slug()
+	|| '/' . $matrix_slug . '/' !== nvx_document_governance_request_path() ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_IMMUTABLE_REQUEST_URI=FAIL' . PHP_EOL );
+	exit( 1 );
+}
+
+$expected_contract = '20260815-immutable-request-final-query-lock-v3';
 if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) || $expected_contract !== NVX_GOVERNED_BLOG_RUNTIME_CONTRACT ) {
 	fwrite( STDERR, 'GOVERNED_BLOG_RUNTIME_CONTRACT_VERSION=FAIL' . PHP_EOL );
 	exit( 1 );
@@ -275,6 +284,20 @@ if ( ! ( $rebound instanceof WP_Post )
 	exit( 1 );
 }
 
+$forced_posts = nvx_governed_blog_runtime_force_the_posts(
+	array( new WP_Post( 3310, 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' ) ),
+	$GLOBALS['wp_query']
+);
+$forced_template = nvx_governed_blog_runtime_template_include( '/tmp/single.php' );
+$expected_template = get_template_directory() . '/single-post.php';
+if ( 1 !== count( $forced_posts )
+	|| ! ( $forced_posts[0] instanceof WP_Post )
+	|| 3334 !== $forced_posts[0]->ID
+	|| $expected_template !== $forced_template ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_FINAL_QUERY_TEMPLATE_LOCK=FAIL' . PHP_EOL );
+	exit( 1 );
+}
+
 ob_start();
 nvx_governed_blog_runtime_print_head_contract();
 $head_contract = (string) ob_get_clean();
@@ -293,7 +316,10 @@ $single_entrypoint = file_get_contents( $root . 'single-post.php' );
 
 $rebind_definition_pos = is_string( $blog_system ) ? strpos( $blog_system, 'function nvx_single_post_rebind_query' ) : false;
 $bootstrap_require_pos = is_string( $blog_system ) ? strpos( $blog_system, "require_once __DIR__ . '/nvx-governed-blog-runtime.php'" ) : false;
-$wp_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 )" ) : false;
+$pre_get_posts_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_action( 'pre_get_posts', 'nvx_governed_blog_runtime_pre_get_posts', PHP_INT_MAX )" ) : false;
+$the_posts_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_filter( 'the_posts', 'nvx_governed_blog_runtime_force_the_posts', PHP_INT_MAX, 2 )" ) : false;
+$wp_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', PHP_INT_MAX )" ) : false;
+$template_include_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_filter( 'template_include', 'nvx_governed_blog_runtime_template_include', PHP_INT_MAX )" ) : false;
 $canonical_filter_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_filter( 'wpseo_canonical', 'nvx_governed_blog_runtime_canonical', PHP_INT_MAX )" ) : false;
 $runtime_require_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, "require_once __DIR__ . '/inc/nvx-governed-blog-runtime.php'" ) : false;
 $db_resolver_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, 'nvx_governed_blog_runtime_db_post_by_slug' ) : false;
@@ -302,7 +328,10 @@ $query_name_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, 
 if ( false === $rebind_definition_pos
 	|| false === $bootstrap_require_pos
 	|| $rebind_definition_pos >= $bootstrap_require_pos
+	|| false === $pre_get_posts_hook_pos
+	|| false === $the_posts_hook_pos
 	|| false === $wp_hook_pos
+	|| false === $template_include_hook_pos
 	|| false === $canonical_filter_pos
 	|| false === $runtime_require_pos
 	|| false === $db_resolver_pos
@@ -315,6 +344,8 @@ if ( false === $rebind_definition_pos
 
 echo 'GOVERNED_BLOG_DB_AUTHORITATIVE_RUNTIME=PASS requested_post=3334 cache_poison_id=3310 cache_poison_slug=requested cache_apis_called=0' . PHP_EOL;
 echo 'GOVERNED_BLOG_REQUEST_MEMOIZATION=PASS db_queries_after_first_resolution=0' . PHP_EOL;
-echo 'GOVERNED_BLOG_EARLY_QUERY_REBIND=PASS requested_post=3334 stale_query_post=3310 hook=wp priority=-999999' . PHP_EOL;
+echo 'GOVERNED_BLOG_IMMUTABLE_REQUEST_URI=PASS requested_post=3334 mutated_server_uri=3310' . PHP_EOL;
+echo 'GOVERNED_BLOG_EARLY_QUERY_REBIND=PASS requested_post=3334 stale_query_post=3310 hook=wp priority=PHP_INT_MAX' . PHP_EOL;
+echo 'GOVERNED_BLOG_FINAL_QUERY_TEMPLATE_LOCK=PASS requested_post=3334 incoming_post=3310 template=single-post.php' . PHP_EOL;
 echo 'GOVERNED_BLOG_CANONICAL_OWNER=PASS owner=yoast filter=wpseo_canonical manual_governed_canonical=0' . PHP_EOL;
 echo 'GOVERNED_BLOG_HTTP_RUNTIME_SENTINEL=PASS contract=' . NVX_GOVERNED_BLOG_RUNTIME_CONTRACT . PHP_EOL;

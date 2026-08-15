@@ -26,10 +26,15 @@ $nvx_exact_post = null;
 // routes. Never prefer a stale WP_Query name here: that was able to rebind the
 // requested matrix article to a neighbouring post before get_header()/Yoast ran.
 if ( function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
-	$nvx_uri          = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
-	$nvx_path         = wp_parse_url( $nvx_uri, PHP_URL_PATH );
-	$nvx_path         = is_string( $nvx_path ) ? '/' . trim( $nvx_path, '/' ) . '/' : '';
-	$nvx_request_slug = trim( $nvx_path, '/' );
+	$nvx_request_slug = function_exists( 'nvx_governed_blog_runtime_request_slug' )
+		? nvx_governed_blog_runtime_request_slug()
+		: '';
+	if ( '' === $nvx_request_slug ) {
+		$nvx_uri          = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+		$nvx_path         = wp_parse_url( $nvx_uri, PHP_URL_PATH );
+		$nvx_path         = is_string( $nvx_path ) ? '/' . trim( $nvx_path, '/' ) . '/' : '';
+		$nvx_request_slug = trim( $nvx_path, '/' );
+	}
 
 	if ( '' !== $nvx_request_slug && false === strpos( $nvx_request_slug, '/' ) ) {
 		$nvx_catalog = nvx_seo_blog_post_metadata_catalog();

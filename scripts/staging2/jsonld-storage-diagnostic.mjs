@@ -22,7 +22,11 @@ export async function runJsonLdStorageDiagnostic(options = {}) {
   const stagingRoot = safeRemotePath(options.stagingRoot || process.env.STAGING_ROOT, 'STAGING_ROOT');
   const remoteRelease = safeRemotePath(options.remoteRelease || process.env.REMOTE_RELEASE, 'REMOTE_RELEASE');
   const diagnosticScript = `${remoteRelease}/tools/migrations/diagnose-jsonld-storage.php`;
-  const remoteCommand = `cd '${stagingRoot}' && wp eval-file '${diagnosticScript}' --allow-root`;
+
+  // wp eval-file evaluates the file body and therefore makes a top-level
+  // declare(strict_types=1) illegal. wp eval + require compiles the diagnostic
+  // as a normal PHP file, preserving its strict-types contract.
+  const remoteCommand = `cd '${stagingRoot}' && wp eval "require '${diagnosticScript}';" --allow-root`;
 
   const result = spawnSync(
     SSH_BIN,

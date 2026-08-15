@@ -50,7 +50,7 @@ MOCK
 chmod +x "$TMP_ROOT/bin/ssh"
 
 run_case() {
-  local name="$1" mode="$2" expected_rc="$3" expected_transport="$4" expected_calls="$5"
+  local name="$1" mode="$2" expected_rc="$3" expected_transport="$4" expected_calls="$5" expected_host="${6:-}"
   local case_root="$TMP_ROOT/$name"
   mkdir -p "$case_root/home" "$case_root/runtime"
   local env_file="$case_root/github-env"
@@ -142,6 +142,15 @@ run_case() {
     exit 1
   }
 
+  # Assert expected host in config for fallback cases
+  if [[ -n "$expected_host" ]]; then
+    grep -Fq "HostName $expected_host" "$config" || {
+      echo "SSH_HELPER_TEST=FAIL case=$name missing_expected_host=$expected_host" >&2
+      cat "$config" >&2 || true
+      exit 1
+    }
+  fi
+
   local key="$case_root/home/.ssh/prod_key"
   local known_hosts="$case_root/home/.ssh/known_hosts"
   [[ -f "$key" ]] || { echo "SSH_HELPER_TEST=FAIL case=$name key_not_found" >&2; exit 1; }
@@ -157,8 +166,9 @@ run_case() {
   echo "SSH_HELPER_TEST=PASS case=$name rc=$rc calls=$calls transport=${expected_transport:-none}"
 }
 
-run_case primary-pass primary-pass 0 primary 1
-run_case fallback-pass fallback-pass 0 fallback 2
+run_case primary-pass primary-pass 0 primary 1 primary.example
+run_case transport-fail transport-timeout 255 '' 1
+run_case fallback-pass fallback-pass 0 fallback 2 fallback.example
 run_case transport-fail transport-fail 255 '' 2
 run_case auth-fail-closed primary-auth 1 '' 1
 run_case hostkey-fail-closed primary-hostkey 1 '' 1

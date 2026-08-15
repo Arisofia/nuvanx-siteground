@@ -61,34 +61,89 @@ function nvxFlushMarkdownList( string &$listType, array &$items, array &$output 
 /** @return array{type:string,value:string,level:int} */
 function nvxClassifyMarkdownLine( string $line ): array {
     $trimmed = trim( $line );
+    $token = array( 'type' => 'text', 'value' => $trimmed, 'level' => 0 );
+    $matches = array();
+
     if ( '' === $trimmed ) {
-        return array( 'type' => 'blank', 'value' => '', 'level' => 0 );
+        $token = array( 'type' => 'blank', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^#{2,6}\s*📌\s*$/u', $trimmed ) ) {
+        $token = array( 'type' => 'editorial_residue', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'heading', 'value' => trim( $matches[2] ), 'level' => strlen( $matches[1] ) );
+    } elseif ( preg_match( '/^(?:---+|___+|\*\*\*+)$/', $trimmed ) ) {
+        $token = array( 'type' => 'rule', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^[-+*]\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'ul', 'value' => $matches[1], 'level' => 0 );
+    } elseif ( preg_match( '/^\d+[.)]\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'ol', 'value' => $matches[1], 'level' => 0 );
+    } elseif ( preg_match( '/^<\/?[a-z][^>]*>/i', $trimmed ) ) {
+        $token = array( 'type' => 'html', 'value' => $line, 'level' => 0 );
     }
-    if ( preg_match( '/^#{2,6}\s*📌\s*$/u', $trimmed ) ) {
-        return array( 'type' => 'editorial_residue', 'value' => '', 'level' => 0 );
-    }
-    if ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $matches ) ) {
-        return array( 'type' => 'heading', 'value' => trim( $matches[2] ), 'level' => strlen( $matches[1] ) );
-    }
-    if ( preg_match( '/^(?:---+|___+|\*\*\*+)$/', $trimmed ) ) {
-        return array( 'type' => 'rule', 'value' => '', 'level' => 0 );
-    }
-    if ( preg_match( '/^[-+*]\s+(.+)$/', $trimmed, $matches ) ) {
-        return array( 'type' => 'ul', 'value' => $matches[1], 'level' => 0 );
-    }
-    if ( preg_match( '/^\d+[.)]\s+(.+)$/', $trimmed, $matches ) ) {
-        return array( 'type' => 'ol', 'value' => $matches[1], 'level' => 0 );
-    }
-    if ( preg_match( '/^<\/?[a-z][^>]*>/i', $trimmed ) ) {
-        return array( 'type' => 'html', 'value' => $line, 'level' => 0 );
-    }
-    return array( 'type' => 'text', 'value' => $trimmed, 'level' => 0 );
+
+    return $token;
 }
 
 /** @param array<int,string> $paragraph @param array<int,string> $items @param array<int,string> $output */
 function nvxFlushMarkdownBuffers( array &$paragraph, string &$listType, array &$items, array &$output ): void {
     nvxFlushMarkdownParagraph( $paragraph, $output );
     nvxFlushMarkdownList( $listType, $items, $output );
+}
+
+/**
+ * Apply one classified Markdown token.
+ *
+ * @param array{type:string,value:string,level:int} $token
+ * @param array<int,string> $paragraph
+ * @param array<int,string> $listItems
+ * @param array<int,string> $output
+ * @return bool False when the technical metadata tail has been reached.
+ */
+function nvxApplyMarkdownToken(
+    array $token,
+    array &$paragraph,
+    string &$listType,
+    array &$listItems,
+    array &$output,
+    bool &$leadingH1Removed
+): bool {
+    switch ( $token['type'] ) {
+        case 'blank':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            break;
+        case 'heading':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            if ( 1 === $token['level'] && ! $leadingH1Removed && empty( $output ) ) {
+                $leadingH1Removed = true;
+                break;
+            }
+            $level = 1 === $token['level'] ? 2 : $token['level'];
+            $output[] = '<h' . $level . '>' . nvxNormalizeMarkdownInline( $token['value'] ) . '</h' . $level . '>';
+            break;
+        case 'rule':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            $output[] = '<hr />';
+            break;
+        case 'ul':
+        case 'ol':
+            nvxFlushMarkdownParagraph( $paragraph, $output );
+            if ( '' !== $listType && $token['type'] !== $listType ) {
+                nvxFlushMarkdownList( $listType, $listItems, $output );
+            }
+            $listType = $token['type'];
+            $listItems[] = $token['value'];
+            break;
+        case 'html':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            $output[] = wp_kses_post( $token['value'] );
+            break;
+        case 'editorial_residue':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            return false;
+        default:
+            $paragraph[] = $token['value'];
+    }
+
+    return true;
 }
 
 function nvxNormalizeContent( string $content ): string {
@@ -105,41 +160,8 @@ function nvxNormalizeContent( string $content ): string {
 
     foreach ( explode( "\n", $normalized ) as $line ) {
         $token = nvxClassifyMarkdownLine( rtrim( $line ) );
-        switch ( $token['type'] ) {
-            case 'blank':
-                nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                break;
-            case 'heading':
-                nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                if ( 1 === $token['level'] && ! $leadingH1Removed && empty( $output ) ) {
-                    $leadingH1Removed = true;
-                    break;
-                }
-                $level = 1 === $token['level'] ? 2 : $token['level'];
-                $output[] = '<h' . $level . '>' . nvxNormalizeMarkdownInline( $token['value'] ) . '</h' . $level . '>';
-                break;
-            case 'rule':
-                nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                $output[] = '<hr />';
-                break;
-            case 'ul':
-            case 'ol':
-                nvxFlushMarkdownParagraph( $paragraph, $output );
-                if ( '' !== $listType && $token['type'] !== $listType ) {
-                    nvxFlushMarkdownList( $listType, $listItems, $output );
-                }
-                $listType = $token['type'];
-                $listItems[] = $token['value'];
-                break;
-            case 'html':
-                nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                $output[] = wp_kses_post( $token['value'] );
-                break;
-            case 'editorial_residue':
-                nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                break 2;
-            default:
-                $paragraph[] = $token['value'];
+        if ( ! nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed ) ) {
+            break;
         }
     }
 

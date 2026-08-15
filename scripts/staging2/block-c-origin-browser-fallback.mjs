@@ -1,0 +1,175 @@
+import fs from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+
+const SSH_BIN = '/usr/bin/ssh';
+const SUDO_BIN = '/usr/bin/sudo';
+const allowedAliases = new Set(['nvx-staging2', 'nvx-staging2-pr']);
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+const expectedHost = new URL(baseUrl).hostname;
+const originSshAlias = process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
+const matrixScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.url));
+const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
+const publicEdgeEvidenceUrl = new URL('./artifacts/block-c-public-edge-transient.json', import.meta.url);
+const hostsMarker = `# NUVANX_BLOCK_C_ORIGIN_BROWSER_${process.pid}`;
+
+if (!allowedAliases.has(originSshAlias)) {
+  throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
+}
+if (expectedHost !== 'staging2.nuvanx.com') {
+  throw new Error(`Origin browser fallback is restricted to staging2.nuvanx.com, got ${expectedHost}`);
+}
+
+function run(cmd, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, args, { stdio: options.stdio || 'inherit', env: options.env || process.env });
+    child.once('error', reject);
+    child.once('exit', (code, signal) => {
+      if (signal) reject(new Error(`${cmd} terminated by signal ${signal}`));
+      else resolve(Number.isInteger(code) ? code : 1);
+    });
+  });
+}
+
+async function preservePublicEdgeEvidence() {
+  let results;
+  try {
+    results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+  } catch {
+    return;
+  }
+  await fs.mkdir(new URL('./artifacts/', import.meta.url), { recursive: true });
+  const inconclusive = Array.isArray(results)
+    ? results.filter((result) => result?.externalInconclusive === true || result?.status !== 'PASS')
+    : [];
+  await fs.writeFile(
+    publicEdgeEvidenceUrl,
+    `${JSON.stringify({
+      schema: 1,
+      capturedAt: new Date().toISOString(),
+      transport: 'public-edge',
+      reason: process.env.BLOCK_C_FALLBACK_REASON || 'siteground-antibot-transient',
+      totalResults: Array.isArray(results) ? results.length : 0,
+      inconclusive,
+    }, null, 2)}\n`,
+    'utf8'
+  );
+}
+
+async function appendHostsMapping() {
+  const line = `127.0.0.1 ${expectedHost} ${hostsMarker}`;
+  const command = `printf '%s\\n' '${line}' | tee -a /etc/hosts >/dev/null`;
+  const code = await run(SUDO_BIN, ['-n', 'sh', '-c', command]);
+  if (code !== 0) throw new Error(`Unable to add temporary /etc/hosts mapping for ${expectedHost}`);
+}
+
+async function removeHostsMapping() {
+  const escaped = hostsMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await run(SUDO_BIN, ['-n', 'sh', '-c', `sed -i '/${escaped}$/d' /etc/hosts`]).catch(() => {});
+}
+
+async function startTunnel() {
+  const configPath = `${process.env.HOME}/.ssh/config`;
+  const args = [
+    '-n',
+    SSH_BIN,
+    '-F', configPath,
+    '-o', 'BatchMode=yes',
+    '-o', 'ExitOnForwardFailure=yes',
+    '-o', 'ServerAliveInterval=15',
+    '-o', 'ServerAliveCountMax=2',
+    '-N',
+    '-L', '127.0.0.1:443:127.0.0.1:443',
+    '--', originSshAlias,
+  ];
+  const child = spawn(SUDO_BIN, args, { stdio: ['ignore', 'inherit', 'inherit'], env: process.env });
+  let exited = null;
+  child.once('exit', (code, signal) => { exited = { code, signal }; });
+  await delay(1800);
+  if (exited) throw new Error(`Origin SSH tunnel exited before validation: code=${exited.code} signal=${exited.signal || ''}`);
+  return child;
+}
+
+async function stopTunnel(child) {
+  if (!child || child.exitCode !== null) return;
+  child.kill('SIGTERM');
+  await Promise.race([
+    new Promise((resolve) => child.once('exit', resolve)),
+    delay(3000),
+  ]);
+  if (child.exitCode === null) child.kill('SIGKILL');
+}
+
+async function verifyTunnel() {
+  const code = await run('/usr/bin/curl', [
+    '-kfsS', '--max-time', '20', '--resolve', `${expectedHost}:443:127.0.0.1`,
+    '-H', 'Cache-Control: no-cache', '-H', 'Pragma: no-cache',
+    '-o', '/dev/null', `${baseUrl}/`,
+  ]);
+  if (code !== 0) throw new Error('Origin browser SSH tunnel preflight failed');
+}
+
+function resultIsFullyVisualPass(result) {
+  return result?.status === 'PASS'
+    && result?.externalInconclusive !== true
+    && result?.geometry != null
+    && Number(result?.httpStatus || 0) === 200;
+}
+
+async function validateAndMarkFallbackResults() {
+  const results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+  if (!Array.isArray(results) || results.length === 0) throw new Error('Origin browser fallback produced no Block C results');
+  const invalid = results.filter((result) => !resultIsFullyVisualPass(result));
+  if (invalid.length > 0) {
+    console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL incomplete=${invalid.length}`);
+    for (const result of invalid.slice(0, 12)) {
+      console.error(`- route=${result?.route || '?'} viewport=${result?.viewport?.key || '?'} status=${result?.status || '?'} http=${result?.httpStatus ?? 0} geometry=${result?.geometry ? 'present' : 'missing'} inconclusive=${result?.externalInconclusive === true}`);
+    }
+    return false;
+  }
+  const marked = results.map((result) => ({
+    ...result,
+    validationTransport: 'siteground-origin-browser-ssh-tunnel',
+    publicEdgeTransient: true,
+  }));
+  await fs.writeFile(resultsUrl, `${JSON.stringify(marked, null, 2)}\n`, 'utf8');
+  console.log(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=PASS results=${marked.length} transport=siteground-origin-browser-ssh-tunnel`);
+  return true;
+}
+
+export async function runOriginBrowserFallback() {
+  if (process.env.BLOCK_C_ORIGIN_BROWSER_FALLBACK === '0') return false;
+  await preservePublicEdgeEvidence();
+
+  let tunnel = null;
+  try {
+    // Start SSH before changing /etc/hosts so the SSH endpoint itself can never
+    // be redirected to the local tunnel.
+    tunnel = await startTunnel();
+    await verifyTunnel();
+    await appendHostsMapping();
+
+    const env = {
+      ...process.env,
+      BLOCK_C_VALIDATION_TRANSPORT: 'siteground-origin-browser-ssh-tunnel',
+    };
+    const code = await run(process.execPath, [matrixScript], { env });
+    if (code !== 0) {
+      console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL matrix_exit=${code}`);
+      return false;
+    }
+    return await validateAndMarkFallbackResults();
+  } catch (error) {
+    console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=UNAVAILABLE reason=${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  } finally {
+    await removeHostsMapping();
+    await stopTunnel(tunnel);
+  }
+}
+
+if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+  const pass = await runOriginBrowserFallback();
+  process.exit(pass ? 0 : 75);
+}

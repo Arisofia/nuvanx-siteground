@@ -12,6 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit( 1 );
 }
 
+function nvxNeedsMarkdownNormalization( string $content ): bool {
+    if ( '' === trim( $content ) || false !== strpos( $content, '<!-- wp:' ) ) {
+        return false;
+    }
+
+    return 1 === preg_match( '/\[[^\]]+\]\([^)]+\)/', $content )
+        || 1 === preg_match( '/^#{1,6}\s+.+$/m', $content )
+        || 1 === preg_match( '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m', $content );
+}
+
 function nvxNormalizeMarkdownInline( string $text ): string {
     $escaped = esc_html( $text );
     $escaped = preg_replace_callback(

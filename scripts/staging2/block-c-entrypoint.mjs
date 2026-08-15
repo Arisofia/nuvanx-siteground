@@ -71,15 +71,25 @@ async function tryExactOriginNetworkRecovery() {
     return false;
   }
 
+  // Wrap verification in error handling to treat config/transport errors as temporary
+  // rather than application failures
   const verificationByRoute = new Map();
-  for (const result of failed) {
-    const route = String(result.route || '');
-    if (!verificationByRoute.has(route)) verificationByRoute.set(route, verifier.verify(route));
-    const verification = verificationByRoute.get(route);
-    if (!verification?.pass || verification.originStatus !== 200 || verification.originDeploySha !== expectedSha) {
-      console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=FAIL route=${route} origin_http=${verification?.originStatus ?? 0} origin_sha=${verification?.originDeploySha || 'missing'}`);
-      return false;
+  try {
+    for (const result of failed) {
+      const route = String(result.route || '');
+      if (!verificationByRoute.has(route)) {
+        verificationByRoute.set(route, verifier.verify(route));
+      }
+      const verification = verificationByRoute.get(route);
+      if (!verification?.pass || verification.originStatus !== 200 || verification.originDeploySha !== expectedSha) {
+        console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=FAIL route=${route} origin_http=${verification?.originStatus ?? 0} origin_sha=${verification?.originDeploySha || 'missing'}`);
+        return false;
+      }
     }
+  } catch (error) {
+    // Config or transport errors in verifier should be treated as unavailable, not hard failures
+    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=verifier_error error=${String(error.message).replace(/\s+/g, '_')}`);
+    return false;
   }
 
   const recovered = results.map((result) => {

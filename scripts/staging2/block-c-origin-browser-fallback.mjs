@@ -13,6 +13,7 @@ const matrixScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.u
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const publicEdgeEvidenceUrl = new URL('./artifacts/block-c-public-edge-transient.json', import.meta.url);
 const hostsMarker = `# NUVANX_BLOCK_C_ORIGIN_BROWSER_${process.pid}`;
+const tunnelPidfile = `/tmp/nuvanx-block-c-tunnel-${process.pid}.pid`;
 
 if (!allowedAliases.has(originSshAlias)) {
   throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
@@ -70,8 +71,10 @@ async function removeHostsMapping() {
   // inode instead, so cleanup remains safe on GitHub-hosted runners.
   const command = [
     'tmp="$(mktemp)"',
-    `grep -Fv '${hostsMarker}' /etc/hosts > "$tmp" || true`,
-    'cat "$tmp" > /etc/hosts',
+    `grep -Fv '${hostsMarker}' /etc/hosts > "$tmp"`,
+    'if [ -s "$tmp" ]; then',
+    '  cat "$tmp" > /etc/hosts',
+    'fi',
     'rm -f "$tmp"',
   ].join('; ');
   await run(SUDO_BIN, ['-n', 'sh', '-c', command]).catch(() => {});
@@ -81,19 +84,16 @@ async function startTunnel() {
   const configPath = `${process.env.HOME}/.ssh/config`;
   const args = [
     '-n',
-    SSH_BIN,
-    '-F', configPath,
-    '-o', 'BatchMode=yes',
-    '-o', 'ExitOnForwardFailure=yes',
-    '-o', 'ServerAliveInterval=15',
-    '-o', 'ServerAliveCountMax=2',
-    '-N',
-    '-L', '127.0.0.1:443:127.0.0.1:443',
-    '--', originSshAlias,
+    'sh',
+    '-c',
+    `echo $$ > ${tunnelPidfile} && exec ${SSH_BIN} -F ${configPath} -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -N -L 127.0.0.1:443:127.0.0.1:443 -- ${originSshAlias}`,
   ];
   const child = spawn(SUDO_BIN, args, { stdio: ['ignore', 'inherit', 'inherit'], env: process.env });
   let exited = null;
   child.once('exit', (code, signal) => { exited = { code, signal }; });
+  child.once('error', (err) => {
+    console.error(`BLOCK_C_TUNNEL_ERROR=${err.message}`);
+  });
   await delay(1800);
   if (exited) throw new Error(`Origin SSH tunnel exited before validation: code=${exited.code} signal=${exited.signal || ''}`);
   return child;
@@ -101,12 +101,37 @@ async function startTunnel() {
 
 async function stopTunnel(child) {
   if (!child || child.exitCode !== null) return;
-  child.kill('SIGTERM');
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    delay(3000),
-  ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
+  
+  // Use privileged termination via sudo since tunnel runs as root
+  try {
+    const pidData = await fs.readFile(tunnelPidfile, 'utf8');
+    const pid = pidData.trim();
+    if (pid) {
+      await run(SUDO_BIN, ['-n', 'kill', '-TERM', pid]);
+      await Promise.race([
+        new Promise((resolve) => child.once('exit', resolve)),
+        delay(3000),
+      ]);
+    }
+  } catch (err) {
+    console.warn(`BLOCK_C_TUNNEL_STOP_WARNING=${err instanceof Error ? err.message : String(err)}`);
+  }
+  
+  // Fallback to direct kill if privileged termination failed
+  if (child.exitCode === null) {
+    try {
+      child.kill('SIGTERM');
+    } catch (err) {
+      console.warn(`BLOCK_C_TUNNEL_DIRECT_KILL_WARNING=${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  
+  // Cleanup pidfile
+  try {
+    await fs.unlink(tunnelPidfile);
+  } catch {
+    // Ignore cleanup failures
+  }
 }
 
 async function verifyTunnel() {

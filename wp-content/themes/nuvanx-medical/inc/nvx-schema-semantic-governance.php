@@ -279,3 +279,55 @@ function nvx_schema_semantic_normalize_graph( $graph ) {
 	return array_values( $result );
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_semantic_normalize_graph', PHP_INT_MAX - 2, 1 );
+
+/** Resolve a callback's source file without executing it. */
+function nvx_schema_runtime_callback_file( $callback ): string {
+	try {
+		if ( $callback instanceof Closure ) {
+			$reflection = new ReflectionFunction( $callback );
+			return (string) $reflection->getFileName();
+		}
+		if ( is_string( $callback ) && function_exists( $callback ) ) {
+			$reflection = new ReflectionFunction( $callback );
+			return (string) $reflection->getFileName();
+		}
+		if ( is_array( $callback ) && 2 === count( $callback ) ) {
+			$class      = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
+			$reflection = new ReflectionMethod( $class, (string) $callback[1] );
+			return (string) $reflection->getFileName();
+		}
+	} catch ( Throwable $error ) {
+		return '';
+	}
+	return '';
+}
+
+/**
+ * Retire legacy standalone Schema emitters after plugins/MU plugins register.
+ *
+ * The canonical structured-data owner is wpseo_schema_graph plus the governed
+ * theme filters above. This deliberately does NOT disable Code Snippets or any
+ * generic output callback: only the proven legacy NUVANX Schema emitters are
+ * removed. Yoast owns both the canonical graph and BreadcrumbList identity.
+ */
+function nvx_schema_runtime_retire_legacy_emitters(): void {
+	global $wp_filter;
+
+	if ( isset( $wp_filter['wp_head']->callbacks ) && is_array( $wp_filter['wp_head']->callbacks ) ) {
+		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				$function = $callback['function'] ?? null;
+				if ( in_array( $function, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true ) ) {
+					remove_action( 'wp_head', $function, (int) $priority );
+					continue;
+				}
+
+				$file = nvx_schema_runtime_callback_file( $function );
+				if ( '' !== $file && 'nuvanx-home-unified-faq-schema.php' === basename( $file ) ) {
+					remove_action( 'wp_head', $function, (int) $priority );
+				}
+			}
+		}
+	}
+}
+add_action( 'wp_loaded', 'nvx_schema_runtime_retire_legacy_emitters', PHP_INT_MAX );

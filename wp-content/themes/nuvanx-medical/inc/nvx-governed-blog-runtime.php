@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) ) {
-	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-wp-bootstrap-v2' );
+	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-manual-canonical-v3' );
 }
 
 /** Actual one-segment public slug, independent of WP_Query/global post state. */
@@ -148,6 +148,11 @@ function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	$post = $resolved;
 	setup_postdata( $post );
 
+	// Governed routes have one canonical owner below. Remove WordPress core's
+	// singular canonical emitter so indexing-state differences cannot create a
+	// duplicate alongside the path-authoritative contract.
+	remove_action( 'wp_head', 'rel_canonical' );
+
 	return $resolved;
 }
 
@@ -171,13 +176,18 @@ function nvx_governed_blog_runtime_description( $description ) {
 	return '' !== $value ? $value : $description;
 }
 
-/** Final canonical derived only from the governed request path. */
+/**
+ * Suppress Yoast's canonical only for governed routes.
+ *
+ * Staging intentionally has blog_public=0, where Yoast may omit a canonical;
+ * Production emits one. Depending on Yoast therefore creates environment drift.
+ * The explicit wp_head contract below is the single stable owner in both.
+ *
+ * @param mixed $canonical Existing Yoast canonical.
+ * @return mixed
+ */
 function nvx_governed_blog_runtime_canonical( $canonical ) {
-	$context = nvx_governed_blog_runtime_context();
-	if ( null === $context ) {
-		return $canonical;
-	}
-	return home_url( $context['path'] );
+	return null !== nvx_governed_blog_runtime_context() ? false : $canonical;
 }
 
 /** Final Open Graph URL; staging retains the production-host social policy. */
@@ -202,8 +212,7 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 
 	$title       = trim( (string) ( $runtime['metadata']['title'] ?? '' ) );
 	$description = trim( (string) ( $runtime['metadata']['description'] ?? '' ) );
-	$canonical   = home_url( $runtime['path'] );
-	$og_url      = nvx_governed_blog_runtime_opengraph_url( $canonical );
+	$og_url      = nvx_governed_blog_runtime_opengraph_url( home_url( $runtime['path'] ) );
 
 	if ( '' !== $title ) {
 		$presentation->title            = $title;
@@ -215,16 +224,13 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 		$presentation->open_graph_description = $description;
 		$presentation->twitter_description    = $description;
 	}
-	$presentation->canonical      = $canonical;
 	$presentation->open_graph_url = $og_url;
 
 	return $presentation;
 }
 
 /**
- * Keep the generic document marker on every route and expose the governed
- * runtime sentinel. For governed routes, Yoast is the only canonical owner;
- * the explicit wpseo_canonical filter above supplies the path-authoritative URL.
+ * Emit the single canonical owner plus document/runtime sentinels.
  */
 function nvx_governed_blog_runtime_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
@@ -232,13 +238,16 @@ function nvx_governed_blog_runtime_print_head_contract(): void {
 	}
 
 	$context = nvx_governed_blog_runtime_context();
-	if ( null === $context ) {
+	if ( null !== $context ) {
+		$canonical = home_url( $context['path'] );
+	} else {
 		$canonical = function_exists( 'nvx_document_governance_canonical_url' )
 			? nvx_document_governance_canonical_url()
 			: '';
-		if ( '' !== $canonical ) {
-			echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
-		}
+	}
+
+	if ( '' !== $canonical ) {
+		echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
 	}
 
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";

@@ -183,11 +183,27 @@ export async function runOriginBrowserFallback() {
     await verifyTunnel();
     await appendHostsMapping();
 
+    // Use trusted WP-CLI inventory preload if available to avoid public REST edge
+    const wordpressPagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
+    let preloadModule = null;
+    if (wordpressPagesFile) {
+      const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
+      const preloadUrl = new URL('./trusted-pages-preload.mjs', import.meta.url);
+      const pages = JSON.parse(await fs.readFile(wordpressPagesFile, 'utf8'));
+      const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
+      const payload = JSON.stringify(pages);
+      const source = `const nativeFetch = globalThis.fetch.bind(globalThis);\nconst pagesEndpoint = ${JSON.stringify(pagesEndpoint)};\nconst pagesPayload = ${JSON.stringify(payload)};\nglobalThis.fetch = async (input, init) => {\n  const rawUrl = typeof input === 'string' ? input : (input && typeof input.url === 'string' ? input.url : String(input));\n  if (rawUrl.startsWith(pagesEndpoint)) {\n    return new Response(pagesPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli-tunnel' } });\n  }\n  return nativeFetch(input, init);\n};\n`;
+      await fs.mkdir(preloadDir, { recursive: true });
+      await fs.writeFile(preloadUrl, source, 'utf8');
+      preloadModule = preloadUrl.href;
+    }
+
     const env = {
       ...process.env,
       BLOCK_C_VALIDATION_TRANSPORT: 'siteground-origin-browser-ssh-tunnel',
     };
-    const code = await run(process.execPath, [matrixScript], { env });
+    const args = preloadModule ? ['--import', preloadModule, matrixScript] : [matrixScript];
+    const code = await run(process.execPath, args, { env });
     if (code !== 0) {
       console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL matrix_exit=${code}`);
       return false;

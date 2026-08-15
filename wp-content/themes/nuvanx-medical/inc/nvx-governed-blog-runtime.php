@@ -211,9 +211,9 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 		$presentation->twitter_title    = $title;
 	}
 	if ( '' !== $description ) {
-		$presentation->meta_description        = $description;
-		$presentation->open_graph_description  = $description;
-		$presentation->twitter_description     = $description;
+		$presentation->meta_description       = $description;
+		$presentation->open_graph_description = $description;
+		$presentation->twitter_description    = $description;
 	}
 	$presentation->canonical      = $canonical;
 	$presentation->open_graph_url = $og_url;
@@ -222,31 +222,34 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 }
 
 /**
- * Replace the generic head contract on governed posts and expose a runtime
- * sentinel. The sentinel proves the HTTP/FPM request executed this source.
+ * Keep the generic document marker on every route and expose the governed
+ * runtime sentinel. For governed routes, Yoast is the only canonical owner;
+ * the explicit wpseo_canonical filter above supplies the path-authoritative URL.
  */
 function nvx_governed_blog_runtime_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
 
-	$context   = nvx_governed_blog_runtime_context();
-	$canonical = null !== $context
-		? home_url( $context['path'] )
-		: ( function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : '' );
-
-	if ( '' !== $canonical ) {
-		echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		$canonical = function_exists( 'nvx_document_governance_canonical_url' )
+			? nvx_document_governance_canonical_url()
+			: '';
+		if ( '' !== $canonical ) {
+			echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+		}
 	}
+
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
 	if ( null !== $context ) {
 		echo '<meta name="nvx-governed-blog-runtime-contract" content="' . esc_attr( NVX_GOVERNED_BLOG_RUNTIME_CONTRACT ) . '" />' . "\n";
 	}
 }
 
-// This module is loaded from functions.php after the blog/SEO helpers exist.
-// Rebind on `wp` before template loading and before SEO/indexable consumers can
-// persist a neighbouring queried object for this response.
+// Loaded from nvx-blog-system.php during functions.php bootstrap. Rebind on `wp`
+// before template loading and before SEO/indexable consumers can persist a
+// neighbouring queried object for this response.
 add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 );
 
 remove_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );

@@ -957,6 +957,7 @@ jobs:
           rsync -az --delete --exclude='.git' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-staging2-pr:$REMOTE_RELEASE/theme/"
           rsync -az lib/ "nvx-staging2-pr:$REMOTE_RELEASE/lib/"
           rsync -az tools/migrations/ "nvx-staging2-pr:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2-pr:$REMOTE_RELEASE/"
           echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
           ssh nvx-staging2-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$PR_SHA' --confirm"
 

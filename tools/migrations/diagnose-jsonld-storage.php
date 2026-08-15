@@ -32,7 +32,15 @@ $signatures = [
     'health-lifesci-physicalexam' => 'health-lifesci.schema.org/PhysicalExam',
 ];
 
-/** Return labels of known legacy signatures found in a stored value. */
+/** Return labels of known legacy signatures found in a stored value.
+ *
+ * NOTE: This function uses mb_stripos which is accent-sensitive, while the
+ * SQL LIKE query that selected the row is accent-insensitive (utf8mb4_*_ci).
+ * This means a stored value like "Medicina estetica laser" (unaccented) may
+ * be selected by the query but produce signatures=[], showing a match with
+ * no indication of which legacy signature triggered it. Detection is never
+ * lost (LIKE is the broader matcher), only the label attribution.
+ */
 function nvx_jsonld_diag_signature_labels( string $value, array $signatures ): array {
     $labels = [];
     foreach ( $signatures as $label => $needle ) {

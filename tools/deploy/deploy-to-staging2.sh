@@ -6,6 +6,8 @@ set -Eeuo pipefail
 
 EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
 EXPECTED_URL='https://staging2.nuvanx.com'
+PROD_ROOT='/home/customer/www/nuvanx.com/public_html'
+PROD_URL='https://nuvanx.com'
 THEME_REL='wp-content/themes/nuvanx-medical'
 WP_ROOT=''
 SOURCE_THEME=''
@@ -13,6 +15,7 @@ DEPLOY_SHA=''
 CONFIRM=0
 BACKUP_DIR=''
 MUTATION_STARTED=0
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat >&2 <<'EOF'
@@ -92,17 +95,19 @@ done
 
 [[ "$CONFIRM" -eq 1 || "${NUVANX_CONFIRM:-}" == 'yes' ]] || fail 'explicit confirmation is required'
 [[ "$WP_ROOT" == "$EXPECTED_ROOT" ]] || fail "refusing unexpected WordPress root: $WP_ROOT"
+[[ "$WP_ROOT" != "$PROD_ROOT" ]] || fail 'staging root must never equal production root'
 [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || fail 'SHA must contain 40 lowercase hexadecimal characters'
 [[ -n "$SOURCE_THEME" ]] || fail 'source theme path is required'
 [[ "$SOURCE_THEME" == "$WP_ROOT"/wp-content/.nuvanx-deployments/*/theme ]] || fail 'source theme must be inside the staging2 deployment area'
 
-for command_name in wp rsync tar php find; do
+for command_name in wp rsync tar php find mktemp; do
   command -v "$command_name" >/dev/null 2>&1 || fail "required command is unavailable: $command_name"
 done
 
 [[ -d "$WP_ROOT" ]] || fail "WordPress root does not exist: $WP_ROOT"
 [[ -f "$WP_ROOT/wp-config.php" ]] || fail 'wp-config.php not found in staging2 root'
 [[ -d "$SOURCE_THEME" ]] || fail "source theme does not exist: $SOURCE_THEME"
+[[ -f "$SCRIPT_DIR/tools/migrations/ensure-governed-blog-parity.php" ]] || fail 'governed blog parity migration is missing from immutable release tooling'
 
 SOURCE_REQUIRED_FILES=(
   style.css
@@ -174,6 +179,16 @@ echo '== Guard staging2 identity =='
   [[ "$wp_environment" == 'staging' ]] || fail "staging2 must report WP environment type staging; got: ${wp_environment:-undefined}"
 )
 
+echo '== Guard production read-only source identity =='
+(
+  cd "$PROD_ROOT"
+  [[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]] || fail 'unexpected production DB identity while sourcing governed post'
+  [[ "$(wp option get home)" == "$PROD_URL" ]] || fail 'unexpected production home while sourcing governed post'
+  [[ "$(wp option get siteurl)" == "$PROD_URL" ]] || fail 'unexpected production siteurl while sourcing governed post'
+  [[ "$(wp option get blog_public)" == '1' ]] || fail 'production source must remain public'
+  [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]] || fail 'unexpected production active theme'
+)
+
 echo '== Validate source PHP =='
 PHP_LINT_LOG="$(mktemp)"
 if ! find "$SOURCE_THEME" -type f -name '*.php' -print0 | xargs -0 -n1 php -l >"$PHP_LINT_LOG" 2>&1; then
@@ -181,6 +196,7 @@ if ! find "$SOURCE_THEME" -type f -name '*.php' -print0 | xargs -0 -n1 php -l >"
   rm -f "$PHP_LINT_LOG"
   fail 'source theme PHP lint failed'
 fi
+php -l "$SCRIPT_DIR/tools/migrations/ensure-governed-blog-parity.php" >/dev/null
 rm -f "$PHP_LINT_LOG"
 
 DATE="$(date +%Y%m%d-%H%M%S)"
@@ -219,6 +235,21 @@ grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'funct
 grep -Fq 'nvx-document-governance.php' "$LIVE_THEME/functions.php" || fail 'functions.php does not load document governance'
 grep -Fq 'nvx_document_governance_print_head_contract' "$LIVE_THEME/inc/nvx-document-governance.php" || fail 'document governance missing head contract emitter'
 grep -Fq 'window.nvxValoracionModal' "$LIVE_THEME/inc/nvx-valoracion-modal.php" || fail 'valoracion modal boot config is missing'
+
+echo '== Synchronize governed matrix post identity from production read-only source =='
+PROD_POST_JSON="$(mktemp)"
+trap 'rm -f "$PROD_POST_JSON"' RETURN
+(
+  cd "$PROD_ROOT"
+  wp post get 3334 --format=json > "$PROD_POST_JSON"
+)
+[[ -s "$PROD_POST_JSON" ]] || fail 'production governed post export is empty'
+(
+  cd "$WP_ROOT"
+  PRODUCTION_POST_JSON_FILE="$PROD_POST_JSON" wp eval-file "$SCRIPT_DIR/tools/migrations/ensure-governed-blog-parity.php" --allow-root
+)
+rm -f "$PROD_POST_JSON"
+trap - RETURN
 
 echo '== Purge staging2 caches =='
 (

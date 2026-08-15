@@ -21,25 +21,37 @@ function resolveRemoteMigrationPath() {
   return `${release}/tools/migrations/generate-publication-manifest.php`;
 }
 
-function validateSchema(manifest) {
-  if (manifest.schema !== 'nuvanx-publication-manifest') throw new Error('Invalid manifest schema identifier');
-  if (!/^\d+\.\d+\.\d+$/.test(String(manifest.version || ''))) throw new Error('Invalid manifest version format');
-  if (!manifest.generated_at || Number.isNaN(Date.parse(manifest.generated_at))) throw new Error('Invalid generated_at timestamp');
-  if (!String(manifest.source || '').startsWith('https://')) throw new Error('Invalid source URL');
-  if (!manifest.routes || typeof manifest.routes !== 'object' || Array.isArray(manifest.routes)) throw new Error('Invalid routes structure');
+function manifestHeaderErrors(manifest) {
+  const errors = [];
+  if (manifest.schema !== 'nuvanx-publication-manifest') errors.push('Invalid manifest schema identifier');
+  if (!/^\d+\.\d+\.\d+$/.test(String(manifest.version || ''))) errors.push('Invalid manifest version format');
+  if (!manifest.generated_at || Number.isNaN(Date.parse(manifest.generated_at))) errors.push('Invalid generated_at timestamp');
+  if (!String(manifest.source || '').startsWith('https://')) errors.push('Invalid source URL');
+  if (!manifest.routes || typeof manifest.routes !== 'object' || Array.isArray(manifest.routes)) errors.push('Invalid routes structure');
+  return errors;
+}
 
-  const routeErrors = [];
-  for (const [route, config] of Object.entries(manifest.routes)) {
-    if (!route.startsWith('/')) routeErrors.push(`${route}: route must start with /`);
-    if (!Number.isInteger(config.post_id) || config.post_id < 1) routeErrors.push(`${route}: invalid post_id`);
-    if (!['page', 'post'].includes(config.post_type)) routeErrors.push(`${route}: invalid post_type`);
-    if (typeof config.slug !== 'string') routeErrors.push(`${route}: invalid slug`);
-    if (config.status !== 'publish') routeErrors.push(`${route}: expected manifest status must be publish`);
-    if (!config.robots || typeof config.robots.index !== 'boolean' || typeof config.robots.follow !== 'boolean') {
-      routeErrors.push(`${route}: invalid robots configuration`);
-    }
+function routeConfigErrors(route, config) {
+  const errors = [];
+  if (!route.startsWith('/')) errors.push(`${route}: route must start with /`);
+  if (!Number.isInteger(config.post_id) || config.post_id < 1) errors.push(`${route}: invalid post_id`);
+  if (!['page', 'post'].includes(config.post_type)) errors.push(`${route}: invalid post_type`);
+  if (typeof config.slug !== 'string') errors.push(`${route}: invalid slug`);
+  if (config.status !== 'publish') errors.push(`${route}: expected manifest status must be publish`);
+  if (!config.robots || typeof config.robots.index !== 'boolean' || typeof config.robots.follow !== 'boolean') {
+    errors.push(`${route}: invalid robots configuration`);
   }
-  if (routeErrors.length) throw new Error(`Route validation failed:\n${routeErrors.join('\n')}`);
+  return errors;
+}
+
+function validateSchema(manifest) {
+  const errors = manifestHeaderErrors(manifest);
+  if (errors.length) throw new Error(errors.join('\n'));
+
+  for (const [route, config] of Object.entries(manifest.routes)) {
+    errors.push(...routeConfigErrors(route, config));
+  }
+  if (errors.length) throw new Error(`Route validation failed:\n${errors.join('\n')}`);
 }
 
 function parseManifest(stdout) {
@@ -50,6 +62,33 @@ function parseManifest(stdout) {
   } catch (error) {
     throw new Error(`Publication validator returned invalid JSON: ${error.message}`);
   }
+}
+
+function buildContractReport(manifest, result, host, sha) {
+  const validation = manifest.validation || {};
+  const issues = Array.isArray(validation.errors) ? validation.errors : [];
+  return {
+    schema: 'publication-manifest-contract',
+    checkedAt: new Date().toISOString(),
+    host,
+    sha,
+    manifestVersion: manifest.version,
+    manifestSource: manifest.source,
+    routeCount: Object.keys(manifest.routes).length,
+    validation: validation.pass === true && result.status === 0 ? 'PASS' : 'FAIL',
+    validatorExitCode: result.status,
+    issues,
+    missing: Array.isArray(validation.missing) ? validation.missing : [],
+    surplus: Array.isArray(validation.surplus) ? validation.surplus : [],
+    changed: Array.isArray(validation.changed) ? validation.changed : [],
+  };
+}
+
+function printContractFailure(report, validation) {
+  console.error(
+    `PUBLICATION_MANIFEST_CONTRACT=FAIL expected=${validation.expected_count ?? report.routeCount} actual=${validation.actual_count ?? 'unknown'} missing=${report.missing.length} surplus=${report.surplus.length} changed=${report.changed.length}`,
+  );
+  for (const issue of report.issues.slice(0, 50)) console.error(`- ${issue}`);
 }
 
 export async function runPublicationManifestContract(options = {}) {
@@ -72,32 +111,17 @@ export async function runPublicationManifestContract(options = {}) {
     ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-o', 'ConnectionAttempts=1', '--', alias, remoteScript],
     { encoding: 'utf8', timeout: 90000, maxBuffer: 16 * 1024 * 1024 },
   );
-
   if (result.error) throw new Error(`Publication validator transport failed: ${result.error.message}`);
 
   const manifest = parseManifest(result.stdout);
   validateSchema(manifest);
-  const manifestPath = path.join(outputDir, 'publication-manifest-runtime.json');
-  await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  await fs.writeFile(
+    path.join(outputDir, 'publication-manifest-runtime.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    'utf8',
+  );
 
-  const validation = manifest.validation || {};
-  const issues = Array.isArray(validation.errors) ? validation.errors : [];
-  const report = {
-    schema: 'publication-manifest-contract',
-    checkedAt: new Date().toISOString(),
-    host,
-    sha,
-    manifestVersion: manifest.version,
-    manifestSource: manifest.source,
-    routeCount: Object.keys(manifest.routes).length,
-    validation: validation.pass === true && result.status === 0 ? 'PASS' : 'FAIL',
-    validatorExitCode: result.status,
-    issues,
-    missing: Array.isArray(validation.missing) ? validation.missing : [],
-    surplus: Array.isArray(validation.surplus) ? validation.surplus : [],
-    changed: Array.isArray(validation.changed) ? validation.changed : [],
-  };
-
+  const report = buildContractReport(manifest, result, host, sha);
   await fs.writeFile(
     path.join(outputDir, 'publication-manifest-contract.json'),
     `${JSON.stringify(report, null, 2)}\n`,
@@ -105,10 +129,7 @@ export async function runPublicationManifestContract(options = {}) {
   );
 
   if (report.validation !== 'PASS') {
-    console.error(
-      `PUBLICATION_MANIFEST_CONTRACT=FAIL expected=${validation.expected_count ?? report.routeCount} actual=${validation.actual_count ?? 'unknown'} missing=${report.missing.length} surplus=${report.surplus.length} changed=${report.changed.length}`,
-    );
-    for (const issue of report.issues.slice(0, 50)) console.error(`- ${issue}`);
+    printContractFailure(report, manifest.validation || {});
     throw new Error('Publication manifest contract failed: EXPECTED_PUBLIC_URLS !== ACTUAL_PUBLIC_URLS');
   }
 

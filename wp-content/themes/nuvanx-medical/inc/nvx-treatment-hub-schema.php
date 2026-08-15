@@ -59,7 +59,7 @@ function nvx_treatment_hub_schema_items(): array {
 /** Add the treatments ItemList to the existing Yoast graph. */
 function nvx_treatment_hub_extend_yoast_graph( $graph, $context = null ) {
 	unset( $context );
-	if ( ! is_array( $graph ) || ! function_exists( 'nvx_theme_is_treatments_hub' ) || ! nvx_theme_is_treatments_hub() ) {
+	if ( ! is_array( $graph ) || ! function_exists( 'nvx_theme_is_treatments_hub_page' ) || ! nvx_theme_is_treatments_hub_page() ) {
 		return $graph;
 	}
 

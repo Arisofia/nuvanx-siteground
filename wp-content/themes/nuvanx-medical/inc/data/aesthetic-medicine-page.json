@@ -1,103 +1,102 @@
 {
-    "pillars": [
-        {
-            "icon": "support",
-            "title": "@nvx-t:1. Pérdida de soporte estructural",
-            "body": "@nvx-t:Con el paso de los años, la reabsorción ósea y el desplazamiento de los compartimentos grasos profundos provocan la caída de los tejidos. Tratar una arruga de forma aislada sin restaurar este soporte óseo subyacente genera volúmenes artificiales y rostros pesados."
-        },
-        {
-            "icon": "express",
-            "title": "@nvx-t:2. Modulación de la expresión",
-            "body": "@nvx-t:Estudiamos tu rostro en movimiento (estática y dinámica gesticular). La colocación de un inyectable debe respetar la contracción natural de la musculatura mímica facial, evitando congelar la mirada o alterar la sonrisa."
-        },
-        {
-            "icon": "rheology",
-            "title": "@nvx-t:3. Densidad y reología cutánea",
-            "body": "@nvx-t:Analizamos el espesor dermoepidérmico y el nivel de elastosis. Estos factores ayudan a seleccionar las propiedades del material, el plano y la técnica, con límites y riesgos explicados antes de tratar."
+  "pillars": [
+    {
+      "icon": "support",
+      "title": "@nvx-t:1. Pérdida de soporte estructural",
+      "body": "@nvx-t:Con el paso de los años, la reabsorción ósea y el desplazamiento de los compartimentos grasos profundos modifican el soporte facial. La valoración diferencia estos cambios de los problemas de calidad cutánea para evitar añadir volumen cuando no es la estrategia adecuada."
+    },
+    {
+      "icon": "express",
+      "title": "@nvx-t:2. Modulación de la expresión",
+      "body": "@nvx-t:Estudiamos el rostro en reposo y en movimiento. La indicación de un inyectable debe respetar la anatomía y la función de la musculatura mímica, con objetivos y límites definidos antes de tratar."
+    },
+    {
+      "icon": "rheology",
+      "title": "@nvx-t:3. Densidad y reología cutánea",
+      "body": "@nvx-t:Analizamos el espesor y la calidad cutánea. Estos factores ayudan a seleccionar las propiedades del material, el plano y la técnica, con alternativas, límites y riesgos explicados antes del tratamiento."
+    }
+  ],
+  "treatments": [
+    {
+      "n": "01",
+      "icon": "lips",
+      "title": "@nvx-t:Labios de proporción natural · Perfilado e hidratación",
+      "body": "@nvx-t:La valoración estudia proporción, simetría, movimiento y calidad tisular antes de indicar ácido hialurónico. El producto, el plano y la cantidad se seleccionan de forma individual para mantener una apariencia y un movimiento naturales.",
+      "price": "@nvx-t:Desde 290 €",
+      "core": "@nvx-t:Hidratación, definición o corrección conservadora de asimetrías cuando existe indicación médica.",
+      "url": {
+        "@nvx-aesthetic-url": {
+          "primary": "labios-acido-hialuronico-madrid",
+          "alts": [
+            "labios",
+            "acido-hialuronico-labios",
+            "tratamiento-labios"
+          ]
         }
-    ],
-    "treatments": [
-        {
-            "n": "01",
-            "icon": "lips",
-            "title": "@nvx-t:Labios de proporción natural · Perfilado e hidratación",
-            "body": "@nvx-t:Reestablecemos la definición del arco de Cupido, las columnas del filtrum y el volumen del bermellón respetando la anatomía original del paciente. Seleccionamos geles de ácido hialurónico con alta cohesividad y elasticidad adaptada para que el labio se mueva de forma natural con el habla y la sonrisa.",
-            "price": "@nvx-t:Desde 290 €",
-            "core": "@nvx-t:Labios delgados, pérdida de volumen por envejecimiento o asimetrías severas.",
-            "url": {
-                "@nvx-aesthetic-url": {
-                    "primary": "labios-acido-hialuronico-madrid",
-                    "alts": [
-                        "labios",
-                        "acido-hialuronico-labios",
-                        "tratamiento-labios"
-                    ]
-                }
-            }
-        },
-        {
-            "n": "02",
-            "icon": "nose",
-            "title": "@nvx-t:Rinomodelación sin cirugía · Armonización del perfil",
-            "body": "@nvx-t:Corrección de irregularidades en el dorso nasal (caballete) y elevación sutil de la punta mediante la infiltración precisa de ácido hialurónico de alta densidad en el plano supraperiosteal. Un procedimiento de alta precisión que armoniza el perfil sin los tiempos de baja de una cirugía.",
-            "price": "@nvx-t:Desde 598 €",
-            "core": "@nvx-t:Desviaciones leves del dorso nasal o puntas caídas. No sustituye a la rinoplastia quirúrgica.",
-            "url": {
-                "@nvx-aesthetic-url": {
-                    "primary": "rinomodelacion-sin-cirugia-madrid",
-                    "alts": [
-                        "rinomodelacion",
-                        "rinomodelacion-sin-cirugia"
-                    ]
-                }
-            }
-        },
-        {
-            "n": "03",
-            "icon": "eye",
-            "title": "@nvx-t:Rejuvenecimiento de la mirada · Corrección del surco lagrimal",
-            "body": "@nvx-t:Tratamiento estructural del hundimiento de la ojera mediante la infiltración profunda de ácido hialurónico específico para la zona periocular. El objetivo es eliminar el aspecto de cansancio visual de forma segura, reduciendo la sombra de la ojera y proyectando la luz en el tercio medio.",
-            "price": "@nvx-t:Desde 448 € (según diagnóstico y técnica)",
-            "core": "@nvx-t:Ojeras hundidas o surco lagrimal marcado. Requiere dermis de calidad y ausencia de bolsas grasas.",
-            "url": {
-                "@nvx-aesthetic-url": {
-                    "primary": "ojeras-surco-lagrimal-madrid",
-                    "alts": [
-                        "ojeras",
-                        "tratamiento-ojeras",
-                        "surco-lagrimal"
-                    ]
-                }
-            }
-        },
-        {
-            "n": "04",
-            "icon": "regen",
-            "title": "@nvx-t:Bioestimulación dérmica · Firmeza sin volumen",
-            "body": "@nvx-t:Protocolos inductores de colágeno mediante la infiltración de ácido poliláctico (Sculptra®) o hidroxiapatita de calcio (Radiesse®). Estos principios activos desencadenan una respuesta celular en la dermis profunda que estimula a los fibroblastos a producir nuevas fibras elásticas, tensando el tejido sin añadir volumen artificial al rostro.",
-            "price": "@nvx-t:Estimuladores de colágeno desde 490 €",
-            "core": "@nvx-t:Flacidez moderada, pérdida de elasticidad y piel desvitalizada.",
-            "url": {
-                "@nvx-aesthetic-url": {
-                    "primary": "bioestimuladores-colageno-madrid",
-                    "alts": [
-                        "bioestimulacion",
-                        "bioestimuladores",
-                        "sculptra",
-                        "radiesse"
-                    ]
-                }
-            }
+      }
+    },
+    {
+      "n": "02",
+      "icon": "nose",
+      "title": "@nvx-t:Rinomodelación sin cirugía · Armonización del perfil",
+      "body": "@nvx-t:La rinomodelación con ácido hialurónico puede modificar de forma conservadora determinados puntos del perfil nasal cuando la anatomía lo permite. Es una zona de riesgo vascular que requiere valoración médica, selección del plano y explicación de alternativas, incluida la cirugía cuando corresponda.",
+      "price": "@nvx-t:Desde 598 €",
+      "core": "@nvx-t:Irregularidades seleccionadas del perfil nasal. No sustituye a la rinoplastia quirúrgica cuando existe indicación de cirugía.",
+      "url": {
+        "@nvx-aesthetic-url": {
+          "primary": "rinomodelacion-sin-cirugia-madrid",
+          "alts": [
+            "rinomodelacion",
+            "rinomodelacion-sin-cirugia"
+          ]
         }
-    ],
-    "faqs": [
-        {
-            "q": "@nvx-t:¿Qué es la bioestimulación con PDRN (ADN de salmón) y en qué se diferencia de los rellenos de ácido hialurónico?",
-            "a": "@nvx-t:El Polidesoxirribonucleótido (PDRN), comúnmente conocido como ADN de salmón, actúa a nivel celular profundo. A diferencia de los rellenos de ácido hialurónico, cuya función es mecánica (aportar volumen y captar agua), el PDRN se une de forma selectiva a los receptores de adenosina A2A de los fibroblastos, acelerando la síntesis de colágeno, promoviendo la angiogénesis y reparando el ADN dañado por la radiación ultravioleta. Es un tratamiento regenerativo para densificar la piel desde dentro, sin aportar volumen volumétrico."
-        },
-        {
-            "q": "@nvx-t:¿Qué es el efecto Tyndall en el tratamiento de ojeras y cómo lo previene el equipo médico de NUVANX?",
-            "a": "@nvx-t:El efecto Tyndall es una complicación estética menor que ocurre cuando la luz incide sobre un depósito de ácido hialurónico colocado demasiado superficial en la piel ultrafina de la ojera, provocando una coloración azulada o grisácea. En Chamberí (CS20144) · Salamanca–Goya (CS20073) · Valoración presencial lo prevenimos depositando el producto en plano profundo, inmediatamente por encima del periostio, con microcánulas romas, y seleccionando geles con nula capacidad de retención de agua y bajísima dispersión de luz, para un resultado invisible y natural."
+      }
+    },
+    {
+      "n": "03",
+      "icon": "eye",
+      "title": "@nvx-t:Mirada · Valoración del surco lagrimal",
+      "body": "@nvx-t:El hundimiento periocular puede tener causas distintas y no todas se benefician de un relleno. La valoración revisa anatomía, calidad cutánea, bolsas, edema y antecedentes antes de decidir si el ácido hialurónico u otra estrategia tiene sentido.",
+      "price": "@nvx-t:Desde 448 € (según diagnóstico y técnica)",
+      "core": "@nvx-t:Surco lagrimal seleccionado tras valoración médica; la indicación depende de la anatomía y de la presencia de bolsas o edema.",
+      "url": {
+        "@nvx-aesthetic-url": {
+          "primary": "ojeras-surco-lagrimal-madrid",
+          "alts": [
+            "ojeras",
+            "tratamiento-ojeras",
+            "surco-lagrimal"
+          ]
         }
-    ]
+      }
+    },
+    {
+      "n": "04",
+      "icon": "regen",
+      "title": "@nvx-t:Bioestimulación con polinucleótidos · Calidad cutánea",
+      "body": "@nvx-t:Los polinucleótidos se utilizan en protocolos orientados a la calidad cutánea. La indicación, la zona y el número de sesiones se determinan tras valoración médica; el objetivo no es aportar volumen estructural, sino trabajar la calidad del tejido dentro de un plan individualizado.",
+      "price": "@nvx-t:Desde 348 € por sesión facial",
+      "core": "@nvx-t:Calidad cutánea facial cuando existe indicación de un protocolo con polinucleótidos.",
+      "url": {
+        "@nvx-aesthetic-url": {
+          "primary": "bioestimuladores-colageno-madrid",
+          "alts": [
+            "bioestimulacion",
+            "bioestimuladores",
+            "polinucleotidos"
+          ]
+        }
+      }
+    }
+  ],
+  "faqs": [
+    {
+      "q": "@nvx-t:¿Qué son los polinucleótidos y en qué se diferencian de un relleno de ácido hialurónico?",
+      "a": "@nvx-t:Los polinucleótidos se emplean en medicina estética como parte de protocolos dirigidos a la calidad cutánea. No se plantean como un sustituto directo de un relleno estructural: la elección depende del diagnóstico, la zona, el objetivo y los antecedentes de cada paciente."
+    },
+    {
+      "q": "@nvx-t:¿Qué debe valorarse antes de tratar el surco lagrimal con ácido hialurónico?",
+      "a": "@nvx-t:La zona periocular requiere una valoración específica de anatomía, bolsas, edema, calidad cutánea, antecedentes y riesgo vascular. La selección del producto, el plano y la técnica puede reducir determinados riesgos, pero no los elimina; si la anatomía no es adecuada para un relleno se plantean otras opciones."
+    }
+  ]
 }

@@ -78,19 +78,28 @@ function nvx_document_governance_get_published_post_by_slug( string $slug ): ?WP
 		}
 	}
 
-	// Final fallback to direct DB query.
+	// Final fallback is DB-authoritative. Do not re-enter get_post() here:
+	// a stale persistent object cache is precisely the condition this fallback
+	// must survive when a valid governed slug resolves to a neighbouring post.
 	if ( null === $result ) {
 		global $wpdb;
 		if ( isset( $wpdb ) && $wpdb instanceof wpdb ) {
-			$post_id = (int) $wpdb->get_var(
+			$row = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish' LIMIT 1",
+					"SELECT * FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish' LIMIT 1",
 					$slug
 				)
 			);
-			if ( $post_id > 0 ) {
-				$found = get_post( $post_id );
-				if ( $found instanceof WP_Post && 'publish' === $found->post_status && $slug === $found->post_name ) {
+			if (
+				is_object( $row )
+				&& isset( $row->ID, $row->post_name, $row->post_status, $row->post_type )
+				&& (int) $row->ID > 0
+				&& 'publish' === (string) $row->post_status
+				&& 'post' === (string) $row->post_type
+				&& $slug === (string) $row->post_name
+			) {
+				$found = new WP_Post( $row );
+				if ( 'publish' === $found->post_status && $slug === $found->post_name ) {
 					$result = $found;
 				}
 			}
@@ -357,7 +366,6 @@ function nvx_document_governance_is_approved_strategy_route(): bool {
 function nvx_document_governance_production_public_url(): string {
 	$is_strategy_page = function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key();
 	$is_protected     = $is_strategy_page && ! nvx_document_governance_is_approved_strategy_route();
-
 	if ( $is_protected || is_404() || is_search() || is_preview() ) {
 		return '';
 	}

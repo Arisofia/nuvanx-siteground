@@ -9,7 +9,6 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -182,10 +181,3 @@ console.log('✓ procedureType PHP/JSON values are whitelist-validated');
 console.log('✓ corporate Organization source has no priceRange or clinic Doctoralia sameAs');
 console.log('✓ procedure/service emitters have no reviewedBy or performer');
 console.log('✓ treatment source IDs use canonical #medical-procedure');
-
-// Temporary CI-only extraction marker used to patch the large canonical workflow
-// byte-for-byte. This is removed before the branch is merged.
-if (process.env.GITHUB_ACTIONS === 'true') {
-  const productionWorkflow = await fs.readFile(path.join(__dirname, '../../.github/workflows/production.yml'));
-  console.log(`NVX_PRODUCTION_YML_GZIP_B64=${gzipSync(productionWorkflow, { level: 9 }).toString('base64')}`);
-}

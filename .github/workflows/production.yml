@@ -667,6 +667,71 @@ jobs:
           ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
 
+      - name: Configure performance production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_perf_key"; chmod 600 "$HOME/.ssh/prod_perf_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_PERF_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_perf_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+          classify_ssh_error() {
+            local file="$1"
+            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
+            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
+            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
+            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
+            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
+            else echo SSH_HANDSHAKE_OR_UNKNOWN
+            fi
+          }
+
+          prod_connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          last_reason='UNKNOWN'
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+            ssh_error="$RUNNER_TEMP/production-perf-ssh-attempt-${attempt}.err"
+            if ssh -n nvx-prod true 2>"$ssh_error"; then
+              prod_connected=1
+              echo "PRODUCTION_PERF_SSH_ATTEMPT=PASS attempt=$attempt"
+              break
+            fi
+            last_reason="$(classify_ssh_error "$ssh_error")"
+            echo "PRODUCTION_PERF_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
+            tail -n 2 "$ssh_error" >&2 || true
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
+          done
+          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_PERF_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo 'PRODUCTION_PERF_SSH=PASS'
+
       - name: Verify production is exact requested SHA
         shell: bash
         run: BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
@@ -735,6 +800,13 @@ jobs:
           path: perf-results/
           retention-days: 14
 
+      - name: Cleanup performance SSH identities
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          rm -f "$HOME/.ssh/prod_perf_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
   hubspot_e2e:
     name: Production zero-submit HubSpot contract verification
     needs: release
@@ -757,6 +829,71 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Configure HubSpot E2E production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_hubspot_key"; chmod 600 "$HOME/.ssh/prod_hubspot_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_HUBSPOT_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_hubspot_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ConnectionAttempts 1
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+          classify_ssh_error() {
+            local file="$1"
+            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
+            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
+            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
+            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
+            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
+            else echo SSH_HANDSHAKE_OR_UNKNOWN
+            fi
+          }
+
+          prod_connected=0
+          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
+          last_reason='UNKNOWN'
+          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
+            ssh_error="$RUNNER_TEMP/production-hubspot-ssh-attempt-${attempt}.err"
+            if ssh -n nvx-prod true 2>"$ssh_error"; then
+              prod_connected=1
+              echo "PRODUCTION_HUBSPOT_SSH_ATTEMPT=PASS attempt=$attempt"
+              break
+            fi
+            last_reason="$(classify_ssh_error "$ssh_error")"
+            echo "PRODUCTION_HUBSPOT_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
+            tail -n 2 "$ssh_error" >&2 || true
+            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
+              sleep "$retry_delay"
+              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
+            fi
+          done
+          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_HUBSPOT_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
+          echo 'PRODUCTION_HUBSPOT_SSH=PASS'
 
       - name: Verify zero-submit contract and run HubSpot verification
         shell: bash
@@ -781,3 +918,10 @@ jobs:
           path: scripts/staging2/h1-artifacts/*.log
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Cleanup HubSpot E2E SSH identities
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          rm -f "$HOME/.ssh/prod_hubspot_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

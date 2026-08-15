@@ -13,7 +13,7 @@ const expectedOgUrl = baseUrl === 'https://nuvanx.com'
   : `https://nuvanx.com${route}`;
 const expectedTitle = 'Matriz de diagnóstico facial | NUVANX Madrid';
 const expectedH1 = 'Matriz de diagnóstico facial: estructura, músculo, piel y grasa';
-const expectedRuntimeContract = '20260815-db-authoritative-single-entry-v1';
+const expectedRuntimeContract = '20260815-db-authoritative-wp-bootstrap-v2';
 const neighbouringSlug = 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico';
 
 function attr(tag, name) {
@@ -95,7 +95,12 @@ if (h1.text !== expectedH1) issues.push(`h1:${h1.text}`);
 if (!h1Id.includes('3334')) issues.push(`h1_id:${h1Id}`);
 if (expectedSha && deploySha !== expectedSha) issues.push(`deploy_sha:${deploySha}`);
 if (runtimeContract !== expectedRuntimeContract) issues.push(`runtime_contract:${runtimeContract || 'missing'}`);
-if (canonical.includes(neighbouringSlug) || ogUrl.includes(neighbouringSlug) || h1Id.includes('3310')) {
+if (
+  title.includes('Tratamientos faciales sin cirugía') ||
+  canonical.includes(neighbouringSlug) ||
+  ogUrl.includes(neighbouringSlug) ||
+  h1Id.includes('3310')
+) {
   issues.push('neighbouring_post_leak:3310');
 }
 

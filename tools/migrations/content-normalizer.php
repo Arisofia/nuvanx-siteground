@@ -132,7 +132,8 @@ function nvxClassifyMarkdownLine( string $line ): array {
     if ( '' === $trimmed ) {
         $token = array( 'type' => 'blank', 'value' => '', 'level' => 0 );
     } elseif ( preg_match( '/^#{2,6}\s*📌\s*$/u', $trimmed ) ) {
-        $token = array( 'type' => 'editorial_residue', 'value' => '', 'level' => 0 );
+        // Changed from editorial_residue to editorial_marker to allow detection of mid-content placement
+        $token = array( 'type' => 'editorial_marker', 'value' => '', 'level' => 0 );
     } elseif ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $matches ) ) {
         $token = array( 'type' => 'heading', 'value' => trim( $matches[2] ), 'level' => strlen( $matches[1] ) );
     } elseif ( preg_match( '/^(?:---+|___+|\*\*\*+)$/', $trimmed ) ) {
@@ -169,7 +170,8 @@ function nvxApplyMarkdownToken(
     string &$listType,
     array &$listItems,
     array &$output,
-    bool &$leadingH1Removed
+    bool &$leadingH1Removed,
+    bool &$editorialMarkerSeen
 ): bool {
     switch ( $token['type'] ) {
         case 'blank':
@@ -201,9 +203,12 @@ function nvxApplyMarkdownToken(
             nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
             $output[] = wp_kses_post( $token['value'] );
             break;
-        case 'editorial_residue':
+        case 'editorial_marker':
+            // Editorial marker (📌) seen - record it but don't stop processing
+            // This allows detection of mid-content placement vs. tail placement
+            $editorialMarkerSeen = true;
             nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-            return false;
+            break;
         default:
             $paragraph[] = $token['value'];
     }
@@ -222,10 +227,11 @@ function nvxNormalizeContent( string $content ): string {
     $listType = '';
     $listItems = array();
     $leadingH1Removed = false;
+    $editorialMarkerSeen = false;
 
     foreach ( explode( "\n", $normalized ) as $line ) {
         $token = nvxClassifyMarkdownLine( rtrim( $line ) );
-        if ( ! nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed ) ) {
+        if ( ! nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed, $editorialMarkerSeen ) ) {
             break;
         }
     }
@@ -251,6 +257,10 @@ function nvxValidateNormalizedContent( string $content ): array {
         '/%(?:\d+\$)?[sd]/' => 'Format string still present',
         '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
         '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|(?:TODO|FIXME|XXX|HACK)\s*:|\bplaceholder\b)/i' => 'Editorial placeholder still present',
+        // Check for editorial marker (📌) which may indicate unexpected mid-content placement
+        // If this appears in normalized content, it suggests the marker was in the middle of the post
+        // rather than at the end, which could indicate content was truncated unexpectedly
+        '/📌/u' => 'Editorial marker (📌) present - may indicate mid-content placement',
     );
     $issues = array();
 

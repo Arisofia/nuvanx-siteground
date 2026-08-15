@@ -141,7 +141,9 @@ export function createSiteGroundOriginVerifier({
     const stderr = (result.stderr || '').trim();
     const statusMatch = stdout.match(/\bstatus=(\d{3})\b/);
     const shaMatch = stdout.match(/\bsha=([0-9a-f]{40})\b/);
-    const effectiveMatch = stdout.match(/\beffective_b64=([A-Za-z0-9+/=]+)\b/);
+    // Remove trailing \b to prevent truncation when base64 ends in =, +, or /
+    // Align with robots_b64 regex which intentionally has no trailing word-boundary
+    const effectiveMatch = stdout.match(/\beffective_b64=([A-Za-z0-9+/=]+)$/);
     const bodyMatch = stdout.match(/\bbody_b64=([A-Za-z0-9+/=]+)$/);
     const pass = !result.error && result.status === 0 && Boolean(bodyMatch) && shaMatch?.[1] === expectedSha;
 

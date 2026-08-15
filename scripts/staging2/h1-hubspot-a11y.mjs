@@ -74,21 +74,53 @@ async function navigateExpectedDocument(page, attempt) {
   const status = Number(response?.status() || 0);
   const headers = response?.headers() || {};
   const currentUrl = page.url() || target;
-  if (isSiteGroundTransientResponse(status, headers, currentUrl) || currentUrl.includes(SITEGROUND_CAPTCHA_PATH)) {
-    return transientResult(attempt, `siteground_http_challenge:${status}:${currentUrl}`);
-  }
-  if (status !== 200 || new URL(currentUrl).pathname !== '/madrid/valoracion/') {
+  const transientHttp = isSiteGroundTransientResponse(status, headers, currentUrl);
+  const captchaPath = currentUrl.includes(SITEGROUND_CAPTCHA_PATH);
+  const expectedPath = (() => {
+    try {
+      return new URL(currentUrl).pathname === '/madrid/valoracion/';
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!expectedPath) {
+    if (transientHttp || captchaPath) {
+      return transientResult(attempt, `siteground_http_challenge:${status}:${currentUrl}`);
+    }
     return realFailureResult(attempt, `unexpected_document:status=${status}:url=${currentUrl}`);
   }
 
   const deploySha = normalizeText(
     await page.locator('meta[name="nvx-deploy-sha"]').first().getAttribute('content').catch(() => '')
   );
+
+  if (transientHttp || captchaPath) {
+    if (!captchaPath && deploySha === expectedSha) {
+      console.log(`HUBSPOT_A11Y_NAV_RECOVERED attempt=${attempt} status=${status} sha=${deploySha}`);
+      return {
+        transient: false,
+        realFailure: false,
+        attempt,
+        deploySha,
+        recoveredTransientHttp: true,
+        status,
+      };
+    }
+    return transientResult(
+      attempt,
+      `siteground_http_challenge:${status}:${currentUrl}:sha=${deploySha || 'missing'}`
+    );
+  }
+
+  if (status !== 200) {
+    return realFailureResult(attempt, `unexpected_document:status=${status}:url=${currentUrl}`);
+  }
   if (deploySha !== expectedSha) {
     return realFailureResult(attempt, `sha_mismatch:${deploySha || 'missing'}:${expectedSha}`);
   }
 
-  return { transient: false, realFailure: false, attempt, deploySha };
+  return { transient: false, realFailure: false, attempt, deploySha, recoveredTransientHttp: false, status };
 }
 
 async function waitForMeaningfulIframeTitle(iframe) {

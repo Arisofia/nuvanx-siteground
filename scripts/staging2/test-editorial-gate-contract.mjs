@@ -44,7 +44,7 @@ export async function runEditorialGateContract(options = {}) {
   const remoteScript = [
     'set -Eeuo pipefail',
     `cd '${CANONICAL_STAGING_ROOT}'`,
-    `wp eval-file '${migrationPath}' --allow-root`,
+    `wp eval "require '${migrationPath}';" --allow-root`,
   ].join('\n');
 
   const result = spawnSync(

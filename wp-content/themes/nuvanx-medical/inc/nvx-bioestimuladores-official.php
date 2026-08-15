@@ -1,9 +1,11 @@
 <?php
 /**
- * NUVANX Bioestimuladores Official Source
+ * NUVANX Bioestimuladores Official Source.
  *
- * Single source of truth for bioestimuladores clinical and commercial parameters.
- * Consumed by card, ficha, FAQ, and schema generation.
+ * Single source of truth for bioestimuladores clinical and commercial
+ * parameters. Consumers must use the offer key from
+ * inc/data/bioestimuladores-official.json; tariff keys intentionally use the
+ * same identifiers so no positional or label-based mapping is required.
  *
  * @package NUVANX
  */
@@ -11,132 +13,125 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Get official bioestimuladores offer data.
+ * Return the official bioestimuladores offer catalogue.
  *
- * @return array<string, mixed> Official bioestimuladores configuration
+ * @return array<string, array<string, mixed>>
  */
 function nvx_get_bioestimuladores_official(): array {
 	$official_file = get_template_directory() . '/inc/data/bioestimuladores-official.json';
 	if ( ! is_readable( $official_file ) ) {
-		return [];
+		return array();
 	}
 
-	$official = json_decode( file_get_contents( $official_file ), true );
-	if ( ! is_array( $official ) || ! isset( $official['products'] ) ) {
-		return [];
+	$official = json_decode( (string) file_get_contents( $official_file ), true );
+	if ( ! is_array( $official ) || ! isset( $official['products'] ) || ! is_array( $official['products'] ) ) {
+		return array();
 	}
 
 	return $official['products'];
 }
 
 /**
- * Get specific bioestimuladores offer by key.
+ * Return a single official offer.
  *
- * @param string $key Offer key (e.g., 'polynucleotides_cara')
- * @return array<string, mixed> Offer data or empty array if not found
+ * @return array<string, mixed>
  */
 function nvx_get_bioestimuladores_offer( string $key ): array {
 	$official = nvx_get_bioestimuladores_official();
-	return $official[ $key ] ?? [];
+	$offer    = $official[ $key ] ?? array();
+
+	return is_array( $offer ) ? $offer : array();
 }
 
-/**
- * Render bioestimuladores card from official source.
- *
- * @param string $key Offer key
- * @return string HTML card content
- */
+/** Render a bioestimuladores card from the official source. */
 function nvx_render_bioestimuladores_card( string $key ): string {
 	$offer = nvx_get_bioestimuladores_offer( $key );
 	if ( empty( $offer ) ) {
 		return '';
 	}
 
-	$content = $offer['content'] ?? [];
-	$price = $offer['price'] ?? 0;
-	$sessions = $offer['sessions'] ?? 1;
-	$interval = $offer['interval'] ?? '';
+	$content  = isset( $offer['content'] ) && is_array( $offer['content'] ) ? $offer['content'] : array();
+	$price    = isset( $offer['price'] ) && is_numeric( $offer['price'] ) ? (float) $offer['price'] : 0.0;
+	$sessions = isset( $offer['sessions'] ) ? max( 1, (int) $offer['sessions'] ) : 1;
+	$interval = isset( $offer['interval'] ) ? (string) $offer['interval'] : '';
 
 	ob_start();
 	?>
 	<div class="nvx-bioestimuladores-card">
-		<div class="nvx-card-kicker"><?php echo esc_html( $content['kicker'] ?? '' ); ?></div>
-		<h3 class="nvx-card-title"><?php echo esc_html( $offer['treatment'] ?? '' ); ?></h3>
-	<div class="nvx-card-description">
-		<?php echo wp_kses_post( $content['description'] ?? '' ); ?>
-	</div>
-	<div class="nvx-card-lead">
-		<?php echo wp_kses_post( $content['lead'] ?? '' ); ?>
-	</div>
-	<div class="nvx-card-meta">
-		<div class="nvx-card-price">
-			<span class="nvx-price-value"><?php echo number_format( $price, 2, ',', '.' ); ?>€</span>
-			<span class="nvx-price-unit">por sesión</span>
-		</div>
-		<?php if ( $sessions > 1 ) : ?>
-		<div class="nvx-card-sessions">
-			<?php echo esc_html( $sessions ); ?> sesiones recomendadas
-			<?php if ( $interval ) : ?>
-				<span class="nvx-card-interval">(cada <?php echo esc_html( $interval ); ?>)</span>
+		<div class="nvx-card-kicker"><?php echo esc_html( (string) ( $content['kicker'] ?? '' ) ); ?></div>
+		<h3 class="nvx-card-title"><?php echo esc_html( (string) ( $offer['treatment'] ?? '' ) ); ?></h3>
+		<div class="nvx-card-description"><?php echo wp_kses_post( (string) ( $content['description'] ?? '' ) ); ?></div>
+		<div class="nvx-card-lead"><?php echo wp_kses_post( (string) ( $content['lead'] ?? '' ) ); ?></div>
+		<div class="nvx-card-meta">
+			<div class="nvx-card-price">
+				<span class="nvx-price-value"><?php echo esc_html( number_format( $price, 2, ',', '.' ) . '€' ); ?></span>
+				<span class="nvx-price-unit"><?php echo esc_html__( 'por sesión', 'nuvanx-medical' ); ?></span>
+			</div>
+			<?php if ( $sessions > 1 ) : ?>
+				<div class="nvx-card-sessions">
+					<?php echo esc_html( sprintf( __( '%d sesiones recomendadas', 'nuvanx-medical' ), $sessions ) ); ?>
+					<?php if ( '' !== $interval ) : ?>
+						<span class="nvx-card-interval"><?php echo esc_html( sprintf( __( '(cada %s)', 'nuvanx-medical' ), $interval ) ); ?></span>
+					<?php endif; ?>
+				</div>
 			<?php endif; ?>
 		</div>
-		<?php endif; ?>
 	</div>
-</div>
 	<?php
-	return ob_get_clean();
+	return (string) ob_get_clean();
 }
 
 /**
- * Get bioestimuladores FAQ from official source.
+ * Return FAQ items for an offer.
  *
- * @param string $key Offer key
- * @return array<string, string> FAQ pairs
+ * @return array<int, array<string, string>>
  */
 function nvx_get_bioestimuladores_faqs( string $key ): array {
 	$offer = nvx_get_bioestimuladores_offer( $key );
-	if ( empty( $offer ) ) {
-		return [];
-	}
+	$faqs  = $offer['faqs'] ?? array();
 
-	return $offer['faqs'] ?? [];
+	return is_array( $faqs ) ? $faqs : array();
 }
 
 /**
- * Get bioestimuladores schema data from official source.
+ * Return Schema.org configuration for an offer.
  *
- * @param string $key Offer key
- * @return array<string, mixed> Schema configuration
+ * @return array<string, mixed>
  */
 function nvx_get_bioestimuladores_schema( string $key ): array {
 	$offer = nvx_get_bioestimuladores_offer( $key );
-	if ( empty( offer ) ) {
-		return [];
+	if ( empty( $offer ) ) {
+		return array();
 	}
 
-	return $offer['schema'] ?? [];
+	$schema = $offer['schema'] ?? array();
+	return is_array( $schema ) ? $schema : array();
 }
 
 /**
- * Filter tariff catalog to use official bioestimuladores prices.
+ * Reconcile the canonical tariff catalogue with the official offer source.
  *
- * @param array $tariffs Existing tariff catalog
- * @return array Filtered tariff catalog with official bioestimuladores data
+ * The key names are intentionally identical in both catalogues. Never derive
+ * them by stripping characters or by array position.
+ *
+ * @param array<string, mixed> $tariffs Existing tariff catalogue.
+ * @return array<string, mixed>
  */
 function nvx_apply_bioestimuladores_official_prices( array $tariffs ): array {
 	$official = nvx_get_bioestimuladores_official();
-	if ( empty( $official ) ) {
+	if ( empty( $official ) || ! isset( $tariffs['bioestimuladores'] ) || ! is_array( $tariffs['bioestimuladores'] ) ) {
 		return $tariffs;
 	}
 
-	// Update bioestimuladores section with official prices
-	if ( isset( $tariffs['bioestimuladores'] ) ) {
-		foreach ( $official as $key => $offer ) {
-			$tariff_key = str_replace( '_', '', $key ); // e.g., polynucleotides_cara -> polynucleotidescara
-			if ( isset( $tariffs['bioestimuladores'][ $tariff_key ] ) ) {
-				$tariffs['bioestimuladores'][ $tariff_key ]['pvp'] = $offer['price'];
-				$tariffs['bioestimuladores'][ $tariff_key ]['sessions_recommended'] = $offer['sessions'];
-			}
+	foreach ( $official as $key => $offer ) {
+		if ( ! isset( $tariffs['bioestimuladores'][ $key ] ) || ! is_array( $offer ) ) {
+			continue;
+		}
+		if ( isset( $offer['price'] ) && is_numeric( $offer['price'] ) ) {
+			$tariffs['bioestimuladores'][ $key ]['pvp'] = (float) $offer['price'];
+		}
+		if ( isset( $offer['sessions'] ) ) {
+			$tariffs['bioestimuladores'][ $key ]['sessions_recommended'] = (int) $offer['sessions'];
 		}
 	}
 

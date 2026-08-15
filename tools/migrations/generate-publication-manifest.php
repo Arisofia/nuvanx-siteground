@@ -1,12 +1,12 @@
 <?php
 /**
- * Generate and Validate NUVANX Publication Manifest
+ * Validate the live WordPress public topology against the versioned manifest.
  *
- * Creates a single source of truth for NUVANX public topology.
- * Performs bidirectional validation between expected and actual WordPress state.
+ * The committed manifest is the expected truth. This command never derives the
+ * expected route/status/slug/type from the runtime it is validating.
  *
- * Run with:
- *   wp eval "require 'tools/migrations/generate-publication-manifest.php';" --allow-root
+ * Usage:
+ *   wp eval-file tools/migrations/generate-publication-manifest.php --allow-root
  *
  * @package NVX\Migrations
  */
@@ -14,240 +14,166 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
+	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval-file.\n" );
 	exit( 1 );
 }
 
-global $wpdb;
-
-// Load existing routes configuration
-$routes_file = get_template_directory() . '/inc/data/routes.json';
-if ( ! is_readable( $routes_file ) ) {
-	fwrite( STDERR, "ERROR: Cannot read routes.json from {$routes_file}\n" );
+$manifest_file = get_template_directory() . '/inc/data/publication-manifest.json';
+if ( ! is_readable( $manifest_file ) ) {
+	fwrite( STDERR, "PUBLICATION_MANIFEST=FAIL reason=manifest_unavailable\n" );
 	exit( 1 );
 }
 
-$routes_config = json_decode( file_get_contents( $routes_file ), true );
-if ( ! is_array( $routes_config ) ) {
-	fwrite( STDERR, "ERROR: Invalid JSON in routes.json\n" );
+$manifest = json_decode( (string) file_get_contents( $manifest_file ), true );
+if (
+	! is_array( $manifest )
+	|| 'nuvanx-publication-manifest' !== ( $manifest['schema'] ?? '' )
+	|| ! isset( $manifest['routes'] )
+	|| ! is_array( $manifest['routes'] )
+) {
+	fwrite( STDERR, "PUBLICATION_MANIFEST=FAIL reason=manifest_invalid\n" );
 	exit( 1 );
 }
 
-// Load SEO metadata
-$seo_metadata_file = get_template_directory() . '/inc/data/seo-metadata.json';
-$seo_metadata = [];
-if ( is_readable( $seo_metadata_file ) ) {
-	$seo_metadata = json_decode( file_get_contents( $seo_metadata_file ), true );
-	if ( ! is_array( $seo_metadata ) ) {
-		$seo_metadata = [];
+/** Convert a permalink into a canonical site-relative route. */
+$route_from_permalink = static function ( string $permalink ): string {
+	$home = trailingslashit( home_url( '/' ) );
+	if ( 0 !== strpos( $permalink, $home ) ) {
+		return '';
 	}
-}
+	$relative = trim( substr( $permalink, strlen( $home ) ), '/' );
+	return '' === $relative ? '/' : '/' . $relative . '/';
+};
 
-$manifest = [
-	'schema'       => 'nuvanx-publication-manifest',
-	'version'      => '1.0.0',
-	'generated_at' => gmdate( 'c' ),
-	'source'       => home_url( '/' ),
-	'routes'       => [],
-];
+/** Canonical expected URL for a manifest route in the environment under test. */
+$expected_canonical = static function ( string $route ): string {
+	return '/' === $route ? trailingslashit( home_url( '/' ) ) : home_url( $route );
+};
 
-$validation = [
-	'errors'     => [],
-	'warnings'   => [],
-	'info'       => [],
-	'missing'    => [], // Expected URLs not published
-	'surplus'    => [], // Published URLs not in manifest
-	'changed'    => [], // URLs with changed attributes
-];
+$actual = array();
+$ids    = get_posts(
+	array(
+		'post_type'              => array( 'page', 'post' ),
+		'post_status'            => 'publish',
+		'posts_per_page'         => -1,
+		'fields'                 => 'ids',
+		'orderby'                => 'ID',
+		'order'                  => 'ASC',
+		'no_found_rows'          => true,
+		'update_post_meta_cache' => true,
+		'update_post_term_cache' => false,
+	)
+);
 
-// Build expected manifest from routes configuration
-foreach ( $routes_config as $route => $config ) {
-	// Skip route aliases
-	if ( isset( $config['route_alias'] ) ) {
+foreach ( $ids as $post_id ) {
+	$post = get_post( (int) $post_id );
+	if ( ! ( $post instanceof WP_Post ) ) {
 		continue;
 	}
 
-	$seo_id    = $config['seo_id'] ?? '';
-	$post_id   = $config['post_id'] ?? 0;
-	$slug      = '';
-	$post_type = 'page';
-	$status    = 'publish';
-	$renderer  = '';
-	$canonical = home_url( $route );
-	$robots    = [
-		'index'   => true,
-		'follow'  => true,
-		'archive' => true,
-		'snippet' => true,
-	];
+	$permalink = get_permalink( $post );
+	if ( ! is_string( $permalink ) || '' === $permalink ) {
+		continue;
+	}
 
-	// Try to resolve post information if post_id is provided
-	if ( $post_id > 0 ) {
-		$post = get_post( $post_id );
-		if ( $post instanceof WP_Post ) {
-			$slug      = $post->post_name;
-			$post_type = $post->post_type;
-			$status    = $post->post_status;
-			$renderer  = get_page_template_slug( $post_id ) ?: '';
+	$route = $route_from_permalink( $permalink );
+	if ( '' === $route ) {
+		continue;
+	}
 
-			// Get canonical URL from Yoast if available
-			if ( function_exists( 'wpseo_get_meta_robots' ) ) {
-				$robots_meta = wpseo_get_meta_robots( $post_id, $post_type );
-				$robots['index'] = ! ( ( $robots_meta & 1 ) === 1 ); // Yoast uses bit flags
-				$robots['follow'] = ! ( ( $robots_meta & 2 ) === 2 );
-			}
-		} else {
-			$validation['errors'][] = "Expected post_id {$post_id} not found for route {$route}";
-			$validation['missing'][] = $route;
+	$actual[ $route ] = array(
+		'post_id'   => (int) $post->ID,
+		'post_type' => (string) $post->post_type,
+		'slug'      => (string) $post->post_name,
+		'status'    => (string) $post->post_status,
+		'canonical' => (string) $permalink,
+		'renderer'  => 'page' === $post->post_type ? (string) get_page_template_slug( $post->ID ) : 'single-post.php',
+	);
+}
+
+$expected_routes = array_keys( $manifest['routes'] );
+$actual_routes   = array_keys( $actual );
+sort( $expected_routes, SORT_STRING );
+sort( $actual_routes, SORT_STRING );
+
+$missing    = array_values( array_diff( $expected_routes, $actual_routes ) );
+$surplus    = array_values( array_diff( $actual_routes, $expected_routes ) );
+$mismatches = array();
+$errors     = array();
+
+foreach ( $missing as $route ) {
+	$errors[] = 'Missing expected public URL: ' . $route;
+}
+foreach ( $surplus as $route ) {
+	$errors[] = 'Surplus public URL not present in canonical manifest: ' . $route;
+}
+
+foreach ( $manifest['routes'] as $route => $expected ) {
+	if ( ! isset( $actual[ $route ] ) || ! is_array( $expected ) ) {
+		continue;
+	}
+
+	$route_changes = array();
+	foreach ( array( 'post_id', 'post_type', 'slug', 'status' ) as $field ) {
+		$expected_value = $expected[ $field ] ?? null;
+		$actual_value   = $actual[ $route ][ $field ] ?? null;
+		if ( $expected_value !== $actual_value ) {
+			$route_changes[] = sprintf(
+				'%s: expected=%s actual=%s',
+				$field,
+				wp_json_encode( $expected_value ),
+				wp_json_encode( $actual_value )
+			);
 		}
 	}
 
-	// Resolve schema configuration
-	$schema = [
-		'group'   => $config['schema_group'] ?? 'other',
-		'id'      => $config['schema_id'] ?? '',
-		'type'    => $config['schema_type'] ?? 'none',
-		'context' => 'https://schema.org',
-	];
-
-	if ( empty( $schema['id'] ) && empty( $schema['group'] ) ) {
-		$schema['group'] = 'none';
-		$schema['type'] = 'none';
+	$canonical = $expected['canonical'] ?? $expected_canonical( (string) $route );
+	if ( untrailingslashit( (string) $canonical ) !== untrailingslashit( (string) $actual[ $route ]['canonical'] ) ) {
+		$route_changes[] = sprintf(
+			'canonical: expected=%s actual=%s',
+			(string) $canonical,
+			(string) $actual[ $route ]['canonical']
+		);
 	}
 
-	// Resolve SEO configuration
-	$seo = [
-		'seo_id'       => $seo_id,
-		'route_alias'  => $config['route_alias'] ?? '',
-	];
-
-	// Build route entry
-	$manifest['routes'][ $route ] = [
-		'post_id'               => $post_id,
-		'post_type'             => $post_type,
-		'slug'                  => $slug,
-		'status'                => $status,
-		'renderer'              => $renderer,
-		'canonical'             => $canonical,
-		'robots'                => $robots,
-		'schema'                => $schema,
-		'seo'                   => $seo,
-		'reconciliation_status' => 'none', // Will be updated by reconciliation process
-	];
-}
-
-// Capture actual WordPress published state
-$actual_published = [];
-$all_posts = get_posts( [
-	'post_type'      => [ 'page', 'post' ],
-	'post_status'    => 'publish',
-	'posts_per_page' => -1,
-	'fields'         => 'ids',
-] );
-
-foreach ( $all_posts as $actual_post_id ) {
-	$actual_post = get_post( $actual_post_id );
-	if ( ! $actual_post instanceof WP_Post ) {
-		continue;
-	}
-
-	$actual_permalink = get_permalink( $actual_post_id );
-	if ( ! $actual_permalink ) {
-		continue;
-	}
-
-	$actual_route = str_replace( home_url( '/' ), '', $actual_permalink );
-	$actual_route = '/' . trim( $actual_route, '/' ) . '/';
-
-	$actual_published[ $actual_route ] = [
-		'post_id'   => $actual_post_id,
-		'post_type' => $actual_post->post_type,
-		'slug'      => $actual_post->post_name,
-		'status'    => $actual_post->post_status,
-		'renderer'  => get_page_template_slug( $actual_post_id ) ?: '',
-		'canonical' => $actual_permalink,
-	];
-}
-
-// Bidirectional validation: EXPECTED_PUBLIC_URLS === ACTUAL_PUBLIC_URLS
-$expected_routes = array_keys( $manifest['routes'] );
-$actual_routes   = array_keys( $actual_published );
-
-// Check for missing expected URLs
-foreach ( $expected_routes as $expected_route ) {
-	if ( ! in_array( $expected_route, $actual_routes, true ) ) {
-		$validation['errors'][] = "Missing expected URL: {$expected_route}";
-		$validation['missing'][] = $expected_route;
+	if ( ! empty( $route_changes ) ) {
+		$mismatches[] = array(
+			'route'   => (string) $route,
+			'changes' => $route_changes,
+		);
+		$errors[] = 'Attribute mismatch for ' . $route . ': ' . implode( '; ', $route_changes );
 	}
 }
 
-// Check for surplus published URLs
-foreach ( $actual_routes as $actual_route ) {
-	if ( ! in_array( $actual_route, $expected_routes, true ) ) {
-		$validation['errors'][] = "Surplus published URL not in manifest: {$actual_route}";
-		$validation['surplus'][] = $actual_route;
-	}
-}
+$manifest['validation'] = array(
+	'pass'          => empty( $errors ),
+	'errors_count'  => count( $errors ),
+	'errors'        => $errors,
+	'missing'       => $missing,
+	'surplus'       => $surplus,
+	'changed'       => $mismatches,
+	'expected_count'=> count( $expected_routes ),
+	'actual_count'  => count( $actual_routes ),
+	'checked_at'    => gmdate( 'c' ),
+	'checked_host'  => wp_parse_url( home_url( '/' ), PHP_URL_HOST ),
+	'actual'        => $actual,
+);
 
-// Check for changes in attributes
-foreach ( $expected_routes as $route ) {
-	if ( ! isset( $actual_published[ $route ] ) ) {
-		continue; // Already captured as missing
-	}
+echo wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
-	$expected = $manifest['routes'][ $route ];
-	$actual   = $actual_published[ $route ];
-
-	$changes = [];
-
-	// Check status changes
-	if ( $expected['status'] !== $actual['status'] ) {
-		$changes[] = "status: expected {$expected['status']}, actual {$actual['status']}";
-	}
-
-	// Check slug changes
-	if ( $expected['slug'] !== $actual['slug'] ) {
-		$changes[] = "slug: expected {$expected['slug']}, actual {$actual['slug']}";
-	}
-
-	// Check renderer changes
-	if ( $expected['renderer'] !== $actual['renderer'] ) {
-		$changes[] = "renderer: expected {$expected['renderer']}, actual {$actual['renderer']}";
-	}
-
-	// Check canonical changes
-	if ( $expected['canonical'] !== $actual['canonical'] ) {
-		$changes[] = "canonical: expected {$expected['canonical']}, actual {$actual['canonical']}";
-	}
-
-	if ( ! empty( $changes ) ) {
-		$validation['errors'][] = "Attribute changes for {$route}: " . implode( ', ', $changes );
-		$validation['changed'][] = [
-			'route'   => $route,
-			'changes' => $changes,
-		];
-	}
-}
-
-// Add validation results to manifest
-$manifest['validation'] = [
-	'errors_count'   => count( $validation['errors'] ),
-	'warnings_count' => count( $validation['warnings'] ),
-	'info_count'     => count( $validation['info'] ),
-	'errors'         => $validation['errors'],
-	'warnings'       => $validation['warnings'],
-	'info'           => $validation['info'],
-	'missing'        => $validation['missing'],
-	'surplus'        => $validation['surplus'],
-	'changed'        => $validation['changed'],
-	'pass'           => count( $validation['errors'] ) === 0,
-];
-
-// Output the manifest
-echo json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-
-// Exit with error code if validation failed
-if ( ! $manifest['validation']['pass'] ) {
-	fwrite( STDERR, "VALIDATION_FAILED: " . count( $validation['errors'] ) . " error(s) found\n" );
+if ( ! empty( $errors ) ) {
+	fwrite(
+		STDERR,
+		sprintf(
+			"PUBLICATION_MANIFEST=FAIL expected=%d actual=%d missing=%d surplus=%d changed=%d\n",
+			count( $expected_routes ),
+			count( $actual_routes ),
+			count( $missing ),
+			count( $surplus ),
+			count( $mismatches )
+		)
+	);
 	exit( 1 );
 }
+
+fwrite( STDERR, sprintf( "PUBLICATION_MANIFEST=PASS routes=%d\n", count( $expected_routes ) ) );

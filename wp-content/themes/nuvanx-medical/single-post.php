@@ -14,16 +14,41 @@ defined( 'ABSPATH' ) || exit;
 
 global $wp_query;
 
-$nvx_slug = '';
-if ( $wp_query instanceof WP_Query && is_string( $wp_query->get( 'name' ) ) && '' !== $wp_query->get( 'name' ) ) {
-    $nvx_slug = (string) $wp_query->get( 'name' );
+$nvx_slug       = '';
+$nvx_exact_post = null;
+
+// The actual public request path is authoritative for version-governed journal
+// routes. Never prefer a stale WP_Query name here: that was able to rebind the
+// requested matrix article to a neighbouring post before get_header()/Yoast ran.
+if ( function_exists( 'nvx_seo_blog_post_metadata_catalog' ) ) {
+    $nvx_uri          = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $nvx_path         = wp_parse_url( $nvx_uri, PHP_URL_PATH );
+    $nvx_path         = is_string( $nvx_path ) ? '/' . trim( $nvx_path, '/' ) . '/' : '';
+    $nvx_request_slug = trim( $nvx_path, '/' );
+
+    if ( '' !== $nvx_request_slug && false === strpos( $nvx_request_slug, '/' ) ) {
+        $nvx_catalog = nvx_seo_blog_post_metadata_catalog();
+        if ( isset( $nvx_catalog[ $nvx_request_slug ] ) && is_array( $nvx_catalog[ $nvx_request_slug ] ) ) {
+            $candidate = function_exists( 'nvx_document_governance_get_published_post_by_slug' )
+                ? nvx_document_governance_get_published_post_by_slug( $nvx_request_slug )
+                : get_page_by_path( $nvx_request_slug, OBJECT, 'post' );
+
+            if (
+                $candidate instanceof WP_Post
+                && 'publish' === $candidate->post_status
+                && $nvx_request_slug === $candidate->post_name
+            ) {
+                $nvx_slug       = $nvx_request_slug;
+                $nvx_exact_post = $candidate;
+            }
+        }
+    }
 }
 
-if ( '' === $nvx_slug ) {
-    $nvx_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
-    $nvx_path = wp_parse_url( $nvx_uri, PHP_URL_PATH );
-    $nvx_path = is_string( $nvx_path ) ? '/' . trim( $nvx_path, '/' ) . '/' : '';
-    $nvx_slug = trim( $nvx_path, '/' );
+// Fall back to WordPress' parsed query only when the actual request path did not
+// resolve to an exact governed published post.
+if ( '' === $nvx_slug && $wp_query instanceof WP_Query && is_string( $wp_query->get( 'name' ) ) && '' !== $wp_query->get( 'name' ) ) {
+    $nvx_slug = (string) $wp_query->get( 'name' );
 }
 
 if (
@@ -34,9 +59,12 @@ if (
 ) {
     $nvx_catalog = nvx_seo_blog_post_metadata_catalog();
     if ( isset( $nvx_catalog[ $nvx_slug ] ) && is_array( $nvx_catalog[ $nvx_slug ] ) ) {
-        $nvx_exact_post = function_exists( 'nvx_document_governance_get_published_post_by_slug' )
-            ? nvx_document_governance_get_published_post_by_slug( $nvx_slug )
-            : get_page_by_path( $nvx_slug, OBJECT, 'post' );
+        if ( ! ( $nvx_exact_post instanceof WP_Post ) ) {
+            $nvx_exact_post = function_exists( 'nvx_document_governance_get_published_post_by_slug' )
+                ? nvx_document_governance_get_published_post_by_slug( $nvx_slug )
+                : get_page_by_path( $nvx_slug, OBJECT, 'post' );
+        }
+
         if (
             $nvx_exact_post instanceof WP_Post
             && 'publish' === $nvx_exact_post->post_status
@@ -58,4 +86,3 @@ if (
 }
 
 require_once __DIR__ . '/single.php';
-

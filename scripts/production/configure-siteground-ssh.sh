@@ -110,6 +110,7 @@ set +e
 probe_identity primary
 primary_rc=$?
 set -e
+primary_reason="${SITEGROUND_LAST_REASON:-unknown}"
 if [[ "$primary_rc" -eq 0 ]]; then
   [[ -z "${GITHUB_ENV:-}" ]] || echo 'PRODUCTION_SSH_TRANSPORT=primary' >> "$GITHUB_ENV"
   echo 'SITEGROUND_SSH=PASS mode=primary'
@@ -129,10 +130,11 @@ set +e
 probe_identity staging-endpoint-fallback
 fallback_rc=$?
 set -e
+fallback_reason="${SITEGROUND_LAST_REASON:-unknown}"
 if [[ "$fallback_rc" -ne 0 ]]; then
-  echo "SITEGROUND_SSH=FAIL mode=staging-endpoint-fallback primary_reason=${SITEGROUND_LAST_REASON:-unknown}" >&2
+  echo "SITEGROUND_SSH=FAIL mode=staging-endpoint-fallback primary_reason=$primary_reason fallback_reason=$fallback_reason" >&2
   exit 255
 fi
 
 [[ -z "${GITHUB_ENV:-}" ]] || echo 'PRODUCTION_SSH_TRANSPORT=staging-endpoint-fallback' >> "$GITHUB_ENV"
-echo 'SITEGROUND_SSH=PASS mode=staging-endpoint-fallback'
+echo "SITEGROUND_SSH=PASS mode=staging-endpoint-fallback primary_reason=$primary_reason"

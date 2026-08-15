@@ -21,13 +21,17 @@ function resolveRemoteMigrationPath() {
   return `${release}/tools/migrations/editorial-gate-validation.php`;
 }
 
-function parseReport(stdout) {
+function parseReport(stdout, stderr, status) {
   const raw = String(stdout || '').trim();
-  if (!raw) throw new Error('Editorial validator produced no JSON report');
+  if (!raw) {
+    const reason = stderr?.trim() || `exit ${status}`;
+    throw new Error(`Editorial validator produced no JSON report: ${reason}`);
+  }
   try {
     return JSON.parse(raw);
   } catch (error) {
-    throw new Error(`Editorial validator returned invalid JSON: ${error.message}`);
+    const reason = stderr?.trim() || `exit ${status}`;
+    throw new Error(`Editorial validator returned invalid JSON: ${error.message} (${reason})`);
   }
 }
 
@@ -55,7 +59,7 @@ export async function runEditorialGateContract(options = {}) {
 
   if (result.error) throw new Error(`Editorial gate transport failed: ${result.error.message}`);
 
-  const validation = parseReport(result.stdout);
+  const validation = parseReport(result.stdout, result.stderr, result.status);
   const violations = Array.isArray(validation.violations) ? validation.violations : [];
   const report = {
     schema: 'editorial-gate-contract',

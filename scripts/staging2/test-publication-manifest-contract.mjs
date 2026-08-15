@@ -54,13 +54,17 @@ function validateSchema(manifest) {
   if (errors.length) throw new Error(`Route validation failed:\n${errors.join('\n')}`);
 }
 
-function parseManifest(stdout) {
+function parseManifest(stdout, stderr, status) {
   const trimmed = String(stdout || '').trim();
-  if (!trimmed) throw new Error('Publication validator produced no JSON report');
+  if (!trimmed) {
+    const reason = stderr?.trim() || `exit ${status}`;
+    throw new Error(`Publication validator produced no JSON report: ${reason}`);
+  }
   try {
     return JSON.parse(trimmed);
   } catch (error) {
-    throw new Error(`Publication validator returned invalid JSON: ${error.message}`);
+    const reason = stderr?.trim() || `exit ${status}`;
+    throw new Error(`Publication validator returned invalid JSON: ${error.message} (${reason})`);
   }
 }
 
@@ -113,7 +117,7 @@ export async function runPublicationManifestContract(options = {}) {
   );
   if (result.error) throw new Error(`Publication validator transport failed: ${result.error.message}`);
 
-  const manifest = parseManifest(result.stdout);
+  const manifest = parseManifest(result.stdout, result.stderr, result.status);
   validateSchema(manifest);
   await fs.writeFile(
     path.join(outputDir, 'publication-manifest-runtime.json'),

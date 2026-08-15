@@ -2,10 +2,9 @@
 /**
  * DB-authoritative runtime hardening for governed journal routes.
  *
- * This module is loaded during theme bootstrap, then rebinds the main query on
- * the early `wp` hook. That timing is deliberate: loading only from
- * single-post.php is too late because SEO/indexable integrations may have
- * already derived presentation state from a stale singular query.
+ * This module is loaded during theme bootstrap. Governed one-segment requests
+ * are pinned to the authoritative wp_posts row before the main query executes,
+ * then rebound again on `wp` as a final defence before template/SEO consumers.
  *
  * @package nuvanx-medical
  */
@@ -115,8 +114,37 @@ function nvx_governed_blog_runtime_context(): ?array {
 }
 
 /**
+ * Pin the main query to the authoritative governed post before SQL executes.
+ *
+ * Production proved that repairing only on `wp` can be too late: the initial
+ * rewrite/query may already expose a neighbouring singular object to WordPress
+ * and SEO integrations. The public request path + catalog + direct DB row are
+ * therefore authoritative at pre_get_posts time.
+ */
+function nvx_governed_blog_runtime_pre_get_posts( WP_Query $query ): void {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return;
+	}
+
+	$resolved = $context['post'];
+	$slug     = $context['slug'];
+
+	$query->set( 'p', (int) $resolved->ID );
+	$query->set( 'name', $slug );
+	$query->set( 'post_type', 'post' );
+	$query->set( 'post_status', 'publish' );
+	$query->set( 'pagename', '' );
+	$query->set( 'page_id', 0 );
+}
+
+/**
  * Rebind both public query globals and the loop post before downstream SEO and
- * template consumers observe the stale singular state.
+ * template consumers observe stale singular state.
  */
 function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	$context = nvx_governed_blog_runtime_context();
@@ -130,9 +158,15 @@ function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 
 	if ( $wp_query instanceof WP_Query ) {
 		nvx_single_post_rebind_query( $wp_query, $resolved, $slug );
+		$wp_query->current_post = -1;
+		$wp_query->in_the_loop  = false;
+		$wp_query->before_loop  = true;
 	}
 	if ( $wp_the_query instanceof WP_Query && $wp_the_query !== $wp_query ) {
 		nvx_single_post_rebind_query( $wp_the_query, $resolved, $slug );
+		$wp_the_query->current_post = -1;
+		$wp_the_query->in_the_loop  = false;
+		$wp_the_query->before_loop  = true;
 	}
 
 	// Keep WP::query_vars coherent for consumers that inspect the request object
@@ -274,9 +308,9 @@ function nvx_governed_blog_runtime_print_head_contract(): void {
 	}
 }
 
-// Loaded from nvx-blog-system.php during functions.php bootstrap. Rebind on `wp`
-// before template loading and before SEO/indexable consumers can persist a
-// neighbouring queried object for this response.
+// Loaded from nvx-blog-system.php during functions.php bootstrap. Pin the exact
+// governed row before WP_Query executes, then rebind on `wp` as a final guard.
+add_action( 'pre_get_posts', 'nvx_governed_blog_runtime_pre_get_posts', -999999 );
 add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 );
 
 remove_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );

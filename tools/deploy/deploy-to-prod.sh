@@ -204,6 +204,19 @@ done
   exit 1
 }
 
+echo "== Guard obsolete production redirect drift =="
+obsolete_marker='# NVX_REDIRECT_3334_TO_3310'
+obsolete_redirect='Redirect 301 /matriz-diagnostico-facial-estructura-piel-musculo-grasa/ https://nuvanx.com/tratamientos-faciales-sin-cirugia-guia-medica-diagnostico/'
+if [[ -f "$PROD_ROOT/.htaccess" ]] && {
+  grep -Fqx "$obsolete_marker" "$PROD_ROOT/.htaccess" ||
+  grep -Fqx "$obsolete_redirect" "$PROD_ROOT/.htaccess";
+}; then
+  echo "ERROR: obsolete matrix 3334 -> 3310 redirect drift is present in production .htaccess" >&2
+  echo "PRODUCTION_HTACCESS_MATRIX_REDIRECT_GUARD=FAIL" >&2
+  exit 1
+fi
+echo 'PRODUCTION_HTACCESS_MATRIX_REDIRECT_GUARD=PASS'
+
 echo "== Stage accepted theme away from live production =="
 [[ ! -e "$RELEASE_ROOT" ]]
 [[ ! -e "$PREVIOUS_THEME" ]]

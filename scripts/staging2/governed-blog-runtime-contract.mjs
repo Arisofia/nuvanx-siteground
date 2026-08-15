@@ -13,6 +13,7 @@ const expectedOgUrl = baseUrl === 'https://nuvanx.com'
   : `https://nuvanx.com${route}`;
 const expectedTitle = 'Matriz de diagnóstico facial | NUVANX Madrid';
 const expectedH1 = 'Matriz de diagnóstico facial: estructura, músculo, piel y grasa';
+const expectedRuntimeContract = '20260815-db-authoritative-single-entry-v1';
 const neighbouringSlug = 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico';
 
 function attr(tag, name) {
@@ -80,6 +81,7 @@ const title = firstText(html, 'title').text;
 const canonical = canonicalFrom(html);
 const ogUrl = metaContent(html, 'property', 'og:url');
 const deploySha = metaContent(html, 'name', 'nvx-deploy-sha');
+const runtimeContract = metaContent(html, 'name', 'nvx-governed-blog-runtime-contract');
 const h1 = firstText(html, 'h1');
 const h1IdMatch = h1.attrs.match(/\bid\s*=\s*["']([^"']+)["']/i);
 const h1Id = h1IdMatch ? h1IdMatch[1] : '';
@@ -92,6 +94,7 @@ if (ogUrl !== expectedOgUrl) issues.push(`og_url:${ogUrl}`);
 if (h1.text !== expectedH1) issues.push(`h1:${h1.text}`);
 if (!h1Id.includes('3334')) issues.push(`h1_id:${h1Id}`);
 if (expectedSha && deploySha !== expectedSha) issues.push(`deploy_sha:${deploySha}`);
+if (runtimeContract !== expectedRuntimeContract) issues.push(`runtime_contract:${runtimeContract || 'missing'}`);
 if (canonical.includes(neighbouringSlug) || ogUrl.includes(neighbouringSlug) || h1Id.includes('3310')) {
   issues.push('neighbouring_post_leak:3310');
 }
@@ -99,11 +102,11 @@ if (canonical.includes(neighbouringSlug) || ogUrl.includes(neighbouringSlug) || 
 if (issues.length > 0) {
   console.error(
     `GOVERNED_BLOG_RUNTIME=FAIL url=${url} ` +
-    `detail=${JSON.stringify({ status: response.status, title, canonical, ogUrl, h1: h1.text, h1Id, deploySha, issues })}`
+    `detail=${JSON.stringify({ status: response.status, title, canonical, ogUrl, h1: h1.text, h1Id, deploySha, runtimeContract, issues })}`
   );
   process.exit(1);
 }
 
 console.log(
-  `GOVERNED_BLOG_RUNTIME=PASS url=${url} post_id=3334 canonical=${canonical} og_url=${ogUrl} sha=${deploySha}`
+  `GOVERNED_BLOG_RUNTIME=PASS url=${url} post_id=3334 canonical=${canonical} og_url=${ogUrl} sha=${deploySha} runtime_contract=${runtimeContract}`
 );

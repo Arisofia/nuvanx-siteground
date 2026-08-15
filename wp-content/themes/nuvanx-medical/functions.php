@@ -271,6 +271,7 @@ require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
 require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
 require_once get_template_directory() . '/inc/nvx-schema-semantic-governance.php';
+require_once get_template_directory() . '/inc/nvx-deploy-stamp.php';
 
 // 3. Core UI Components
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';

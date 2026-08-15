@@ -137,3 +137,32 @@ function nvx_apply_bioestimuladores_official_prices( array $tariffs ): array {
 
 	return $tariffs;
 }
+
+/**
+ * Reconcile legacy broad bioestimuladores copy with its broad schema contract.
+ *
+ * The general /bioestimuladores-colageno-madrid/ page covers different product
+ * families (PLLA, CaHA and polynucleotides). A fixed 3-session / 4-week schedule
+ * is valid for the governed facial polynucleotide offer, but must not be exposed
+ * as a universal protocol for every bioestimulador. The broad page therefore
+ * keeps the product-dependent 1–3 session / 4–6 week contract already emitted
+ * by its structured data, while the official polynucleotide catalogue retains
+ * its product-specific 3-session schedule.
+ */
+function nvx_reconcile_bioestimuladores_general_page_copy( string $content ): string {
+	if ( is_admin() || ! is_page( 'bioestimuladores-colageno-madrid' ) ) {
+		return $content;
+	}
+
+	$legacy_protocol = 'El protocolo inicial estándar es de 3 sesiones separadas 4 semanas, seguido de mantenimiento anual. El número exacto depende del punto de partida y el objetivo.';
+	$governed_protocol = 'El número de sesiones depende del producto, la zona, la calidad cutánea y el objetivo clínico. Como orientación general, los protocolos pueden requerir entre 1 y 3 sesiones espaciadas aproximadamente 4–6 semanas; el mantenimiento se define en revisión según la evolución.';
+
+	$legacy_price = 'El precio de sesión de bioestimulador parte de 248€ según zona y producto. Se requiere valoración médica previa para establecer el protocolo.';
+	$governed_price = 'El presupuesto depende del producto, la zona y el protocolo indicado. En polinucleótidos, la tarifa de referencia parte de 248 € por sesión en manos; el presupuesto definitivo se establece tras valoración médica.';
+
+	$content = str_replace( $legacy_protocol, $governed_protocol, $content );
+	$content = str_replace( $legacy_price, $governed_price, $content );
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_reconcile_bioestimuladores_general_page_copy', 81 );

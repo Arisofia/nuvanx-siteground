@@ -17,6 +17,14 @@ const ALLOWED_PROCEDURE_TYPES = new Set([
   'https://schema.org/PercutaneousProcedure',
   'https://schema.org/NoninvasiveProcedure',
 ]);
+const ALLOWED_MEDICAL_SPECIALTIES = new Set([
+  'Anesthesia', 'Cardiovascular', 'CommunityHealth', 'Dentistry', 'Dermatologic', 'Dermatology', 'DietNutrition',
+  'Emergency', 'Endocrine', 'Gastroenterologic', 'Genetic', 'Geriatric', 'Gynecologic', 'Hematologic', 'Infectious',
+  'LaboratoryScience', 'Midwifery', 'Musculoskeletal', 'Neurologic', 'Nursing', 'Obstetric', 'Oncologic', 'Optometric',
+  'Otolaryngologic', 'Pathology', 'Pediatric', 'PharmacySpecialty', 'Physiotherapy', 'PlasticSurgery', 'Podiatric',
+  'PrimaryCare', 'Psychiatric', 'PublicHealth', 'Pulmonary', 'Radiography', 'Renal', 'RespiratoryTherapy',
+  'Rheumatologic', 'SpeechPathology', 'Surgical', 'Toxicologic', 'Urologic',
+].map((member) => `https://schema.org/${member}`));
 
 const violations = [];
 
@@ -72,6 +80,24 @@ function validatePhpProcedureTypes(file, content) {
   }
 }
 
+function validatePhpMedicalSpecialties(file, content) {
+  const direct = /['"`]medicalSpecialty['"`]\s*=>\s*['"`]([^'"`]+)['"`]/g;
+  for (const match of content.matchAll(direct)) {
+    if (!ALLOWED_MEDICAL_SPECIALTIES.has(match[1])) {
+      addViolation(file, 'medicalSpecialty', `medicalSpecialty must be a Schema.org MedicalSpecialty enum URL: ${match[1]}`);
+    }
+  }
+  const literalArrays = /['"`]medicalSpecialty['"`]\s*=>\s*array\s*\(([^)]*)\)/g;
+  for (const match of content.matchAll(literalArrays)) {
+    const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
+    for (const value of values) {
+      if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
+        addViolation(file, 'medicalSpecialty', `medicalSpecialty array contains non-enum value: ${value}`);
+      }
+    }
+  }
+}
+
 console.log('Testing Schema Source Pattern Contract...\n');
 
 const phpFiles = [
@@ -98,6 +124,12 @@ for (const file of phpFiles) {
     }
 
     validatePhpProcedureTypes(file, content);
+    validatePhpMedicalSpecialties(file, content);
+
+    const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética)/gi) || [];
+    if (recognizingAuthorityClaims.length > 0) {
+      addViolation(file, 'recognizingAuthority', 'Ungoverned SEME recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
+    }
 
     const wrongPapadaMatches = content.match(/nvx_endolift_papada_price_eur/g) || [];
     if (wrongPapadaMatches.length > 0) {
@@ -158,6 +190,21 @@ for (const file of jsonFiles) {
             }
           }
         }
+        if (key === 'medicalSpecialty') {
+          const values = Array.isArray(value) ? value : [value];
+          for (const candidate of values) {
+            const normalized = typeof candidate === 'string' ? candidate : candidate?.['@id'];
+            if (!ALLOWED_MEDICAL_SPECIALTIES.has(normalized)) {
+              addViolation(file, 'medicalSpecialty', `Invalid MedicalSpecialty enum at ${currentPath}: ${normalized || JSON.stringify(candidate)}`);
+            }
+          }
+        }
+        if (key === 'recognizingAuthority' && /SEME|Sociedad Española de Medicina Estética/i.test(JSON.stringify(value))) {
+          addViolation(file, 'recognizingAuthority', `Ungoverned SEME recognizingAuthority claim at ${currentPath}`);
+        }
+        if (file === 'inc/data/treatment-hub-schema.json' && key === 'additionalFields') {
+          addViolation(file, 'hubArchitecture', `Treatment hub is reference-only; additionalFields is dead/duplicated metadata at ${currentPath}`);
+        }
         if (value && typeof value === 'object') searchInObject(value, currentPath);
       }
     }
@@ -178,6 +225,8 @@ if (violations.length > 0) {
 
 console.log('SCHEMA_SOURCE_PATTERN_CONTRACT=PASS');
 console.log('✓ procedureType PHP/JSON values are whitelist-validated');
+console.log('✓ medicalSpecialty literal values use Schema.org MedicalSpecialty enums');
 console.log('✓ corporate Organization source has no priceRange or clinic Doctoralia sameAs');
 console.log('✓ procedure/service emitters have no reviewedBy or performer');
 console.log('✓ treatment source IDs use canonical #medical-procedure');
+console.log('✓ treatment hub has no dead additionalFields or ungoverned SEME recognizingAuthority claims');

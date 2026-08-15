@@ -5,6 +5,7 @@ import {
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
+import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
 import { runJsonLdStorageDiagnostic } from './jsonld-storage-diagnostic.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
@@ -93,14 +94,17 @@ console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
 
+const renderedOptions = {
+  expectedHost: new URL(base).hostname,
+  expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
+  originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
+};
+
 try {
-  await runRenderedSchemaContract({
-    expectedHost: new URL(base).hostname,
-    expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
-    originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
-  });
+  await runRenderedSchemaContract(renderedOptions);
+  await runSingleJsonLdSourceContract(renderedOptions);
 } catch (error) {
-  console.error('RENDERED_SCHEMA_FORENSICS=START reason=semantic-contract-failure');
+  console.error('RENDERED_SCHEMA_FORENSICS=START reason=rendered-contract-failure');
   try {
     const diagnostic = await runJsonLdStorageDiagnostic({
       originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),

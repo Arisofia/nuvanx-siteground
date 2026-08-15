@@ -547,6 +547,7 @@ function nvx_schema_clinics() {
 				),
 			),
 			'priceRange'                => '€€€',
+			'medicalSpecialty'          => array( 'https://schema.org/PlasticSurgery', 'https://schema.org/Dermatology' ),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
 			),
@@ -590,6 +591,7 @@ function nvx_schema_clinics() {
 				),
 			),
 			'priceRange'                => '€€€',
+			'medicalSpecialty'          => array( 'https://schema.org/PlasticSurgery', 'https://schema.org/Dermatology' ),
 			'sameAs'                    => array(
 				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser-sede-goya',
 			),

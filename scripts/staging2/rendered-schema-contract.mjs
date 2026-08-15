@@ -148,11 +148,15 @@ function fetchOriginHtml({ route, expectedHost, originSshAlias }) {
 
 function extractJsonLd(html, route) {
   const blocks = [];
-  const scriptRe = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  // Match <script> tags with any attributes, capturing both attributes and body
+  // [\s\S]*? is non-greedy to avoid performance issues on large pages
+  const scriptRe = /<script\b([^>]*)>([\s\S]{0,32768}?)<\/script>/gi;
   let match;
   while ((match = scriptRe.exec(html)) !== null) {
     const attrs = match[1] || '';
-    if (!/\btype\s*=\s*["']application\/ld\+json["']/i.test(attrs)) continue;
+    // Check for type="application/ld+json" with flexible quote handling
+    // Supports: type="application/ld+json", type='application/ld+json', and variations with whitespace
+    if (!/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(attrs)) continue;
     const raw = (match[2] || '').trim();
     if (!raw) continue;
     try {

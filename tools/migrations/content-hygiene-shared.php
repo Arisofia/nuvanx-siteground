@@ -188,7 +188,7 @@ $apply_rx = function(
 // ── Block C2: Governed journal Markdown normalization ─────────────────────────
 // Included here so it shares the same durable write marker and deployment-level
 // database rollback contract as every other shared content migration.
-require __DIR__ . '/governed-blog-markdown-hygiene.php';
+require_once __DIR__ . '/governed-blog-markdown-hygiene.php';
 
 // ── Block A: String replacements ──────────────────────────────────────────────
 

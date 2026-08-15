@@ -4,6 +4,7 @@ import {
   EX_TEMPFAIL,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
+import { runStagingPublicationParitySync } from './sync-publication-parity.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
 import { runPublicationManifestContract } from './test-publication-manifest-contract.mjs';
@@ -69,7 +70,6 @@ if (responseFile) {
 }
 
 assert.equal(status, 301, `Expected 301, received ${status}`);
-
 const locationHeader = headers.location;
 assert.ok(locationHeader, 'Redirect response has no Location header');
 
@@ -83,21 +83,12 @@ assert.equal(destination.searchParams.get('gclid'), 'QA_REDIRECT_CI_GCLID_001');
 assert.equal(destination.searchParams.get('utm_source'), 'google');
 assert.equal(destination.searchParams.get('utm_medium'), 'cpc');
 assert.equal(destination.searchParams.get('utm_campaign'), 'qa_redirect_contract');
-assert.equal(
-  headers['x-redirect-by'],
-  'NUVANX',
-  `Unexpected redirect owner: ${headers['x-redirect-by']}`,
-);
+assert.equal(headers['x-redirect-by'], 'NUVANX', `Unexpected redirect owner: ${headers['x-redirect-by']}`);
 
 console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
 
-// These contracts deliberately remain blocking in the same workflow step until
-// staging.yml gives them dedicated named steps. They must only import modules
-// that are actually committed to the repository; a missing forensic helper
-// previously made this file fail at module-load time before the Goya assertion
-// could run.
 const runtimeOptions = {
   expectedHost: new URL(base).hostname,
   expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
@@ -105,6 +96,10 @@ const runtimeOptions = {
 };
 
 try {
+  // Establish the exact approved Production page/post topology on Staging2
+  // before any renderer/schema/editorial acceptance. Production is read-only;
+  // the synchronizer is transactionally restricted to canonical Staging2.
+  await runStagingPublicationParitySync(runtimeOptions);
   await runRenderedSchemaContract(runtimeOptions);
   await runSingleJsonLdSourceContract(runtimeOptions);
   await runPublicationManifestContract(runtimeOptions);

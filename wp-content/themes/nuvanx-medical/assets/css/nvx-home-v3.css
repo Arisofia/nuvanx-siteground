@@ -611,6 +611,20 @@
 	color: var(--nvx-text-muted);
 }
 
+.nvx-home-location__map {
+	border-radius: var(--nvx-radius-card);
+	overflow: hidden;
+	margin-bottom: var(--nvx-space-4);
+	height: 200px;
+	background: var(--nvx-surface-base);
+	line-height: 0;
+}
+
+.nvx-home-location__map iframe {
+	border: 0;
+	display: block;
+}
+
 .nvx-home-location__code {
 	display: block;
 	font-family: var(--nvx-sans);

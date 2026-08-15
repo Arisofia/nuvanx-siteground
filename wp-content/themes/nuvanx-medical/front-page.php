@@ -204,13 +204,12 @@ ob_start();
 		<h2 id="nvx-home-locations-title" class="nvx-home-locations__title">Madrid. Dos sedes. Un único criterio médico.</h2>
 		<div class="nvx-home-locations__grid">
 			<div class="nvx-home-location">
-				<div class="nvx-home-location__map" style="border-radius:8px;overflow:hidden;margin-bottom:var(--nvx-space-4);height:200px;background:#f0f0f0;line-height:0;">
+				<div class="nvx-home-location__map">
 					<iframe
 						title="Ubicación en Google Maps de NUVANX Chamberí"
 						src="https://maps.google.com/maps?q=Calle+de+Fernandez+de+la+Hoz+4+28010+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed"
 						width="100%"
 						height="200"
-						style="border:0;display:block;"
 						loading="lazy"
 						referrerpolicy="no-referrer-when-downgrade">
 					</iframe>
@@ -222,13 +221,12 @@ ob_start();
 				<a href="<?php echo esc_url( home_url( '/medicina-estetica-chamberi/' ) ); ?>" class="nvx-home-location__link">Ver sede y ubicación →</a>
 			</div>
 			<div class="nvx-home-location">
-				<div class="nvx-home-location__map" style="border-radius:8px;overflow:hidden;margin-bottom:var(--nvx-space-4);height:200px;background:#f0f0f0;line-height:0;">
+				<div class="nvx-home-location__map">
 					<iframe
 						title="Ubicación en Google Maps de NUVANX Salamanca–Goya"
 						src="https://maps.google.com/maps?q=Calle+de+Fernan+Gonzalez+26+28009+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed"
 						width="100%"
 						height="200"
-						style="border:0;display:block;"
 						loading="lazy"
 						referrerpolicy="no-referrer-when-downgrade">
 					</iframe>

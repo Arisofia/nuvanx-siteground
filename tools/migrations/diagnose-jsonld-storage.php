@@ -3,7 +3,7 @@
  * Read-only forensic diagnostic for legacy Schema.org JSON-LD storage.
  *
  * Run with:
- *   wp eval-file tools/migrations/diagnose-jsonld-storage.php --allow-root
+ *   wp eval "require 'tools/migrations/diagnose-jsonld-storage.php';" --allow-root
  *
  * SECURITY CONTRACT:
  * - Never prints stored values.
@@ -17,7 +17,7 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-    fwrite( STDERR, "ERROR: must run inside WordPress via wp eval-file.\n" );
+    fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
     exit( 1 );
 }
 

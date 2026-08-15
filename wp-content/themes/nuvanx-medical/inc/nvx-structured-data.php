@@ -480,7 +480,7 @@ function nvx_schema_clinics() {
 	$ch = isset( $config['chamberi'] ) ? $config['chamberi'] : array();
 	$go = isset( $config['goya'] ) ? $config['goya'] : array();
 
-	// Build opening hours from config (same format as nvx-medical-clinic-schema.php)
+	// Build opening hours from config (same format as legacy nvx-medical-clinic-schema.php)
 	$ch_opening_hours = array();
 	foreach ( $ch['opening_hours'] ?? array() as $spec ) {
 		$ch_opening_hours[] = array(
@@ -510,6 +510,7 @@ function nvx_schema_clinics() {
 			'url'                       => home_url( $registry['clinics']['chamberi']['path'] ),
 			'telephone'                 => $ch['phone_href'] ?? '+34669319836',
 			'email'                     => NVX_CONTACT_EMAIL,
+			'image'                     => 'https://nuvanx.com/wp-content/uploads/2024/08/nuvanx-chamberi-clinic.jpg',
 			'address'                   => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $ch['address'] ?? 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
@@ -557,6 +558,7 @@ function nvx_schema_clinics() {
 			'url'                       => home_url( $registry['clinics']['goya']['path'] ),
 			'telephone'                 => $go['phone_href'] ?? '+34647505107',
 			'email'                     => NVX_CONTACT_EMAIL,
+			'image'                     => 'https://nuvanx.com/wp-content/uploads/2024/08/nuvanx-goya-clinic.jpg',
 			'address'                   => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $go['address'] ?? 'Calle de Fernán González, 26',

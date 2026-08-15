@@ -269,7 +269,6 @@ require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
-require_once get_template_directory() . '/inc/nvx-medical-clinic-schema.php';
 require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
 
 // 3. Core UI Components

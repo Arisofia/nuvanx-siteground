@@ -6,7 +6,6 @@ import {
 } from './siteground-transient-classifier.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 import { runSingleJsonLdSourceContract } from './single-jsonld-source-contract.mjs';
-import { runJsonLdStorageDiagnostic } from './jsonld-storage-diagnostic.mjs';
 import { runPublicationManifestContract } from './test-publication-manifest-contract.mjs';
 import { runEditorialGateContract } from './test-editorial-gate-contract.mjs';
 
@@ -80,12 +79,10 @@ assert.equal(
   '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
   `Unexpected destination: ${destination.href}`,
 );
-
 assert.equal(destination.searchParams.get('gclid'), 'QA_REDIRECT_CI_GCLID_001');
 assert.equal(destination.searchParams.get('utm_source'), 'google');
 assert.equal(destination.searchParams.get('utm_medium'), 'cpc');
 assert.equal(destination.searchParams.get('utm_campaign'), 'qa_redirect_contract');
-
 assert.equal(
   headers['x-redirect-by'],
   'NUVANX',
@@ -96,6 +93,11 @@ console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
 
+// These contracts deliberately remain blocking in the same workflow step until
+// staging.yml gives them dedicated named steps. They must only import modules
+// that are actually committed to the repository; a missing forensic helper
+// previously made this file fail at module-load time before the Goya assertion
+// could run.
 const runtimeOptions = {
   expectedHost: new URL(base).hostname,
   expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
@@ -105,37 +107,11 @@ const runtimeOptions = {
 try {
   await runRenderedSchemaContract(runtimeOptions);
   await runSingleJsonLdSourceContract(runtimeOptions);
-
-  // Run publication manifest contract to validate topology
   await runPublicationManifestContract(runtimeOptions);
-
-  // Run editorial gate contract to validate content standards
   await runEditorialGateContract(runtimeOptions);
+  console.log('STAGING_GOVERNANCE_CONTRACTS=PASS');
 } catch (error) {
-  // Distinguish between configuration errors and semantic contract failures
-  const isConfigError = error.message?.includes('Expected deploy SHA') ||
-                        error.message?.includes('STAGING_ROOT') ||
-                        error.message?.includes('unsafe') ||
-                        error.message?.includes('missing');
-  const failureReason = isConfigError ? 'config-validation-failure' : 'rendered-contract-failure';
-  console.error(`RENDERED_SCHEMA_FORENSICS=START reason=${failureReason}`);
-  try {
-    const diagnostic = await runJsonLdStorageDiagnostic({
-      originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
-    });
-    // Use RAN/NO_EVIDENCE instead of PASS when no evidence was found
-    const hasEvidence = (diagnostic.report?.core_matches ?? 0) > 0 ||
-                       (diagnostic.report?.custom_columns ?? 0) > 0 ||
-                       (diagnostic.report?.runtime_emitters ?? 0) > 0;
-    const forensicStatus = hasEvidence ? 'PASS' : 'RAN_NO_EVIDENCE';
-    console.error(
-      `RENDERED_SCHEMA_FORENSICS=${forensicStatus} ` +
-      `core_matches=${diagnostic.report?.core_matches ?? 'unknown'} ` +
-      `custom_columns=${diagnostic.report?.custom_columns ?? 'unknown'} ` +
-      `runtime_emitters=${diagnostic.report?.runtime_emitters ?? 'unknown'}`,
-    );
-  } catch (diagnosticError) {
-    console.error(`RENDERED_SCHEMA_FORENSICS=UNAVAILABLE reason=${String(diagnosticError?.message || diagnosticError).replace(/\s+/g, '_').slice(0, 500)}`);
-  }
+  const message = String(error?.message || error).replace(/\s+/g, ' ').slice(0, 1200);
+  console.error(`STAGING_GOVERNANCE_CONTRACTS=FAIL reason=${message}`);
   throw error;
 }

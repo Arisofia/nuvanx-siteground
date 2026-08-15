@@ -80,13 +80,8 @@ function nvx_aesthetic_schema_procedure_node(
 		}
 	}
 
-	// Add performer attribution from governed JSON data if available
-	if ( isset( $schema['performer'] ) && is_array( $schema['performer'] ) && isset( $schema['performer']['id'] ) ) {
-		$node['performer'] = array( '@id' => home_url( $schema['performer']['id'] ) );
-		if ( isset( $schema['performer']['name'] ) ) {
-			$node['performer']['name'] = $schema['performer']['name'];
-		}
-	}
+	// Note: performer property removed - belongs to Event, not MedicalProcedure/Service
+	// MedicalProcedure uses provider relationship instead
 
 	// Extract numeric price from price_range string for schema.org Offer.
 	// Spanish tariffs use '.' as thousands separator and ',' as decimal

@@ -480,7 +480,7 @@ function nvx_schema_clinics() {
 	$ch = isset( $config['chamberi'] ) ? $config['chamberi'] : array();
 	$go = isset( $config['goya'] ) ? $config['goya'] : array();
 
-	// Build opening hours from config (same format as legacy nvx-medical-clinic-schema.php)
+	// Build opening hours from config
 	$ch_opening_hours = array();
 	foreach ( $ch['opening_hours'] ?? array() as $spec ) {
 		$ch_opening_hours[] = array(

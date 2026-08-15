@@ -161,6 +161,18 @@ for (const file of phpFiles) {
     validatePhpProcedureTypes(file, content);
     validatePhpMedicalSpecialties(file, content);
 
+    // Scan for clinic-specific Doctoralia URLs in Organization context only
+    // Allow Doctoralia URLs in MedicalClinic nodes, prohibit in corporate Organization
+    const doctoraliaPatterns = [
+      // Look for Doctoralia clinic URLs in Organization enrichment function
+      { pattern: /function\s+nvx_schema_enrich_organization[\s\S]{0,2000}?sameAs[\s\S]{0,500}?doctoralia\.es\/clinicas\//gi, context: 'Organization enrichment contains clinic Doctoralia URL' },
+    ];
+    for (const { pattern, context } of doctoraliaPatterns) {
+      if (pattern.test(content)) {
+        addViolation(file, 'sameAs', context);
+      }
+    }
+
     const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética)/gi) || [];
     if (recognizingAuthorityClaims.length > 0) {
       addViolation(file, 'recognizingAuthority', 'Ungoverned SEME recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
@@ -184,10 +196,6 @@ for (const file of phpFiles) {
         const priceRangeMatches = organizationBody.match(/['"`]priceRange['"`]/g) || [];
         if (priceRangeMatches.length > 0) {
           addViolation(file, 'priceRange', 'Corporate Organization enrichment must not emit priceRange', priceRangeMatches.length);
-        }
-        const doctoraliaClinicMatches = organizationBody.match(/https?:\/\/[^'"\s]*doctoralia\.es\/clinicas\/[^'"\s]*/gi) || [];
-        if (doctoraliaClinicMatches.length > 0) {
-          addViolation(file, 'sameAs', 'Corporate Organization enrichment must not contain clinic-specific Doctoralia URLs', doctoraliaClinicMatches.length);
         }
       }
     }

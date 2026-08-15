@@ -37,15 +37,17 @@ export async function runGovernedBlogNormalization(options = {}) {
   const stdout = String(result.stdout || '');
   const stderr = String(result.stderr || '');
   if (result.status !== 0 || !/Status:\s+MIGRATION_OK\b/.test(stdout)) {
-    const reason = (stderr || stdout || `exit ${result.status}`).trim().replace(/\s+/g, ' ').slice(0, 2000);
+    const fallbackReason = `exit ${result.status}`;
+    const reason = (stderr || stdout || fallbackReason).trim().replace(/\s+/g, ' ').slice(0, 2000);
     throw new Error(`Governed blog normalization failed: ${reason}`);
   }
 
   const migrated = (stdout.match(/\[NORMALIZED JOURNAL\]/g) || []).length;
   await fs.mkdir(outputDir, { recursive: true });
+  const logSuffix = stderr ? `\n--- STDERR ---\n${stderr}` : '';
   await fs.writeFile(
     path.join(outputDir, 'governed-blog-normalization.log'),
-    `${stdout}${stderr ? `\n--- STDERR ---\n${stderr}` : ''}`,
+    `${stdout}${logSuffix}`,
     'utf8',
   );
 

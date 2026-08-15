@@ -117,6 +117,48 @@ export async function runPublicationManifestContract(options = {}) {
   const manifest = JSON.parse(manifestOutput);
   validateSchema(manifest, schema);
 
+  // Check validation results (bidirectional blocking checks)
+  if (!manifest.validation) {
+    throw new Error('Manifest missing validation results');
+  }
+
+  const validationErrors = manifest.validation.errors || [];
+  const validationPass = manifest.validation.pass !== false;
+
+  if (!validationPass || validationErrors.length > 0) {
+    const report = {
+      schema: 'publication-manifest-contract',
+      checkedAt: new Date().toISOString(),
+      host,
+      sha,
+      manifestVersion: manifest.version,
+      manifestSource: manifest.source,
+      routeCount: Object.keys(manifest.routes).length,
+      validation: 'FAIL',
+      issues: validationErrors,
+      missing: manifest.validation.missing || [],
+      surplus: manifest.validation.surplus || [],
+      changed: manifest.validation.changed || [],
+    };
+
+    await fs.writeFile(path.join(outputDir, 'publication-manifest-contract.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+
+    console.error(`PUBLICATION_MANIFEST_CONTRACT=FAIL errors=${validationErrors.length}`);
+    validationErrors.forEach((error) => console.error(`- ${error}`));
+
+    if (report.missing.length > 0) {
+      console.error(`Missing expected URLs: ${report.missing.join(', ')}`);
+    }
+    if (report.surplus.length > 0) {
+      console.error(`Surplus published URLs: ${report.surplus.join(', ')}`);
+    }
+    if (report.changed.length > 0) {
+      console.error(`Changed attributes: ${report.changed.length} route(s)`);
+    }
+
+    throw new Error(`Publication manifest contract failed with ${validationErrors.length} error(s). EXPECTED_PUBLIC_URLS !== ACTUAL_PUBLIC_URLS`);
+  }
+
   // Write validation report
   const report = {
     schema: 'publication-manifest-contract',
@@ -128,6 +170,9 @@ export async function runPublicationManifestContract(options = {}) {
     routeCount: Object.keys(manifest.routes).length,
     validation: 'PASS',
     issues: [],
+    missing: [],
+    surplus: [],
+    changed: [],
   };
 
   await fs.writeFile(path.join(outputDir, 'publication-manifest-contract.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');

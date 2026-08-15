@@ -86,13 +86,18 @@ function extractJsonLd(html, route) {
   let match;
   while ((match = scriptRe.exec(html)) !== null) {
     const attrs = match[1] || '';
-    if (!/\btype\s*=\s*["']application\/ld\+json["']/i.test(attrs)) continue;
+    // Match type attribute with optional quotes to align with single-jsonld-source-contract.mjs
+    if (!/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(attrs)) continue;
     const raw = (match[2] || '').trim();
     if (!raw) continue;
     try {
       blocks.push(JSON.parse(raw));
     } catch (error) {
-      throw new Error(`Invalid JSON-LD on ${route}: ${error.message}`);
+      // Record malformed JSON-LD as a block-level issue instead of aborting route validation
+      blocks.push({
+        _parseError: `Invalid JSON-LD: ${error.message}`,
+        _rawContent: raw.substring(0, 200),
+      });
     }
   }
   if (blocks.length === 0) throw new Error(`No application/ld+json blocks rendered on ${route}`);

@@ -43,38 +43,16 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 	$items = array();
 	foreach ( $definitions as $index => $definition ) {
 		$url  = home_url( $definition['path'] );
-		// Use canonical treatment entity ID instead of creating duplicate hub-specific ID
+		// Hub references canonical treatment entity defined by treatment page
+		// This prevents contradictory properties between hub and page definitions
 		$canonical_treatment_id = $url . '#medical-procedure';
-		$item = array(
-			'@type'       => $definition['types'],
-			'@id'         => $canonical_treatment_id,
-			'name'        => $definition['name'],
-			'url'         => $url,
-			'provider'    => array( '@id' => $organization_id ),
-			'description' => $definition['description'],
-			'areaServed'  => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
-		);
-
-		if ( ! empty( $definition['procedureType'] ) ) {
-			$item['procedureType'] = array( '@id' => $definition['procedureType'] );
-		}
-
-		if ( ! empty( $definition['additionalFields'] ) && is_array( $definition['additionalFields'] ) ) {
-			foreach ( $definition['additionalFields'] as $extra_key => $extra_val ) {
-				// Skip fields that are redundant (provider uses canonical @id) or invalid on MedicalProcedure/Service (priceRange, availableService)
-				if ( in_array( $extra_key, array( 'provider', 'availableService', 'priceRange' ), true ) ) {
-					continue;
-				}
-				$item[ $extra_key ] = $extra_val;
-			}
-		}
-
 		$items[] = array(
-
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'url'      => $url,
-			'item'     => $item,
+			'item'     => array(
+				'@id' => $canonical_treatment_id,
+			),
 		);
 	}
 

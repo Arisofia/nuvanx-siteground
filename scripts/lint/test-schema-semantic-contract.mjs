@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 /**
- * Schema Semantic Contract Test
+ * Schema Source Pattern Contract Test
  *
- * Validates that the schema graph does not contain prohibited properties or patterns.
- * This gate prevents commits claiming "corregido" when violations remain.
+ * Validates that schema source code does not contain prohibited patterns.
+ * This is a source-pattern lint, not a rendered JSON-LD graph validator.
+ *
+ * IMPORTANT: This gate validates source code patterns only.
+ * It does NOT validate the final rendered JSON-LD graph from WordPress/Yoast.
+ * A separate gate is needed to validate the actual @graph output.
  *
  * PROHIBITED PATTERNS:
  * 1. reviewedBy in MedicalProcedure/Service (belongs to WebPage only)
  * 2. performer in MedicalProcedure (belongs to Event only)
  * 3. Invalid procedureType values (only PercutaneousProcedure/NoninvasiveProcedure)
  * 4. priceRange in Organization (belongs to LocalBusiness only)
- * 5. Duplicate treatment entities (hub vs page IDs)
- * 6. Organization sameAs pointing to clinic-specific URLs
+ * 5. Clinic-specific sameAs in Organization nodes
+ * 6. Duplicate treatment entity IDs (hub vs page)
  */
 
 import fs from 'node:fs/promises';
@@ -37,6 +41,10 @@ const PROHIBITED_PATTERNS = {
   priceRange: {
     allowedTypes: ['LocalBusiness', 'MedicalClinic'],
     context: 'priceRange belongs to LocalBusiness/MedicalClinic, not Organization',
+  },
+  sameAs: {
+    forbiddenInOrganization: ['doctoralia'],
+    context: 'Organization sameAs should not contain clinic-specific Doctoralia URLs',
   },
 };
 
@@ -112,6 +120,50 @@ for (const file of phpFiles) {
         context: 'Hub should use canonical #medical-procedure ID, not hub-specific keys',
         count: hubSpecificIds.length,
       });
+    }
+
+    // Check for clinic-specific sameAs in Organization context
+    const sameAsMatches = content.match(/sameAs\s*=>\s*array\([^)]*\)/g);
+    if (sameAsMatches) {
+      for (const match of sameAsMatches) {
+        if (match.includes('doctoralia') && (match.includes('chamberi') || match.includes('goya'))) {
+          violations.push({
+            file,
+            type: 'sameAs',
+            context: 'Organization sameAs contains clinic-specific Doctoralia URL (belongs to MedicalClinic nodes)',
+            count: 1,
+          });
+        }
+      }
+    }
+
+    // Check for invalid procedureType values (not just MinimallyInvasiveProcedure)
+    const procedureTypeMatches = content.match(/procedureType\s*=>\s*['"`']https:\/\/schema\.org\/[^'"`]+['"`']/g);
+    if (procedureTypeMatches) {
+      for (const match of procedureTypeMatches) {
+        const value = match.match(/https:\/\/schema\.org\/[^'"`]+/)[0];
+        if (!PROHIBITED_PATTERNS.procedureType.allowedValues.includes(value)) {
+          violations.push({
+            file,
+            type: 'procedureType',
+            context: `Invalid procedureType value: ${value} (must be PercutaneousProcedure or NoninvasiveProcedure)`,
+            count: 1,
+          });
+        }
+      }
+    }
+
+    // Check for priceRange in Organization context
+    const priceRangeInOrgMatches = content.match(/function nvx_schema_enrich_organization[\s\S]*?\n\}/);
+    if (priceRangeInOrgMatches) {
+      if (priceRangeInOrgMatches[0].includes('priceRange')) {
+        violations.push({
+          file,
+          type: 'priceRange',
+          context: 'Organization enrichment contains priceRange (belongs to LocalBusiness/MedicalClinic only)',
+          count: 1,
+        });
+      }
     }
 
   } catch (error) {

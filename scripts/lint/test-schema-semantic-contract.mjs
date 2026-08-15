@@ -9,10 +9,12 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const themePath = path.join(__dirname, '../../wp-content/themes/nuvanx-medical');
+const repoPath = path.join(__dirname, '../..');
+const themePath = path.join(repoPath, 'wp-content/themes/nuvanx-medical');
 const ALLOWED_PROCEDURE_TYPES = new Set([
   'https://schema.org/PercutaneousProcedure',
   'https://schema.org/NoninvasiveProcedure',
@@ -215,6 +217,44 @@ for (const file of jsonFiles) {
   }
 }
 
+const bootstrapPath = path.join(themePath, 'functions.php');
+const hubPath = path.join(themePath, 'inc/nvx-treatment-hub-schema.php');
+const semanticGovernancePath = path.join(themePath, 'inc/nvx-schema-semantic-governance.php');
+const [bootstrap, hubSource, semanticGovernance] = await Promise.all([
+  fs.readFile(bootstrapPath, 'utf8'),
+  fs.readFile(hubPath, 'utf8'),
+  fs.readFile(semanticGovernancePath, 'utf8'),
+]);
+
+for (const [file, content] of [
+  ['functions.php', bootstrap],
+  ['inc/nvx-treatment-hub-schema.php', hubSource],
+]) {
+  const staleHubPredicate = content.match(/nvx_theme_is_treatments_hub\s*\(\s*\)/g) || [];
+  if (staleHubPredicate.length > 0) {
+    addViolation(file, 'hubPredicate', 'Use canonical nvx_theme_is_treatments_hub_page() predicate', staleHubPredicate.length);
+  }
+}
+
+if (!bootstrap.includes("require_once get_template_directory() . '/inc/nvx-schema-semantic-governance.php';")) {
+  addViolation('functions.php', 'semanticGovernance', 'Final semantic governance module is not loaded');
+}
+if (!/add_filter\(\s*['"]wpseo_schema_graph['"]\s*,\s*['"]nvx_schema_semantic_normalize_graph['"]\s*,\s*PHP_INT_MAX\s*-\s*2\s*,\s*1\s*\)/.test(semanticGovernance)) {
+  addViolation('inc/nvx-schema-semantic-governance.php', 'semanticGovernance', 'Final graph normalizer must run at PHP_INT_MAX - 2');
+}
+
+const semanticPhpTest = spawnSync(
+  'php',
+  [path.join(repoPath, 'scripts/lint/test-schema-semantic-governance.php')],
+  { encoding: 'utf8' }
+);
+if (semanticPhpTest.status !== 0) {
+  const details = `${semanticPhpTest.stdout || ''}\n${semanticPhpTest.stderr || ''}`.trim();
+  addViolation('scripts/lint/test-schema-semantic-governance.php', 'semanticGovernanceRuntime', details || `PHP test exited ${semanticPhpTest.status}`);
+} else if (semanticPhpTest.stdout) {
+  process.stdout.write(semanticPhpTest.stdout);
+}
+
 if (violations.length > 0) {
   console.error('SCHEMA_SOURCE_PATTERN_CONTRACT=FAIL');
   for (const [index, violation] of violations.entries()) {
@@ -229,4 +269,6 @@ console.log('✓ medicalSpecialty literal values use Schema.org MedicalSpecialty
 console.log('✓ corporate Organization source has no priceRange or clinic Doctoralia sameAs');
 console.log('✓ procedure/service emitters have no reviewedBy or performer');
 console.log('✓ treatment source IDs use canonical #medical-procedure');
+console.log('✓ treatment hub uses the canonical runtime predicate');
+console.log('✓ final semantic normalizer is loaded, ordered and unit-tested');
 console.log('✓ treatment hub has no dead additionalFields or ungoverned SEME recognizingAuthority claims');

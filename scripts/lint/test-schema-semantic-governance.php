@@ -156,7 +156,7 @@ $only_non_schema = preg_replace( $pcre, $jsonld_rule['replacement'], $non_schema
 nvx_test_assert( $non_schema === $only_non_schema, 'non-Schema JSON-LD must be byte-preserved when no Schema block exists' );
 
 // Runtime ownership contract. Only the proven legacy NUVANX Schema callbacks
-// may be removed; the SEO/GEO breadcrumb and Code Snippets callbacks survive.
+// may be removed. Yoast remains canonical and generic Code Snippets survives.
 function nvx_seo_geo_output_jsonld(): void {}
 function nvx_seo_geo_output_breadcrumb(): void {}
 $legacy_faq_closure = require __DIR__ . '/fixtures/nuvanx-home-unified-faq-schema.php';
@@ -184,7 +184,7 @@ $wp_filter = array(
 nvx_schema_runtime_retire_legacy_emitters();
 
 nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[6] ), 'legacy nvx_seo_geo_output_jsonld callback must be removed' );
-nvx_test_assert( isset( $wp_filter['wp_head']->callbacks[7]['legacy-breadcrumb'] ), 'SEO/GEO breadcrumb callback must survive' );
+nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[7] ), 'legacy standalone SEO/GEO breadcrumb Schema callback must be removed' );
 nvx_test_assert( empty( $wp_filter['wp_head']->callbacks[9] ), 'legacy standalone home FAQ Schema callback must be removed' );
 nvx_test_assert( isset( $wp_filter['wp_head']->callbacks[10]['code-snippets'] ), 'generic Code Snippets callback must survive' );
 

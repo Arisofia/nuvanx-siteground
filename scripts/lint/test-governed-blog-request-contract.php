@@ -3,7 +3,8 @@
  * Regression contract for governed blog routes with a stale WordPress query.
  *
  * The requested route remains authoritative when WordPress reports is_404()
- * even though an exact published post exists for the catalogued slug.
+ * or carries a neighbouring post name even though an exact published post
+ * exists for the catalogued request slug.
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
@@ -96,10 +97,26 @@ if ( 'Matriz de diagnóstico facial | NUVANX Madrid' !== $title
 }
 
 $query = new WP_Query();
+$query->set( 'name', 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' );
 nvx_document_governance_bind_blog_pre_get_posts( $query );
-if ( 3334 !== $query->get( 'p' ) || $query->is_404 || ! $query->is_single || ! $query->is_singular || $query->is_archive ) {
+if ( 3334 !== $query->get( 'p' )
+	|| 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' !== $query->get( 'name' )
+	|| $query->is_404
+	|| ! $query->is_single
+	|| ! $query->is_singular
+	|| $query->is_archive ) {
 	fwrite( STDERR, 'GOVERNED_BLOG_MAIN_QUERY_REBIND=FAIL' . PHP_EOL );
 	exit( 1 );
 }
 
-echo 'GOVERNED_BLOG_STALE_CONTEXT=PASS requested_post=3334 neighbouring_post=3310' . PHP_EOL;
+// The final single-post entrypoint must resolve the real public path before it
+// ever falls back to a potentially stale WP_Query name.
+$single_entrypoint = file_get_contents( dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/single-post.php' );
+$request_path_pos  = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, '$nvx_request_slug = trim' ) : false;
+$query_name_pos    = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, '$wp_query->get( \'name\' )' ) : false;
+if ( false === $request_path_pos || false === $query_name_pos || $request_path_pos >= $query_name_pos ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_ENTRYPOINT_PATH_AUTHORITY=FAIL' . PHP_EOL );
+	exit( 1 );
+}
+
+echo 'GOVERNED_BLOG_STALE_CONTEXT=PASS requested_post=3334 neighbouring_post=3310 path_authority=REQUEST_URI' . PHP_EOL;

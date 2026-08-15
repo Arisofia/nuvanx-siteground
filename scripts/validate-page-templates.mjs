@@ -18,19 +18,24 @@
  * Optional env:
  * - WORDPRESS_PAGES_FILE: trusted JSON snapshot from authenticated WP-CLI.
  * - WORDPRESS_URL: REST/sitemap base URL when no trusted link is available.
+ * - SITEMAP_ORIGIN_SSH_ALIAS: configured SSH alias for same-origin fallback.
  */
 
+import { execFile } from 'node:child_process';
 import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
 import { join, dirname, basename } from 'path';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'url';
 import { MIN_MANIFEST_ENTRIES } from './staging2/published-pages-contract.mjs';
 
+const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const THEME_ROOT = join(__dirname, '..', 'wp-content', 'themes', 'nuvanx-medical');
 const TEMPLATES_DIR = join(THEME_ROOT, 'templates');
 const MANIFEST_FILE = join(__dirname, 'staging2', 'published-pages-manifest.json');
 const TRANSIENT_HTTP = new Set([202, 429, 503]);
+const SITEMAP_ORIGIN_SSH_ALIAS = String(process.env.SITEMAP_ORIGIN_SSH_ALIAS || 'nvx-staging2').trim();
 
 const VALID_TEMPLATES = [
   'page-contacto.php',
@@ -172,6 +177,55 @@ function isSiteGroundChallenge(response, body) {
   return /\.well-known\/sgcaptcha|sg-captcha/i.test(String(body || ''));
 }
 
+function assertSitemapXml(body, url, source) {
+  if (!/<(?:sitemapindex|urlset)\b/i.test(String(body || ''))) {
+    throw new Error(`Expected sitemap XML from ${url} via ${source}`);
+  }
+  return body;
+}
+
+async function fetchXmlFromOrigin(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol !== 'https:' || !parsed.hostname) {
+    throw new Error(`Origin sitemap fallback requires an HTTPS URL: ${url}`);
+  }
+  if (!SITEMAP_ORIGIN_SSH_ALIAS) {
+    throw new Error('SITEMAP_ORIGIN_SSH_ALIAS is empty');
+  }
+
+  const { stdout } = await execFileAsync(
+    'ssh',
+    [
+      '-n',
+      SITEMAP_ORIGIN_SSH_ALIAS,
+      'curl',
+      '-kfsSL',
+      '--max-time',
+      '30',
+      '--resolve',
+      `${parsed.hostname}:443:127.0.0.1`,
+      '-H',
+      'Cache-Control:no-cache',
+      '-H',
+      'Pragma:no-cache',
+      '-b',
+      'wpSGCacheBypass=1',
+      '-A',
+      'NUVANX-Block-C-Origin-Inventory/1.0',
+      parsed.href,
+    ],
+    {
+      encoding: 'utf8',
+      maxBuffer: 5 * 1024 * 1024,
+      timeout: 45000,
+    }
+  );
+
+  assertSitemapXml(stdout, url, 'origin-fallback');
+  console.log(`SITEMAP_ORIGIN_FALLBACK=PASS url=${url}`);
+  return stdout;
+}
+
 async function fetchXml(url) {
   let lastError = null;
   for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRIES; attempt += 1) {
@@ -188,10 +242,8 @@ async function fetchXml(url) {
         lastError = new SitemapTransientError(`Transient SiteGround challenge while fetching ${url} (HTTP ${response.status})`);
       } else if (!response.ok) {
         lastError = new Error(`Sitemap fetch failed for ${url}: HTTP ${response.status}`);
-      } else if (!/<(?:sitemapindex|urlset)\b/i.test(body)) {
-        lastError = new Error(`Expected sitemap XML from ${url}`);
       } else {
-        return body;
+        return assertSitemapXml(body, url, 'public-edge');
       }
     } catch (error) {
       lastError = error;
@@ -200,6 +252,15 @@ async function fetchXml(url) {
       await new Promise((resolve) => setTimeout(resolve, SITEMAP_BACKOFF_BASE_MS * attempt));
     }
   }
+
+  if (lastError?.isTransient && String(process.env.WORDPRESS_PAGES_FILE || '').trim()) {
+    try {
+      return await fetchXmlFromOrigin(url);
+    } catch (originError) {
+      console.warn(`SITEMAP_ORIGIN_FALLBACK=FAIL url=${url} error=${originError instanceof Error ? originError.message : String(originError)}`);
+    }
+  }
+
   throw lastError || new SitemapTransientError(`Unable to fetch sitemap XML: ${url}`);
 }
 

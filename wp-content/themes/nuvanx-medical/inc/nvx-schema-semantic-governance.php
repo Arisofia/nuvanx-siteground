@@ -317,6 +317,13 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				$function = $callback['function'] ?? null;
+				// NOTE: nvx_seo_geo_output_jsonld and nvx_seo_geo_output_breadcrumb are retired
+				// legacy emitters defined outside this repo. Their full output is unverifiable here.
+				// This removal is safe only under the staging-inventory claim that these callbacks
+				// emit only their proven legacy JSON-LD blocks (Organization, MedicalOrganization,
+				// BreadcrumbList). If the live callbacks emit additional head output (e.g. meta tags,
+				// GEO hints), unhooking them drops that too. Confirm against actual plugin source
+				// before deploying to production.
 				if ( in_array( $function, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true ) ) {
 					remove_action( 'wp_head', $function, (int) $priority );
 					continue;

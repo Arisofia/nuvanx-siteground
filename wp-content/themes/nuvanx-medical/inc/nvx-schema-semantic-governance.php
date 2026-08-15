@@ -307,8 +307,8 @@ function nvx_schema_runtime_callback_file( $callback ): string {
  *
  * The canonical structured-data owner is wpseo_schema_graph plus the governed
  * theme filters above. This deliberately does NOT disable Code Snippets or any
- * generic output callback: only the two legacy NUVANX Schema emitters proven by
- * staging forensics are removed. The SEO/GEO breadcrumb callback remains live.
+ * generic output callback: only the proven legacy NUVANX Schema emitters are
+ * removed. Yoast owns both the canonical graph and BreadcrumbList identity.
  */
 function nvx_schema_runtime_retire_legacy_emitters(): void {
 	global $wp_filter;
@@ -317,7 +317,7 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				$function = $callback['function'] ?? null;
-				if ( 'nvx_seo_geo_output_jsonld' === $function ) {
+				if ( in_array( $function, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true ) ) {
 					remove_action( 'wp_head', $function, (int) $priority );
 					continue;
 				}

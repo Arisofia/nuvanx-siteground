@@ -2,10 +2,10 @@
 /**
  * DB-authoritative runtime hardening for governed journal routes.
  *
- * This layer is loaded by single-post.php before get_header()/Yoast render the
- * document head. It deliberately resolves governed slugs from wp_posts rather
- * than cache-aware post APIs so a poisoned persistent object cache or stale
- * singular context cannot bind one public path to a neighbouring article.
+ * This module is loaded during theme bootstrap, then rebinds the main query on
+ * the early `wp` hook. That timing is deliberate: loading only from
+ * single-post.php is too late because SEO/indexable integrations may have
+ * already derived presentation state from a stale singular query.
  *
  * @package nuvanx-medical
  */
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) ) {
-	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-single-entry-v1' );
+	define( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT', '20260815-db-authoritative-wp-bootstrap-v2' );
 }
 
 /** Actual one-segment public slug, independent of WP_Query/global post state. */
@@ -114,14 +114,17 @@ function nvx_governed_blog_runtime_context(): ?array {
 	);
 }
 
-/** Rebind both public query globals and the loop post before the shared template. */
+/**
+ * Rebind both public query globals and the loop post before downstream SEO and
+ * template consumers observe the stale singular state.
+ */
 function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	$context = nvx_governed_blog_runtime_context();
 	if ( null === $context || ! function_exists( 'nvx_single_post_rebind_query' ) ) {
 		return null;
 	}
 
-	global $post, $wp_query, $wp_the_query;
+	global $post, $wp, $wp_query, $wp_the_query;
 	$resolved = $context['post'];
 	$slug     = $context['slug'];
 
@@ -130,6 +133,16 @@ function nvx_governed_blog_runtime_rebind_queries(): ?WP_Post {
 	}
 	if ( $wp_the_query instanceof WP_Query && $wp_the_query !== $wp_query ) {
 		nvx_single_post_rebind_query( $wp_the_query, $resolved, $slug );
+	}
+
+	// Keep WP::query_vars coherent for consumers that inspect the request object
+	// rather than the global WP_Query instance.
+	if ( isset( $wp ) && is_object( $wp ) && isset( $wp->query_vars ) && is_array( $wp->query_vars ) ) {
+		$wp->query_vars['p']         = (int) $resolved->ID;
+		$wp->query_vars['name']      = $slug;
+		$wp->query_vars['post_type'] = 'post';
+		$wp->query_vars['pagename']  = '';
+		$wp->query_vars['page_id']   = 0;
 	}
 
 	$post = $resolved;
@@ -156,6 +169,15 @@ function nvx_governed_blog_runtime_description( $description ) {
 	}
 	$value = trim( (string) ( $context['metadata']['description'] ?? '' ) );
 	return '' !== $value ? $value : $description;
+}
+
+/** Final canonical derived only from the governed request path. */
+function nvx_governed_blog_runtime_canonical( $canonical ) {
+	$context = nvx_governed_blog_runtime_context();
+	if ( null === $context ) {
+		return $canonical;
+	}
+	return home_url( $context['path'] );
 }
 
 /** Final Open Graph URL; staging retains the production-host social policy. */
@@ -189,9 +211,9 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 		$presentation->twitter_title    = $title;
 	}
 	if ( '' !== $description ) {
-		$presentation->meta_description             = $description;
-		$presentation->open_graph_description       = $description;
-		$presentation->twitter_description          = $description;
+		$presentation->meta_description        = $description;
+		$presentation->open_graph_description  = $description;
+		$presentation->twitter_description     = $description;
 	}
 	$presentation->canonical      = $canonical;
 	$presentation->open_graph_url = $og_url;
@@ -200,16 +222,15 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 }
 
 /**
- * Replace the generic head contract on governed posts and expose a bytecode
- * sentinel. The sentinel proves the HTTP/FPM request executed this candidate
- * source, not merely that a new .nvx-deploy-sha file exists on disk.
+ * Replace the generic head contract on governed posts and expose a runtime
+ * sentinel. The sentinel proves the HTTP/FPM request executed this source.
  */
 function nvx_governed_blog_runtime_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
 
-	$context = nvx_governed_blog_runtime_context();
+	$context   = nvx_governed_blog_runtime_context();
 	$canonical = null !== $context
 		? home_url( $context['path'] )
 		: ( function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : '' );
@@ -223,9 +244,11 @@ function nvx_governed_blog_runtime_print_head_contract(): void {
 	}
 }
 
-// single-post.php is entered before get_header()/Yoast, so these later
-// registrations supersede earlier path/indexable filters without affecting
-// non-governed documents.
+// This module is loaded from functions.php after the blog/SEO helpers exist.
+// Rebind on `wp` before template loading and before SEO/indexable consumers can
+// persist a neighbouring queried object for this response.
+add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 );
+
 remove_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
 add_action( 'wp_head', 'nvx_governed_blog_runtime_print_head_contract', 2 );
 
@@ -236,5 +259,6 @@ add_filter( 'wpseo_twitter_title', 'nvx_governed_blog_runtime_title', PHP_INT_MA
 add_filter( 'wpseo_metadesc', 'nvx_governed_blog_runtime_description', PHP_INT_MAX );
 add_filter( 'wpseo_opengraph_desc', 'nvx_governed_blog_runtime_description', PHP_INT_MAX );
 add_filter( 'wpseo_twitter_description', 'nvx_governed_blog_runtime_description', PHP_INT_MAX );
+add_filter( 'wpseo_canonical', 'nvx_governed_blog_runtime_canonical', PHP_INT_MAX );
 add_filter( 'wpseo_opengraph_url', 'nvx_governed_blog_runtime_opengraph_url', PHP_INT_MAX );
 add_filter( 'wpseo_frontend_presentation', 'nvx_governed_blog_runtime_yoast_presentation', PHP_INT_MAX, 2 );

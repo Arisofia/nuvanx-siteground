@@ -120,21 +120,8 @@ if [[ "$primary_rc" -ne 75 ]]; then
   exit 1
 fi
 
-# Fallback is allowed only after a classified transport-only exhaustion. The
-# fallback identity is repository-controlled staging SSH credentials that are
-# already required to prove read-only access to PROD_ROOT during staging. The
-# production preflight that follows this script still verifies DB/home/siteurl,
-# blog_public and active theme before any payload upload or mutation.
-write_identity staging-endpoint-fallback "$FALLBACK_HOST" "$FALLBACK_PORT" "$FALLBACK_USER" "$FALLBACK_KEY" "$FALLBACK_KNOWN_HOSTS"
-set +e
-probe_identity staging-endpoint-fallback
-fallback_rc=$?
-set -e
-fallback_reason="${SITEGROUND_LAST_REASON:-unknown}"
-if [[ "$fallback_rc" -ne 0 ]]; then
-  echo "SITEGROUND_SSH=FAIL mode=staging-endpoint-fallback primary_reason=$primary_reason fallback_reason=$fallback_reason" >&2
-  exit 255
-fi
-
-[[ -z "${GITHUB_ENV:-}" ]] || echo 'PRODUCTION_SSH_TRANSPORT=staging-endpoint-fallback' >> "$GITHUB_ENV"
-echo "SITEGROUND_SSH=PASS mode=staging-endpoint-fallback primary_reason=$primary_reason"
+# Production SSH endpoint is required - no fallback to staging credentials.
+# A transport-only failure (75) means the production endpoint is unreachable,
+# which is a hard deployment failure regardless of staging availability.
+echo "SITEGROUND_SSH=FAIL mode=primary_unreachable reason=$primary_reason" >&2
+exit 255

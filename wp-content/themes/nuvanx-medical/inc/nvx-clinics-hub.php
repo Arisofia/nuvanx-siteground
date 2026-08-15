@@ -1104,6 +1104,15 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $goya_maps ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</a>';
 	$html .= '</div></div></section>';
 
+	// Closing CTA with clinic codes for GEO/AI reinforcement.
+	$html .= '<section class="nvx-brand-section" aria-labelledby="nvx-clinics-closure-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<h2 id="nvx-clinics-closure-title" class="nvx-brand-title">' . esc_html__( 'Valoración en nuestras sedes de Madrid', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Chamberí (CS20144) y Salamanca–Goya (CS20073). Un único criterio médico, dos centros sanitarios autorizados.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-brand-actions">';
+	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	$html .= '</div></div></section>';
+
 	$html .= '<section class="nvx-brand-section" aria-labelledby="nvx-clinics-hub-cta-title">';
 	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Siguiente paso', 'nuvanx-medical' ) . '</p>';

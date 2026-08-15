@@ -235,12 +235,15 @@ if ( 0 === count( $matches ) ) {
     foreach ( $columns as $column ) {
         $table_name  = (string) $column['TABLE_NAME'];
         $column_name = (string) $column['COLUMN_NAME'];
+        // Validate identifiers against strict allowlist to prevent SQL injection
+        // This is the primary security control; identifiers come from information_schema
+        // which is trusted database metadata, but we validate regardless
         if ( ! preg_match( '/^[A-Za-z0-9_$]+$/', $table_name ) || ! preg_match( '/^[A-Za-z0-9_$]+$/', $column_name ) ) {
             continue;
         }
         [ $where, $like_params ] = nvx_jsonld_diag_like_clause( '`' . $column_name . '`', $signatures, $wpdb );
         $count_sql = "SELECT COUNT(*) FROM `{$table_name}` WHERE {$where}";
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- identifiers come from validated information_schema values; data is prepared.
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- identifiers validated with strict allowlist; data is prepared.
         $prepared = $wpdb->prepare( $count_sql, ...$like_params );
         if ( ! is_string( $prepared ) ) {
             continue;

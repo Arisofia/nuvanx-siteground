@@ -4,6 +4,7 @@ import {
   EX_TEMPFAIL,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
+import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
 assert.ok(base.startsWith('https://'), 'STAGING_URL must be HTTPS');
@@ -90,3 +91,9 @@ assert.equal(
 console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
+
+await runRenderedSchemaContract({
+  expectedHost: new URL(base).hostname,
+  expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
+  originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
+});

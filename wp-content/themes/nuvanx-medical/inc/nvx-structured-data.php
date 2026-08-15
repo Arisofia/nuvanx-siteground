@@ -974,7 +974,7 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 
 	if ( 'endolift_facial' === $key ) {
 		$label_from   = nvx_endolift_price_from_eur();
-		$label_papada = function_exists( 'nvx_endolift_papada_price_eur' ) ? nvx_format_price_eur( nvx_endolift_papada_price_eur() ) : $label_from;
+		$label_papada = function_exists( 'nvx_endolift_price_papada_eur' ) ? nvx_format_price_eur( nvx_endolift_price_papada_eur() ) : $label_from;
 
 		return array(
 			'@type'             => array( 'MedicalProcedure', 'Service' ),
@@ -1648,7 +1648,8 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
 	}
 
 	$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
-	$existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+	// Note: Doctoralia links belong to individual clinic nodes, not corporate Organization
+	// Each MedicalClinic maintains its own sameAs for location-specific external identity
 	$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
 }
 

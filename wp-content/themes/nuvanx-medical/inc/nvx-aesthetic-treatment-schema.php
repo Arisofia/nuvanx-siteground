@@ -72,14 +72,8 @@ function nvx_aesthetic_schema_procedure_node(
 		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
 	);
 
-	// Add reviewer attribution from governed JSON data if available
-	if ( isset( $schema['reviewer'] ) && is_array( $schema['reviewer'] ) && isset( $schema['reviewer']['id'] ) ) {
-		$node['reviewedBy'] = array( '@id' => home_url( $schema['reviewer']['id'] ) );
-		if ( isset( $schema['reviewer']['name'] ) ) {
-			$node['reviewedBy']['name'] = $schema['reviewer']['name'];
-		}
-	}
-
+	// Note: reviewedBy removed - belongs to WebPage only, not MedicalProcedure/Service
+	// reviewedBy is now managed solely by nvx-medical-review.php for WebPage nodes
 	// Note: performer property removed - belongs to Event, not MedicalProcedure/Service
 	// MedicalProcedure uses provider relationship instead
 

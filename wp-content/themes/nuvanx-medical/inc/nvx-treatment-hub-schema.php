@@ -43,9 +43,11 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 	$items = array();
 	foreach ( $definitions as $index => $definition ) {
 		$url  = home_url( $definition['path'] );
+		// Use canonical treatment entity ID instead of creating duplicate hub-specific ID
+		$canonical_treatment_id = $url . '#medical-procedure';
 		$item = array(
 			'@type'       => $definition['types'],
-			'@id'         => $url . '#' . $definition['key'],
+			'@id'         => $canonical_treatment_id,
 			'name'        => $definition['name'],
 			'url'         => $url,
 			'provider'    => array( '@id' => $organization_id ),

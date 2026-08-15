@@ -10,7 +10,8 @@
     "lint:routes": "node scripts/lint/validate-routes-schema.mjs",
     "lint:contrast": "node scripts/lint/test-hero-wcag-contrast.mjs",
     "lint:complianz": "node scripts/lint/test-complianz-a11y-sanitizer.mjs",
-    "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes && npm run lint:contrast && npm run lint:complianz",
+    "lint:schema": "node scripts/lint/test-schema-semantic-contract.mjs",
+    "lint": "npm run lint:colors && npm run lint:fontsize && npm run lint:styles && npm run lint:routes && npm run lint:contrast && npm run lint:complianz && npm run lint:schema",
     "seo:nap-audit": "node scripts/seo/google-business-profile-audit.js"
   },
   "engines": {

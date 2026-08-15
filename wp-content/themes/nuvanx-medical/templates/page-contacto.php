@@ -149,6 +149,12 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 <?php
 $content = ob_get_clean();
 
+// Render contact maps directly in the template since the_content filters don't run for this page
+// Guard against duplication using the same id marker check as nvx_contact_append_maps
+if ( false === strpos( $content, 'id="nvx-contacto-maps"' ) && function_exists( 'nvx_contact_maps_markup' ) ) {
+	$content .= nvx_contact_maps_markup();
+}
+
 set_query_var( 'nvx_shell_content', $content );
 set_query_var( 'nvx_shell_skip_header', true );
 get_template_part( 'template-parts/content/nvx-page-shell' );

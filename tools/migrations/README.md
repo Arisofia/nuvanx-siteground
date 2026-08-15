@@ -42,7 +42,7 @@ Removes residual legacy CMS blocks/claims from WordPress `post_content`. The act
 Required retirement sequence:
 
 1. `php tools/migrations/nvx-cms-content-cleanup.php --self-test`
-2. read-only Staging2 scan with `wp eval-file`
+2. read-only Staging2 scan with `wp eval "require 'tools/migrations/nvx-cms-content-cleanup.php';"`
 3. backed-up/authorized Staging2 apply if dirty, followed by `dirty=0`
 4. backed-up/authorized production apply if dirty, followed by `dirty=0`
 5. normal acceptance remains green

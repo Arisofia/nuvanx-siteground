@@ -280,6 +280,10 @@ function _nvx_seo_schema_normalize_clinic_specialty( array $clinic ): array {
 	}
 
 	foreach ( array( 'Medicina estética', 'Medicina láser' ) as $label ) {
+		// These are the core service categories of NUVANX and are always present
+		// as descriptive expertise, separate from the strictly-validated Schema.org
+		// MedicalSpecialty enum list above. They provide human-readable domain expertise
+		// signals for search engines while maintaining schema.org enum strictness.
 		if ( ! in_array( $label, $expertise, true ) ) {
 			$expertise[] = $label;
 		}

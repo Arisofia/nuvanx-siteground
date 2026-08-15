@@ -3,7 +3,7 @@
  * Read-only forensic diagnostic for legacy Schema.org JSON-LD storage.
  *
  * Run with:
- *   wp eval-file tools/migrations/diagnose-jsonld-storage.php --allow-root
+ *   wp eval "require 'tools/migrations/diagnose-jsonld-storage.php';" --allow-root
  *
  * SECURITY CONTRACT:
  * - Never prints stored values.
@@ -17,7 +17,7 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-    fwrite( STDERR, "ERROR: must run inside WordPress via wp eval-file.\n" );
+    fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
     exit( 1 );
 }
 
@@ -32,7 +32,15 @@ $signatures = [
     'health-lifesci-physicalexam' => 'health-lifesci.schema.org/PhysicalExam',
 ];
 
-/** Return labels of known legacy signatures found in a stored value. */
+/** Return labels of known legacy signatures found in a stored value.
+ *
+ * NOTE: This function uses mb_stripos which is accent-sensitive, while the
+ * SQL LIKE query that selected the row is accent-insensitive (utf8mb4_*_ci).
+ * This means a stored value like "Medicina estetica laser" (unaccented) may
+ * be selected by the query but produce signatures=[], showing a match with
+ * no indication of which legacy signature triggered it. Detection is never
+ * lost (LIKE is the broader matcher), only the label attribution.
+ */
 function nvx_jsonld_diag_signature_labels( string $value, array $signatures ): array {
     $labels = [];
     foreach ( $signatures as $label => $needle ) {
@@ -235,12 +243,15 @@ if ( 0 === count( $matches ) ) {
     foreach ( $columns as $column ) {
         $table_name  = (string) $column['TABLE_NAME'];
         $column_name = (string) $column['COLUMN_NAME'];
+        // Validate identifiers against strict allowlist to prevent SQL injection
+        // This is the primary security control; identifiers come from information_schema
+        // which is trusted database metadata, but we validate regardless
         if ( ! preg_match( '/^[A-Za-z0-9_$]+$/', $table_name ) || ! preg_match( '/^[A-Za-z0-9_$]+$/', $column_name ) ) {
             continue;
         }
         [ $where, $like_params ] = nvx_jsonld_diag_like_clause( '`' . $column_name . '`', $signatures, $wpdb );
         $count_sql = "SELECT COUNT(*) FROM `{$table_name}` WHERE {$where}";
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- identifiers come from validated information_schema values; data is prepared.
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- identifiers validated with strict allowlist; data is prepared.
         $prepared = $wpdb->prepare( $count_sql, ...$like_params );
         if ( ! is_string( $prepared ) ) {
             continue;
@@ -259,6 +270,14 @@ if ( 0 === count( $matches ) ) {
 
 // 6. Runtime emitter inventory: only plugin/MU-plugin callbacks attached to the
 // output-oriented hooks. This reveals candidate owners without executing hooks or values.
+//
+// LIMITATION: WP-CLI boots WordPress up to init, so callbacks registered later in
+// a front-end request lifecycle (inside wp, template_redirect, wp_enqueue_scripts,
+// or conditionally on is_singular()/is_page()) are not present in $wp_filter yet.
+// This diagnostic may report runtime_emitters=0 even when an emitter exists that
+// registers conditionally on front-end requests. For NUVANX, the primary JSON-LD
+// emitter (Yoast SEO wpseo_schema_graph) registers at plugin load time, so this
+// limitation is acceptable for the current architecture.
 $runtime_emitters = [];
 $hooks = [ 'wp_head', 'wp_footer', 'wp_body_open' ];
 foreach ( $hooks as $hook_name ) {
@@ -312,14 +331,15 @@ foreach ( $hooks as $hook_name ) {
 }
 
 $summary = [
-    'schema'           => 1,
-    'site'             => home_url( '/' ),
-    'core_matches'     => count( $matches ),
-    'custom_columns'   => count( $custom_columns ),
-    'runtime_emitters' => count( $runtime_emitters ),
-    'matches'          => $matches,
-    'custom_storage'   => $custom_columns,
-    'emitters'         => $runtime_emitters,
+    'schema'                => 1,
+    'site'                  => home_url( '/' ),
+    'core_matches'          => count( $matches ),
+    'custom_columns'        => count( $custom_columns ),
+    'runtime_emitters'      => count( $runtime_emitters ),
+    'matches'               => $matches,
+    'custom_storage'        => $custom_columns,
+    'emitters'              => $runtime_emitters,
+    'inventory_limitation'  => 'wpcli_inventory_only',
 ];
 
 foreach ( $matches as $match ) {

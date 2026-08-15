@@ -43,8 +43,41 @@ function extractPhpFunctionBody(content, functionName) {
   let depth = 0;
   let quote = '';
   let escaped = false;
+  let comment = false;
+  let commentLine = false;
   for (let i = open; i < content.length; i += 1) {
     const ch = content[i];
+    const next = content[i + 1] || '';
+    
+    // Handle comment transitions
+    if (!quote && !escaped) {
+      if (commentLine) {
+        if (ch === '\n') commentLine = false;
+        continue;
+      }
+      if (comment) {
+        if (ch === '*' && next === '/') {
+          comment = false;
+          i += 1; // skip both characters
+          continue;
+        }
+        continue;
+      }
+      if (ch === '/' && next === '/') {
+        commentLine = true;
+        i += 1;
+        continue;
+      }
+      if (ch === '/' && next === '*') {
+        comment = true;
+        i += 1;
+        continue;
+      }
+    }
+    
+    // Skip content inside comments
+    if (comment || commentLine) continue;
+    
     if (quote) {
       if (escaped) {
         escaped = false;
@@ -69,10 +102,12 @@ function extractPhpFunctionBody(content, functionName) {
 }
 
 function validatePhpProcedureTypes(file, content) {
-  const regex = /['"`]procedureType['"`]\s*=>\s*['"`](https:\/\/schema\.org\/[^'"`]+)['"`]/g;
+  const regex = /['"`]procedureType['"`]\s*=>\s*['"`]([^'"`]+)['"`]/g;
   for (const match of content.matchAll(regex)) {
     const value = match[1];
-    if (!ALLOWED_PROCEDURE_TYPES.has(value)) {
+    // Normalize: if not a full URL, prepend https://schema.org/
+    const normalized = value.startsWith('https://') ? value : `https://schema.org/${value}`;
+    if (!ALLOWED_PROCEDURE_TYPES.has(normalized)) {
       addViolation(file, 'procedureType', `Invalid procedureType value: ${value}`);
     }
   }
@@ -89,8 +124,20 @@ function validatePhpMedicalSpecialties(file, content) {
       addViolation(file, 'medicalSpecialty', `medicalSpecialty must be a Schema.org MedicalSpecialty enum URL: ${match[1]}`);
     }
   }
+
   const literalArrays = /['"`]medicalSpecialty['"`]\s*=>\s*array\s*\(([^)]*)\)/g;
   for (const match of content.matchAll(literalArrays)) {
+    const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
+    for (const value of values) {
+      if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
+        addViolation(file, 'medicalSpecialty', `medicalSpecialty array contains non-enum value: ${value}`);
+      }
+    }
+  }
+
+  // Support PHP short array syntax: medicalSpecialty => ['https://schema.org/Dermatology']
+  const shortArrays = /['"`]medicalSpecialty['"`]\s*=>\s*\[([^\]]*)\]/g;
+  for (const match of content.matchAll(shortArrays)) {
     const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
     for (const value of values) {
       if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
@@ -128,6 +175,18 @@ for (const file of phpFiles) {
     validatePhpProcedureTypes(file, content);
     validatePhpMedicalSpecialties(file, content);
 
+    // Scan for clinic-specific Doctoralia URLs in Organization context only
+    // Allow Doctoralia URLs in MedicalClinic nodes, prohibit in corporate Organization
+    const doctoraliaPatterns = [
+      // Look for Doctoralia clinic URLs in Organization enrichment function
+      { pattern: /function\s+nvx_schema_enrich_organization[\s\S]{0,2000}?sameAs[\s\S]{0,500}?doctoralia\.es\/clinicas\//gi, context: 'Organization enrichment contains clinic Doctoralia URL' },
+    ];
+    for (const { pattern, context } of doctoraliaPatterns) {
+      if (pattern.test(content)) {
+        addViolation(file, 'sameAs', context);
+      }
+    }
+
     const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética)/gi) || [];
     if (recognizingAuthorityClaims.length > 0) {
       addViolation(file, 'recognizingAuthority', 'Ungoverned SEME recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
@@ -138,7 +197,7 @@ for (const file of phpFiles) {
       addViolation(file, 'function', 'Use nvx_endolift_price_papada_eur()', wrongPapadaMatches.length);
     }
 
-    const hubSpecificIds = content.match(/[\$]?url\s*\.\s*['"`]#(?!faq|organization|medical-clinic|physician|main|treatments-list|medical-procedure)[a-z-]+['"`]/g) || [];
+    const hubSpecificIds = content.match(/\$?url\s*\.\s*['"`]#(?!(?:faq|organization|medical-clinic|physician|main|treatments-list|medical-procedure)['"`])[a-z-]+['"`]/g) || [];
     if (hubSpecificIds.length > 0) {
       addViolation(file, 'duplicateIdentity', 'Treatment entities must use canonical #medical-procedure IDs', hubSpecificIds.length);
     }
@@ -152,14 +211,14 @@ for (const file of phpFiles) {
         if (priceRangeMatches.length > 0) {
           addViolation(file, 'priceRange', 'Corporate Organization enrichment must not emit priceRange', priceRangeMatches.length);
         }
-        const doctoraliaClinicMatches = organizationBody.match(/https?:\/\/[^'"\s]*doctoralia\.es\/clinicas\/[^'"\s]*/gi) || [];
-        if (doctoraliaClinicMatches.length > 0) {
-          addViolation(file, 'sameAs', 'Corporate Organization enrichment must not contain clinic-specific Doctoralia URLs', doctoraliaClinicMatches.length);
-        }
       }
     }
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+    if (error.code === 'ENOENT') {
+      addViolation(file, 'missingSource', `Required PHP file not found: ${file}`);
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -213,7 +272,11 @@ for (const file of jsonFiles) {
 
     searchInObject(json);
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+    if (error.code === 'ENOENT') {
+      addViolation(file, 'missingSource', `Required JSON catalog not found: ${file}`);
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -246,13 +309,57 @@ if (!/add_filter\(\s*['"]wpseo_schema_graph['"]\s*,\s*['"]nvx_schema_semantic_no
 const semanticPhpTest = spawnSync(
   'php',
   [path.join(repoPath, 'scripts/lint/test-schema-semantic-governance.php')],
-  { encoding: 'utf8' }
+  {
+    encoding: 'utf8',
+    // This is a synchronous gate; if the PHP process hangs it will block the lint run.
+    // The timeout helps avoid indefinitely stuck CI jobs.
+    timeout: 30_000, // 30 seconds
+  }
 );
-if (semanticPhpTest.status !== 0) {
-  const details = `${semanticPhpTest.stdout || ''}\n${semanticPhpTest.stderr || ''}`.trim();
-  addViolation('scripts/lint/test-schema-semantic-governance.php', 'semanticGovernanceRuntime', details || `PHP test exited ${semanticPhpTest.status}`);
-} else if (semanticPhpTest.stdout) {
-  process.stdout.write(semanticPhpTest.stdout);
+
+if (semanticPhpTest.error) {
+  let message;
+  if (semanticPhpTest.error.code === 'ENOENT') {
+    message = 'PHP executable not found on PATH; semantic governance contract cannot be enforced.';
+  } else {
+    message = `Error invoking PHP semantic governance test: ${semanticPhpTest.error.message}`;
+  }
+  addViolation(
+    'scripts/lint/test-schema-semantic-governance.php',
+    'semanticGovernanceRuntime',
+    message
+  );
+} else if (semanticPhpTest.status === null) {
+  const signalInfo = semanticPhpTest.signal ? ` (terminated with signal ${semanticPhpTest.signal})` : '';
+  addViolation(
+    'scripts/lint/test-schema-semantic-governance.php',
+    'semanticGovernanceRuntime',
+    `PHP semantic governance test timed out after 30 seconds${signalInfo}`
+  );
+} else {
+  const stdout = semanticPhpTest.stdout || '';
+  const stderr = semanticPhpTest.stderr || '';
+  const combined = `${stdout}\n${stderr}`.trim();
+
+  if (semanticPhpTest.status !== 0) {
+    addViolation(
+      'scripts/lint/test-schema-semantic-governance.php',
+      'semanticGovernanceRuntime',
+      combined || `PHP test exited ${semanticPhpTest.status}`
+    );
+  } else {
+    if (stdout) {
+      process.stdout.write(stdout);
+    }
+    if (stderr.trim()) {
+      // Surface warnings emitted on stderr even when the test exits successfully.
+      addViolation(
+        'scripts/lint/test-schema-semantic-governance.php',
+        'semanticGovernanceRuntimeStderr',
+        stderr.trim()
+      );
+    }
+  }
 }
 
 if (violations.length > 0) {

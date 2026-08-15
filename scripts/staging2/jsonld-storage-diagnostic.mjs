@@ -26,6 +26,16 @@ export async function runJsonLdStorageDiagnostic(options = {}) {
   // wp eval-file evaluates the file body and therefore makes a top-level
   // declare(strict_types=1) illegal. wp eval + require compiles the diagnostic
   // as a normal PHP file, preserving its strict-types contract.
+  //
+  // NOTE: This premise should be verified against the installed WP-CLI version.
+  // Depending on WP-CLI version, eval-file may include real file paths (only
+  // using eval() for stdin), in which case strict types would have been legal.
+  // The captured scripts/staging2/artifacts/jsonld-storage-diagnostic.log from
+  // the next staging run should be checked for the actual PHP error text to
+  // confirm this was the root cause of the Staging #1010 abort.
+  //
+  // SECURITY: The double-quoted require argument is safe from remote shell
+  // expansion only because safeRemotePath restricts the path to [A-Za-z0-9_./-].
   const remoteCommand = `cd '${stagingRoot}' && wp eval "require '${diagnosticScript}';" --allow-root`;
 
   const result = spawnSync(
@@ -49,17 +59,21 @@ export async function runJsonLdStorageDiagnostic(options = {}) {
   process.stdout.write(stdout);
   if (stderr) process.stderr.write(stderr);
 
-  const line = stdout.split(/\r?\n/).find((entry) => entry.startsWith('JSONLD_STORAGE_DIAGNOSTIC_JSON='));
+  const line = stdout.split(/\r?\n).find((entry) => entry.startsWith('JSONLD_STORAGE_DIAGNOSTIC_JSON='));
   let report = null;
+  let parseError = null;
   if (line) {
     try {
       report = JSON.parse(line.slice('JSONLD_STORAGE_DIAGNOSTIC_JSON='.length));
       await fs.writeFile(path.join(outputDir, 'jsonld-storage-diagnostic.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
     } catch (error) {
-      console.error(`JSONLD_STORAGE_DIAGNOSTIC_PARSE=FAIL reason=${String(error.message || error).replace(/\s+/g, '_')}`);
+      const errorMessage = String(error.message || error).replace(/\s+/g, '_');
+      console.error(`JSONLD_STORAGE_DIAGNOSTIC_PARSE=FAIL reason=${errorMessage}`);
+      parseError = errorMessage;
     }
   }
 
   const pass = stdout.includes('JSONLD_STORAGE_DIAGNOSTIC=PASS');
-  return { pass, report, reason: pass ? '' : 'missing PASS marker' };
+  const reason = parseError ? `parse_error_${parseError}` : (pass ? '' : 'missing PASS marker');
+  return { pass, report, reason, parseError };
 }

@@ -431,19 +431,11 @@ jobs:
           PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
           PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
           PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
-          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts
-          git fetch --no-tags origin master
-          helper="$RUNNER_TEMP/configure-siteground-ssh.sh"
-          git show origin/master:scripts/production/configure-siteground-ssh.sh > "$helper"
-          bash -n "$helper"
-          bash "$helper"
+          bash -n scripts/production/configure-siteground-ssh.sh
+          bash scripts/production/configure-siteground-ssh.sh
 
       - name: Run verification-only exact-candidate origin audits
         if: ${{ inputs.deploy == false }}
@@ -587,6 +579,23 @@ jobs:
           ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
 
+      - name: Configure verification-only production SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod-audit
+          NVX_SSH_KEY_BASENAME: prod_audit_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
+
       - name: Verify production is exact requested SHA
         shell: bash
         run: BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
@@ -678,6 +687,23 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Configure verification-only production SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod-hubspot
+          NVX_SSH_KEY_BASENAME: prod_hubspot_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
 
       - name: Verify zero-submit contract and run HubSpot verification
         shell: bash

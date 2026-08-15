@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
+import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const SUDO_BIN = '/usr/bin/sudo';
@@ -13,13 +14,7 @@ const matrixScript = fileURLToPath(new URL('./block-c-matrix.mjs', import.meta.u
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const publicEdgeEvidenceUrl = new URL('./artifacts/block-c-public-edge-transient.json', import.meta.url);
 const hostsMarker = `# NUVANX_BLOCK_C_ORIGIN_BROWSER_${process.pid}`;
-
-if (!allowedAliases.has(originSshAlias)) {
-  throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
-}
-if (expectedHost !== 'staging2.nuvanx.com') {
-  throw new Error(`Origin browser fallback is restricted to staging2.nuvanx.com, got ${expectedHost}`);
-}
+const tunnelPidfile = `/tmp/nuvanx-block-c-tunnel-${process.pid}.pid`;
 
 function run(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -70,8 +65,10 @@ async function removeHostsMapping() {
   // inode instead, so cleanup remains safe on GitHub-hosted runners.
   const command = [
     'tmp="$(mktemp)"',
-    `grep -Fv '${hostsMarker}' /etc/hosts > "$tmp" || true`,
-    'cat "$tmp" > /etc/hosts',
+    `grep -Fv '${hostsMarker}' /etc/hosts > "$tmp"`,
+    'if [ -s "$tmp" ]; then',
+    '  cat "$tmp" > /etc/hosts',
+    'fi',
     'rm -f "$tmp"',
   ].join('; ');
   await run(SUDO_BIN, ['-n', 'sh', '-c', command]).catch(() => {});
@@ -81,19 +78,16 @@ async function startTunnel() {
   const configPath = `${process.env.HOME}/.ssh/config`;
   const args = [
     '-n',
-    SSH_BIN,
-    '-F', configPath,
-    '-o', 'BatchMode=yes',
-    '-o', 'ExitOnForwardFailure=yes',
-    '-o', 'ServerAliveInterval=15',
-    '-o', 'ServerAliveCountMax=2',
-    '-N',
-    '-L', '127.0.0.1:443:127.0.0.1:443',
-    '--', originSshAlias,
+    'sh',
+    '-c',
+    `echo $$ > ${tunnelPidfile} && exec ${SSH_BIN} -F ${configPath} -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -N -L 127.0.0.1:443:127.0.0.1:443 -- ${originSshAlias}`,
   ];
   const child = spawn(SUDO_BIN, args, { stdio: ['ignore', 'inherit', 'inherit'], env: process.env });
   let exited = null;
   child.once('exit', (code, signal) => { exited = { code, signal }; });
+  child.once('error', (err) => {
+    console.error(`BLOCK_C_TUNNEL_ERROR=${err.message}`);
+  });
   await delay(1800);
   if (exited) throw new Error(`Origin SSH tunnel exited before validation: code=${exited.code} signal=${exited.signal || ''}`);
   return child;
@@ -101,12 +95,37 @@ async function startTunnel() {
 
 async function stopTunnel(child) {
   if (!child || child.exitCode !== null) return;
-  child.kill('SIGTERM');
-  await Promise.race([
-    new Promise((resolve) => child.once('exit', resolve)),
-    delay(3000),
-  ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
+  
+  // Use privileged termination via sudo since tunnel runs as root
+  try {
+    const pidData = await fs.readFile(tunnelPidfile, 'utf8');
+    const pid = pidData.trim();
+    if (pid) {
+      await run(SUDO_BIN, ['-n', 'kill', '-TERM', pid]);
+      await Promise.race([
+        new Promise((resolve) => child.once('exit', resolve)),
+        delay(3000),
+      ]);
+    }
+  } catch (err) {
+    console.warn(`BLOCK_C_TUNNEL_STOP_WARNING=${err instanceof Error ? err.message : String(err)}`);
+  }
+  
+  // Fallback to direct kill if privileged termination failed
+  if (child.exitCode === null) {
+    try {
+      child.kill('SIGTERM');
+    } catch (err) {
+      console.warn(`BLOCK_C_TUNNEL_DIRECT_KILL_WARNING=${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  
+  // Cleanup pidfile
+  try {
+    await fs.unlink(tunnelPidfile);
+  } catch {
+    // Ignore cleanup failures
+  }
 }
 
 async function verifyTunnel() {
@@ -128,6 +147,14 @@ function resultIsFullyVisualPass(result) {
 async function validateAndMarkFallbackResults() {
   const results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
   if (!Array.isArray(results) || results.length === 0) throw new Error('Origin browser fallback produced no Block C results');
+  
+  // Validate manifest coverage to match core path validation
+  const manifest = await loadPublishedPagesManifest();
+  const expectedResultsCount = manifest.length * VIEWPORTS.length;
+  if (results.length < expectedResultsCount || results.length % VIEWPORTS.length !== 0) {
+    throw new Error(`Origin browser fallback results count invalid: ${results.length} expected >=${expectedResultsCount} and divisible by ${VIEWPORTS.length}`);
+  }
+  
   const invalid = results.filter((result) => !resultIsFullyVisualPass(result));
   if (invalid.length > 0) {
     console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL incomplete=${invalid.length}`);
@@ -148,6 +175,15 @@ async function validateAndMarkFallbackResults() {
 
 export async function runOriginBrowserFallback() {
   if (process.env.BLOCK_C_ORIGIN_BROWSER_FALLBACK === '0') return false;
+  
+  // Move guards inside function to prevent module-level throws during import
+  if (!allowedAliases.has(originSshAlias)) {
+    throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
+  }
+  if (expectedHost !== 'staging2.nuvanx.com') {
+    throw new Error(`Origin browser fallback is restricted to staging2.nuvanx.com, got ${expectedHost}`);
+  }
+  
   await preservePublicEdgeEvidence();
 
   let tunnel = null;
@@ -158,11 +194,27 @@ export async function runOriginBrowserFallback() {
     await verifyTunnel();
     await appendHostsMapping();
 
+    // Use trusted WP-CLI inventory preload if available to avoid public REST edge
+    const wordpressPagesFile = (process.env.WORDPRESS_PAGES_FILE || '').trim();
+    let preloadModule = null;
+    if (wordpressPagesFile) {
+      const preloadDir = new URL('./block-c-artifacts/', import.meta.url);
+      const preloadUrl = new URL('./trusted-pages-preload.mjs', import.meta.url);
+      const pages = JSON.parse(await fs.readFile(wordpressPagesFile, 'utf8'));
+      const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
+      const payload = JSON.stringify(pages);
+      const source = `const nativeFetch = globalThis.fetch.bind(globalThis);\nconst pagesEndpoint = ${JSON.stringify(pagesEndpoint)};\nconst pagesPayload = ${JSON.stringify(payload)};\nglobalThis.fetch = async (input, init) => {\n  const rawUrl = typeof input === 'string' ? input : (input && typeof input.url === 'string' ? input.url : String(input));\n  if (rawUrl.startsWith(pagesEndpoint)) {\n    return new Response(pagesPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli-tunnel' } });\n  }\n  return nativeFetch(input, init);\n};\n`;
+      await fs.mkdir(preloadDir, { recursive: true });
+      await fs.writeFile(preloadUrl, source, 'utf8');
+      preloadModule = preloadUrl.href;
+    }
+
     const env = {
       ...process.env,
       BLOCK_C_VALIDATION_TRANSPORT: 'siteground-origin-browser-ssh-tunnel',
     };
-    const code = await run(process.execPath, [matrixScript], { env });
+    const args = preloadModule ? ['--import', preloadModule, matrixScript] : [matrixScript];
+    const code = await run(process.execPath, args, { env });
     if (code !== 0) {
       console.error(`BLOCK_C_ORIGIN_BROWSER_FALLBACK=FAIL matrix_exit=${code}`);
       return false;

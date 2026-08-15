@@ -261,6 +261,7 @@
   min-height: 100dvh;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--nvx-space-8) var(--nvx-gutter-inner);
   background: var(--nvx-light);
   color: inherit;
@@ -307,7 +308,7 @@
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-nav-mobile);
-  line-height: 1.1;
+  line-height: 1.4;
   color: var(--nvx-ink);
   text-decoration: none;
   border-radius: var(--nvx-radius-button);

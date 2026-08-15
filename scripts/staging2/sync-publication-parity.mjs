@@ -26,16 +26,20 @@ export async function runStagingPublicationParitySync(options = {}) {
   const exporter = `${release}/tools/migrations/export-production-publication-snapshot.php`;
   const synchronizer = `${release}/tools/migrations/sync-staging-publication-parity.php`;
 
+  // WP-CLI eval-file evaluates file contents inside its own eval() wrapper.
+  // Files with declare(strict_types=1) therefore fatal because the declaration
+  // is no longer the first statement. Require the immutable release scripts
+  // through wp eval instead so PHP parses each file as an included script.
   const remoteScript = [
     'set -Eeuo pipefail',
     'snapshot="$(mktemp)"',
     'cleanup(){ rm -f "$snapshot"; }',
     'trap cleanup EXIT',
     `cd '${PROD_ROOT}'`,
-    `PUBLICATION_MANIFEST_FILE='${manifest}' wp eval-file '${exporter}' --allow-root > "$snapshot"`,
+    `PUBLICATION_MANIFEST_FILE='${manifest}' wp eval "require '${exporter}';" --allow-root > "$snapshot"`,
     'test -s "$snapshot"',
     `cd '${STAGING_ROOT}'`,
-    `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval-file '${synchronizer}' --allow-root`,
+    `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval "require '${synchronizer}';" --allow-root`,
   ].join('\n');
 
   const result = spawnSync(

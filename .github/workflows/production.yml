@@ -91,6 +91,9 @@ jobs:
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
           bash -n scripts/production/compensating-rollback.sh
+          bash -n scripts/production/configure-siteground-ssh.sh
+          bash -n scripts/production/test-configure-siteground-ssh.sh
+          bash scripts/production/test-configure-siteground-ssh.sh
           grep -Fq 'PRODUCTION_COMPENSATING_ROLLBACK=PASS' scripts/production/compensating-rollback.sh
           echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2 compensating_rollback=enforced'
 
@@ -167,67 +170,19 @@ jobs:
       - name: Configure strict production SSH
         shell: bash
         env:
-          HOST: ${{ secrets.PROD_SSH_HOST }}
-          PORT: ${{ secrets.PROD_SSH_PORT }}
-          USER: ${{ secrets.PROD_SSH_USER }}
-          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-prod
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/prod_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-          classify_ssh_error() {
-            local file="$1"
-            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
-            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
-            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
-            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
-            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
-            else echo SSH_HANDSHAKE_OR_UNKNOWN
-            fi
-          }
-
-          prod_connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          last_reason='UNKNOWN'
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            ssh_error="$RUNNER_TEMP/production-ssh-attempt-${attempt}.err"
-            if ssh -n nvx-prod true 2>"$ssh_error"; then
-              prod_connected=1
-              echo "PRODUCTION_SSH_ATTEMPT=PASS attempt=$attempt"
-              break
-            fi
-            last_reason="$(classify_ssh_error "$ssh_error")"
-            echo "PRODUCTION_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
-            tail -n 2 "$ssh_error" >&2 || true
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'PRODUCTION_SSH=PASS'
+          NVX_SSH_ALIAS: nvx-prod
+          NVX_SSH_KEY_BASENAME: prod_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
 
       - name: Verify production preflight
         shell: bash
@@ -469,61 +424,26 @@ jobs:
         if: ${{ inputs.deploy == false }}
         shell: bash
         env:
-          HOST: ${{ secrets.PROD_SSH_HOST }}
-          PORT: ${{ secrets.PROD_SSH_PORT }}
-          USER: ${{ secrets.PROD_SSH_USER }}
-          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          NVX_SSH_ALIAS: nvx-prod-audit
+          NVX_SSH_KEY_BASENAME: prod_audit_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh" scripts/production/artifacts scripts/seo/artifacts; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_audit_key"; chmod 600 "$HOME/.ssh/prod_audit_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_AUDIT_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-prod-audit
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/prod_audit_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-          audit_connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          last_reason='UNKNOWN'
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            ssh_error="$RUNNER_TEMP/production-audit-ssh-attempt-${attempt}.err"
-            if ssh -n nvx-prod-audit true 2>"$ssh_error"; then
-              audit_connected=1
-              echo "PRODUCTION_AUDIT_SSH_ATTEMPT=PASS attempt=$attempt"
-              break
-            fi
-            if grep -qi 'Connection timed out' "$ssh_error"; then last_reason='TCP_TIMEOUT'
-            elif grep -qi 'Connection refused' "$ssh_error"; then last_reason='TCP_REFUSED'
-            elif grep -Eqi 'No route to host|Network is unreachable' "$ssh_error"; then last_reason='NO_ROUTE'
-            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$ssh_error"; then last_reason='HOST_KEY_FAILURE'
-            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$ssh_error"; then last_reason='AUTH_FAILURE'
-            else last_reason='SSH_HANDSHAKE_OR_UNKNOWN'; fi
-            echo "PRODUCTION_AUDIT_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
-            tail -n 2 "$ssh_error" >&2 || true
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$audit_connected" = 1 ]] || { echo "PRODUCTION_AUDIT_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'PRODUCTION_AUDIT_SSH=PASS mode=verification-only'
+          mkdir -p scripts/production/artifacts scripts/seo/artifacts
+          git fetch --no-tags origin master
+          helper="$RUNNER_TEMP/configure-siteground-ssh.sh"
+          git show origin/master:scripts/production/configure-siteground-ssh.sh > "$helper"
+          bash -n "$helper"
+          bash "$helper"
 
       - name: Run verification-only exact-candidate origin audits
         if: ${{ inputs.deploy == false }}
@@ -667,71 +587,6 @@ jobs:
           ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
 
-      - name: Configure performance production SSH
-        shell: bash
-        env:
-          HOST: ${{ secrets.PROD_SSH_HOST }}
-          PORT: ${{ secrets.PROD_SSH_PORT }}
-          USER: ${{ secrets.PROD_SSH_USER }}
-          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_perf_key"; chmod 600 "$HOME/.ssh/prod_perf_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_PERF_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-prod
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/prod_perf_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-          classify_ssh_error() {
-            local file="$1"
-            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
-            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
-            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
-            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
-            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
-            else echo SSH_HANDSHAKE_OR_UNKNOWN
-            fi
-          }
-
-          prod_connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          last_reason='UNKNOWN'
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            ssh_error="$RUNNER_TEMP/production-perf-ssh-attempt-${attempt}.err"
-            if ssh -n nvx-prod true 2>"$ssh_error"; then
-              prod_connected=1
-              echo "PRODUCTION_PERF_SSH_ATTEMPT=PASS attempt=$attempt"
-              break
-            fi
-            last_reason="$(classify_ssh_error "$ssh_error")"
-            echo "PRODUCTION_PERF_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
-            tail -n 2 "$ssh_error" >&2 || true
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_PERF_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'PRODUCTION_PERF_SSH=PASS'
-
       - name: Verify production is exact requested SHA
         shell: bash
         run: BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
@@ -800,12 +655,6 @@ jobs:
           path: perf-results/
           retention-days: 14
 
-      - name: Cleanup performance SSH identities
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          rm -f "$HOME/.ssh/prod_perf_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
 
   hubspot_e2e:
     name: Production zero-submit HubSpot contract verification
@@ -830,71 +679,6 @@ jobs:
           cache: npm
           cache-dependency-path: scripts/staging2/package-lock.json
 
-      - name: Configure HubSpot E2E production SSH
-        shell: bash
-        env:
-          HOST: ${{ secrets.PROD_SSH_HOST }}
-          PORT: ${{ secrets.PROD_SSH_PORT }}
-          USER: ${{ secrets.PROD_SSH_USER }}
-          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_hubspot_key"; chmod 600 "$HOME/.ssh/prod_hubspot_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts" || { echo 'PRODUCTION_HUBSPOT_KNOWN_HOSTS=EMPTY' >&2; exit 1; }
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-prod
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/prod_hubspot_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-            ServerAliveInterval 15
-            ServerAliveCountMax 2
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-          classify_ssh_error() {
-            local file="$1"
-            if grep -qi 'Connection timed out' "$file"; then echo TCP_TIMEOUT
-            elif grep -qi 'Connection refused' "$file"; then echo TCP_REFUSED
-            elif grep -Eqi 'No route to host|Network is unreachable' "$file"; then echo NO_ROUTE
-            elif grep -Eqi 'Host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED' "$file"; then echo HOST_KEY_FAILURE
-            elif grep -Eqi 'Permission denied|Too many authentication failures|no mutual signature' "$file"; then echo AUTH_FAILURE
-            else echo SSH_HANDSHAKE_OR_UNKNOWN
-            fi
-          }
-
-          prod_connected=0
-          retry_delay="$SSH_RETRY_BASE_DELAY_SECONDS"
-          last_reason='UNKNOWN'
-          for attempt in $(seq 1 "$SSH_RETRY_ATTEMPTS"); do
-            ssh_error="$RUNNER_TEMP/production-hubspot-ssh-attempt-${attempt}.err"
-            if ssh -n nvx-prod true 2>"$ssh_error"; then
-              prod_connected=1
-              echo "PRODUCTION_HUBSPOT_SSH_ATTEMPT=PASS attempt=$attempt"
-              break
-            fi
-            last_reason="$(classify_ssh_error "$ssh_error")"
-            echo "PRODUCTION_HUBSPOT_SSH_ATTEMPT=FAIL attempt=$attempt reason=$last_reason" >&2
-            tail -n 2 "$ssh_error" >&2 || true
-            if [[ "$attempt" -ne "$SSH_RETRY_ATTEMPTS" ]]; then
-              sleep "$retry_delay"
-              retry_delay=$((retry_delay + SSH_RETRY_BASE_DELAY_SECONDS))
-            fi
-          done
-          [[ "$prod_connected" = 1 ]] || { echo "PRODUCTION_HUBSPOT_SSH=FAIL reason=$last_reason attempts=$SSH_RETRY_ATTEMPTS" >&2; exit "$SSH_TRANSPORT_EXIT_CODE"; }
-          echo 'PRODUCTION_HUBSPOT_SSH=PASS'
-
       - name: Verify zero-submit contract and run HubSpot verification
         shell: bash
         env:
@@ -918,10 +702,3 @@ jobs:
           path: scripts/staging2/h1-artifacts/*.log
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Cleanup HubSpot E2E SSH identities
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          rm -f "$HOME/.ssh/prod_hubspot_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

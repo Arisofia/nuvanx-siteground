@@ -431,11 +431,6 @@ jobs:
           PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
           PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
           PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
-          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts

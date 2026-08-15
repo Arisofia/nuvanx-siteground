@@ -102,10 +102,12 @@ function extractPhpFunctionBody(content, functionName) {
 }
 
 function validatePhpProcedureTypes(file, content) {
-  const regex = /['"`]procedureType['"`]\s*=>\s*['"`](https:\/\/schema\.org\/[^'"`]+)['"`]/g;
+  const regex = /['"`]procedureType['"`]\s*=>\s*['"`]([^'"`]+)['"`]/g;
   for (const match of content.matchAll(regex)) {
     const value = match[1];
-    if (!ALLOWED_PROCEDURE_TYPES.has(value)) {
+    // Normalize: if not a full URL, prepend https://schema.org/
+    const normalized = value.startsWith('https://') ? value : `https://schema.org/${value}`;
+    if (!ALLOWED_PROCEDURE_TYPES.has(normalized)) {
       addViolation(file, 'procedureType', `Invalid procedureType value: ${value}`);
     }
   }

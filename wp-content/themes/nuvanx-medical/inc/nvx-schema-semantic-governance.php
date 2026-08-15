@@ -400,5 +400,4 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 			}
 		}
 	}
-}
 add_action( 'wp_loaded', 'nvx_schema_runtime_retire_legacy_emitters', PHP_INT_MAX );

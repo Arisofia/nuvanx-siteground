@@ -21,6 +21,10 @@ case "${MOCK_SSH_MODE:?}:$host" in
     exit 255
     ;;
   fallback-pass:fallback.example) exit 0 ;;
+  transport-fail:primary.example|transport-fail:fallback.example)
+    echo "ssh: connect to host $host port 18765: Connection timed out" >&2
+    exit 255
+    ;;
   primary-auth:primary.example)
     echo 'user@primary.example: Permission denied (publickey).' >&2
     exit 255
@@ -68,6 +72,11 @@ run_case() {
   PRIMARY_USER='primary-user' \
   PRIMARY_KEY='PRIMARY-KEY' \
   PRIMARY_KNOWN_HOSTS='primary.example ssh-ed25519 AAAAPRIMARY' \
+  FALLBACK_HOST='fallback.example' \
+  FALLBACK_PORT='18765' \
+  FALLBACK_USER='fallback-user' \
+  FALLBACK_KEY='FALLBACK-KEY' \
+  FALLBACK_KNOWN_HOSTS='fallback.example ssh-ed25519 AAAAFALLBACK' \
   SSH_RETRY_ATTEMPTS='1' \
   SSH_RETRY_BASE_DELAY_SECONDS='1' \
   bash "$HELPER" >"$case_root/stdout" 2>"$case_root/stderr"
@@ -102,7 +111,6 @@ run_case() {
     }
   fi
 
-  # Validate SSH config security directives
   local config="$case_root/home/.ssh/config"
   [[ -f "$config" ]] || {
     echo "SSH_HELPER_TEST=FAIL case=$name config_not_found" >&2
@@ -128,47 +136,32 @@ run_case() {
     cat "$config" >&2 || true
     exit 1
   }
-  # Reject StrictHostKeyChecking=no
-  if grep -Fq 'StrictHostKeyChecking=no' "$config"; then
+  ! grep -Fq 'StrictHostKeyChecking=no' "$config" || {
     echo "SSH_HELPER_TEST=FAIL case=$name has_StrictHostKeyChecking_no" >&2
     cat "$config" >&2 || true
     exit 1
-  fi
+  }
 
-  # Validate file permissions
   local key="$case_root/home/.ssh/prod_key"
   local known_hosts="$case_root/home/.ssh/known_hosts"
-  [[ -f "$key" ]] || {
-    echo "SSH_HELPER_TEST=FAIL case=$name key_not_found" >&2
-    exit 1
-  }
-  [[ -f "$known_hosts" ]] || {
-    echo "SSH_HELPER_TEST=FAIL case=$name known_hosts_not_found" >&2
-    exit 1
-  }
+  [[ -f "$key" ]] || { echo "SSH_HELPER_TEST=FAIL case=$name key_not_found" >&2; exit 1; }
+  [[ -f "$known_hosts" ]] || { echo "SSH_HELPER_TEST=FAIL case=$name known_hosts_not_found" >&2; exit 1; }
   local key_perm known_hosts_perm config_perm
   key_perm=$(stat -c '%a' "$key" 2>/dev/null || stat -f '%A' "$key" 2>/dev/null)
   known_hosts_perm=$(stat -c '%a' "$known_hosts" 2>/dev/null || stat -f '%A' "$known_hosts" 2>/dev/null)
   config_perm=$(stat -c '%a' "$config" 2>/dev/null || stat -f '%A' "$config" 2>/dev/null)
-  [[ "$key_perm" == '600' ]] || {
-    echo "SSH_HELPER_TEST=FAIL case=$name key_perm=$key_perm expected=600" >&2
-    exit 1
-  }
-  [[ "$known_hosts_perm" == '600' ]] || {
-    echo "SSH_HELPER_TEST=FAIL case=$name known_hosts_perm=$known_hosts_perm expected=600" >&2
-    exit 1
-  }
-  [[ "$config_perm" == '600' ]] || {
-    echo "SSH_HELPER_TEST=FAIL case=$name config_perm=$config_perm expected=600" >&2
-    exit 1
-  }
+  [[ "$key_perm" == '600' ]] || { echo "SSH_HELPER_TEST=FAIL case=$name key_perm=$key_perm expected=600" >&2; exit 1; }
+  [[ "$known_hosts_perm" == '600' ]] || { echo "SSH_HELPER_TEST=FAIL case=$name known_hosts_perm=$known_hosts_perm expected=600" >&2; exit 1; }
+  [[ "$config_perm" == '600' ]] || { echo "SSH_HELPER_TEST=FAIL case=$name config_perm=$config_perm expected=600" >&2; exit 1; }
 
   echo "SSH_HELPER_TEST=PASS case=$name rc=$rc calls=$calls transport=${expected_transport:-none}"
 }
 
 run_case primary-pass primary-pass 0 primary 1
-run_case transport-fail transport-timeout 255 '' 1
+run_case fallback-pass fallback-pass 0 fallback 2
+run_case transport-fail transport-fail 255 '' 2
 run_case auth-fail-closed primary-auth 1 '' 1
 run_case hostkey-fail-closed primary-hostkey 1 '' 1
+run_case fallback-auth-fail-closed fallback-auth 1 '' 2
 
-echo 'SITEGROUND_SSH_HELPER_CONTRACT=PASS cases=4'
+echo 'SITEGROUND_SSH_HELPER_CONTRACT=PASS cases=6'

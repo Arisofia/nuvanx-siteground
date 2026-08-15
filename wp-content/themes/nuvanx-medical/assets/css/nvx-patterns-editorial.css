@@ -17,7 +17,7 @@ section.nvx-hero {
   min-height: auto;
   height: auto;
   margin: 0;
-  padding-block: var(--nvx-pad-section-tight);
+  padding-block: 0;
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -141,7 +141,7 @@ figure.nvx-hero__media {
   max-width: 100%;
   min-height: 0;
   height: auto;
-  margin-inline: auto;
+  margin: 0 auto;
   padding-block: var(--nvx-space-8);
   padding-inline: var(--nvx-gutter-inner);
   color: var(--nvx-light);

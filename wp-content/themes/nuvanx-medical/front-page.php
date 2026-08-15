@@ -20,7 +20,7 @@ ob_start();
 ?>
 <div id="nvx-home-v3" class="nvx-home-v3">
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
-		<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>" aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid">
+		<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="none" poster="<?php echo esc_url( $hero_poster_url ); ?>" aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid" onerror="this.style.display='none'">
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 		</video>
 		<div class="nvx-home-hero__content nvx-home-hero__copy">

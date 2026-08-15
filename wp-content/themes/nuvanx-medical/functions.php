@@ -11,6 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Suppress deprecated warnings from WordPress core in production
+if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+	error_reporting( E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED );
+}
+
 define( 'NVX_THEME_VERSION', '2.0.0-plata-pulida-canonical' );
 
 // Shared regex constants — defined once, early, for all theme modules.

@@ -14,6 +14,15 @@ function validateRoute(route) {
   }
 }
 
+function runOriginScript({ originSshAlias, expectedHost, expectedSha, route, remoteScript, timeout = 60000, maxBuffer = 1024 * 1024 }) {
+  const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
+  return spawnSync(
+    SSH_BIN,
+    ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '-o', 'ConnectionAttempts=1', '--', originSshAlias, remoteCommand],
+    { input: remoteScript, encoding: 'utf8', timeout, maxBuffer }
+  );
+}
+
 export function createSiteGroundOriginVerifier({
   expectedHost,
   expectedSha,
@@ -74,13 +83,7 @@ export function createSiteGroundOriginVerifier({
       '',
     ].join('\n');
 
-    const remoteCommand = `EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} ROUTE=${route} bash -se`;
-    const result = spawnSync(
-      SSH_BIN,
-      ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '-o', 'ConnectionAttempts=1', '--', originSshAlias, remoteCommand],
-      { input: remoteScript, encoding: 'utf8', timeout: 60000, maxBuffer: 1024 * 1024 }
-    );
-
+    const result = runOriginScript({ originSshAlias, expectedHost, expectedSha, route, remoteScript });
     const stdout = (result.stdout || '').trim();
     const stderr = (result.stderr || '').trim();
     const statusMatch = stdout.match(/\bstatus=(\d{3})\b/);
@@ -101,7 +104,63 @@ export function createSiteGroundOriginVerifier({
     };
   }
 
-  return { originSshAlias, isAvailable, verify };
+  function fetchHtml(route) {
+    validateRoute(route);
+    const remoteScript = [
+      'set -Eeuo pipefail',
+      'base_url="https://$EXPECTED_HOST"',
+      'headers="$(mktemp)"',
+      'body="$(mktemp)"',
+      'cleanup() { rm -f "$headers" "$body"; }',
+      'trap cleanup EXIT',
+      'result="$(curl -sS -L --max-redirs 5 --max-time 30 -A \'Mozilla/5.0 NUVANX-Origin-A11y/1.0\' -H \'Accept: text/html,application/xhtml+xml\' -D "$headers" -o "$body" -w \'%{http_code}|%{url_effective}\' "${base_url}${ROUTE}")"',
+      'code="${result%%|*}"',
+      'effective="${result#*|}"',
+      'test "$code" = \'200\'',
+      'case "$effective" in "https://${EXPECTED_HOST}/"*|"https://${EXPECTED_HOST}") ;; *) echo "ORIGIN_HTML_FAIL route=$ROUTE final=$effective" >&2; exit 1 ;; esac',
+      `if grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"; then echo "ORIGIN_HTML_FAIL route=$ROUTE reason=captcha-body" >&2; exit 1; fi`,
+      'if grep -Eiq \'^sg-captcha:[[:space:]]*challenge\' "$headers"; then echo "ORIGIN_HTML_FAIL route=$ROUTE reason=captcha-header" >&2; exit 1; fi',
+      'deploy_sha="$(php -r \'$html=file_get_contents($argv[1]); if (preg_match("/<meta\\b[^>]*\\bname\\s*=\\s*[\\x22\\x27]nvx-deploy-sha[\\x22\\x27][^>]*\\bcontent\\s*=\\s*[\\x22\\x27]([^\\x22\\x27]+)[\\x22\\x27][^>]*>/is", $html, $m) || preg_match("/<meta\\b[^>]*\\bcontent\\s*=\\s*[\\x22\\x27]([^\\x22\\x27]+)[\\x22\\x27][^>]*\\bname\\s*=\\s*[\\x22\\x27]nvx-deploy-sha[\\x22\\x27][^>]*>/is", $html, $m)) echo trim($m[1]);\' "$body")"',
+      'test "$deploy_sha" = "$EXPECTED_SHA"',
+      String.raw`effective_b64="$(printf '%s' "$effective" | base64 | tr -d '\n')"`,
+      String.raw`body_b64="$(base64 < "$body" | tr -d '\n')"`,
+      'printf \'ORIGIN_HTML=PASS status=%s sha=%s effective_b64=%s body_b64=%s\\n\' "$code" "$deploy_sha" "$effective_b64" "$body_b64"',
+      '',
+    ].join('\n');
+
+    const result = runOriginScript({
+      originSshAlias,
+      expectedHost,
+      expectedSha,
+      route,
+      remoteScript,
+      timeout: 90000,
+      maxBuffer: 16 * 1024 * 1024,
+    });
+    const stdout = (result.stdout || '').trim();
+    const stderr = (result.stderr || '').trim();
+    const statusMatch = stdout.match(/\bstatus=(\d{3})\b/);
+    const shaMatch = stdout.match(/\bsha=([0-9a-f]{40})\b/);
+    const effectiveMatch = stdout.match(/\beffective_b64=([A-Za-z0-9+/=]+)\b/);
+    const bodyMatch = stdout.match(/\bbody_b64=([A-Za-z0-9+/=]+)$/);
+    const pass = !result.error && result.status === 0 && Boolean(bodyMatch) && shaMatch?.[1] === expectedSha;
+
+    return {
+      attempted: true,
+      pass,
+      status: result.status,
+      signal: result.signal || '',
+      stderr,
+      error: result.error ? result.error.message : '',
+      transportFailure: Boolean(result.error) || result.status === 255,
+      originStatus: statusMatch ? Number.parseInt(statusMatch[1], 10) : null,
+      originDeploySha: shaMatch ? shaMatch[1] : '',
+      effectiveUrl: effectiveMatch ? Buffer.from(effectiveMatch[1], 'base64').toString('utf8') : '',
+      html: bodyMatch ? Buffer.from(bodyMatch[1], 'base64').toString('utf8') : '',
+    };
+  }
+
+  return { originSshAlias, isAvailable, verify, fetchHtml };
 }
 
 export function isBlockCTransientSiteGroundFailure(result, baseUrl) {

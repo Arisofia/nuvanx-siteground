@@ -309,13 +309,57 @@ if (!/add_filter\(\s*['"]wpseo_schema_graph['"]\s*,\s*['"]nvx_schema_semantic_no
 const semanticPhpTest = spawnSync(
   'php',
   [path.join(repoPath, 'scripts/lint/test-schema-semantic-governance.php')],
-  { encoding: 'utf8' }
+  {
+    encoding: 'utf8',
+    // This is a synchronous gate; if the PHP process hangs it will block the lint run.
+    // The timeout helps avoid indefinitely stuck CI jobs.
+    timeout: 30_000, // 30 seconds
+  }
 );
-if (semanticPhpTest.status !== 0) {
-  const details = `${semanticPhpTest.stdout || ''}\n${semanticPhpTest.stderr || ''}`.trim();
-  addViolation('scripts/lint/test-schema-semantic-governance.php', 'semanticGovernanceRuntime', details || `PHP test exited ${semanticPhpTest.status}`);
-} else if (semanticPhpTest.stdout) {
-  process.stdout.write(semanticPhpTest.stdout);
+
+if (semanticPhpTest.error) {
+  let message;
+  if (semanticPhpTest.error.code === 'ENOENT') {
+    message = 'PHP executable not found on PATH; semantic governance contract cannot be enforced.';
+  } else {
+    message = `Error invoking PHP semantic governance test: ${semanticPhpTest.error.message}`;
+  }
+  addViolation(
+    'scripts/lint/test-schema-semantic-governance.php',
+    'semanticGovernanceRuntime',
+    message
+  );
+} else if (semanticPhpTest.status === null) {
+  const signalInfo = semanticPhpTest.signal ? ` (terminated with signal ${semanticPhpTest.signal})` : '';
+  addViolation(
+    'scripts/lint/test-schema-semantic-governance.php',
+    'semanticGovernanceRuntime',
+    `PHP semantic governance test timed out after 30 seconds${signalInfo}`
+  );
+} else {
+  const stdout = semanticPhpTest.stdout || '';
+  const stderr = semanticPhpTest.stderr || '';
+  const combined = `${stdout}\n${stderr}`.trim();
+
+  if (semanticPhpTest.status !== 0) {
+    addViolation(
+      'scripts/lint/test-schema-semantic-governance.php',
+      'semanticGovernanceRuntime',
+      combined || `PHP test exited ${semanticPhpTest.status}`
+    );
+  } else {
+    if (stdout) {
+      process.stdout.write(stdout);
+    }
+    if (stderr.trim()) {
+      // Surface warnings emitted on stderr even when the test exits successfully.
+      addViolation(
+        'scripts/lint/test-schema-semantic-governance.php',
+        'semanticGovernanceRuntimeStderr',
+        stderr.trim()
+      );
+    }
+  }
 }
 
 if (violations.length > 0) {

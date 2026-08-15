@@ -72,3 +72,54 @@ function nvx_get_clinics_config(): array {
 
 	return $clinics;
 }
+
+/** Render one clinic map card from the canonical clinic configuration. */
+function nvx_contact_map_card_markup( array $clinic ): string {
+	$address = sprintf(
+		'%s, %s %s',
+		(string) ( $clinic['address'] ?? '' ),
+		(string) ( $clinic['postal_code'] ?? '' ),
+		(string) ( $clinic['locality'] ?? 'Madrid' )
+	);
+	$src   = 'https://www.google.com/maps?q=' . rawurlencode( $address ) . '&output=embed';
+	$title = sprintf( 'Mapa %s', (string) ( $clinic['name'] ?? 'NUVANX' ) );
+
+	$html  = '<article class="nvx-contact-clinic nvx-location-map-card">';
+	$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( (string) ( $clinic['name'] ?? '' ) ) . '</h3>';
+	$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $address ) . '</p>';
+	$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( (string) ( $clinic['reg'] ?? '' ) ) . '</p>';
+	$html .= '<div class="nvx-location-map-card__embed">';
+	$html .= '<iframe src="' . esc_url( $src ) . '" width="100%" height="320" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="' . esc_attr( $title ) . '"></iframe>';
+	$html .= '</div></article>';
+
+	return $html;
+}
+
+/** Render the canonical Chamberí and Salamanca–Goya maps. */
+function nvx_contact_maps_markup(): string {
+	$clinics = nvx_get_clinics_config();
+	$cards   = '';
+	foreach ( array( 'chamberi', 'goya' ) as $key ) {
+		if ( isset( $clinics[ $key ] ) && is_array( $clinics[ $key ] ) ) {
+			$cards .= nvx_contact_map_card_markup( $clinics[ $key ] );
+		}
+	}
+	if ( '' === $cards ) {
+		return '';
+	}
+
+	return '<section class="nvx-brand-section nvx-contacto-maps" id="nvx-contacto-maps" aria-labelledby="nvx-contacto-maps-title"><div class="nvx-container"><p class="nvx-brand-kicker">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</p><h2 class="nvx-heading" id="nvx-contacto-maps-title">' . esc_html__( 'Nuestras ubicaciones en Madrid', 'nuvanx-medical' ) . '</h2><div class="nvx-contact-clinics">' . $cards . '</div></div></section>';
+}
+
+/** Append the maps once on the canonical Contacto page. */
+function nvx_contact_append_maps( string $content ): string {
+	if ( is_admin() || ! function_exists( 'nvx_is_contacto_page_request' ) || ! nvx_is_contacto_page_request() ) {
+		return $content;
+	}
+	if ( false !== strpos( $content, 'id="nvx-contacto-maps"' ) || false !== strpos( $content, 'nvx-contacto-maps' ) ) {
+		return $content;
+	}
+
+	return $content . nvx_contact_maps_markup();
+}
+add_filter( 'the_content', 'nvx_contact_append_maps', 20 );

@@ -65,8 +65,16 @@ async function appendHostsMapping() {
 }
 
 async function removeHostsMapping() {
-  const escaped = hostsMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await run(SUDO_BIN, ['-n', 'sh', '-c', `sed -i '/${escaped}$/d' /etc/hosts`]).catch(() => {});
+  // Do not use `sed -i` on /etc/hosts: on containerized/hosted runners it may
+  // be a bind mount that cannot be atomically renamed. Rewrite the existing
+  // inode instead, so cleanup remains safe on GitHub-hosted runners.
+  const command = [
+    'tmp="$(mktemp)"',
+    `grep -Fv '${hostsMarker}' /etc/hosts > "$tmp" || true`,
+    'cat "$tmp" > /etc/hosts',
+    'rm -f "$tmp"',
+  ].join('; ');
+  await run(SUDO_BIN, ['-n', 'sh', '-c', command]).catch(() => {});
 }
 
 async function startTunnel() {

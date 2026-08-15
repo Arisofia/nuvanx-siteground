@@ -37,13 +37,18 @@ foreach ( nvxPublicationPublishedIds() as $postId ) {
         continue;
     }
 
+    $renderer = 'single-post.php';
+    if ( 'page' === $post->post_type ) {
+        $renderer = (string) get_page_template_slug( $post->ID );
+    }
+
     $actual[ $route ] = array(
         'post_id'   => (int) $post->ID,
         'post_type' => (string) $post->post_type,
         'slug'      => (string) $post->post_name,
         'status'    => (string) $post->post_status,
         'canonical' => (string) $permalink,
-        'renderer'  => 'page' === $post->post_type ? (string) get_page_template_slug( $post->ID ) : 'single-post.php',
+        'renderer'  => $renderer,
     );
 }
 
@@ -82,9 +87,14 @@ foreach ( $manifest['routes'] as $route => $expected ) {
         }
     }
 
-    $expectedCanonical = isset( $expected['canonical'] )
-        ? (string) $expected['canonical']
-        : ( '/' === $route ? trailingslashit( home_url( '/' ) ) : home_url( $route ) );
+    if ( isset( $expected['canonical'] ) ) {
+        $expectedCanonical = (string) $expected['canonical'];
+    } elseif ( '/' === $route ) {
+        $expectedCanonical = trailingslashit( home_url( '/' ) );
+    } else {
+        $expectedCanonical = home_url( $route );
+    }
+
     if ( untrailingslashit( $expectedCanonical ) !== untrailingslashit( (string) $actual[ $route ]['canonical'] ) ) {
         $changes[] = sprintf(
             'canonical: expected=%s actual=%s',

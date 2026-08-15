@@ -299,7 +299,6 @@ function nvx_content_replace_values_sections( string $content ): string {
 	}
 
 	$replacement = nvx_values_section_markup();
-	// TODO(legacy-guard): Remove once nvx-cms-content-cleanup.php --confirm has run on production.
 	// Strip residual home editorial intro blocks (nvx-home-editorial class retired from markup).
 	$updated = preg_replace(
 		'/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/i',
@@ -347,8 +346,6 @@ function nvx_content_post_values_banner_pattern_data_only(): string {
  * Pattern: values dual-CTA pair only (not other .nvx-cta-pair blocks).
  */
 function nvx_content_values_cta_pair_pattern(): string {
-	// TODO(legacy-guard): nvx-cta-pair nvx-values__cta retired from markup.
-	// Remove once nvx-cms-content-cleanup.php --confirm has run on production.
 	return '/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu';
 }
 
@@ -696,8 +693,6 @@ function nvx_content_unify_ctas( string $content ): string {
 		$content
 	);
 
-	// TODO(legacy-guard): nvx-home-cta-final-band retired from markup.
-	// Remove once nvx-cms-content-cleanup.php --confirm has run on production.
 	// Final band CTAs.
 	$content = preg_replace(
 		'/(class="[^"]*nvx-home-cta-final-band[^"]*"[\s\S]*?<a[^>]*href=")[^"]*("[^>]*>)([^<]*)(<\/a>)/u',

@@ -5,6 +5,7 @@ import {
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
 import { runRenderedSchemaContract } from './rendered-schema-contract.mjs';
+import { runJsonLdStorageDiagnostic } from './jsonld-storage-diagnostic.mjs';
 
 const base = String(process.env.STAGING_URL || '').replace(/\/+$/, '');
 assert.ok(base.startsWith('https://'), 'STAGING_URL must be HTTPS');
@@ -92,8 +93,26 @@ console.log(
   `GOYA_ALIAS_QUERY_CONTRACT=PASS status=${status} owner=NUVANX mode=${validationMode} destination=${destination.href}`,
 );
 
-await runRenderedSchemaContract({
-  expectedHost: new URL(base).hostname,
-  expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
-  originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
-});
+try {
+  await runRenderedSchemaContract({
+    expectedHost: new URL(base).hostname,
+    expectedSha: String(process.env.EXPECTED_SHA || '').trim(),
+    originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
+  });
+} catch (error) {
+  console.error('RENDERED_SCHEMA_FORENSICS=START reason=semantic-contract-failure');
+  try {
+    const diagnostic = await runJsonLdStorageDiagnostic({
+      originSshAlias: String(process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2'),
+    });
+    console.error(
+      `RENDERED_SCHEMA_FORENSICS=${diagnostic.pass ? 'PASS' : 'INCOMPLETE'} ` +
+      `core_matches=${diagnostic.report?.core_matches ?? 'unknown'} ` +
+      `custom_columns=${diagnostic.report?.custom_columns ?? 'unknown'} ` +
+      `runtime_emitters=${diagnostic.report?.runtime_emitters ?? 'unknown'}`,
+    );
+  } catch (diagnosticError) {
+    console.error(`RENDERED_SCHEMA_FORENSICS=UNAVAILABLE reason=${String(diagnosticError?.message || diagnosticError).replace(/\s+/g, '_').slice(0, 500)}`);
+  }
+  throw error;
+}

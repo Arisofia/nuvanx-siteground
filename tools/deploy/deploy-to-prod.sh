@@ -204,6 +204,24 @@ done
   exit 1
 }
 
+# Clean up legacy MU plugins if they reappear (removed from source but may linger in production)
+# This provides a remediation path without requiring manual intervention
+for legacy_mu in \
+  nuvanx-valoracion-native-hubspot-form.php \
+  nuvanx-contacto-hubspot-form.php \
+  nvx-disable-public-facebook-pixel.php \
+  nuvanx-google-attribution.php
+do
+  [[ -e "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu" ]] && {
+    echo "Cleaning up legacy MU plugin: $legacy_mu" >&2
+    rm -f "$PROD_ROOT/wp-content/mu-plugins/$legacy_mu"
+  }
+done
+[[ -d "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution" ]] && {
+  echo "Cleaning up legacy attribution MU package" >&2
+  rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
+}
+
 echo "== Guard obsolete production redirect drift =="
 obsolete_marker='# NVX_REDIRECT_3334_TO_3310'
 obsolete_redirect='Redirect 301 /matriz-diagnostico-facial-estructura-piel-musculo-grasa/ https://nuvanx.com/tratamientos-faciales-sin-cirugia-guia-medica-diagnostico/'

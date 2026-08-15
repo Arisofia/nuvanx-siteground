@@ -6,6 +6,7 @@ Canonical source repository for the NUVANX WordPress theme and the operational t
 
 - Canonical source branch: `master`
 - Theme: `wp-content/themes/nuvanx-medical/`
+- MU plugins: `wp-content/mu-plugins/` (nvx-third-party-scripts-manager.php)
 - Staging2: `https://staging2.nuvanx.com`
 - Production: `https://nuvanx.com`
 - Deployment identity: exact 40-character Git SHA stored in `.nvx-deploy-sha`

@@ -2,8 +2,9 @@
 /**
  * Regression contract for governed blog routes under stale/corrupt query state.
  *
- * The final single-post runtime must trust the actual request path + authoritative
- * wp_posts row, never a cache-aware API that can return neighbouring content.
+ * The governed runtime must be registered during theme bootstrap, rebind on the
+ * early `wp` hook, and trust the actual request path + authoritative wp_posts
+ * row rather than cache-aware APIs or a stale neighbouring WP_Query.
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
@@ -185,6 +186,12 @@ function nvx_single_post_rebind_query( WP_Query $query, WP_Post $post, ?string $
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php';
 require_once dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-governed-blog-runtime.php';
 
+$expected_contract = '20260815-db-authoritative-wp-bootstrap-v2';
+if ( ! defined( 'NVX_GOVERNED_BLOG_RUNTIME_CONTRACT' ) || $expected_contract !== NVX_GOVERNED_BLOG_RUNTIME_CONTRACT ) {
+	fwrite( STDERR, 'GOVERNED_BLOG_RUNTIME_CONTRACT_VERSION=FAIL' . PHP_EOL );
+	exit( 1 );
+}
+
 $resolved = nvx_governed_blog_runtime_db_post_by_slug(
 	'matriz-diagnostico-facial-estructura-piel-musculo-grasa'
 );
@@ -226,11 +233,16 @@ if ( ! ( $resolved_memoized instanceof WP_Post )
 }
 
 $title = nvx_governed_blog_runtime_title( 'Wrong neighbouring title' );
+$canonical = nvx_governed_blog_runtime_canonical(
+	'https://nuvanx.com/tratamientos-faciales-sin-cirugia-guia-medica-diagnostico/'
+);
 $og_url = nvx_governed_blog_runtime_opengraph_url(
 	'https://nuvanx.com/tratamientos-faciales-sin-cirugia-guia-medica-diagnostico/'
 );
+$expected_url = 'https://nuvanx.com/matriz-diagnostico-facial-estructura-piel-musculo-grasa/';
 if ( 'Matriz de diagnóstico facial | NUVANX Madrid' !== $title
-	|| 'https://nuvanx.com/matriz-diagnostico-facial-estructura-piel-musculo-grasa/' !== $og_url ) {
+	|| $expected_url !== $canonical
+	|| $expected_url !== $og_url ) {
 	fwrite( STDERR, 'GOVERNED_BLOG_RUNTIME_METADATA=FAIL' . PHP_EOL );
 	exit( 1 );
 }
@@ -239,48 +251,70 @@ $GLOBALS['wp_query'] = new WP_Query();
 $GLOBALS['wp_query']->set( 'p', 3310 );
 $GLOBALS['wp_query']->set( 'name', 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' );
 $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+$GLOBALS['wp'] = (object) array(
+	'query_vars' => array(
+		'p'         => 3310,
+		'name'      => 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico',
+		'post_type' => 'post',
+	),
+);
 $GLOBALS['post'] = new WP_Post( 3310, 'tratamientos-faciales-sin-cirugia-guia-medica-diagnostico' );
 $rebound = nvx_governed_blog_runtime_rebind_queries();
 if ( ! ( $rebound instanceof WP_Post )
 	|| 3334 !== $rebound->ID
 	|| 3334 !== $GLOBALS['wp_query']->get( 'p' )
 	|| 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' !== $GLOBALS['wp_query']->get( 'name' )
+	|| 3334 !== (int) ( $GLOBALS['wp']->query_vars['p'] ?? 0 )
+	|| 'matriz-diagnostico-facial-estructura-piel-musculo-grasa' !== ( $GLOBALS['wp']->query_vars['name'] ?? '' )
 	|| 3334 !== $GLOBALS['post']->ID
 	|| $GLOBALS['wp_query']->is_404
 	|| ! $GLOBALS['wp_query']->is_single
 	|| ! $GLOBALS['wp_query']->is_singular
 	|| $GLOBALS['wp_query']->is_archive ) {
-	fwrite( STDERR, 'GOVERNED_BLOG_FINAL_QUERY_REBIND=FAIL' . PHP_EOL );
+	fwrite( STDERR, 'GOVERNED_BLOG_EARLY_QUERY_REBIND=FAIL' . PHP_EOL );
 	exit( 1 );
 }
 
 ob_start();
 nvx_governed_blog_runtime_print_head_contract();
 $head_contract = (string) ob_get_clean();
-if ( false === strpos( $head_contract, 'href="https://nuvanx.com/matriz-diagnostico-facial-estructura-piel-musculo-grasa/"' )
+if ( false === strpos( $head_contract, 'name="nvx-document-contract"' )
 	|| false === strpos( $head_contract, 'name="nvx-governed-blog-runtime-contract"' )
-	|| false === strpos( $head_contract, NVX_GOVERNED_BLOG_RUNTIME_CONTRACT ) ) {
+	|| false === strpos( $head_contract, $expected_contract )
+	|| false !== strpos( $head_contract, '<link rel="canonical"' ) ) {
 	fwrite( STDERR, 'GOVERNED_BLOG_HTTP_RUNTIME_SENTINEL=FAIL' . PHP_EOL );
 	exit( 1 );
 }
 
-$single_entrypoint = file_get_contents( dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/single-post.php' );
+$root = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/';
+$blog_system = file_get_contents( $root . 'inc/nvx-blog-system.php' );
+$runtime_source = file_get_contents( $root . 'inc/nvx-governed-blog-runtime.php' );
+$single_entrypoint = file_get_contents( $root . 'single-post.php' );
+
+$rebind_definition_pos = is_string( $blog_system ) ? strpos( $blog_system, 'function nvx_single_post_rebind_query' ) : false;
+$bootstrap_require_pos = is_string( $blog_system ) ? strpos( $blog_system, "require_once __DIR__ . '/nvx-governed-blog-runtime.php'" ) : false;
+$wp_hook_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_action( 'wp', 'nvx_governed_blog_runtime_rebind_queries', -999999 )" ) : false;
+$canonical_filter_pos = is_string( $runtime_source ) ? strpos( $runtime_source, "add_filter( 'wpseo_canonical', 'nvx_governed_blog_runtime_canonical', PHP_INT_MAX )" ) : false;
 $runtime_require_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, "require_once __DIR__ . '/inc/nvx-governed-blog-runtime.php'" ) : false;
-$db_resolver_pos     = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, 'nvx_governed_blog_runtime_db_post_by_slug' ) : false;
-$legacy_resolver_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, 'nvx_document_governance_get_published_post_by_slug' ) : false;
-$query_name_pos      = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, '$wp_query->get( \'name\' )' ) : false;
-if ( false === $runtime_require_pos
+$db_resolver_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, 'nvx_governed_blog_runtime_db_post_by_slug' ) : false;
+$query_name_pos = is_string( $single_entrypoint ) ? strpos( $single_entrypoint, '$wp_query->get( \'name\' )' ) : false;
+
+if ( false === $rebind_definition_pos
+	|| false === $bootstrap_require_pos
+	|| $rebind_definition_pos >= $bootstrap_require_pos
+	|| false === $wp_hook_pos
+	|| false === $canonical_filter_pos
+	|| false === $runtime_require_pos
 	|| false === $db_resolver_pos
-	|| false === $legacy_resolver_pos
 	|| false === $query_name_pos
 	|| $runtime_require_pos >= $db_resolver_pos
-	|| $db_resolver_pos >= $legacy_resolver_pos
 	|| $db_resolver_pos >= $query_name_pos ) {
-	fwrite( STDERR, 'GOVERNED_BLOG_ENTRYPOINT_DB_AUTHORITY=FAIL' . PHP_EOL );
+	fwrite( STDERR, 'GOVERNED_BLOG_BOOTSTRAP_ORDER=FAIL' . PHP_EOL );
 	exit( 1 );
 }
 
 echo 'GOVERNED_BLOG_DB_AUTHORITATIVE_RUNTIME=PASS requested_post=3334 cache_poison_id=3310 cache_poison_slug=requested cache_apis_called=0' . PHP_EOL;
 echo 'GOVERNED_BLOG_REQUEST_MEMOIZATION=PASS db_queries_after_first_resolution=0' . PHP_EOL;
-echo 'GOVERNED_BLOG_FINAL_QUERY_REBIND=PASS requested_post=3334 stale_query_post=3310 path_authority=REQUEST_URI' . PHP_EOL;
+echo 'GOVERNED_BLOG_EARLY_QUERY_REBIND=PASS requested_post=3334 stale_query_post=3310 hook=wp priority=-999999' . PHP_EOL;
+echo 'GOVERNED_BLOG_CANONICAL_OWNER=PASS owner=yoast filter=wpseo_canonical manual_governed_canonical=0' . PHP_EOL;
 echo 'GOVERNED_BLOG_HTTP_RUNTIME_SENTINEL=PASS contract=' . NVX_GOVERNED_BLOG_RUNTIME_CONTRACT . PHP_EOL;

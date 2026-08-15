@@ -1,12 +1,6 @@
 <?php
 /**
- * Editorial Gate Pre-Publication Validation
- *
- * Blocks any page/post containing forbidden content before publication.
- * Validates against editorial standards and governance rules.
- *
- * Run with:
- *   wp eval "require 'tools/migrations/editorial-gate-validation.php';" --allow-root
+ * Read-only editorial gate for public WordPress content.
  *
  * @package NVX\Migrations
  */
@@ -14,214 +8,170 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
-	exit( 1 );
+    fwrite( STDERR, "EDITORIAL_GATE_VALIDATION=FAIL reason=wordpress_not_loaded\n" );
+    exit( 1 );
 }
 
-// Editorial validation rules
-$editorial_rules = [
-	'placeholders' => [
-		'pattern' => '/@nvx-[a-z0-9_-]+/i',
-		'description' => 'NUVANX placeholders (@nvx-*)',
-		'severity' => 'error',
-	],
-	'format_strings' => [
-		'pattern' => '/%[sd]/',
-		'description' => 'Format strings (%s, %d)',
-		'severity' => 'error',
-	],
-	'markdown_links' => [
-		'pattern' => '/\[([^\]]+)\]\([^)]+\)/',
-		'description' => 'Markdown links [text](url)',
-		'severity' => 'error',
-	],
-	'markdown_headings' => [
-		'pattern' => '/^#{1,6}\s+.+$/m',
-		'description' => 'Markdown headings (#, ##, etc.)',
-		'severity' => 'error',
-	],
-	'draft_keywords' => [
-		'pattern' => '/(borrador|pendiente de revisión|para revisar|wip|work in progress)/i',
-		'description' => 'Draft workflow keywords',
-		'severity' => 'error',
-	],
-	'placeholders_generic' => [
-		'pattern' => '/(TODO|FIXME|XXX|HACK|TEMP|placeholder)/i',
-		'description' => 'Generic placeholders',
-		'severity' => 'error',
-	],
-	'inline_styles' => [
-		'pattern' => '/style=["\'][^"\']*color:\s*#[0-9a-f]{3,6}[^"\']*["\']/i',
-		'description' => 'Hardcoded inline colors',
-		'severity' => 'error',
-	],
-	'inline_styles_unauthorized' => [
-		'pattern' => '/style=["\'][^"\']*["\']/i',
-		'description' => 'Unauthorized inline styles',
-		'severity' => 'warning',
-	],
-];
+require_once __DIR__ . '/publication-contract-lib.php';
 
-// Blocked claims list
-$blocked_claims = [
-	'garantizado',
-	'garantía',
-	'siempre',
-	'jamás',
-	'único',
-	'el mejor',
-	'el único',
-	'mejor que',
-	'infalible',
-	'sin riesgos',
-	'sin efectos secundarios',
-	'100% efectivo',
-	'resultado inmediato',
-	'resultado garantizado',
-];
+$editorialRules = array(
+    'nvx_tokens' => array(
+        'pattern'     => '/@nvx-[a-z0-9_:-]+/i',
+        'description' => 'Unresolved NUVANX runtime token',
+    ),
+    'format_strings' => array(
+        'pattern'     => '/%(?:\d+\$)?[sd]/',
+        'description' => 'Unresolved format string',
+    ),
+    'markdown_links' => array(
+        'pattern'     => '/\[[^\]]+\]\([^)]+\)/',
+        'description' => 'Raw Markdown link',
+    ),
+    'markdown_headings' => array(
+        'pattern'     => '/^#{1,6}\s+.+$/m',
+        'description' => 'Raw Markdown heading',
+    ),
+    'markdown_lists' => array(
+        'pattern'     => '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m',
+        'description' => 'Raw Markdown list marker',
+    ),
+    'draft_keywords' => array(
+        'pattern'     => '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i',
+        'description' => 'Draft/review workflow language in published content',
+    ),
+    'generic_placeholders' => array(
+        'pattern'     => '/\b(?:TODO|FIXME|XXX|HACK|placeholder)\b/i',
+        'description' => 'Editorial placeholder in published content',
+    ),
+    'inline_styles' => array(
+        'pattern'     => '/\sstyle\s*=\s*["\'][^"\']+["\']/i',
+        'description' => 'Unauthorized inline style',
+    ),
+);
 
-// Get all published posts and pages
-$posts = get_posts( [
-	'post_type'      => [ 'page', 'post' ],
-	'post_status'    => 'publish',
-	'posts_per_page' => -1,
-	'fields'         => 'ids',
-] );
+$blockedClaimPatterns = array(
+    '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/i' => 'resultado garantizado',
+    '/\b100\s*%\s*efectiv[oa]s?\b/i'               => '100% efectivo',
+    '/\bsin\s+riesgos?\b/i'                        => 'sin riesgos',
+    '/\bsin\s+efectos?\s+secundarios?\b/i'        => 'sin efectos secundarios',
+    '/\binfalible\b/i'                              => 'infalible',
+    '/\bnaturalidad\s+absoluta\b/i'                => 'naturalidad absoluta',
+    '/\bcero\s+sobretratamiento\b/i'               => 'cero sobretratamiento',
+    '/\bm[aá]rgenes?\s+de\s+seguridad\s+exactos?\b/i' => 'márgenes de seguridad exactos',
+    '/\bsin\s+tiempo\s+de\s+inactividad\b/i'      => 'sin tiempo de inactividad',
+    '/\bpiel\s+impecable\b/i'                      => 'piel impecable',
+);
 
-$validation_results = [
-	'total_checked'   => count( $posts ),
-	'passed'          => 0,
-	'failed'          => 0,
-	'warnings'        => 0,
-	'violations'      => [],
-];
+$ids = nvxPublicationPublishedIds();
+$violations = array();
+$passed = 0;
 
-foreach ( $posts as $post_id ) {
-	$post = get_post( $post_id );
-	if ( ! $post instanceof WP_Post ) {
-		continue;
-	}
+foreach ( $ids as $postId ) {
+    $post = get_post( $postId );
+    if ( ! ( $post instanceof WP_Post ) ) {
+        continue;
+    }
 
-	$post_violations = [
-		'post_id'   => $post_id,
-		'post_type' => $post->post_type,
-		'title'     => $post->post_title,
-		'errors'    => [],
-		'warnings'  => [],
-	];
+    $content = (string) $post->post_content;
+    $errors = array();
 
-	// Get content
-	$content = $post->post_content;
+    foreach ( $editorialRules as $ruleName => $rule ) {
+        $matches = array();
+        preg_match_all( $rule['pattern'], $content, $matches );
+        if ( ! empty( $matches[0] ) ) {
+            $errors[] = array(
+                'rule'        => $ruleName,
+                'description' => $rule['description'],
+                'matches'     => array_values( array_unique( array_slice( $matches[0], 0, 5 ) ) ),
+                'count'       => count( $matches[0] ),
+            );
+        }
+    }
 
-	// Check editorial rules
-	foreach ( $editorial_rules as $rule_name => $rule ) {
-		$matches = [];
-		preg_match_all( $rule['pattern'], $content, $matches );
+    foreach ( $blockedClaimPatterns as $pattern => $label ) {
+        $matches = array();
+        preg_match_all( $pattern, $content, $matches );
+        if ( ! empty( $matches[0] ) ) {
+            $errors[] = array(
+                'rule'        => 'blocked_claim',
+                'description' => 'Blocked absolute marketing/clinical claim',
+                'matches'     => array_values( array_unique( array_slice( $matches[0], 0, 5 ) ) ),
+                'count'       => count( $matches[0] ),
+                'label'       => $label,
+            );
+        }
+    }
 
-		if ( ! empty( $matches[0] ) ) {
-			$violation = [
-				'rule'        => $rule_name,
-				'description' => $rule['description'],
-				'matches'     => array_slice( $matches[0], 0, 5 ), // Limit to 5 matches
-				'count'       => count( $matches[0] ),
-			];
+    if ( class_exists( 'DOMDocument' ) && false !== stripos( $content, '<a ' ) ) {
+        $dom = new DOMDocument();
+        $previous = libxml_use_internal_errors( true );
+        $dom->loadHTML( '<?xml encoding="UTF-8">' . $content );
+        libxml_clear_errors();
+        libxml_use_internal_errors( $previous );
+        $homeHost = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 
-			if ( $rule['severity'] === 'error' ) {
-				$post_violations['errors'][] = $violation;
-			} else {
-				$post_violations['warnings'][] = $violation;
-			}
-		}
-	}
+        foreach ( $dom->getElementsByTagName( 'a' ) as $link ) {
+            $href = trim( (string) $link->getAttribute( 'href' ) );
+            if ( '' === $href || '#' === $href[0] || preg_match( '#^(?:mailto:|tel:|sms:|javascript:)#i', $href ) ) {
+                continue;
+            }
 
-	// Check blocked claims
-	foreach ( $blocked_claims as $claim ) {
-		if ( stripos( $content, $claim ) !== false ) {
-			$post_violations['errors'][] = [
-				'rule'        => 'blocked_claim',
-				'description' => 'Blocked marketing claim',
-				'matches'     => [ $claim ],
-				'count'       => 1,
-			];
-		}
-	}
+            $absolute = wp_http_validate_url( $href ) ? $href : home_url( '/' . ltrim( $href, '/' ) );
+            $host = strtolower( (string) wp_parse_url( $absolute, PHP_URL_HOST ) );
+            if ( '' === $host || $homeHost !== $host ) {
+                continue;
+            }
 
-	// Check for draft/404 links
-	$dom = new DOMDocument();
-	libxml_use_internal_errors( true );
-	$dom->loadHTML( '<?xml encoding="UTF-8">' . $content );
-	libxml_clear_errors();
+            $targetId = url_to_postid( $absolute );
+            if ( $targetId <= 0 ) {
+                continue;
+            }
 
-	$links = $dom->getElementsByTagName( 'a' );
-	foreach ( $links as $link ) {
-		$href = $link->getAttribute( 'href' );
-		if ( ! empty( $href ) ) {
-			// Check for draft/404 patterns
-			if ( stripos( $href, 'draft' ) !== false || stripos( $href, '404' ) !== false ) {
-				$post_violations['errors'][] = [
-					'rule'        => 'invalid_link',
-					'description' => 'Link to draft/404',
-					'matches'     => [ $href ],
-					'count'       => 1,
-				];
-			}
-		}
-	}
+            $target = get_post( $targetId );
+            if ( $target instanceof WP_Post && in_array( $target->post_type, array( 'page', 'post' ), true ) && 'publish' !== $target->post_status ) {
+                $errors[] = array(
+                    'rule'          => 'link_to_nonpublic_content',
+                    'description'   => 'Internal link resolves to non-public page/post',
+                    'matches'       => array( $href ),
+                    'count'         => 1,
+                    'target_id'     => (int) $targetId,
+                    'target_status' => (string) $target->post_status,
+                );
+            }
+        }
+    }
 
-	// Add to results if violations found
-	if ( ! empty( $post_violations['errors'] ) || ! empty( $post_violations['warnings'] ) ) {
-		$validation_results['violations'][] = $post_violations;
-		$validation_results['failed']++;
-		if ( ! empty( $post_violations['errors'] ) ) {
-			$validation_results['warnings']++;
-		}
-	} else {
-		$validation_results['passed']++;
-	}
+    if ( empty( $errors ) ) {
+        ++$passed;
+        continue;
+    }
+
+    $violations[] = array(
+        'post_id'   => (int) $post->ID,
+        'post_type' => (string) $post->post_type,
+        'slug'      => (string) $post->post_name,
+        'title'     => (string) $post->post_title,
+        'errors'    => $errors,
+    );
 }
 
-// Output validation report
-$report = [
-	'schema'       => 'editorial-gate-validation',
-	'checked_at'   => gmdate( 'c' ),
-	'source'       => home_url( '/' ),
-	'summary'      => [
-		'total_checked' => $validation_results['total_checked'],
-		'passed'        => $validation_results['passed'],
-		'failed'        => $validation_results['failed'],
-		'warnings'      => $validation_results['warnings'],
-	],
-	'violations'   => $validation_results['violations'],
-	'rules'        => $editorial_rules,
-	'blocked_claims' => $blocked_claims,
-];
+$report = array(
+    'schema'     => 'editorial-gate-validation',
+    'checked_at' => gmdate( 'c' ),
+    'source'     => home_url( '/' ),
+    'summary'    => array(
+        'total_checked' => count( $ids ),
+        'passed'        => $passed,
+        'failed'        => count( $violations ),
+    ),
+    'violations' => $violations,
+);
 
-echo json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+echo wp_json_encode( $report );
 
-// Console summary
-fwrite( STDERR, "\n=== EDITORIAL GATE VALIDATION ===\n" );
-fwrite( STDERR, "Total checked: " . $validation_results['total_checked'] . "\n" );
-fwrite( STDERR, "Passed: " . $validation_results['passed'] . "\n" );
-fwrite( STDERR, "Failed: " . $validation_results['failed'] . "\n" );
-fwrite( STDERR, "Warnings: " . $validation_results['warnings'] . "\n" );
-
-if ( ! empty( $validation_results['violations'] ) ) {
-	fwrite( STDERR, "\n=== VIOLATIONS ===\n" );
-	foreach ( $validation_results['violations'] as $violation ) {
-		fwrite( STDERR, "\nPost: {$violation['title']} (ID: {$violation['post_id']})\n" );
-		foreach ( $violation['errors'] as $error ) {
-			fwrite( STDERR, "  ERROR: {$error['description']} ({$error['count']} matches)\n" );
-		}
-		foreach ( $violation['warnings'] as $warning ) {
-			fwrite( STDERR, "  WARNING: {$warning['description']} ({$warning['count']} matches)\n" );
-		}
-	}
+if ( ! empty( $violations ) ) {
+    fwrite( STDERR, sprintf( "EDITORIAL_GATE_VALIDATION=FAIL posts=%d\n", count( $violations ) ) );
+    exit( 1 );
 }
 
-// Exit with error if validation failed
-if ( $validation_results['failed'] > 0 ) {
-	fwrite( STDERR, "\nEDITORIAL_GATE_VALIDATION=FAIL errors={$validation_results['failed']}\n" );
-	exit( 1 );
-}
-
-fwrite( STDERR, "\nEDITORIAL_GATE_VALIDATION=PASS\n" );
+fwrite( STDERR, sprintf( "EDITORIAL_GATE_VALIDATION=PASS posts=%d\n", count( $ids ) ) );

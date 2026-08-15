@@ -1,9 +1,6 @@
 <?php
 /**
- * Content Normalizer - Convert Markdown to Valid HTML/Blocks
- *
- * Normalizes post content by converting Markdown artifacts to valid HTML
- * and WordPress blocks before persistence.
+ * Semantics-preserving normalizer for legacy Markdown stored in post_content.
  *
  * @package NVX\Migrations
  */
@@ -11,184 +8,199 @@
 declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );
-	exit( 1 );
+    fwrite( STDERR, "CONTENT_NORMALIZER=FAIL reason=wordpress_not_loaded\n" );
+    exit( 1 );
+}
+
+function nvxNeedsMarkdownNormalization( string $content ): bool {
+    if ( '' === trim( $content ) || false !== strpos( $content, '<!-- wp:' ) ) {
+        return false;
+    }
+
+    return 1 === preg_match( '/\[[^\]]+\]\([^)]+\)/', $content )
+        || 1 === preg_match( '/^#{1,6}\s+.+$/m', $content )
+        || 1 === preg_match( '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m', $content );
+}
+
+function nvxNormalizeMarkdownInline( string $text ): string {
+    $escaped = esc_html( $text );
+    $escaped = preg_replace_callback(
+        '/\[([^\]]+)\]\(([^)\s]+)\)/',
+        static function ( array $matches ): string {
+            $url = html_entity_decode( (string) $matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+            return '<a href="' . esc_url( $url ) . '">' . (string) $matches[1] . '</a>';
+        },
+        $escaped
+    ) ?? $escaped;
+    $escaped = preg_replace( '/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $escaped ) ?? $escaped;
+    $escaped = preg_replace( '/__([^_\n]+)__/', '<strong>$1</strong>', $escaped ) ?? $escaped;
+    $escaped = preg_replace( '/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $escaped ) ?? $escaped;
+    return preg_replace( '/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $escaped ) ?? $escaped;
+}
+
+/** @param array<int,string> $paragraph @param array<int,string> $output */
+function nvxFlushMarkdownParagraph( array &$paragraph, array &$output ): void {
+    if ( empty( $paragraph ) ) {
+        return;
+    }
+
+    $joined = implode( ' ', $paragraph );
+    $joined = preg_replace( '/\s+/', ' ', $joined ) ?? $joined;
+    $output[] = '<p>' . nvxNormalizeMarkdownInline( trim( $joined ) ) . '</p>';
+    $paragraph = array();
+}
+
+/** @param array<int,string> $items @param array<int,string> $output */
+function nvxFlushMarkdownList( string &$listType, array &$items, array &$output ): void {
+    if ( '' === $listType || empty( $items ) ) {
+        $listType = '';
+        $items = array();
+        return;
+    }
+
+    $tag = 'ol' === $listType ? 'ol' : 'ul';
+    $htmlItems = array_map(
+        static fn( string $item ): string => '<li>' . nvxNormalizeMarkdownInline( trim( $item ) ) . '</li>',
+        $items
+    );
+    $output[] = '<' . $tag . '>' . implode( '', $htmlItems ) . '</' . $tag . '>';
+    $listType = '';
+    $items = array();
+}
+
+/** @return array{type:string,value:string,level:int} */
+function nvxClassifyMarkdownLine( string $line ): array {
+    $trimmed = trim( $line );
+    $token = array( 'type' => 'text', 'value' => $trimmed, 'level' => 0 );
+    $matches = array();
+
+    if ( '' === $trimmed ) {
+        $token = array( 'type' => 'blank', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^#{2,6}\s*📌\s*$/u', $trimmed ) ) {
+        $token = array( 'type' => 'editorial_residue', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'heading', 'value' => trim( $matches[2] ), 'level' => strlen( $matches[1] ) );
+    } elseif ( preg_match( '/^(?:---+|___+|\*\*\*+)$/', $trimmed ) ) {
+        $token = array( 'type' => 'rule', 'value' => '', 'level' => 0 );
+    } elseif ( preg_match( '/^[-+*]\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'ul', 'value' => $matches[1], 'level' => 0 );
+    } elseif ( preg_match( '/^\d+[.)]\s+(.+)$/', $trimmed, $matches ) ) {
+        $token = array( 'type' => 'ol', 'value' => $matches[1], 'level' => 0 );
+    } elseif ( preg_match( '/^<\/?[a-z][^>]*>/i', $trimmed ) ) {
+        $token = array( 'type' => 'html', 'value' => $line, 'level' => 0 );
+    }
+
+    return $token;
+}
+
+/** @param array<int,string> $paragraph @param array<int,string> $items @param array<int,string> $output */
+function nvxFlushMarkdownBuffers( array &$paragraph, string &$listType, array &$items, array &$output ): void {
+    nvxFlushMarkdownParagraph( $paragraph, $output );
+    nvxFlushMarkdownList( $listType, $items, $output );
 }
 
 /**
- * Normalize content by converting Markdown to valid HTML.
+ * Apply one classified Markdown token.
  *
- * @param string $content Raw content
- * @return string Normalized content
+ * @param array{type:string,value:string,level:int} $token
+ * @param array<int,string> $paragraph
+ * @param array<int,string> $listItems
+ * @param array<int,string> $output
+ * @return bool False when the technical metadata tail has been reached.
  */
-function nvx_normalize_content( string $content ): string {
-	$normalized = $content;
+function nvxApplyMarkdownToken(
+    array $token,
+    array &$paragraph,
+    string &$listType,
+    array &$listItems,
+    array &$output,
+    bool &$leadingH1Removed
+): bool {
+    switch ( $token['type'] ) {
+        case 'blank':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            break;
+        case 'heading':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            if ( 1 === $token['level'] && ! $leadingH1Removed && empty( $output ) ) {
+                $leadingH1Removed = true;
+                break;
+            }
+            $level = 1 === $token['level'] ? 2 : $token['level'];
+            $output[] = '<h' . $level . '>' . nvxNormalizeMarkdownInline( $token['value'] ) . '</h' . $level . '>';
+            break;
+        case 'rule':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            $output[] = '<hr />';
+            break;
+        case 'ul':
+        case 'ol':
+            nvxFlushMarkdownParagraph( $paragraph, $output );
+            if ( '' !== $listType && $token['type'] !== $listType ) {
+                nvxFlushMarkdownList( $listType, $listItems, $output );
+            }
+            $listType = $token['type'];
+            $listItems[] = $token['value'];
+            break;
+        case 'html':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            $output[] = wp_kses_post( $token['value'] );
+            break;
+        case 'editorial_residue':
+            nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+            return false;
+        default:
+            $paragraph[] = $token['value'];
+    }
 
-	// Convert Markdown headings to HTML headings
-	$normalized = preg_replace_callback(
-		'/^#{1,6}\s+(.+)$/m',
-		function( $matches ) {
-			$level = strlen( $matches[0] ) - strlen( ltrim( $matches[0], '#' ) );
-			$heading = trim( $matches[1] );
-			return "<h{$level}>{$heading}</h{$level}>";
-		},
-		$normalized
-	);
-
-	// Convert Markdown links to HTML links
-	$normalized = preg_replace(
-		'/\[([^\]]+)\]\(([^)]+)\)/',
-		'<a href="$2">$1</a>',
-		$normalized
-	);
-
-	// Convert Markdown bold to HTML strong
-	$normalized = preg_replace(
-		'/\*\*([^*]+)\*\*/',
-		'<strong>$1</strong>',
-		$normalized
-	);
-
-	// Convert Markdown italic to HTML em
-	$normalized = preg_replace(
-		'/\*([^*]+)\*/',
-		'<em>$1</em>',
-		$normalized
-	);
-
-	// Remove format strings
-	$normalized = preg_replace( '/%[sd]/', '', $normalized );
-
-	// Remove @nvx-* placeholders
-	$normalized = preg_replace( '/@nvx-[a-z0-9_-]+/i', '', $normalized );
-
-	// Remove draft keywords
-	$normalized = preg_replace(
-		'/(borrador|pendiente de revisión|para revisar|wip|work in progress)/i',
-		'',
-		$normalized
-	);
-
-	// Remove generic placeholders
-	$normalized = preg_replace(
-		'/(TODO|FIXME|XXX|HACK|TEMP|placeholder)/i',
-		'',
-		$normalized
-	);
-
-	// Clean up extra whitespace
-	$normalized = preg_replace( '/\n{3,}/', "\n\n", $normalized );
-	$normalized = trim( $normalized );
-
-	return $normalized;
+    return true;
 }
 
-/**
- * Convert plain HTML to WordPress blocks.
- *
- * @param string $html HTML content
- * @return string Block editor content
- */
-function nvx_html_to_blocks( string $html ): string {
-	// If content already contains blocks, return as-is
-	if ( strpos( $html, '<!-- wp:' ) !== false ) {
-		return $html;
-	}
+function nvxNormalizeContent( string $content ): string {
+    $normalized = str_replace( array( "\r\n", "\r" ), "\n", trim( $content ) );
+    if ( '' === $normalized || false !== strpos( $normalized, '<!-- wp:' ) ) {
+        return $normalized;
+    }
 
-	// Simple conversion: wrap paragraphs in block markers
-	$blocks = '';
-	$paragraphs = explode( "\n\n", $html );
+    $output = array();
+    $paragraph = array();
+    $listType = '';
+    $listItems = array();
+    $leadingH1Removed = false;
 
-	foreach ( $paragraphs as $paragraph ) {
-		$paragraph = trim( $paragraph );
-		if ( empty( $paragraph ) ) {
-			continue;
-		}
+    foreach ( explode( "\n", $normalized ) as $line ) {
+        $token = nvxClassifyMarkdownLine( rtrim( $line ) );
+        if ( ! nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed ) ) {
+            break;
+        }
+    }
 
-		// Check if it's a heading
-		if ( preg_match( '/^<h([1-6])>(.+)<\/h\1>$/', $paragraph, $matches ) ) {
-			$level = $matches[1];
-			$content = $matches[2];
-			$blocks .= "<!-- wp:heading {\"level\":{$level}} -->\n";
-			$blocks .= "<h{$level}>{$content}</h{$level}>\n";
-			$blocks .= "<!-- /wp:heading -->\n\n";
-		}
-		// Check if it's a list
-		elseif ( preg_match( '/^[*-]/', $paragraph ) ) {
-			$items = preg_split( '/\n(?=[*-])/', $paragraph );
-			$blocks .= "<!-- wp:list -->\n";
-			$blocks .= "<ul>\n";
-			foreach ( $items as $item ) {
-				$item = trim( preg_replace( '/^[*-]\s+/', '', $item ) );
-				if ( ! empty( $item ) ) {
-					$blocks .= "<li>{$item}</li>\n";
-				}
-			}
-			$blocks .= "</ul>\n";
-			$blocks .= "<!-- /wp:list -->\n\n";
-		}
-		// Default: paragraph
-		else {
-			$blocks .= "<!-- wp:paragraph -->\n";
-			$blocks .= "<p>{$paragraph}</p>\n";
-			$blocks .= "<!-- /wp:paragraph -->\n\n";
-		}
-	}
-
-	return trim( $blocks );
+    nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
+    return trim( implode( "\n\n", $output ) );
 }
 
-/**
- * Full normalization pipeline: Markdown → HTML → Blocks.
- *
- * @param string $content Raw content
- * @return string Normalized block content
- */
-function nvx_normalize_to_blocks( string $content ): string {
-	$html = nvx_normalize_content( $content );
-	$blocks = nvx_html_to_blocks( $html );
-	return $blocks;
+function nvxNormalizeToHtml( string $content ): string {
+    return nvxNormalizeContent( $content );
 }
 
-/**
- * Validate normalized content.
- *
- * @param string $content Content to validate
- * @return array Validation result
- */
-function nvx_validate_normalized_content( string $content ): array {
-	$issues = [];
+/** @return array{valid:bool,issues:array<int,string>} */
+function nvxValidateNormalizedContent( string $content ): array {
+    $checks = array(
+        '/\[[^\]]+\]\([^)]+\)/' => 'Markdown links still present',
+        '/^#{1,6}\s+.+$/m' => 'Markdown headings still present',
+        '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
+        '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',
+        '/%(?:\d+\$)?[sd]/' => 'Format string still present',
+        '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
+        '/\b(?:TODO|FIXME|XXX|HACK|placeholder)\b/i' => 'Editorial placeholder still present',
+    );
+    $issues = array();
 
-	// Check for remaining Markdown artifacts
-	if ( preg_match( '/\[([^\]]+)\]\([^)]+\)/', $content ) ) {
-		$issues[] = 'Markdown links still present';
-	}
+    foreach ( $checks as $pattern => $message ) {
+        if ( preg_match( $pattern, $content ) ) {
+            $issues[] = $message;
+        }
+    }
 
-	if ( preg_match( '/^#{1,6}\s+.+$/m', $content ) ) {
-		$issues[] = 'Markdown headings still present';
-	}
-
-	// Check for placeholders
-	if ( preg_match( '/@nvx-[a-z0-9_-]+/i', $content ) ) {
-		$issues[] = '@nvx-* placeholders still present';
-	}
-
-	if ( preg_match( '/%[sd]/', $content ) ) {
-		$issues[] = 'Format strings still present';
-	}
-
-	// Check for draft keywords
-	if ( preg_match( '/(borrador|pendiente de revisión|para revisar|wip|work in progress)/i', $content ) ) {
-		$issues[] = 'Draft keywords still present';
-	}
-
-	// Check for generic placeholders
-	if ( preg_match( '/(TODO|FIXME|XXX|HACK|TEMP|placeholder)/i', $content ) ) {
-		$issues[] = 'Generic placeholders still present';
-	}
-
-	return [
-		'valid'  => empty( $issues ),
-		'issues' => $issues,
-	];
+    return array( 'valid' => empty( $issues ), 'issues' => $issues );
 }

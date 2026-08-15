@@ -135,7 +135,6 @@ $apply_str = function(
         return 'error';
     }
 
-    // Refresh local copy so subsequent rules see the updated value.
     $post[ $field ] = $new_value;
     return 'updated';
 };
@@ -185,6 +184,11 @@ $apply_rx = function(
     $post[ $field ] = $new_value;
     return 'updated';
 };
+
+// ── Block C2: Governed journal Markdown normalization ─────────────────────────
+// Included here so it shares the same durable write marker and deployment-level
+// database rollback contract as every other shared content migration.
+require_once __DIR__ . '/governed-blog-markdown-hygiene.php';
 
 // ── Block A: String replacements ──────────────────────────────────────────────
 
@@ -303,8 +307,6 @@ if ( defined( 'EMPTY_TRASH_DAYS' ) && (int) EMPTY_TRASH_DAYS < 1 ) {
             $total_updated++;
             printf( "[RETIRED] ID %d /%s/ → trash; redirect target %s\n", $post_id, $slug, $contract['target'] );
 
-            // Remove object-linked nav menu items so the retired route cannot
-            // reappear in menus after its content record has been trashed.
             $menu_item_ids = $wpdb->get_col(
                 $wpdb->prepare(
                     "SELECT pm.post_id
@@ -330,7 +332,6 @@ if ( defined( 'EMPTY_TRASH_DAYS' ) && (int) EMPTY_TRASH_DAYS < 1 ) {
     }
 }
 
-// Remove custom-link menu items whose URL path points directly at a retired slug.
 if ( 0 === $retired_errors ) {
     $custom_items = $wpdb->get_results(
         "SELECT pm.post_id, pm.meta_value
@@ -423,10 +424,6 @@ if ( $dry_run ) {
     echo "[DRY RUN] Skipping assertions.\n";
     $blocks_ok++;
 } else {
-    /**
-     * The 4 post IDs confirmed in production as of 2026-08-12 audit.
-     * IDs are environment-specific — skip gracefully if not found.
-     */
     $known_ids   = [ 14, 1543, 2636, 2715 ];
     $assert_fail = false;
 

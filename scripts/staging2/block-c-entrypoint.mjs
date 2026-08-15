@@ -46,71 +46,80 @@ function isRecoverableCompletedVisualTransient(result) {
 }
 
 async function tryExactOriginNetworkRecovery() {
-  let results;
   try {
-    results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
-  } catch (error) {
-    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=results_unreadable error=${error instanceof Error ? error.message : String(error)}`);
-    return false;
-  }
-  if (!Array.isArray(results) || results.length === 0) return false;
-
-  const failed = results.filter((result) => result?.status !== 'PASS');
-  if (failed.length === 0 || !failed.every(isRecoverableCompletedVisualTransient)) {
-    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=NOT_APPLICABLE failed=${failed.length}`);
-    return false;
-  }
-  if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
-    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=REFUSED host=${expectedHost} sha=${expectedSha || 'missing'}`);
-    return false;
-  }
-
-  const verifier = createSiteGroundOriginVerifier({ expectedHost, expectedSha });
-  if (!verifier.isAvailable()) {
-    console.error('BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=origin_ssh');
-    return false;
-  }
-
-  // Wrap verification in error handling to treat config/transport errors as temporary
-  // rather than application failures
-  const verificationByRoute = new Map();
-  try {
-    for (const result of failed) {
-      const route = String(result.route || '');
-      if (!verificationByRoute.has(route)) {
-        verificationByRoute.set(route, verifier.verify(route));
-      }
-      const verification = verificationByRoute.get(route);
-      if (!verification?.pass || verification.originStatus !== 200 || verification.originDeploySha !== expectedSha) {
-        console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=FAIL route=${route} origin_http=${verification?.originStatus ?? 0} origin_sha=${verification?.originDeploySha || 'missing'}`);
-        return false;
-      }
+    let results;
+    try {
+      results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+    } catch (error) {
+      console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=results_unreadable error=${error instanceof Error ? error.message : String(error)}`);
+      return false;
     }
+    if (!Array.isArray(results) || results.length === 0) return false;
+
+    const failed = results.filter((result) => result?.status !== 'PASS');
+    if (failed.length === 0 || !failed.every(isRecoverableCompletedVisualTransient)) {
+      console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=NOT_APPLICABLE failed=${failed.length}`);
+      return false;
+    }
+    if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
+      console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=REFUSED host=${expectedHost} sha=${expectedSha || 'missing'}`);
+      return false;
+    }
+
+    const verifier = createSiteGroundOriginVerifier({ expectedHost, expectedSha });
+    if (!verifier.isAvailable()) {
+      console.error('BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=origin_ssh');
+      return false;
+    }
+
+    // Wrap verification in error handling to treat config/transport errors as temporary
+    // rather than application failures
+    const verificationByRoute = new Map();
+    try {
+      for (const result of failed) {
+        const route = String(result.route || '');
+        if (!verificationByRoute.has(route)) {
+          verificationByRoute.set(route, verifier.verify(route));
+        }
+        const verification = verificationByRoute.get(route);
+        if (!verification?.pass || verification.originStatus !== 200 || verification.originDeploySha !== expectedSha) {
+          console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=FAIL route=${route} origin_http=${verification?.originStatus ?? 0} origin_sha=${verification?.originDeploySha || 'missing'}`);
+          return false;
+        }
+      }
+    } catch (error) {
+      // Config or transport errors in verifier should be treated as unavailable, not hard failures
+      console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=verifier_error error=${String(error.message).replace(/\s+/g, '_')}`);
+      return false;
+    }
+
+    const recovered = results.map((result) => {
+      if (result?.status === 'PASS') return result;
+      const verification = verificationByRoute.get(String(result.route || ''));
+      return {
+        ...result,
+        status: 'PASS',
+        recoveredIssues: Array.isArray(result.issues) ? result.issues : [],
+        issues: [],
+        originVerified: true,
+        originStatus: verification.originStatus,
+        originDeploySha: verification.originDeploySha,
+        validationTransport: 'public-browser+siteground-origin-network-verification',
+        transientNetworkEvidencePreserved: true,
+      };
+    });
+
+    await fs.writeFile(resultsUrl, `${JSON.stringify(recovered, null, 2)}\n`, 'utf8');
+    console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
+    return true;
   } catch (error) {
-    // Config or transport errors in verifier should be treated as unavailable, not hard failures
-    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=verifier_error error=${String(error.message).replace(/\s+/g, '_')}`);
+    // Catch all unexpected errors to preserve transient exit path
+    // createSiteGroundOriginVerifier() throws on unexpected ORIGIN_SSH_ALIAS
+    // verifier.verify(route) throws on routes with unsupported characters
+    // fs.writeFile can fail
+    console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=unexpected_error error=${String(error.message).replace(/\s+/g, '_')}`);
     return false;
   }
-
-  const recovered = results.map((result) => {
-    if (result?.status === 'PASS') return result;
-    const verification = verificationByRoute.get(String(result.route || ''));
-    return {
-      ...result,
-      status: 'PASS',
-      recoveredIssues: Array.isArray(result.issues) ? result.issues : [],
-      issues: [],
-      originVerified: true,
-      originStatus: verification.originStatus,
-      originDeploySha: verification.originDeploySha,
-      validationTransport: 'public-browser+siteground-origin-network-verification',
-      transientNetworkEvidencePreserved: true,
-    };
-  });
-
-  await fs.writeFile(resultsUrl, `${JSON.stringify(recovered, null, 2)}\n`, 'utf8');
-  console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
-  return true;
 }
 
 async function propagateTransientFailureState() {

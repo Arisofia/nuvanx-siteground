@@ -137,7 +137,7 @@ function nvxNormalizeContent( string $content ): string {
                 break;
             case 'editorial_residue':
                 nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
-                break;
+                break 2;
             default:
                 $paragraph[] = $token['value'];
         }

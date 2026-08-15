@@ -307,8 +307,64 @@ function nvx_schema_runtime_callback_file( $callback ): string {
  *
  * The canonical structured-data owner is wpseo_schema_graph plus the governed
  * theme filters above. This deliberately does NOT disable Code Snippets or any
- * generic output callback: only the proven legacy NUVANX Schema emitters are
- * removed. Yoast owns both the canonical graph and BreadcrumbList identity.
+/**
+ * Determine if a callback is a legacy emitter that should be retired.
+ *
+ * Handles string function names, closures, object methods, and Code Snippets wrappers.
+ * This is necessary because the legacy emitters might be registered in various ways
+ * (plain string, closure, object method, Code Snippets wrapper) and we need to
+ * detect all variants to ensure they are removed.
+ *
+ * @param mixed $callback Callback to check
+ * @return bool True if callback should be retired
+ */
+function nvx_schema_is_legacy_emitter( $callback ): bool {
+	// Check for plain string function names
+	if ( is_string( $callback ) ) {
+		return in_array( $callback, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true );
+	}
+
+	// Check for object methods (array with object and method name)
+	if ( is_array( $callback ) && isset( $callback[1] ) && is_string( $callback[1] ) ) {
+		$method_name = $callback[1];
+		return in_array( $method_name, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true );
+	}
+
+	// Check for closures or other callable types
+	// Use reflection to get the closure's filename and check if it contains the legacy function name
+	if ( is_callable( $callback ) && ! is_string( $callback ) && ! is_array( $callback ) ) {
+		try {
+			$reflection = new ReflectionFunction( $callback );
+			$filename = $reflection->getFileName();
+			// Check if the closure is defined in a file that contains the legacy function names
+			$content = file_get_contents( $filename );
+			return false !== strpos( $content, 'nvx_seo_geo_output_jsonld' ) ||
+			       false !== strpos( $content, 'nvx_seo_geo_output_breadcrumb' );
+		} catch ( Exception $e ) {
+			// If reflection fails, conservatively assume it's not a legacy emitter
+			return false;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Retire legacy JSON-LD emitters from wp_head at runtime.
+ *
+ * NOTE: nvx_seo_geo_output_jsonld and nvx_seo_geo_output_breadcrumb are retired
+ * legacy emitters defined outside this repo. Their full output is unverifiable here.
+ * This removal is safe only under the staging-inventory claim that these callbacks
+ * emit only their proven legacy JSON-LD blocks (Organization, MedicalOrganization,
+ * BreadcrumbList). If the live callbacks emit additional head output (e.g. meta tags,
+ * GEO hints), unhooking them drops that too. Confirm against actual plugin source
+ * before deploying to production.
+ *
+ * The removal handles multiple registration patterns:
+ * - Plain string function names
+ * - Object methods (array syntax)
+ * - Closures (via reflection to check filename)
+ * - Code Snippets wrappers (detected via filename inspection)
  */
 function nvx_schema_runtime_retire_legacy_emitters(): void {
 	global $wp_filter;
@@ -317,14 +373,8 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				$function = $callback['function'] ?? null;
-				// NOTE: nvx_seo_geo_output_jsonld and nvx_seo_geo_output_breadcrumb are retired
-				// legacy emitters defined outside this repo. Their full output is unverifiable here.
-				// This removal is safe only under the staging-inventory claim that these callbacks
-				// emit only their proven legacy JSON-LD blocks (Organization, MedicalOrganization,
-				// BreadcrumbList). If the live callbacks emit additional head output (e.g. meta tags,
-				// GEO hints), unhooking them drops that too. Confirm against actual plugin source
-				// before deploying to production.
-				if ( in_array( $function, array( 'nvx_seo_geo_output_jsonld', 'nvx_seo_geo_output_breadcrumb' ), true ) ) {
+
+				if ( nvx_schema_is_legacy_emitter( $function ) ) {
 					remove_action( 'wp_head', $function, (int) $priority );
 					continue;
 				}

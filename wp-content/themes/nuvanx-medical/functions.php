@@ -149,6 +149,7 @@ function nvx_theme_show_cta_banner(): bool {
  * Filemtime asset version with a theme-version fallback.
  *
  * @param string $relative_path Relative path to the asset.
+ * @return string Asset version.
  */
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );

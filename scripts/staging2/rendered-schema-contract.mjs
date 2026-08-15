@@ -75,7 +75,7 @@ const TRANSIENT_ERROR_PATTERNS = [
 // Runtime validation is intentionally scoped to routes that are part of the
 // published staging topology. Draft seed pages remain source-linted until they
 // are promoted to publish and therefore enter Block C/public acceptance.
-const DEFAULT_ROUTES = [
+export const DEFAULT_ROUTES = [
   '/',
   '/clinicas-de-medicina-estetica-nuvanx/',
   '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',

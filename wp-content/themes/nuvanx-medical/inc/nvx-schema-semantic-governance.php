@@ -169,7 +169,7 @@ function nvx_schema_semantic_append_knows_about( array &$node, string $value ): 
 			return;
 		}
 	}
-	$existing[]        = $value;
+	$existing[]         = $value;
 	$node['knowsAbout'] = array_values( $existing );
 }
 
@@ -279,3 +279,55 @@ function nvx_schema_semantic_normalize_graph( $graph ) {
 	return array_values( $result );
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_semantic_normalize_graph', PHP_INT_MAX - 2, 1 );
+
+/** Resolve a callback's source file without executing it. */
+function nvx_schema_runtime_callback_file( $callback ): string {
+	try {
+		if ( $callback instanceof Closure ) {
+			$reflection = new ReflectionFunction( $callback );
+			return (string) $reflection->getFileName();
+		}
+		if ( is_string( $callback ) && function_exists( $callback ) ) {
+			$reflection = new ReflectionFunction( $callback );
+			return (string) $reflection->getFileName();
+		}
+		if ( is_array( $callback ) && 2 === count( $callback ) ) {
+			$class      = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
+			$reflection = new ReflectionMethod( $class, (string) $callback[1] );
+			return (string) $reflection->getFileName();
+		}
+	} catch ( Throwable $error ) {
+		return '';
+	}
+	return '';
+}
+
+/**
+ * Retire legacy standalone Schema emitters after plugins/MU plugins register.
+ *
+ * The canonical structured-data owner is wpseo_schema_graph plus the governed
+ * theme filters above. This deliberately does NOT disable Code Snippets or any
+ * generic output callback: only the two legacy NUVANX Schema emitters proven by
+ * staging forensics are removed. The SEO/GEO breadcrumb callback remains live.
+ */
+function nvx_schema_runtime_retire_legacy_emitters(): void {
+	global $wp_filter;
+
+	if ( isset( $wp_filter['wp_head']->callbacks ) && is_array( $wp_filter['wp_head']->callbacks ) ) {
+		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				$function = $callback['function'] ?? null;
+				if ( 'nvx_seo_geo_output_jsonld' === $function ) {
+					remove_action( 'wp_head', $function, (int) $priority );
+					continue;
+				}
+
+				$file = nvx_schema_runtime_callback_file( $function );
+				if ( '' !== $file && 'nuvanx-home-unified-faq-schema.php' === basename( $file ) ) {
+					remove_action( 'wp_head', $function, (int) $priority );
+				}
+			}
+		}
+	}
+}
+add_action( 'wp_loaded', 'nvx_schema_runtime_retire_legacy_emitters', PHP_INT_MAX );

@@ -126,17 +126,27 @@ foreach ( $conflicts as $collision ) {
     if ( ! ( $post instanceof WP_Post ) ) {
         continue;
     }
-    if ( ! in_array( (string) $post->post_type, array( 'page', 'post' ), true ) ) {
-        fwrite( STDERR, "STAGING_PUBLICATION_COLLISIONS=FAIL reason=unsafe_post_type id={$collisionId}\n" );
+
+    $collisionType = (string) $post->post_type;
+    // Canonical page/post collisions and auto-generated WordPress revisions are
+    // safe to remove on Staging because the full database is snapshotted before
+    // this step. Attachments and arbitrary custom post types remain fail-closed:
+    // deleting them could remove media files or plugin-owned state.
+    if ( ! in_array( $collisionType, array( 'page', 'post', 'revision' ), true ) ) {
+        fwrite(
+            STDERR,
+            "STAGING_PUBLICATION_COLLISIONS=FAIL reason=unsafe_post_type id={$collisionId} type={$collisionType}\n"
+        );
         exit( 1 );
     }
 
     $deleted = wp_delete_post( $collisionId, true );
     if ( ! ( $deleted instanceof WP_Post ) || null !== get_post( $collisionId ) ) {
-        fwrite( STDERR, "STAGING_PUBLICATION_COLLISIONS=FAIL reason=delete_failed id={$collisionId}\n" );
+        fwrite( STDERR, "STAGING_PUBLICATION_COLLISIONS=FAIL reason=delete_failed id={$collisionId} type={$collisionType}\n" );
         exit( 1 );
     }
     clean_post_cache( $collisionId );
+    $collision['post_type'] = $collisionType;
     $removed[] = $collision;
 }
 

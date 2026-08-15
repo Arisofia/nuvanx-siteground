@@ -239,6 +239,63 @@ function _nvx_seo_schema_normalize_clinic_hours( array $hours_list ): array {
 }
 
 /**
+ * Keep only valid Schema.org MedicalSpecialty enum URLs and move descriptive
+ * aesthetic/laser expertise to knowsAbout, which accepts descriptive expertise.
+ *
+ * @param array<string,mixed> $clinic MedicalClinic graph node.
+ * @return array<string,mixed>
+ */
+function _nvx_seo_schema_normalize_clinic_specialty( array $clinic ): array {
+	$valid_members = array(
+		'Anesthesia', 'Cardiovascular', 'CommunityHealth', 'Dentistry', 'Dermatology', 'DietNutrition', 'Emergency',
+		'Endocrine', 'Gastroenterologic', 'Genetic', 'Geriatric', 'Gynecologic', 'Hematologic', 'Infectious',
+		'LaboratoryScience', 'Midwifery', 'Musculoskeletal', 'Neurologic', 'Nursing', 'Obstetric', 'Oncologic',
+		'Optometric', 'Otolaryngologic', 'Pathology', 'Pediatric', 'PharmacySpecialty', 'Physiotherapy', 'PlasticSurgery',
+		'Podiatric', 'PrimaryCare', 'Psychiatric', 'PublicHealth', 'Pulmonary', 'Radiography', 'Renal',
+		'RespiratoryTherapy', 'Rheumatologic', 'SpeechPathology', 'Surgical', 'Toxicologic', 'Urologic',
+	);
+	$valid_urls    = array_map(
+		static function ( string $member ): string {
+			return 'https://schema.org/' . $member;
+		},
+		$valid_members
+	);
+	$specialties   = isset( $clinic['medicalSpecialty'] ) ? (array) $clinic['medicalSpecialty'] : array();
+	$valid         = array();
+	$expertise     = isset( $clinic['knowsAbout'] ) ? (array) $clinic['knowsAbout'] : array();
+
+	foreach ( $specialties as $specialty ) {
+		if ( is_string( $specialty ) && in_array( $specialty, $valid_urls, true ) ) {
+			if ( ! in_array( $specialty, $valid, true ) ) {
+				$valid[] = $specialty;
+			}
+			continue;
+		}
+		if ( is_scalar( $specialty ) ) {
+			$label = trim( (string) $specialty );
+			if ( '' !== $label && ! in_array( $label, $expertise, true ) ) {
+				$expertise[] = $label;
+			}
+		}
+	}
+
+	foreach ( array( 'Medicina estética', 'Medicina láser' ) as $label ) {
+		if ( ! in_array( $label, $expertise, true ) ) {
+			$expertise[] = $label;
+		}
+	}
+
+	if ( empty( $valid ) ) {
+		unset( $clinic['medicalSpecialty'] );
+	} else {
+		$clinic['medicalSpecialty'] = $valid;
+	}
+	$clinic['knowsAbout'] = $expertise;
+
+	return $clinic;
+}
+
+/**
  * Adds organization relationships and default metadata to MedicalClinic nodes.
  *
  * @param array  $graph           The Schema.org graph.
@@ -252,9 +309,9 @@ function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 			continue;
 		}
 
+		$graph[ $index ]                       = _nvx_seo_schema_normalize_clinic_specialty( $graph[ $index ] );
 		$graph[ $index ]['parentOrganization'] = array( '@id' => $organization_id );
 		$graph[ $index ]['priceRange']         = $graph[ $index ]['priceRange'] ?? '€€€';
-		$graph[ $index ]['medicalSpecialty']   = $graph[ $index ]['medicalSpecialty'] ?? array( 'Aesthetic Medicine', 'Laser Medicine' );
 
 		if ( empty( $graph[ $index ]['openingHoursSpecification'] ) || ! is_array( $graph[ $index ]['openingHoursSpecification'] ) ) {
 			continue;

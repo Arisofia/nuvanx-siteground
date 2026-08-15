@@ -1,272 +1,82 @@
 [
-    {
-        "key": "endolift-facial",
-        "name": "Endolift® Facial",
-        "path": "/endolift-facial-papada-mandibula/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Láser subdérmico mínimamente invasivo para retracción tisular y definición facial o corporal, indicado tras exploración médica. Endolift® en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Desde 798,60€",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Endolift® Facial"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "endolaser-corporal",
-        "name": "Endoláser Corporal",
-        "path": "/endolaser-corporal-grasa-localizada/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica. Endoláser corporal en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Tarifas por zona: abdomen 1.694 €, flancos 1.573 €, brazos/muslos 1.331 €",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Endoláser Corporal"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "laser-co2-fraccionado",
-        "name": "Láser CO₂ Fraccionado",
-        "path": "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/NoninvasiveProcedure",
-        "description": "Resurfacing fraccionado para textura, cicatrices, poros y fotodaño con parámetros y recuperación definidos por el médico. Láser CO₂ en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Desde 498€",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Láser CO₂ Fraccionado"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "exion-btl",
-        "name": "Plataforma EXION® BTL",
-        "path": "/exion-btl/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/NoninvasiveProcedure",
-        "description": "Plataforma médica con aplicadores seleccionados según la zona, la calidad de la piel y el resultado esperado.",
-        "additionalFields": {
-            "priceRange": "Desde 395€/sesión (Face)",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "EXION® BTL"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "medicina-estetica-facial",
-        "name": "Medicina Estética Facial",
-        "path": "/medicina-estetica/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/NoninvasiveProcedure",
-        "description": "Servicio médico de planificación facial conservadora con técnicas seleccionadas tras diagnóstico individual.",
-        "additionalFields": {
-            "priceRange": "Según tratamiento indicado",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Medicina Estética Facial"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "bioestimulacion-colageno",
-        "name": "Bioestimulación de colágeno",
-        "path": "/bioestimuladores-colageno-madrid/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Protocolos de estimulación tisular definidos según la calidad cutánea, la indicación médica y los objetivos individuales.",
-        "additionalFields": {
-            "priceRange": "Desde 248€/sesión",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Bioestimulación de colágeno"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "btl-exilite-ipl",
-        "name": "BTL EXILITE™ IPL",
-        "path": "/btl-exilite-ipl-madrid/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/NoninvasiveProcedure",
-        "description": "Luz pulsada médica con parámetros adaptados al fototipo y a la indicación clínica.",
-        "additionalFields": {
-            "priceRange": "Desde 295€/sesión",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "BTL EXILITE™ IPL"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "neuromodulador",
-        "name": "Neuromodulador",
-        "path": "/neuromoduladores-botox-madrid/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Tratamiento con neuromodulador para expresión facial según valoración médica individual. Neuromodulador en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Desde 198€ (zona)",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Neuromodulador"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "acido-hialuronico",
-        "name": "Ácido Hialurónico",
-        "path": "/acido-hialuronico-relleno-madrid/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Relleno con ácido hialurónico para volumen y contorno facial según diagnóstico. Ácido hialurónico en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Desde 290€",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Ácido Hialurónico"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    },
-    {
-        "key": "rinomodelacion",
-        "name": "Rinomodelación",
-        "path": "/rinomodelacion-sin-cirugia-madrid/",
-        "types": [
-            "MedicalProcedure",
-            "Service"
-        ],
-        "procedureType": "https://schema.org/PercutaneousProcedure",
-        "description": "Rinomodelación no quirúrgica con ácido hialurónico según anatomía nasal y valoración médica. Rinomodelación en Chamberí (CS20144) y Salamanca–Goya (CS20073).",
-        "additionalFields": {
-            "priceRange": "Desde 598€",
-            "provider": {
-                "@type": "MedicalOrganization",
-                "name": "NUVANX",
-                "url": "https://nuvanx.com"
-            },
-            "availableService": {
-                "@type": "MedicalProcedure",
-                "name": "Rinomodelación"
-            },
-            "recognizingAuthority": {
-                "@type": "MedicalOrganization",
-                "name": "Sociedad Española de Medicina Estética (SEME)"
-            }
-        }
-    }
+  {
+    "key": "endolift-facial",
+    "name": "Endolift® Facial",
+    "path": "/endolift-facial-papada-mandibula/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Láser subdérmico mínimamente invasivo para retracción tisular y definición facial o corporal, indicado tras exploración médica. Endolift® en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  },
+  {
+    "key": "endolaser-corporal",
+    "name": "Endoláser Corporal",
+    "path": "/endolaser-corporal-grasa-localizada/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica. Endoláser corporal en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  },
+  {
+    "key": "laser-co2-fraccionado",
+    "name": "Láser CO₂ Fraccionado",
+    "path": "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/NoninvasiveProcedure",
+    "description": "Resurfacing fraccionado para textura, cicatrices, poros y fotodaño con parámetros y recuperación definidos por el médico. Láser CO₂ en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  },
+  {
+    "key": "exion-btl",
+    "name": "Plataforma EXION® BTL",
+    "path": "/exion-btl/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/NoninvasiveProcedure",
+    "description": "Plataforma médica con aplicadores seleccionados según la zona, la calidad de la piel y el resultado esperado."
+  },
+  {
+    "key": "medicina-estetica-facial",
+    "name": "Medicina Estética Facial",
+    "path": "/medicina-estetica/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/NoninvasiveProcedure",
+    "description": "Servicio médico de planificación facial conservadora con técnicas seleccionadas tras diagnóstico individual."
+  },
+  {
+    "key": "bioestimulacion-colageno",
+    "name": "Bioestimulación de colágeno",
+    "path": "/bioestimuladores-colageno-madrid/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Protocolos de estimulación tisular definidos según la calidad cutánea, la indicación médica y los objetivos individuales."
+  },
+  {
+    "key": "btl-exilite-ipl",
+    "name": "BTL EXILITE™ IPL",
+    "path": "/btl-exilite-ipl-madrid/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/NoninvasiveProcedure",
+    "description": "Luz pulsada médica con parámetros adaptados al fototipo y a la indicación clínica."
+  },
+  {
+    "key": "neuromodulador",
+    "name": "Neuromodulador",
+    "path": "/neuromoduladores-botox-madrid/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Tratamiento con neuromodulador para expresión facial según valoración médica individual. Neuromodulador en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  },
+  {
+    "key": "acido-hialuronico",
+    "name": "Ácido Hialurónico",
+    "path": "/acido-hialuronico-relleno-madrid/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Relleno con ácido hialurónico para volumen y contorno facial según diagnóstico. Ácido hialurónico en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  },
+  {
+    "key": "rinomodelacion",
+    "name": "Rinomodelación",
+    "path": "/rinomodelacion-sin-cirugia-madrid/",
+    "types": ["MedicalProcedure", "Service"],
+    "procedureType": "https://schema.org/PercutaneousProcedure",
+    "description": "Rinomodelación no quirúrgica con ácido hialurónico según anatomía nasal y valoración médica. Rinomodelación en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+  }
 ]

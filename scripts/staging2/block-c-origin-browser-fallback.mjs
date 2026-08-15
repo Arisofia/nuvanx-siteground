@@ -16,13 +16,6 @@ const publicEdgeEvidenceUrl = new URL('./artifacts/block-c-public-edge-transient
 const hostsMarker = `# NUVANX_BLOCK_C_ORIGIN_BROWSER_${process.pid}`;
 const tunnelPidfile = `/tmp/nuvanx-block-c-tunnel-${process.pid}.pid`;
 
-if (!allowedAliases.has(originSshAlias)) {
-  throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
-}
-if (expectedHost !== 'staging2.nuvanx.com') {
-  throw new Error(`Origin browser fallback is restricted to staging2.nuvanx.com, got ${expectedHost}`);
-}
-
 function run(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, { stdio: options.stdio || 'inherit', env: options.env || process.env });
@@ -182,6 +175,15 @@ async function validateAndMarkFallbackResults() {
 
 export async function runOriginBrowserFallback() {
   if (process.env.BLOCK_C_ORIGIN_BROWSER_FALLBACK === '0') return false;
+  
+  // Move guards inside function to prevent module-level throws during import
+  if (!allowedAliases.has(originSshAlias)) {
+    throw new Error(`ORIGIN_SSH_ALIAS must be one of: ${[...allowedAliases].join(', ')}`);
+  }
+  if (expectedHost !== 'staging2.nuvanx.com') {
+    throw new Error(`Origin browser fallback is restricted to staging2.nuvanx.com, got ${expectedHost}`);
+  }
+  
   await preservePublicEdgeEvidence();
 
   let tunnel = null;

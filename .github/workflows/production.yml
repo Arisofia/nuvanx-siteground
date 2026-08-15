@@ -439,11 +439,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts
-          git fetch --no-tags origin master
-          helper="$RUNNER_TEMP/configure-siteground-ssh.sh"
-          git show origin/master:scripts/production/configure-siteground-ssh.sh > "$helper"
-          bash -n "$helper"
-          bash "$helper"
+          bash -n scripts/production/configure-siteground-ssh.sh
+          bash scripts/production/configure-siteground-ssh.sh
 
       - name: Run verification-only exact-candidate origin audits
         if: ${{ inputs.deploy == false }}

@@ -43,8 +43,41 @@ function extractPhpFunctionBody(content, functionName) {
   let depth = 0;
   let quote = '';
   let escaped = false;
+  let comment = false;
+  let commentLine = false;
   for (let i = open; i < content.length; i += 1) {
     const ch = content[i];
+    const next = content[i + 1] || '';
+    
+    // Handle comment transitions
+    if (!quote && !escaped) {
+      if (commentLine) {
+        if (ch === '\n') commentLine = false;
+        continue;
+      }
+      if (comment) {
+        if (ch === '*' && next === '/') {
+          comment = false;
+          i += 1; // skip both characters
+          continue;
+        }
+        continue;
+      }
+      if (ch === '/' && next === '/') {
+        commentLine = true;
+        i += 1;
+        continue;
+      }
+      if (ch === '/' && next === '*') {
+        comment = true;
+        i += 1;
+        continue;
+      }
+    }
+    
+    // Skip content inside comments
+    if (comment || commentLine) continue;
+    
     if (quote) {
       if (escaped) {
         escaped = false;

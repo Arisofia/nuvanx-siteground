@@ -9,6 +9,14 @@ const ALLOWED_PROCEDURE_TYPES = new Set([
   'https://schema.org/PercutaneousProcedure',
   'https://schema.org/NoninvasiveProcedure',
 ]);
+const ALLOWED_MEDICAL_SPECIALTIES = new Set([
+  'Anesthesia', 'Cardiovascular', 'CommunityHealth', 'Dentistry', 'Dermatologic', 'Dermatology', 'DietNutrition',
+  'Emergency', 'Endocrine', 'Gastroenterologic', 'Genetic', 'Geriatric', 'Gynecologic', 'Hematologic', 'Infectious',
+  'LaboratoryScience', 'Midwifery', 'Musculoskeletal', 'Neurologic', 'Nursing', 'Obstetric', 'Oncologic', 'Optometric',
+  'Otolaryngologic', 'Pathology', 'Pediatric', 'PharmacySpecialty', 'Physiotherapy', 'PlasticSurgery', 'Podiatric',
+  'PrimaryCare', 'Psychiatric', 'PublicHealth', 'Pulmonary', 'Radiography', 'Renal', 'RespiratoryTherapy',
+  'Rheumatologic', 'SpeechPathology', 'Surgical', 'Toxicologic', 'Urologic',
+].map((member) => `https://schema.org/${member}`));
 
 const DEFAULT_ROUTES = [
   '/',
@@ -188,8 +196,8 @@ function validateRouteGraph({ route, html, blocks, expectedHost }) {
         const values = Array.isArray(obj.medicalSpecialty) ? obj.medicalSpecialty : [obj.medicalSpecialty];
         for (const rawValue of values) {
           const value = normalizeSchemaValue(rawValue);
-          if (!/^https:\/\/schema\.org\/[A-Za-z][A-Za-z0-9]*$/.test(value)) {
-            issues.push(`${context.path}: medicalSpecialty must use Schema.org enum @id, got ${value || JSON.stringify(rawValue)}`);
+          if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
+            issues.push(`${context.path}: invalid MedicalSpecialty enum ${value || JSON.stringify(rawValue)}`);
           }
         }
       }

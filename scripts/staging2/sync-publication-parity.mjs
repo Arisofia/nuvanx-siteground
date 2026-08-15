@@ -24,6 +24,7 @@ export async function runStagingPublicationParitySync(options = {}) {
   const release = resolveRelease();
   const manifest = `${release}/theme/inc/data/publication-manifest.json`;
   const exporter = `${release}/tools/migrations/export-production-publication-snapshot.php`;
+  const collisionPrep = `${release}/tools/migrations/prepare-staging-publication-collisions.php`;
   const synchronizer = `${release}/tools/migrations/sync-staging-publication-parity.php`;
 
   const remoteScript = [
@@ -35,6 +36,7 @@ export async function runStagingPublicationParitySync(options = {}) {
     `PUBLICATION_MANIFEST_FILE='${manifest}' wp eval-file '${exporter}' --allow-root > "$snapshot"`,
     'test -s "$snapshot"',
     `cd '${STAGING_ROOT}'`,
+    `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval-file '${collisionPrep}' --allow-root >&2`,
     `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval-file '${synchronizer}' --allow-root`,
   ].join('\n');
 

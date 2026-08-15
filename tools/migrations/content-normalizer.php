@@ -18,8 +18,9 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
     }
 
     // Use the same restrictive pattern as nvxNormalizeMarkdownInline to avoid
-    // detecting links that cannot be converted (links with spaces or titles)
-    return 1 === preg_match( '/\[[^\]]+\]\(([^)\s]+)\)/', $content )
+    // detecting links that cannot be converted (links with spaces or titles).
+    // Explicitly exclude images (![...](...)) since they are handled separately.
+    return 1 === preg_match( '/(?<!!)\[[^\]]+\]\(([^)\s]+)\)/', $content )
         || 1 === preg_match( '/^#{1,6}\s+.+$/m', $content )
         || 1 === preg_match( '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m', $content );
 }
@@ -27,7 +28,26 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
 function nvxNormalizeMarkdownInline( string $text ): string {
     $escaped = esc_html( $text );
 
-    // First, extract Markdown links and replace with placeholders to protect them
+    // First, extract Markdown images and replace with placeholders to protect them
+    // from link and emphasis replacement. This prevents images from being converted
+    // to links with a stray exclamation mark.
+    $imagePlaceholders = array();
+    $escaped = preg_replace_callback(
+        '/!\[([^\]]*)\]\(([^)\s]+)\)/',
+        static function ( array $matches ) use ( &$imagePlaceholders ): string {
+            $alt = (string) $matches[1];
+            $url = html_entity_decode( (string) $matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+            $placeholder = 'NVX_IMAGE_PLACEHOLDER_' . count( $imagePlaceholders );
+            $imagePlaceholders[ $placeholder ] = array(
+                'alt' => $alt,
+                'url' => $url,
+            );
+            return $placeholder;
+        },
+        $escaped
+    ) ?? $escaped;
+
+    // Next, extract Markdown links and replace with placeholders to protect them
     // from emphasis replacement. This prevents emphasis tags from being injected
     // into href attributes when URLs contain underscores or asterisks.
     $linkPlaceholders = array();
@@ -46,13 +66,22 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         $escaped
     ) ?? $escaped;
 
-    // Apply emphasis replacements to the text (now safe since links are placeholdered)
+    // Apply emphasis replacements to the text (now safe since links and images are placeholdered)
     $escaped = preg_replace( '/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/__([^_\n]+)__/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $escaped ) ?? $escaped;
 
-    // Replace placeholders with final anchor markup
+    // Replace image placeholders with final img markup
+    foreach ( $imagePlaceholders as $placeholder => $image ) {
+        $escaped = str_replace(
+            $placeholder,
+            '<img src="' . esc_url( $image['url'] ) . '" alt="' . esc_attr( $image['alt'] ) . '">',
+            $escaped
+        );
+    }
+
+    // Replace link placeholders with final anchor markup
     foreach ( $linkPlaceholders as $placeholder => $link ) {
         $escaped = str_replace(
             $placeholder,
@@ -213,8 +242,9 @@ function nvxNormalizeToHtml( string $content ): string {
 function nvxValidateNormalizedContent( string $content ): array {
     $checks = array(
         // Use the same restrictive pattern as nvxNormalizeMarkdownInline to avoid
-        // requiring conversion for links that cannot be converted (links with spaces or titles)
-        '/\[[^\]]+\]\(([^)\s]+)\)/' => 'Markdown links still present',
+        // requiring conversion for links that cannot be converted (links with spaces or titles).
+        // Explicitly exclude images (![...](...)) since they are handled separately.
+        '/(?<!!)\[[^\]]+\]\(([^)\s]+)\)/' => 'Markdown links still present',
         '/^#{1,6}\s+.+$/m' => 'Markdown headings still present',
         '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
         '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',

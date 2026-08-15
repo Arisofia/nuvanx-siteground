@@ -215,6 +215,8 @@ jobs:
           rsync -az "$CANDIDATE_ROOT/lib/" "nvx-prod:$REMOTE_RELEASE/lib/"
           rsync -az "$CANDIDATE_ROOT/tools/migrations/audit-content-divergence.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
           rsync -az "$CANDIDATE_ROOT/tools/migrations/content-hygiene-shared.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/governed-blog-markdown-hygiene.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/content-normalizer.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
           echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
 
       - name: Execute guarded atomic production cutover

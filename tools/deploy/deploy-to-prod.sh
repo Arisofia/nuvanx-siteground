@@ -66,16 +66,22 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -
 # checkout ($SCRIPT_DIR/../migrations, script at tools/deploy/).
 MIGRATION_SCRIPT=""
 AUDIT_SCRIPT=""
+BLOG_HYGIENE_SCRIPT=""
+CONTENT_NORMALIZER_SCRIPT=""
 for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations"; do
   if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" ]]; then
     MIGRATION_SCRIPT="$candidate_dir/content-hygiene-shared.php"
     AUDIT_SCRIPT="$candidate_dir/audit-content-divergence.php"
+    BLOG_HYGIENE_SCRIPT="$candidate_dir/governed-blog-markdown-hygiene.php"
+    CONTENT_NORMALIZER_SCRIPT="$candidate_dir/content-normalizer.php"
     RULES_LIB="$candidate_dir/../../lib/nvx-content-hygiene-rules.php"
     break
   fi
 done
 [[ -f "$MIGRATION_SCRIPT" ]] || { echo "ERROR: shared content migration missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$AUDIT_SCRIPT" ]] || { echo "ERROR: content divergence audit missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
+[[ -f "$BLOG_HYGIENE_SCRIPT" ]] || { echo "ERROR: governed blog markdown hygiene missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
+[[ -f "$CONTENT_NORMALIZER_SCRIPT" ]] || { echo "ERROR: content normalizer missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$RULES_LIB" ]] || { echo "ERROR: shared content hygiene rules library missing at $RULES_LIB" >&2; exit 1; }
 
 PROD_URL='https://nuvanx.com'

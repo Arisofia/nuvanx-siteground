@@ -12,7 +12,7 @@
  * NEVER add mutation logic here. Rule definitions only.
  *
  * @package NVX\Migrations
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 declare( strict_types = 1 );
@@ -50,7 +50,7 @@ function nvx_hygiene_str_reps(): array {
         [ 'from' => 'Exilitet', 'to' => 'EXILITE™' ],
 
         // ── CTA ──────────────────────────────────────────────────────────────
-        // "Solicitar." with period first to avoid matching the bare word
+        // "Solicitar." with period first to avoid matching the bare word.
         [ 'from' => 'Solicitar.',                 'to' => 'Solicitar valoración médica' ],
 
         // ── Claims ───────────────────────────────────────────────────────────
@@ -64,15 +64,14 @@ function nvx_hygiene_str_reps(): array {
 /**
  * PCRE-regex replacements (patterns without delimiters; flags applied per-rule).
  *
- * Used for accent/entity variants that plain str_replace cannot safely catch
- * (e.g. HTML-entity-encoded vowels, mixed case from CMS editors).
+ * Used for accent/entity variants and governed HTML cleanup that plain
+ * str_replace cannot safely express.
  *
  * @return list<array{pattern: string, replacement: string, flags: string}>
  */
 function nvx_hygiene_regex_reps(): array {
     return [
-        // Handles é/e, ó/o, í/i mixed with HTML entities or incorrect encoding
-        // Word boundaries (\b) prevent matching inside larger words
+        // Handles é/e, ó/o, í/i mixed with HTML entities or incorrect encoding.
         [
             'pattern'     => '\bvaloraci[oó]n\s+m[eé]dica\s+gratu[íi]ta\b',
             'replacement' => 'valoración médica',
@@ -81,6 +80,17 @@ function nvx_hygiene_regex_reps(): array {
         [
             'pattern'     => '\bconsulta\s+m[eé]dica\s+gratu[íi]ta\b',
             'replacement' => 'consulta médica',
+            'flags'       => 'iu',
+        ],
+
+        // Canonical structured data is emitted by the governed Yoast @graph.
+        // Remove only persisted application/ld+json blocks whose own script
+        // body contains a Schema.org signature. The tempered sections prevent
+        // a later script on the page from causing a non-Schema JSON-LD block
+        // to match accidentally.
+        [
+            'pattern'     => '<script\b(?=[^>]*\btype\s*=\s*(["\'])application\/ld\+json\1)[^>]*>(?:(?!<\/script>)[\s\S])*(?:schema\.org|@graph\b|["\']@type["\']\s*:)(?:(?!<\/script>)[\s\S])*<\/script>',
+            'replacement' => '',
             'flags'       => 'iu',
         ],
     ];

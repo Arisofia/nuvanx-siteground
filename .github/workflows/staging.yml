@@ -152,7 +152,6 @@ jobs:
           data='wp-content/themes/nuvanx-medical/inc/data/routes.json'
           if [[ -f "$schema" && -f "$data" ]]; then node scripts/lint/validate-routes-schema.mjs "$schema" "$data"; fi
           bash -n tools/deploy/deploy-to-staging2.sh
-          bash -n tools/deploy/deploy-required-mu-plugins.sh
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
           bash -n scripts/ci/test-mutation-fifo-contract.sh
@@ -456,17 +455,15 @@ jobs:
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/tools/migrations' '$REMOTE_RELEASE/lib'"
           rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
           rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
-          rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging2:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
           rsync -az lib/ "nvx-staging2:$REMOTE_RELEASE/lib/"
           rsync -az tools/migrations/ "nvx-staging2:$REMOTE_RELEASE/tools/migrations/"
 
-      - name: Deploy theme, required MU plugins and content hygiene
+      - name: Deploy theme and content hygiene
         if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
-          ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
 
           ssh nvx-staging2 \
             "cd '$STAGING_ROOT' && \
@@ -958,12 +955,10 @@ jobs:
           echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
           ssh nvx-staging2-pr "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/tools/migrations' '$REMOTE_RELEASE/lib'"
           rsync -az --delete --exclude='.git' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical/" "nvx-staging2-pr:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-staging2.sh tools/deploy/deploy-required-mu-plugins.sh "nvx-staging2-pr:$REMOTE_RELEASE/"
           rsync -az lib/ "nvx-staging2-pr:$REMOTE_RELEASE/lib/"
           rsync -az tools/migrations/ "nvx-staging2-pr:$REMOTE_RELEASE/tools/migrations/"
           echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
           ssh nvx-staging2-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$PR_SHA' --confirm"
-          ssh nvx-staging2-pr "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$STAGING_ROOT' --confirm"
 
           ssh nvx-staging2-pr \
             "cd '$STAGING_ROOT' && \

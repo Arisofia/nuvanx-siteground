@@ -6,7 +6,6 @@ Canonical source repository for the NUVANX WordPress theme and the operational t
 
 - Canonical source branch: `master`
 - Theme: `wp-content/themes/nuvanx-medical/`
-- Required MU plugin source: `wp-content/mu-plugins/`
 - Staging2: `https://staging2.nuvanx.com`
 - Production: `https://nuvanx.com`
 - Deployment identity: exact 40-character Git SHA stored in `.nvx-deploy-sha`
@@ -61,7 +60,6 @@ Then run the canonical entrypoint from the repository root with `EXPECTED_SHA` s
 
 - `tools/deploy/deploy-to-staging2.sh`
 - `tools/deploy/deploy-to-prod.sh`
-- `tools/deploy/deploy-required-mu-plugins.sh`
 - `tools/deploy/flush-prod-cache.sh`
 - `tools/wp-cli/`
 

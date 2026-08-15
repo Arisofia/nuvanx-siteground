@@ -73,6 +73,14 @@ class wpdb {
 	}
 }
 
+function clean_post_cache( $post_id ) {
+	// Cache repair function for production implementation
+}
+
+function wp_cache_set( $key, $value, $group ) {
+	// Cache repair function for production implementation
+}
+
 $GLOBALS['nvx_test_path'] = '/matriz-diagnostico-facial-estructura-piel-musculo-grasa/';
 $GLOBALS['nvx_test_404']  = true;
 $GLOBALS['nvx_test_poison_cache'] = false;

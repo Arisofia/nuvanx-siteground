@@ -46,11 +46,20 @@ function nvx_document_governance_request_path(): string {
 
 /**
  * Resolve a published post by its exact post_name slug across caches and fallback queries.
+ *
+ * Memoized per-request to avoid repeated DB queries when called from multiple filters.
  */
 function nvx_document_governance_get_published_post_by_slug( string $slug ): ?WP_Post {
+	static $cache = array();
+
 	$slug = sanitize_title( $slug );
 	if ( '' === $slug ) {
 		return null;
+	}
+
+	// Return cached result if available
+	if ( isset( $cache[ $slug ] ) ) {
+		return $cache[ $slug ];
 	}
 
 	$result = null;
@@ -99,12 +108,16 @@ function nvx_document_governance_get_published_post_by_slug( string $slug ): ?WP
 				&& $slug === (string) $row->post_name
 			) {
 				$found = new WP_Post( $row );
-				if ( 'publish' === $found->post_status && $slug === $found->post_name ) {
-					$result = $found;
-				}
+				// Repair the poisoned post cache so downstream consumers also see the corrected row
+				clean_post_cache( (int) $row->ID );
+				wp_cache_set( (int) $row->ID, $found, 'posts' );
+				$result = $found;
 			}
 		}
 	}
+
+	// Cache the result for this request
+	$cache[ $slug ] = $result;
 
 	return $result;
 }

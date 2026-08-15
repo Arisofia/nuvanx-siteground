@@ -124,8 +124,20 @@ function validatePhpMedicalSpecialties(file, content) {
       addViolation(file, 'medicalSpecialty', `medicalSpecialty must be a Schema.org MedicalSpecialty enum URL: ${match[1]}`);
     }
   }
+
   const literalArrays = /['"`]medicalSpecialty['"`]\s*=>\s*array\s*\(([^)]*)\)/g;
   for (const match of content.matchAll(literalArrays)) {
+    const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
+    for (const value of values) {
+      if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {
+        addViolation(file, 'medicalSpecialty', `medicalSpecialty array contains non-enum value: ${value}`);
+      }
+    }
+  }
+
+  // Support PHP short array syntax: medicalSpecialty => ['https://schema.org/Dermatology']
+  const shortArrays = /['"`]medicalSpecialty['"`]\s*=>\s*\[([^\]]*)\]/g;
+  for (const match of content.matchAll(shortArrays)) {
     const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
     for (const value of values) {
       if (!ALLOWED_MEDICAL_SPECIALTIES.has(value)) {

@@ -149,7 +149,6 @@ function nvx_theme_show_cta_banner(): bool {
  * Filemtime asset version with a theme-version fallback.
  *
  * @param string $relative_path Relative path to the asset.
- * @return string Asset version.
  */
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );
@@ -183,7 +182,7 @@ function nvx_theme_scripts(): void {
 		);
 	}
 
-	if ( function_exists( 'nvx_theme_is_treatments_hub' ) && nvx_theme_is_treatments_hub() ) {
+	if ( function_exists( 'nvx_theme_is_treatments_hub_page' ) && nvx_theme_is_treatments_hub_page() ) {
 		wp_enqueue_style(
 			'nvx-portfolio-hub',
 			$css . 'nvx-portfolio-hub.css',
@@ -270,6 +269,7 @@ require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
 require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
+require_once get_template_directory() . '/inc/nvx-schema-semantic-governance.php';
 
 // 3. Core UI Components
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';

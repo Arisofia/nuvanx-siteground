@@ -26,6 +26,16 @@ export async function runJsonLdStorageDiagnostic(options = {}) {
   // wp eval-file evaluates the file body and therefore makes a top-level
   // declare(strict_types=1) illegal. wp eval + require compiles the diagnostic
   // as a normal PHP file, preserving its strict-types contract.
+  //
+  // NOTE: This premise should be verified against the installed WP-CLI version.
+  // Depending on WP-CLI version, eval-file may include real file paths (only
+  // using eval() for stdin), in which case strict types would have been legal.
+  // The captured scripts/staging2/artifacts/jsonld-storage-diagnostic.log from
+  // the next staging run should be checked for the actual PHP error text to
+  // confirm this was the root cause of the Staging #1010 abort.
+  //
+  // SECURITY: The double-quoted require argument is safe from remote shell
+  // expansion only because safeRemotePath restricts the path to [A-Za-z0-9_./-].
   const remoteCommand = `cd '${stagingRoot}' && wp eval "require '${diagnosticScript}';" --allow-root`;
 
   const result = spawnSync(

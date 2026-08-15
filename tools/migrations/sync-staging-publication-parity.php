@@ -3,10 +3,13 @@
  * Transactionally reconcile Staging2 page/post publication state from a
  * Production snapshot that has already passed the committed manifest contract.
  *
+ * This file is executed through `wp eval-file`. Do not add a strict_types
+ * declaration here: WP-CLI evaluates the file inside an existing PHP execution
+ * context, where `declare(strict_types=1)` is no longer the first statement and
+ * causes a fatal error before the reconciliation can run.
+ *
  * @package NVX\Migrations
  */
-
-declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
     fwrite( STDERR, "STAGING_PUBLICATION_PARITY=FAIL reason=wordpress_not_loaded\n" );

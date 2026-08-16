@@ -244,7 +244,7 @@ ob_start();
 		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Primero el diagnóstico médico. Luego, el tratamiento adecuado</h2>
 		<p class="nvx-home-closure__desc">Presupuesto y plan documentado por escrito en la primera visita. Tiempos de recuperación informados según el protocolo.</p>
 		<div class="nvx-home-closure__actions">
-			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Definir mi plan clínico</a>
+			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">Definir mi plan clínico</a>
 			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
 		</div>
 	</section>

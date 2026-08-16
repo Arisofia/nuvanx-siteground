@@ -61,4 +61,32 @@ assert.match(
   'Runtime configuration must include a form ID when output buffering is bypassed',
 );
 
-console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1');
+// Dedicated conversion route must recover from an optimizer dropping/delaying
+// nvx-runtime-governance without creating a second form or portal loader.
+assert.match(
+  managedPage,
+  /function nvx_valoracion_hubspot_bootstrap_markup\(\): string/,
+  'Managed valoración page must retain its deterministic HubSpot recovery bootstrap',
+);
+assert.match(
+  managedPage,
+  /frames\[i\]\.remove\(\)/,
+  'Valoration bootstrap must remove extra HubSpot frames inside the canonical host',
+);
+assert.match(
+  managedPage,
+  /#nvx-hubspot-forms-runtime,script\[data-nvx-hubspot-canonical=/,
+  'Valoration bootstrap must reuse an existing canonical loader before injecting one',
+);
+assert.match(
+  managedPage,
+  /script\.dataset\.nvxHubspotCanonical="1"/,
+  'Valoration bootstrap fallback loader must identify itself as the canonical recovery owner',
+);
+assert.doesNotMatch(
+  managedPage,
+  /https:\/\/js-eu1\.hsforms\.net\/forms\/embed\/147416356\.js/,
+  'Managed PHP must not expose a literal eager hsforms URL that consent/optimizer scanners can rewrite',
+);
+
+console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1');

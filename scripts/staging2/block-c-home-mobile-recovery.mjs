@@ -15,6 +15,7 @@ import {
   BLOCK_C_BROWSER_UA,
   BLOCK_C_RECOVERY_TARGETS,
   BLOCK_C_VIEWPORTS,
+  BlockCBrowserConfigError,
   getCanonicalViewport,
 } from './block-c-browser-config.mjs';
 import {
@@ -38,10 +39,6 @@ const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
 const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
 const csvPath = path.join(artifactsDir, 'block-c-results.csv');
 const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
-const targetViewport = getCanonicalViewport(targetConfig.viewportKey);
-const targetRoute = targetConfig.route;
-const targetUrl = `${baseUrl}${targetRoute}`;
-const screenshotPath = path.join(screenshotDir, `${targetConfig.screenshotStem}.jpg`);
 
 function sanitizeLogValue(value) {
   return String(value ?? '').replace(/\s+/g, '_').slice(0, 500);
@@ -60,6 +57,33 @@ function logConfigFailure(reason) {
 function logTransient(reason) {
   console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=${sanitizeLogValue(reason)}`);
   return EX_TEMPFAIL;
+}
+
+function resolveRecoveryTarget() {
+  try {
+    if (!targetConfig || typeof targetConfig !== 'object') {
+      throw new BlockCBrowserConfigError('Missing Block C home mobile recovery target');
+    }
+    if (typeof targetConfig.route !== 'string' || !targetConfig.route.startsWith('/')) {
+      throw new BlockCBrowserConfigError('Invalid Block C recovery route', { route: targetConfig.route });
+    }
+    if (typeof targetConfig.screenshotStem !== 'string' || !targetConfig.screenshotStem.trim()) {
+      throw new BlockCBrowserConfigError('Invalid Block C recovery screenshot stem', { screenshotStem: targetConfig.screenshotStem });
+    }
+    const viewport = getCanonicalViewport(targetConfig.viewportKey);
+    return Object.freeze({
+      viewport,
+      route: targetConfig.route,
+      url: `${baseUrl}${targetConfig.route}`,
+      screenshotPath: path.join(
+        screenshotDir,
+        `${targetConfig.screenshotStem}--${viewport.key}--public-recovery.jpg`
+      ),
+    });
+  } catch (error) {
+    if (error instanceof BlockCBrowserConfigError) return { configError: error };
+    throw error;
+  }
 }
 
 async function writeTextAtomic(filePath, content) {
@@ -251,6 +275,17 @@ async function main() {
   if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
     return logConfigFailure(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
   }
+
+  const resolvedTarget = resolveRecoveryTarget();
+  if (resolvedTarget.configError) {
+    return logConfigFailure(resolvedTarget.configError.message);
+  }
+  const {
+    viewport: targetViewport,
+    route: targetRoute,
+    url: targetUrl,
+    screenshotPath,
+  } = resolvedTarget;
 
   let results;
   try {

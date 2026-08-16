@@ -40,9 +40,10 @@ $editorialRules = array(
         'description' => 'Draft/review workflow language in published content',
     ),
     'generic_placeholders' => array(
-        // Require explicit editorial-marker syntax. Bare "placeholder" is a
-        // legitimate HTML/data attribute used by Complianz and form controls.
-        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu',
+        // Require explicit editorial-marker syntax. Bare "placeholder" and
+        // technical identifiers such as `cmplz-placeholder-parent` are valid.
+        // A hyphen counts as a marker separator only when followed by space.
+        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*(?::|[—–]|-\s+)\s*)/iu',
         'description' => 'Editorial placeholder in published content',
     ),
     'inline_styles' => array(

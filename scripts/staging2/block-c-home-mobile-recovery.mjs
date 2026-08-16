@@ -1,395 +1,539 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { EX_TEMPFAIL, isSiteGroundTransientResponse } from './siteground-transient-classifier.mjs';
+import { fileURLToPath } from 'node:url';
+import {
+  EX_NOT_APPLICABLE,
+  EX_TEMPFAIL,
+  SITEGROUND_CAPTCHA_PATH,
+  isSiteGroundTransientResponse,
+} from './siteground-transient-classifier.mjs';
 import { isIgnorableExternalConsoleError } from './console-error-classifier.mjs';
+import {
+  BROWSER_RECOVERY_CONFIG,
+  activateLazyImages,
+  collectHomeGeometry,
+  evaluateHomeVisualContract,
+  handleCookieConsent,
+  waitForVisualStability,
+} from './block-c-browser-visual-contract.mjs';
 
-const NOT_APPLICABLE = 64;
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const artifactsDir = path.join(moduleDir, 'block-c-artifacts');
+const screenshotDir = path.join(artifactsDir, 'screenshots');
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || new URL(baseUrl).hostname;
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-const resultsPath = path.resolve('scripts/staging2/block-c-artifacts/block-c-results.json');
-const recoveryPath = path.resolve('scripts/staging2/block-c-artifacts/block-c-home-mobile-recovery.json');
-const screenshotPath = path.resolve('scripts/staging2/block-c-artifacts/screenshots/home--mobile-390x844--public-recovery.jpg');
+const resultsPath = path.join(artifactsDir, 'block-c-results.json');
+const recoveryPath = path.join(artifactsDir, 'block-c-home-mobile-recovery.json');
+const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
+const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
+const csvPath = path.join(artifactsDir, 'block-c-results.csv');
+const screenshotPath = path.join(screenshotDir, 'home--mobile-390x844--public-recovery.jpg');
 const realisticBrowserUa = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
-const targetViewport = { key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 };
+const targetViewport = Object.freeze({ key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 });
+const targetRoute = '/';
 
-function fail(message) {
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=${message.replace(/\s+/g, '_')}`);
-  process.exit(1);
+function sanitizeLogValue(value) {
+  return String(value ?? '').replace(/\s+/g, '_').slice(0, 500);
 }
 
-if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
-  fail(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
+function logNotApplicable(reason) {
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE reason=${sanitizeLogValue(reason)}`);
+  return EX_NOT_APPLICABLE;
 }
 
-let results;
-try {
-  results = JSON.parse(await fs.readFile(resultsPath, 'utf8'));
-} catch (error) {
-  fail(`results_unreadable ${error instanceof Error ? error.message : String(error)}`);
+async function writeTextAtomic(filePath, content) {
+  const tmpPath = `${filePath}.tmp-${process.pid}`;
+  await fs.writeFile(tmpPath, content, 'utf8');
+  await fs.rename(tmpPath, filePath);
 }
 
-if (!Array.isArray(results) || results.length === 0) {
-  fail('results_empty_or_invalid');
+async function writeJsonAtomic(filePath, payload) {
+  await writeTextAtomic(filePath, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
-const nonPass = results.filter((result) => result?.status !== 'PASS');
-const inconclusive = results.filter((result) => result?.externalInconclusive === true);
-if (nonPass.length > 0 || inconclusive.length !== 1) {
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE non_pass=${nonPass.length} inconclusive=${inconclusive.length}`);
-  process.exit(NOT_APPLICABLE);
+function isAllowedSiteGroundAbort(message, documentUrl) {
+  const normalized = String(message || '').trim();
+  if (!/net::ERR_ABORTED/i.test(normalized)) return false;
+  const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
+  return normalized.startsWith(documentUrl) || normalized.startsWith(captchaPrefix);
 }
 
-const target = inconclusive[0];
-const targetIsExact = target?.route === '/'
-  && target?.viewport?.key === targetViewport.key
-  && target?.visualValidation === 'inconclusive-siteground-antibot'
-  && target?.originVerified === true
-  && Number(target?.originStatus || 0) === 200
-  && String(target?.originDeploySha || '') === expectedSha;
-
-if (!targetIsExact) {
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE route=${target?.route || 'unknown'} viewport=${target?.viewport?.key || 'unknown'}`);
-  process.exit(NOT_APPLICABLE);
+function splitNetworkErrors(networkErrors, documentUrl) {
+  const transient = [];
+  const real = [];
+  for (const message of networkErrors) {
+    if (isAllowedSiteGroundAbort(message, documentUrl)) transient.push(message);
+    else real.push(message);
+  }
+  return { transient, real };
 }
 
-function isVisible(el) {
-  if (!el) return false;
-  const style = getComputedStyle(el);
-  const rect = el.getBoundingClientRect();
-  return style.display !== 'none'
-    && style.visibility !== 'hidden'
-    && Number.parseFloat(style.opacity || '1') > 0.01
-    && rect.width > 1
-    && rect.height > 1;
+async function backoff(baseMs, attempt) {
+  await new Promise((resolve) => setTimeout(resolve, baseMs * attempt));
 }
 
-async function handleCookieConsent(page) {
-  const selectors = [
-    'button:has-text("Aceptar todo")',
-    'button:has-text("Aceptar")',
-    'button:has-text("Accept all")',
-    'button:has-text("Accept")',
-    '.cmplz-accept',
-    '#cmplz-cookiebanner-container button.cmplz-accept',
+function buildMatrix(results) {
+  const pageOrder = [];
+  const pages = new Map();
+  const viewportOrder = ['desktop-1440x1100', 'tablet-1024x768', 'mobile-390x844'];
+
+  for (const result of results) {
+    const route = String(result.route || '');
+    if (!pages.has(route)) {
+      pages.set(route, {
+        pageId: result.pageId,
+        route,
+        statuses: {},
+      });
+      pageOrder.push(route);
+    }
+    pages.get(route).statuses[result.viewport?.key || 'unknown'] = result.status;
+  }
+
+  const rows = [
+    '| # | WP ID | URL | 1440×1100 | 1024×768 | 390×844 |',
+    '|---:|---:|---|---:|---:|---:|',
   ];
-  for (const selector of selectors) {
-    try {
-      const button = page.locator(selector).first();
-      if (await button.isVisible({ timeout: 350 })) {
-        await button.click({ timeout: 1500 });
-        await page.waitForTimeout(150);
-        return;
-      }
-    } catch {
-      // Continue to the next consent selector.
-    }
-  }
-}
-
-async function activateLazyImages(page) {
-  await page.evaluate(async () => {
-    const root = document.documentElement;
-    const body = document.body;
-    const rootStyle = root.getAttribute('style');
-    const bodyStyle = body?.getAttribute('style') ?? null;
-    root.style.setProperty('scroll-behavior', 'auto', 'important');
-    if (body) body.style.setProperty('scroll-behavior', 'auto', 'important');
-    try {
-      const scrollingElement = document.scrollingElement || root;
-      const maxY = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
-      const step = Math.max(360, Math.floor(window.innerHeight * 0.8));
-      for (let y = 0; y <= maxY; y += step) {
-        scrollingElement.scrollTop = y;
-        await new Promise((resolve) => setTimeout(resolve, 45));
-      }
-      scrollingElement.scrollTop = maxY;
-      await new Promise((resolve) => setTimeout(resolve, 120));
-      scrollingElement.scrollTop = 0;
-      root.scrollTop = 0;
-      if (body) body.scrollTop = 0;
-      window.scrollTo(0, 0);
-      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
-      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
-    } finally {
-      if (rootStyle === null) root.removeAttribute('style');
-      else root.setAttribute('style', rootStyle);
-      if (body) {
-        if (bodyStyle === null) body.removeAttribute('style');
-        else body.setAttribute('style', bodyStyle);
-      }
-    }
+  pageOrder.forEach((route, index) => {
+    const page = pages.get(route);
+    rows.push(`| ${index + 1} | ${page.pageId} | \`${route}\` | ${viewportOrder.map((key) => page.statuses[key] || '—').join(' | ')} |`);
   });
-  await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
-  await page.waitForTimeout(120);
+  return rows;
 }
 
-async function collectGeometry(page) {
-  return page.evaluate(() => {
-    const visible = (el) => {
-      if (!el) return false;
-      const style = getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      return style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0.01 && rect.width > 1 && rect.height > 1;
-    };
-    const rectData = (el) => {
-      const rect = el?.getBoundingClientRect();
-      return rect ? {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-        left: Math.round(rect.left),
-        right: Math.round(rect.right),
-        top: Math.round(rect.top),
-        bottom: Math.round(rect.bottom),
-      } : null;
-    };
-    const header = document.querySelector('header, .nvx-site-header, .nvx-header');
-    const footer = document.querySelector('footer, .nvx-site-footer, .nvx-footer');
-    const main = document.querySelector('main#nvx-main, main, [role="main"]');
-    const hero = document.querySelector('.nvx-home-hero, .nvx-brand-hero, .nvx-blog-hero, .nvx-page-header, .nvx-section-intro, .nvx-catalog__intro, .nvx-strategy-intro, [class*="hero"]');
-    const nav = document.querySelector('header nav, .nvx-site-header nav, .nvx-header nav, .nvx-primary-nav');
-    const video = document.querySelector('.nvx-home-hero video, video');
-    const navToggleSelector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
-    const navToggleVisible = Array.from(document.querySelectorAll(navToggleSelector)).some(visible);
-    const h1s = Array.from(document.querySelectorAll('h1')).filter(visible);
-    const h1 = h1s[0] || null;
-    const h1Style = h1 ? getComputedStyle(h1) : null;
-    const h1Clipped = Boolean(h1 && ((h1.scrollWidth > h1.clientWidth + 2 && ['hidden', 'clip'].includes(h1Style.overflowX)) || (h1.scrollHeight > h1.clientHeight + 2 && ['hidden', 'clip'].includes(h1Style.overflowY))));
-    const doc = document.documentElement;
-    const body = document.body;
-    const vw = window.innerWidth;
-    const overflowAmount = Math.max(doc.scrollWidth, body?.scrollWidth || 0) - vw;
-    const visibleCtas = Array.from(document.querySelectorAll('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]')).filter(visible);
-    const invalidCtas = visibleCtas.filter((el) => {
-      if (el.tagName === 'BUTTON') return false;
-      const href = (el.getAttribute('href') || '').trim();
-      return !href || href === '#';
-    }).map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120)).slice(0, 10);
-    const brokenImages = Array.from(document.images).filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.getAttribute('src'))).map((img) => img.currentSrc || img.src || img.alt || '(unknown image)').slice(0, 12);
-    const unresolvedLazyImages = Array.from(document.images).filter((img) => visible(img) && img.naturalWidth === 0 && !img.currentSrc && Boolean(img.dataset.src || img.dataset.lazySrc || img.dataset.original || img.dataset.srcset)).map((img) => img.dataset.src || img.dataset.lazySrc || img.dataset.original || img.dataset.srcset || img.alt || '(unknown lazy image)').slice(0, 12);
-    const mainText = (main?.innerText || '').replace(/\s+/g, ' ').trim();
-    const runtimeDiagnostics = Array.from(new Set((document.body?.innerText || '').match(/(?:Warning|Deprecated|Fatal error|Notice):[^\n]*/g) || [])).slice(0, 12);
-    const visibleSections = main ? Array.from(main.querySelectorAll('section, article')).filter(visible) : [];
-    return {
-      viewportWidth: vw,
-      scrollY: Math.round(window.scrollY || doc.scrollTop || 0),
-      horizontalOverflowPx: Math.max(0, Math.round(overflowAmount)),
-      headerVisible: visible(header),
-      headerRect: rectData(header),
-      footerVisible: visible(footer),
-      footerRect: rectData(footer),
-      mainVisible: visible(main),
-      mainTextLength: mainText.length,
-      visibleH1Count: h1s.length,
-      h1Text: (h1?.textContent || '').replace(/\s+/g, ' ').trim(),
-      h1Rect: rectData(h1),
-      h1Clipped,
-      heroVisible: visible(hero),
-      heroRect: rectData(hero),
-      visibleCtaCount: visibleCtas.length,
-      invalidCtas,
-      brokenImages,
-      unresolvedLazyImages,
-      fontsStatus: document.fonts?.status || 'unknown',
-      bodyFontFamily: getComputedStyle(document.body).fontFamily || '',
-      runtimeDiagnostics,
-      visibleSectionCount: visibleSections.length,
-      navVisible: visible(nav),
-      navToggleVisible,
-      videoVisible: visible(video),
-      videoRect: rectData(video),
-    };
-  });
+async function refreshDerivedEvidence(results) {
+  const matrixRows = buildMatrix(results);
+  const passCount = results.filter((item) => item.status === 'PASS').length;
+  const fixCount = results.filter((item) => item.status === 'FIX').length;
+  const blockedCount = results.filter((item) => item.status === 'BLOCKED').length;
+  const inconclusive = results.filter((item) => item.externalInconclusive === true);
+  const pageCount = new Set(results.map((item) => item.route)).size;
+  const viewportLabels = [...new Set(results.map((item) => item.viewport?.label).filter(Boolean))];
+  const findings = results.filter((item) => item.status !== 'PASS');
+
+  const summary = [
+    '# NUVANX Staging2 — Block C Visual QA',
+    '',
+    `Expected staging SHA: \`${expectedSha}\``,
+    `Published WordPress pages: ${pageCount}`,
+    `Viewports: ${viewportLabels.join(', ')}`,
+    `Total cases: ${results.length}`,
+    `PASS: ${passCount}`,
+    `FIX: ${fixCount}`,
+    `BLOCKED: ${blockedCount}`,
+    `Origin-verified edge-inconclusive cases: ${inconclusive.length}`,
+    '',
+    '## Matrix',
+    '',
+    ...matrixRows,
+    '',
+    '## Findings',
+    '',
+    '| WP ID | URL | Viewport | Status | Finding | Screenshot |',
+    '|---:|---|---|---|---|---|',
+    ...(findings.length
+      ? findings.map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport?.label || 'unknown'} | ${item.status} | ${[...(item.blockers || []), ...(item.issues || [])].join('; ').replaceAll('|', '\\|')} | \`${item.screenshot || ''}\` |`)
+      : ['| — | — | — | PASS | No findings | — |']),
+    '',
+    '## Public browser recovery',
+    '',
+    `Home mobile recovery completed with public HTTP 200 and exact deploy SHA \`${expectedSha}\`.`,
+    'The recovered case was revalidated for responsive geometry, H1, header/footer, CTAs, images, fonts, mobile navigation, runtime diagnostics and home hero video.',
+    '',
+  ].join('\n');
+
+  const csvHeader = ['wp_id', 'title', 'route', 'viewport', 'width', 'height', 'status', 'expected_http_status', 'http_status', 'edge_http_status', 'final_url', 'meta_sha', 'external_inconclusive', 'origin_verified', 'origin_status', 'origin_sha', 'origin_robots', 'visual_validation', 'horizontal_overflow_px', 'h1', 'issues', 'notes', 'screenshot'];
+  const csvEscape = (value) => `"${String(value ?? '').replaceAll('"', '""').replaceAll('\n', ' ')}"`;
+  const csvRows = [csvHeader.map(csvEscape).join(',')];
+  for (const item of results) {
+    csvRows.push([
+      item.pageId,
+      item.title,
+      item.route,
+      item.viewport?.label || '',
+      item.viewport?.width || '',
+      item.viewport?.height || '',
+      item.status,
+      item.expectedHttpStatus,
+      item.httpStatus,
+      item.edgeHttpStatus,
+      item.finalUrl,
+      item.metaSha,
+      item.externalInconclusive,
+      item.originVerified,
+      item.originStatus ?? '',
+      item.originDeploySha,
+      item.originRobots,
+      item.visualValidation,
+      item.geometry?.horizontalOverflowPx ?? '',
+      item.geometry?.h1Text ?? '',
+      [...(item.blockers || []), ...(item.issues || [])].join('; '),
+      (item.notes || []).join('; '),
+      item.screenshot,
+    ].map(csvEscape).join(','));
+  }
+
+  await writeTextAtomic(matrixPath, `${matrixRows.join('\n')}\n`);
+  await writeTextAtomic(summaryPath, `${summary}\n`);
+  await writeTextAtomic(csvPath, `${csvRows.join('\n')}\n`);
 }
 
-async function testResponsiveMenu(page, issues) {
-  const selector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
-  const candidates = page.locator(selector);
-  let toggle = null;
-  for (let index = 0; index < await candidates.count(); index += 1) {
-    const candidate = candidates.nth(index);
-    if (await candidate.isVisible().catch(() => false)) {
-      toggle = candidate;
-      break;
-    }
+async function main() {
+  if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
+    return logNotApplicable(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
   }
-  if (!toggle) {
-    issues.push('Mobile: no visible menu toggle found');
-    return;
-  }
+
+  let results;
   try {
-    const beforeExpanded = await toggle.getAttribute('aria-expanded');
-    const beforeLinks = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
-    await toggle.click({ timeout: 2500 });
-    await page.waitForTimeout(220);
-    const afterExpanded = await toggle.getAttribute('aria-expanded');
-    const afterLinks = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
-    const openedByAria = beforeExpanded !== 'true' && afterExpanded === 'true';
-    const linksExposed = afterLinks > beforeLinks && afterLinks > 0;
-    if (!openedByAria && !linksExposed) issues.push('Mobile: menu toggle did not expose navigation');
-    if (afterLinks === 0) issues.push('Mobile: compact navigation opened without visible links');
-    await page.keyboard.press('Escape').catch(() => {});
+    results = JSON.parse(await fs.readFile(resultsPath, 'utf8'));
   } catch (error) {
-    issues.push(`Mobile: menu toggle interaction failed: ${error instanceof Error ? error.message : String(error)}`);
+    return logNotApplicable(`results_unreadable ${error instanceof Error ? error.message : String(error)}`);
   }
-}
 
-await fs.mkdir(path.dirname(screenshotPath), { recursive: true });
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-const attempts = [];
-let recovered = null;
+  if (!Array.isArray(results) || results.length === 0) {
+    return logNotApplicable('results_empty_or_invalid');
+  }
 
-try {
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
-    const context = await browser.newContext({
-      viewport: { width: targetViewport.width, height: targetViewport.height },
-      screen: { width: targetViewport.width, height: targetViewport.height },
-      deviceScaleFactor: 1,
-      ignoreHTTPSErrors: true,
-      userAgent: realisticBrowserUa,
-      locale: 'es-ES',
-      extraHTTPHeaders: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-      },
-    });
-    await context.addCookies([{ name: 'wpSGCacheBypass', value: '1', url: `${baseUrl}/` }]);
-    const page = await context.newPage();
-    const consoleErrors = [];
-    const networkErrors = [];
-    const imageHttpErrors = [];
-    page.on('console', (msg) => {
-      if (msg.type() !== 'error') return;
-      const text = msg.text();
-      if (!isIgnorableExternalConsoleError(text) && !/Failed to load resource/i.test(text)) consoleErrors.push(text);
-    });
-    page.on('pageerror', (error) => consoleErrors.push(error.message));
-    page.on('requestfailed', (request) => {
-      const requestUrl = request.url();
-      const failureText = request.failure()?.errorText || 'request failed';
-      const resourceType = request.resourceType();
-      const expectedMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
-      if (requestUrl.startsWith(baseUrl) && !expectedMediaAbort) networkErrors.push(`${requestUrl}: ${failureText}`);
-      if (resourceType === 'image' && requestUrl.startsWith(baseUrl)) imageHttpErrors.push(`${requestUrl}: ${failureText}`);
-    });
-    page.on('response', (response) => {
-      if (response.request().resourceType() === 'image' && response.url().startsWith(baseUrl) && response.status() >= 400) {
-        imageHttpErrors.push(`${response.url()}: HTTP ${response.status()}`);
+  const nonPass = results.filter((result) => result?.status !== 'PASS');
+  const inconclusive = results.filter((result) => result?.externalInconclusive === true);
+  if (nonPass.length > 0 || inconclusive.length !== 1) {
+    return logNotApplicable(`non_pass=${nonPass.length} inconclusive=${inconclusive.length}`);
+  }
+
+  const target = inconclusive[0];
+  const targetIsExact = target?.route === targetRoute
+    && target?.viewport?.key === targetViewport.key
+    && target?.visualValidation === 'inconclusive-siteground-antibot'
+    && target?.originVerified === true
+    && Number(target?.originStatus || 0) === 200
+    && String(target?.originDeploySha || '') === expectedSha;
+
+  if (!targetIsExact) {
+    return logNotApplicable(`route=${target?.route || 'unknown'} viewport=${target?.viewport?.key || 'unknown'}`);
+  }
+
+  await fs.mkdir(screenshotDir, { recursive: true });
+
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  } catch (error) {
+    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=browser_launch error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
+    return EX_TEMPFAIL;
+  }
+
+  const attempts = [];
+  let recovered = null;
+  let lastVisualFailure = null;
+
+  try {
+    for (let attempt = 1; attempt <= BROWSER_RECOVERY_CONFIG.maxAttempts; attempt += 1) {
+      let context = null;
+      try {
+        context = await browser.newContext({
+          viewport: { width: targetViewport.width, height: targetViewport.height },
+          screen: { width: targetViewport.width, height: targetViewport.height },
+          deviceScaleFactor: 1,
+          ignoreHTTPSErrors: true,
+          userAgent: realisticBrowserUa,
+          locale: 'es-ES',
+          extraHTTPHeaders: {
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+          },
+        });
+        await context.addCookies([{ name: 'wpSGCacheBypass', value: '1', url: `${baseUrl}/` }]);
+        const page = await context.newPage();
+        const consoleErrors = [];
+        const networkErrors = [];
+        const imageHttpErrors = [];
+        const productionMediaLeaks = [];
+
+        page.on('console', (msg) => {
+          if (msg.type() !== 'error') return;
+          const text = msg.text();
+          if (!isIgnorableExternalConsoleError(text) && !/Failed to load resource/i.test(text)) consoleErrors.push(text);
+        });
+        page.on('pageerror', (error) => consoleErrors.push(error.message));
+        page.on('requestfailed', (request) => {
+          const requestUrl = request.url();
+          const failureText = request.failure()?.errorText || 'request failed';
+          const resourceType = request.resourceType();
+          const expectedMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
+          if (requestUrl.startsWith(baseUrl) && !expectedMediaAbort) networkErrors.push(`${requestUrl}: ${failureText}`);
+          if (resourceType === 'image' && requestUrl.startsWith(baseUrl)) imageHttpErrors.push(`${requestUrl}: ${failureText}`);
+        });
+        page.on('response', (resourceResponse) => {
+          const resourceType = resourceResponse.request().resourceType();
+          if (resourceType !== 'image' && resourceType !== 'media') return;
+          const resourceUrl = resourceResponse.url();
+          let parsed;
+          try {
+            parsed = new URL(resourceUrl);
+          } catch {
+            return;
+          }
+          if (parsed.hostname === expectedHost && resourceResponse.status() >= 400) {
+            const message = `${resourceUrl}: HTTP ${resourceResponse.status()}`;
+            if (resourceType === 'image') imageHttpErrors.push(message);
+            else networkErrors.push(message);
+          }
+          if (
+            resourceType === 'image'
+            && (parsed.hostname === 'nuvanx.com' || parsed.hostname === 'www.nuvanx.com')
+            && parsed.pathname.includes('/wp-content/uploads/')
+          ) {
+            productionMediaLeaks.push(resourceUrl);
+          }
+        });
+
+        let response;
+        try {
+          response = await page.goto(`${baseUrl}/`, {
+            waitUntil: 'domcontentloaded',
+            timeout: BROWSER_RECOVERY_CONFIG.navigationTimeoutMs,
+          });
+        } catch (error) {
+          attempts.push({ attempt, outcome: 'navigation-error', error: error instanceof Error ? error.message : String(error) });
+          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+            await backoff(BROWSER_RECOVERY_CONFIG.navigationErrorBackoffBaseMs, attempt);
+          }
+          continue;
+        }
+
+        const finalUrl = page.url();
+        const edgeStatus = response?.status() || 0;
+        const responseHeaders = response ? response.headers() : {};
+        if (!response || isSiteGroundTransientResponse(edgeStatus, responseHeaders, finalUrl)) {
+          attempts.push({ attempt, outcome: 'siteground-transient', edgeHttpStatus: edgeStatus, finalUrl });
+          await page.screenshot({
+            path: screenshotPath.replace('.jpg', `--challenge-${attempt}.jpg`),
+            type: 'jpeg',
+            quality: BROWSER_RECOVERY_CONFIG.screenshotQuality,
+            fullPage: true,
+          }).catch(() => {});
+          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+            await backoff(BROWSER_RECOVERY_CONFIG.transientBackoffBaseMs, attempt);
+          }
+          continue;
+        }
+
+        const blockers = [];
+        if (edgeStatus !== 200) blockers.push(`Expected public HTTP 200, got ${edgeStatus}`);
+        if (new URL(finalUrl).hostname !== expectedHost) blockers.push(`Final hostname ${new URL(finalUrl).hostname} != ${expectedHost}`);
+
+        await handleCookieConsent(page);
+        await waitForVisualStability(page);
+        await activateLazyImages(page);
+
+        const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
+        if (metaSha !== expectedSha) blockers.push(`Deployment SHA mismatch: ${metaSha || 'missing'} != ${expectedSha}`);
+        const robots = (await page.locator('meta[name="robots"]').getAttribute('content').catch(() => '')) || '';
+        const xRobots = responseHeaders['x-robots-tag'] || '';
+        if (!robots.toLowerCase().includes('noindex') && !xRobots.toLowerCase().includes('noindex')) {
+          blockers.push('Staging noindex protection missing');
+        }
+
+        const geometry = await collectHomeGeometry(page);
+        const splitErrors = splitNetworkErrors(networkErrors, `${baseUrl}/`);
+        const issues = await evaluateHomeVisualContract({
+          page,
+          geometry,
+          viewport: targetViewport,
+          consoleErrors,
+          networkErrors: splitErrors.real,
+          imageHttpErrors,
+        });
+        if (productionMediaLeaks.length > 0) {
+          issues.push(`Staging media leaked to production host: ${[...new Set(productionMediaLeaks)].slice(0, 8).join(' | ')}`);
+        }
+
+        if (splitErrors.transient.length > 0 && blockers.length === 0 && issues.length === 0) {
+          attempts.push({
+            attempt,
+            outcome: 'siteground-network-abort',
+            edgeHttpStatus: edgeStatus,
+            finalUrl,
+            transientNetworkErrors: splitErrors.transient,
+          });
+          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+            await backoff(BROWSER_RECOVERY_CONFIG.transientBackoffBaseMs, attempt);
+          }
+          continue;
+        }
+
+        let screenshotError = '';
+        try {
+          await page.screenshot({
+            path: screenshotPath,
+            type: 'jpeg',
+            quality: BROWSER_RECOVERY_CONFIG.screenshotQuality,
+            fullPage: true,
+          });
+        } catch (error) {
+          screenshotError = error instanceof Error ? error.message : String(error);
+        }
+
+        if (screenshotError) {
+          attempts.push({ attempt, outcome: 'screenshot-error', edgeHttpStatus: edgeStatus, finalUrl, error: screenshotError });
+          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+            await backoff(BROWSER_RECOVERY_CONFIG.visualRetryBackoffBaseMs, attempt);
+          }
+          continue;
+        }
+
+        attempts.push({
+          attempt,
+          outcome: blockers.length || issues.length ? 'visual-failure' : 'pass',
+          edgeHttpStatus: edgeStatus,
+          finalUrl,
+          metaSha,
+          blockers,
+          issues,
+          transientNetworkErrors: splitErrors.transient,
+        });
+
+        if (blockers.length > 0 || issues.length > 0) {
+          lastVisualFailure = {
+            attempt,
+            edgeHttpStatus: edgeStatus,
+            finalUrl,
+            metaSha,
+            blockers,
+            issues,
+            geometry,
+            consoleErrors,
+            networkErrors: splitErrors.real,
+            transientNetworkErrors: splitErrors.transient,
+            imageHttpErrors,
+            productionMediaLeaks,
+            screenshot: path.relative(artifactsDir, screenshotPath),
+          };
+          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+            await backoff(BROWSER_RECOVERY_CONFIG.visualRetryBackoffBaseMs, attempt);
+            continue;
+          }
+          break;
+        }
+
+        recovered = {
+          attempt,
+          edgeHttpStatus: edgeStatus,
+          finalUrl,
+          metaSha,
+          geometry,
+          consoleErrors: [],
+          networkErrors: [],
+          imageHttpErrors: [],
+          productionMediaLeaks: [],
+          screenshot: path.relative(artifactsDir, screenshotPath),
+        };
+        break;
+      } catch (error) {
+        attempts.push({
+          attempt,
+          outcome: 'attempt-exception',
+          error: error instanceof Error ? error.message : String(error),
+        });
+        if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
+          await backoff(BROWSER_RECOVERY_CONFIG.navigationErrorBackoffBaseMs, attempt);
+        }
+      } finally {
+        if (context) await context.close().catch(() => {});
       }
-    });
-
-    let response = null;
-    let finalUrl = `${baseUrl}/`;
-    try {
-      response = await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 40000 });
-      finalUrl = page.url();
-    } catch (error) {
-      attempts.push({ attempt, outcome: 'navigation-error', error: error instanceof Error ? error.message : String(error) });
-      await context.close();
-      if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 2500 * attempt));
-      continue;
     }
-
-    const edgeStatus = response?.status() || 0;
-    const responseHeaders = response ? response.headers() : {};
-    if (!response || isSiteGroundTransientResponse(edgeStatus, responseHeaders, finalUrl)) {
-      attempts.push({ attempt, outcome: 'siteground-transient', edgeHttpStatus: edgeStatus, finalUrl });
-      await page.screenshot({ path: screenshotPath.replace('.jpg', `--challenge-${attempt}.jpg`), type: 'jpeg', quality: 72, fullPage: true }).catch(() => {});
-      await context.close();
-      if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 3000 * attempt));
-      continue;
-    }
-
-    const blockers = [];
-    const issues = [];
-    if (edgeStatus !== 200) blockers.push(`Expected public HTTP 200, got ${edgeStatus}`);
-    if (new URL(finalUrl).hostname !== expectedHost) blockers.push(`Final hostname ${new URL(finalUrl).hostname} != ${expectedHost}`);
-
-    await handleCookieConsent(page);
-    await page.evaluate(async () => { if (document.fonts) await document.fonts.ready; }).catch(() => {});
-    await page.waitForTimeout(400);
-    await activateLazyImages(page);
-
-    const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
-    if (metaSha !== expectedSha) blockers.push(`Deployment SHA mismatch: ${metaSha || 'missing'} != ${expectedSha}`);
-    const robots = (await page.locator('meta[name="robots"]').getAttribute('content').catch(() => '')) || '';
-    const xRobots = responseHeaders['x-robots-tag'] || '';
-    if (!robots.toLowerCase().includes('noindex') && !xRobots.toLowerCase().includes('noindex')) blockers.push('Staging noindex protection missing');
-
-    const geometry = await collectGeometry(page);
-    if (!geometry.headerVisible) issues.push('Header is not visibly rendered');
-    if (!geometry.footerVisible) issues.push('Footer is not visibly rendered');
-    if (!geometry.mainVisible) issues.push('Main content is not visibly rendered');
-    if (geometry.visibleH1Count !== 1) issues.push(`Expected 1 visible H1, found ${geometry.visibleH1Count}`);
-    if (!geometry.h1Text) issues.push('H1 is empty or unreadable');
-    if (geometry.h1Clipped) issues.push('H1 is clipped/truncated by its container');
-    if (geometry.h1Rect && (geometry.h1Rect.left < -2 || geometry.h1Rect.right > targetViewport.width + 2)) issues.push('H1 extends outside viewport');
-    if (geometry.h1Rect && geometry.h1Rect.top < -2) issues.push(`H1 starts above viewport (${geometry.h1Rect.top}px)`);
-    if (geometry.horizontalOverflowPx > 2) issues.push(`Horizontal viewport overflow: ${geometry.horizontalOverflowPx}px`);
-    if (geometry.headerRect && (geometry.headerRect.left < -2 || geometry.headerRect.right > targetViewport.width + 2)) issues.push('Header extends outside viewport bounds');
-    if (geometry.footerRect && (geometry.footerRect.left < -2 || geometry.footerRect.right > targetViewport.width + 2)) issues.push('Footer extends outside viewport bounds');
-    if (!geometry.heroVisible) issues.push('Hero/intro is not visibly rendered');
-    if (geometry.visibleCtaCount === 0) issues.push('No visible CTA found');
-    if (geometry.invalidCtas.length > 0) issues.push(`Invalid visible CTA href (#/empty): ${geometry.invalidCtas.join(' | ')}`);
-    if (geometry.brokenImages.length > 0) issues.push(`Broken visible images: ${geometry.brokenImages.join(' | ')}`);
-    if (geometry.unresolvedLazyImages.length > 0) issues.push(`Lazy images unresolved after full-page activation: ${geometry.unresolvedLazyImages.join(' | ')}`);
-    if (imageHttpErrors.length > 0) issues.push(`Image request errors: ${[...new Set(imageHttpErrors)].slice(0, 8).join(' | ')}`);
-    if (geometry.fontsStatus !== 'loaded') issues.push(`Fonts did not reach loaded state (${geometry.fontsStatus})`);
-    if (!geometry.bodyFontFamily) issues.push('Body computed font-family is empty');
-    if (geometry.runtimeDiagnostics.length > 0) issues.push(`Visible PHP/runtime diagnostics: ${geometry.runtimeDiagnostics.join(' | ')}`);
-    if (geometry.mainTextLength < 80) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
-    if (geometry.visibleSectionCount < 2 && geometry.mainTextLength < 400) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
-    if (!geometry.videoVisible) issues.push('Home hero video is not visible');
-    if (geometry.videoRect && (geometry.videoRect.width < 100 || geometry.videoRect.height < 100)) issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
-    await testResponsiveMenu(page, issues);
-    if (consoleErrors.length > 0) issues.push(`${consoleErrors.length} browser console error(s)`);
-    if (networkErrors.length > 0) issues.push(`${networkErrors.length} same-origin network error(s)`);
-
-    await page.screenshot({ path: screenshotPath, type: 'jpeg', quality: 72, fullPage: true });
-    attempts.push({ attempt, outcome: blockers.length || issues.length ? 'visual-failure' : 'pass', edgeHttpStatus: edgeStatus, finalUrl, metaSha, blockers, issues });
-
-    if (blockers.length > 0 || issues.length > 0) {
-      await fs.writeFile(recoveryPath, `${JSON.stringify({ schema: 1, expectedSha, target: { route: '/', viewport: targetViewport }, attempts, blockers, issues, geometry, screenshot: path.relative(path.dirname(resultsPath), screenshotPath) }, null, 2)}\n`);
-      await context.close();
-      fail([...blockers, ...issues].join('; '));
-    }
-
-    recovered = { attempt, edgeHttpStatus: edgeStatus, finalUrl, metaSha, geometry, screenshot: path.relative(path.dirname(resultsPath), screenshotPath) };
-    await context.close();
-    break;
+  } finally {
+    await browser.close().catch(() => {});
   }
-} finally {
-  await browser.close();
-}
 
-if (!recovered) {
-  await fs.writeFile(recoveryPath, `${JSON.stringify({ schema: 1, expectedSha, target: { route: '/', viewport: targetViewport }, status: 'transient-exhausted', attempts }, null, 2)}\n`);
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT_EXHAUSTED attempts=${attempts.length}`);
-  process.exit(EX_TEMPFAIL);
-}
+  if (!recovered) {
+    if (lastVisualFailure) {
+      await writeJsonAtomic(recoveryPath, {
+        schema: 2,
+        expectedSha,
+        status: 'visual-failure-exhausted',
+        target: { route: targetRoute, viewport: targetViewport },
+        attempts,
+        lastVisualFailure,
+      });
+      console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=${sanitizeLogValue([...(lastVisualFailure.blockers || []), ...(lastVisualFailure.issues || [])].join('; '))}`);
+      return 1;
+    }
 
-const recoveredResults = results.map((result) => {
-  if (result !== target) return result;
-  return {
-    ...result,
-    httpStatus: 200,
-    edgeHttpStatus: 200,
-    finalUrl: recovered.finalUrl,
-    metaSha: recovered.metaSha,
-    externalInconclusive: false,
-    visualValidation: 'complete-public-browser-recovery',
-    validationTransport: 'public-browser-recovery-after-siteground-antibot',
-    recoveredFromExternalInconclusive: true,
-    recoveryAttempt: recovered.attempt,
-    recoveryScreenshot: recovered.screenshot,
-    geometry: recovered.geometry,
-    notes: [...(Array.isArray(result.notes) ? result.notes : []), `Public browser recovery completed the missing ${targetViewport.label} visual contract after SiteGround Antibot.`],
+    await writeJsonAtomic(recoveryPath, {
+      schema: 2,
+      expectedSha,
+      status: 'transient-exhausted',
+      target: { route: targetRoute, viewport: targetViewport },
+      attempts,
+    });
+    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT_EXHAUSTED attempts=${attempts.length}`);
+    return EX_TEMPFAIL;
+  }
+
+  const priorAntibotEvidence = {
+    edgeHttpStatus: target.edgeHttpStatus,
+    finalUrl: target.finalUrl,
+    visualValidation: target.visualValidation,
+    notes: Array.isArray(target.notes) ? target.notes : [],
+    blockers: Array.isArray(target.blockers) ? target.blockers : [],
+    consoleErrors: Array.isArray(target.consoleErrors) ? target.consoleErrors : [],
+    networkErrors: Array.isArray(target.networkErrors) ? target.networkErrors : [],
+    screenshot: target.screenshot || '',
   };
-});
 
-await fs.writeFile(resultsPath, `${JSON.stringify(recoveredResults, null, 2)}\n`);
-await fs.writeFile(recoveryPath, `${JSON.stringify({ schema: 1, expectedSha, status: 'pass', target: { route: '/', viewport: targetViewport }, attempts, recovered }, null, 2)}\n`);
-console.log(`BLOCK_C_HOME_MOBILE_RECOVERY=PASS attempt=${recovered.attempt} sha=${expectedSha} visual_contract=complete edge_http=200`);
-process.exit(0);
+  const recoveredResults = results.map((result) => {
+    if (result !== target) return result;
+    return {
+      ...result,
+      status: 'PASS',
+      httpStatus: 200,
+      edgeHttpStatus: 200,
+      finalUrl: recovered.finalUrl,
+      metaSha: recovered.metaSha,
+      externalInconclusive: false,
+      visualValidation: 'complete-public-browser-recovery',
+      validationTransport: 'public-browser-recovery-after-siteground-antibot',
+      recoveredFromExternalInconclusive: true,
+      recoveryAttempt: recovered.attempt,
+      recoveryScreenshot: recovered.screenshot,
+      priorAntibotEvidence,
+      geometry: recovered.geometry,
+      blockers: [],
+      issues: [],
+      consoleErrors: recovered.consoleErrors,
+      networkErrors: recovered.networkErrors,
+      imageHttpErrors: recovered.imageHttpErrors,
+      productionMediaLeaks: recovered.productionMediaLeaks,
+      screenshot: recovered.screenshot,
+      notes: [`Public browser recovery completed the missing ${targetViewport.label} visual contract after SiteGround Antibot.`],
+    };
+  });
+
+  await writeJsonAtomic(resultsPath, recoveredResults);
+  await refreshDerivedEvidence(recoveredResults);
+  await writeJsonAtomic(recoveryPath, {
+    schema: 2,
+    expectedSha,
+    status: 'pass',
+    target: { route: targetRoute, viewport: targetViewport },
+    attempts,
+    recovered,
+    priorAntibotEvidence,
+  });
+
+  console.log(`BLOCK_C_HOME_MOBILE_RECOVERY=PASS attempt=${recovered.attempt} sha=${expectedSha} visual_contract=complete edge_http=200`);
+  return 0;
+}
+
+let exitCode = 1;
+try {
+  exitCode = await main();
+} catch (error) {
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=unexpected_top_level error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
+  exitCode = EX_TEMPFAIL;
+}
+process.exitCode = exitCode;

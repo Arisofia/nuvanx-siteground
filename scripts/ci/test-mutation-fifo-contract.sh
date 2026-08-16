@@ -120,4 +120,45 @@ set -e
 grep -Fq 'MUTATION_FIFO=SUPERSEDED' "$superseded_log"
 grep -Fq 'mutation=forbidden' "$superseded_log"
 
-echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=5'
+# Case 6: Bridal seed retirement must require BOTH the historical meta key and
+# the temporary seed marker. OR logic re-drafts the real editorial page after
+# production-to-staging parity sync.
+BRIDAL="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php"
+grep -Eq '\$is_seed[[:space:]]*=[[:space:]]*\$has_meta_key[[:space:]]*&&[[:space:]]*\$has_seed_marker;' "$BRIDAL"
+! grep -Eq '\$is_seed[[:space:]]*=[[:space:]]*\$has_meta_key[[:space:]]*\|\|[[:space:]]*\$has_seed_marker;' "$BRIDAL"
+
+# Case 7: Production verifier must require a numeric deployed GitHub Actions run
+# ID and compare it to the expected run when one is provided.
+IDENTITY="$ROOT/scripts/production/verify-production-identity.mjs"
+grep -Fq 'if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID))' "$IDENTITY"
+grep -Fq 'deployStamp.DEPLOY_RUN_ID !== expectedRunId' "$IDENTITY"
+
+# Case 8: The atomic production payload must carry all four immutable identity
+# fields in the exact stamp file consumed by the active theme.
+DEPLOY="$ROOT/tools/deploy/deploy-to-prod.sh"
+grep -Fq 'cat > "$STAGED_THEME/.nvx-deploy-stamp.json"' "$DEPLOY"
+grep -Fq '"DEPLOY_SHA": "$SHA"' "$DEPLOY"
+grep -Fq '"DEPLOY_RUN_ID": "$DEPLOY_RUN_ID"' "$DEPLOY"
+grep -Fq '"DEPLOY_TIMESTAMP": "$DEPLOY_TIMESTAMP"' "$DEPLOY"
+grep -Fq '"RELEASE_ID": "$RELEASE_ID"' "$DEPLOY"
+STAMP_READER="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
+grep -Fq "get_template_directory() . '/.nvx-deploy-stamp.json'" "$STAMP_READER"
+
+# Case 9: The canonical production workflow must propagate GITHUB_RUN_ID through
+# SSH and run the dedicated 4-field verifier against that same run.
+PRODUCTION_WORKFLOW="$ROOT/.github/workflows/production.yml"
+grep -Fq "GITHUB_RUN_ID='\${GITHUB_RUN_ID}'" "$PRODUCTION_WORKFLOW"
+grep -Fq 'Verify full production identity chain (4-field verification)' "$PRODUCTION_WORKFLOW"
+grep -Fq 'EXPECTED_RUN_ID="$GITHUB_RUN_ID" EXPECTED_SHA="$CANDIDATE_SHA"' "$PRODUCTION_WORKFLOW"
+
+# Case 10: The rollback-protected production boundary itself must enforce all
+# four fields, so identity drift fails before the compensating rollback gate.
+BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
+grep -Fq "extractMetaContent(html, 'nvx-deploy-sha')" "$BOUNDARY"
+grep -Fq "extractMetaContent(html, 'nvx-deploy-run-id')" "$BOUNDARY"
+grep -Fq "extractMetaContent(html, 'nvx-deploy-timestamp')" "$BOUNDARY"
+grep -Fq "extractMetaContent(html, 'nvx-release-id')" "$BOUNDARY"
+grep -Fq 'deployRunId !== expectedRunId' "$BOUNDARY"
+grep -Fq 'validIsoTimestamp(deployTimestamp)' "$BOUNDARY"
+
+echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=10'

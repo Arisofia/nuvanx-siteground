@@ -373,8 +373,8 @@ add_action( 'wp', 'nvx_catalog_disable_legacy_exion_investment_override', 1 );
 
 /**
  * Retire the temporary Bridal seed on staging when it was created by the
- * aesthetic-page seeder. Editorial pages without the governed meta/marker are
- * never modified.
+ * aesthetic-page seeder. Editorial pages with stale historical seed metadata
+ * but without the seed marker are never modified.
  */
 function nvx_catalog_retire_unapproved_bridal_seed(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
@@ -386,11 +386,11 @@ function nvx_catalog_retire_unapproved_bridal_seed(): void {
 		return;
 	}
 
-	$seed_key = (string) get_post_meta( $page->ID, '_nvx_aesthetic_treatment_key', true );
-	$content  = (string) $page->post_content;
-	$is_seed  = 'bridal_protocol' === $seed_key
-		|| false !== strpos( $content, 'data-nvx-treatment="bridal_protocol"' )
+	$seed_key       = (string) get_post_meta( $page->ID, '_nvx_aesthetic_treatment_key', true );
+	$content        = (string) $page->post_content;
+	$has_seed_marker = false !== strpos( $content, 'data-nvx-treatment="bridal_protocol"' )
 		|| false !== strpos( $content, "data-nvx-treatment='bridal_protocol'" );
+	$is_seed        = 'bridal_protocol' === $seed_key && $has_seed_marker;
 
 	if ( ! $is_seed || 'draft' === $page->post_status || 'trash' === $page->post_status ) {
 		return;

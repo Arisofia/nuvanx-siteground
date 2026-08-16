@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit( 1 );
 }
 
+require_once __DIR__ . '/editorial-rules-lib.php';
+
 function nvxNeedsMarkdownNormalization( string $content ): bool {
     if ( '' === trim( $content ) || false !== strpos( $content, '<!-- wp:' ) ) {
         return false;
@@ -21,8 +23,8 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
     // detecting links that cannot be converted (links with spaces or titles).
     // Explicitly exclude images (![...](...)) since they are handled separately.
     return 1 === preg_match( '/(?<!!)\[[^\]]+\]\(([^)\s]+)\)/', $content )
-        || 1 === preg_match( '/^#{1,6}\s+.+$/m', $content )
-        || 1 === preg_match( '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m', $content );
+        || 1 === preg_match( NVX_Editorial_Rules::MARKDOWN_HEADINGS_PATTERN, $content )
+        || 1 === preg_match( NVX_Editorial_Rules::MARKDOWN_LISTS_PATTERN, $content );
 }
 
 function nvxNormalizeMarkdownInline( string $text ): string {
@@ -253,16 +255,7 @@ function nvxNormalizeToHtml( string $content ): string {
 
 /** @return array{valid:bool,issues:array<int,string>} */
 function nvxValidateNormalizedContent( string $content ): array {
-    $checks = array(
-        '/(?<!!)\[[^\]]+\]\(([^)\s]+)\)/' => 'Markdown links still present',
-        '/^#{1,6}\s+.+$/m' => 'Markdown headings still present',
-        '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
-        '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',
-        '/%(?:\d+\$)?[sd]/' => 'Format string still present',
-        '/\b(?:borrador|pendiente de revisión|marcad[oa]\s+para\s+revisión|pendiente\s+por\s+revisar|work in progress)\b/iu' => 'Draft/review language still present',
-        '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu' => 'Editorial placeholder still present',
-        '/📌/u' => 'Editorial marker (📌) present - may indicate mid-content placement',
-    );
+    $checks = NVX_Editorial_Rules::get_validation_checks();
     $issues = array();
 
     foreach ( $checks as $pattern => $message ) {

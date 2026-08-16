@@ -11,78 +11,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/publication-contract-lib.php';
+require_once __DIR__ . '/editorial-rules-lib.php';
 
-$editorialRules = array(
-    'nvx_tokens' => array(
-        'pattern'     => '/@nvx-[a-z0-9_:-]+/i',
-        'description' => 'Unresolved NUVANX runtime token',
-    ),
-    'format_strings' => array(
-        'pattern'     => '/%(?:\d+\$)?[sd]/',
-        'description' => 'Unresolved format string',
-    ),
-    'markdown_links' => array(
-        'pattern'     => '/\[[^\]]+\]\([^)]+\)/',
-        'description' => 'Raw Markdown link',
-    ),
-    'markdown_headings' => array(
-        'pattern'     => '/^#{1,6}\s+.+$/m',
-        'description' => 'Raw Markdown heading',
-    ),
-    'markdown_lists' => array(
-        'pattern'     => '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m',
-        'description' => 'Raw Markdown list marker',
-    ),
-    'draft_keywords' => array(
-        // Keep this restricted to actual workflow residue. Natural patient copy
-        // such as "valoración para revisar el perfil" is not a draft marker.
-        'pattern'     => '/\b(?:borrador|pendiente de revisión|marcad[oa]\s+para\s+revisión|pendiente\s+por\s+revisar|work in progress)\b/iu',
-        'description' => 'Draft/review workflow language in published content',
-    ),
-    'generic_placeholders' => array(
-        // Require explicit editorial-marker syntax. Bare "placeholder" is a
-        // legitimate HTML/data attribute used by Complianz and form controls.
-        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu',
-        'description' => 'Editorial placeholder in published content',
-    ),
-    'inline_styles' => array(
-        'pattern'     => '/\sstyle\s*=\s*["\'][^"\']+["\']/i',
-        'description' => 'Unauthorized inline style',
-    ),
-);
-
-$blockedClaimPatterns = array(
-    '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/iu' => 'resultado garantizado',
-    '/\b100\s*%\s*efectiv[oa]s?\b/iu'               => '100% efectivo',
-    '/\bsin\s+riesgos?\b/iu'                        => 'sin riesgos',
-    '/\bsin\s+efectos?\s+secundarios?\b/iu'        => 'sin efectos secundarios',
-    '/\binfalible\b/iu'                              => 'infalible',
-    '/\bnaturalidad\s+absoluta\b/iu'                => 'naturalidad absoluta',
-    '/\bcero\s+sobretratamiento\b/iu'               => 'cero sobretratamiento',
-    '/\bm[aá]rgenes?\s+de\s+seguridad\s+exactos?\b/iu' => 'márgenes de seguridad exactos',
-    '/\bsin\s+tiempo\s+de\s+inactividad\b/iu'      => 'sin tiempo de inactividad',
-    '/\bpiel\s+impecable\b/iu'                      => 'piel impecable',
-);
+$editorialRules = NVX_Editorial_Rules::get_rules();
+$blockedClaimPatterns = NVX_Editorial_Rules::BLOCKED_CLAIM_PATTERNS;
 
 /**
  * Decide whether a blocked phrase is being quoted as something to avoid or
  * explicitly negated rather than asserted as a NUVANX claim.
  */
 function nvxEditorialClaimIsAdvisoryContext( string $content, int $offset ): bool {
-    $windowStart = max( 0, $offset - 220 );
+    $windowStart = max( 0, $offset - NVX_Editorial_Rules::ADVISORY_WINDOW_SIZE );
     $beforeRaw   = substr( $content, $windowStart, $offset - $windowStart );
     $before      = html_entity_decode( wp_strip_all_tags( $beforeRaw ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
     $before      = preg_replace( '/\s+/u', ' ', $before ) ?? $before;
 
     // "No significa/supone/convierte ... sin riesgos" is risk disclosure,
     // not a risk-free claim. Restrict the context to the current sentence.
-    if ( preg_match( '/\bno\s+(?:significa|implica|supone|convierte|equivale)\b[^.!?]{0,170}$/iu', $before ) ) {
+    if ( preg_match( '/\bno\s+(?:significa|implica|supone|convierte|equivale)\b' . NVX_Editorial_Rules::ADVISORY_SENTENCE_BOUNDARY . '{0,' . NVX_Editorial_Rules::ADVISORY_NEGATION_MAX_LENGTH . '}$/iu', $before ) ) {
         return true;
     }
 
     // "Desconfía/evita promesas de resultado garantizado" explicitly warns
     // against the prohibited promise and must remain publishable.
-    if ( preg_match( '/\b(?:desconf[ií]a|evita|rechaza|cuestiona)\b[^.!?]{0,150}\b(?:promesas?|garant[ií]as?)\b[^.!?]{0,80}$/iu', $before ) ) {
+    if ( preg_match( '/\b(?:desconf[ií]a|evita|rechaza|cuestiona)\b' . NVX_Editorial_Rules::ADVISORY_SENTENCE_BOUNDARY . '{0,' . NVX_Editorial_Rules::ADVISORY_WARNING_MAX_LENGTH . '}\b(?:promesas?|garant[ií]as?)\b' . NVX_Editorial_Rules::ADVISORY_SENTENCE_BOUNDARY . '{0,' . NVX_Editorial_Rules::ADVISORY_WARNING_SUFFIX_LENGTH . '}$/iu', $before ) ) {
         return true;
     }
 

@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -22,10 +21,11 @@ function resolveRelease() {
   return release;
 }
 
-function getExpectedManifestInfo() {
+async function getExpectedManifestInfo() {
   const manifestPath = path.resolve('wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
   try {
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    const manifestContent = await fs.readFile(manifestPath, 'utf8');
+    const manifest = JSON.parse(manifestContent);
     if (manifest.routes && typeof manifest.routes === 'object') {
       return {
         routeCount: Object.keys(manifest.routes).length,
@@ -43,7 +43,7 @@ export async function runStagingPublicationParitySync(options = {}) {
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');
   if (!ALLOWED_ALIASES.has(alias)) throw new Error(`Unsupported ORIGIN_SSH_ALIAS: ${alias}`);
 
-  const expectedManifest = getExpectedManifestInfo();
+  const expectedManifest = await getExpectedManifestInfo();
 
   const release = resolveRelease();
   const manifest = `${release}/theme/inc/data/publication-manifest.json`;

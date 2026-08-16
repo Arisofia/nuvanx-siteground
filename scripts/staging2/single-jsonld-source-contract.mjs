@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { DEFAULT_ROUTES } from './shared-routes.mjs';
 
@@ -60,13 +61,54 @@ function jsonLdBlocks(html) {
   const regex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = regex.exec(html)) !== null) {
-    // Match type attribute with optional quotes to align with rendered-schema-contract.mjs and content-hygiene PCRE
-    if (/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(match[1] || '')) {
+    const attrs = match[1] || '';
+    // Match type attribute with optional quotes to align with rendered-schema-contract.mjs and content-hygiene PCRE.
+    if (/\btype\s*=\s*["']?application\/ld\+json["']?/i.test(attrs)) {
       const content = (match[2] || '').trim();
-      if (content) blocks.push(content);
+      if (content) blocks.push({ attrs: attrs.trim(), content });
     }
   }
   return blocks;
+}
+
+function schemaTypes(value) {
+  const values = Array.isArray(value) ? value : value == null ? [] : [value];
+  return values.map((item) => String(item)).filter(Boolean);
+}
+
+function summarizeJsonLdBlock(block, index) {
+  const summary = {
+    index,
+    bytes: Buffer.byteLength(block.content, 'utf8'),
+    sha256: createHash('sha256').update(block.content, 'utf8').digest('hex'),
+    attributes: block.attrs.slice(0, 500),
+    context: null,
+    topLevelTypes: [],
+    graphTypes: [],
+    graphIds: [],
+    parseError: null,
+  };
+
+  try {
+    const parsed = JSON.parse(block.content);
+    summary.context = parsed?.['@context'] ?? null;
+    summary.topLevelTypes = schemaTypes(parsed?.['@type']);
+    if (Array.isArray(parsed?.['@graph'])) {
+      const graphTypes = new Set();
+      const graphIds = [];
+      for (const node of parsed['@graph']) {
+        if (!node || typeof node !== 'object' || Array.isArray(node)) continue;
+        schemaTypes(node['@type']).forEach((type) => graphTypes.add(type));
+        if (typeof node['@id'] === 'string' && graphIds.length < 30) graphIds.push(node['@id']);
+      }
+      summary.graphTypes = [...graphTypes].sort();
+      summary.graphIds = graphIds;
+    }
+  } catch (error) {
+    summary.parseError = String(error?.message || error);
+  }
+
+  return summary;
 }
 
 export async function runSingleJsonLdSourceContract(options = {}) {
@@ -79,29 +121,30 @@ export async function runSingleJsonLdSourceContract(options = {}) {
   routes.forEach(assertRoute);
   await fs.mkdir(outputDir, { recursive: true });
 
-  const report = { schema: 1, checkedAt: new Date().toISOString(), host, sha, routes: [], issues: [] };
+  const report = { schema: 2, checkedAt: new Date().toISOString(), host, sha, routes: [], issues: [] };
   for (const route of routes) {
     try {
       const html = fetchOriginHtml(route, host, alias);
       const actualSha = deploySha(html);
       const blocks = jsonLdBlocks(html);
-      const item = { route, deploySha: actualSha, jsonLdBlocks: blocks.length };
+      const blockSummaries = blocks.map((block, index) => summarizeJsonLdBlock(block, index));
+      const item = { route, deploySha: actualSha, jsonLdBlocks: blocks.length, blockSummaries };
       report.routes.push(item);
       if (actualSha !== sha) report.issues.push(`${route}: deploy SHA mismatch actual=${actualSha || '(missing)'} expected=${sha}`);
-      if (blocks.length !== 1) report.issues.push(`${route}: expected exactly one application/ld+json block, found ${blocks.length}`);
+      if (blocks.length !== 1) {
+        report.issues.push(`${route}: expected exactly one application/ld+json block, found ${blocks.length}`);
+        console.error(`SINGLE_JSONLD_SOURCE_DIAGNOSTIC route=${route} blocks=${JSON.stringify(blockSummaries)}`);
+      }
       if (blocks.length === 1) {
-        try {
-          const parsed = JSON.parse(blocks[0]);
-          const context = parsed?.['@context'];
-          if (!(context === 'https://schema.org' || context === 'http://schema.org' || Array.isArray(parsed?.['@graph']))) {
-            report.issues.push(`${route}: canonical JSON-LD block does not look like governed Schema.org graph`);
-          }
-        } catch (error) {
-          report.issues.push(`${route}: canonical JSON-LD block is invalid JSON: ${error.message}`);
+        const summary = blockSummaries[0];
+        if (summary.parseError) {
+          report.issues.push(`${route}: canonical JSON-LD block is invalid JSON: ${summary.parseError}`);
+        } else if (!(summary.context === 'https://schema.org' || summary.context === 'http://schema.org' || summary.graphTypes.length > 0)) {
+          report.issues.push(`${route}: canonical JSON-LD block does not look like governed Schema.org graph`);
         }
       }
     } catch (error) {
-      report.routes.push({ route, deploySha: '', jsonLdBlocks: 0, error: String(error?.message || error) });
+      report.routes.push({ route, deploySha: '', jsonLdBlocks: 0, blockSummaries: [], error: String(error?.message || error) });
       report.issues.push(`${route}: ${String(error?.message || error)}`);
     }
   }

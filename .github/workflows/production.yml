@@ -243,12 +243,22 @@ jobs:
           set -Eeuo pipefail
           cd "$PROD_ROOT"
           test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$CANDIDATE_SHA"
+          test -f "wp-content/themes/nuvanx-medical/.nvx-deploy-stamp.json"
           test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
           test "$(wp option get home)" = "$BASE_URL"
           test "$(wp option get siteurl)" = "$BASE_URL"
           test "$(wp option get blog_public)" = '1'
           echo "PRODUCTION_DEPLOYED_SHA=$CANDIDATE_SHA"
           REMOTE
+
+      - name: Verify full production identity chain (4-field verification)
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_RUN_ID="$GITHUB_RUN_ID" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-identity.mjs"
+          mkdir -p "$GITHUB_WORKSPACE/scripts/production/artifacts"
+          cp -f "$CANDIDATE_ROOT/scripts/production/artifacts/production-identity-verification.json" "$GITHUB_WORKSPACE/scripts/production/artifacts/" 2>/dev/null || true
+          echo "PRODUCTION_IDENTITY_CHAIN=PASS"
 
       - name: Run exact-candidate production origin audits
         id: origin_audits

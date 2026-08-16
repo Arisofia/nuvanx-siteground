@@ -7,19 +7,21 @@ const SSH_BIN = '/usr/bin/ssh';
 const CANONICAL_PROD_ROOT = '/home/customer/www/nuvanx.com/public_html';
 const ALLOWED_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'production-siteground']);
 
-function assertConfig(sha, alias, prodRoot) {
+function assertConfig(sha, alias, prodRoot, expectedRunId) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
   if (!ALLOWED_ALIASES.has(alias)) throw new Error(`Unsupported SSH alias: ${alias}`);
   if (prodRoot !== CANONICAL_PROD_ROOT) throw new Error(`Refusing unexpected production root: ${prodRoot}`);
+  if (expectedRunId && !/^\d+$/.test(expectedRunId)) throw new Error('Expected production run ID must be numeric');
 }
 
 export async function verifyProductionIdentity(options = {}) {
   const expectedSha = String(options.expectedSha || process.env.EXPECTED_SHA || '').trim();
+  const expectedRunId = String(options.expectedRunId || process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID || '').trim();
   const alias = String(options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-prod').trim().toLowerCase();
   const prodRoot = String(options.prodRoot || process.env.PROD_ROOT || CANONICAL_PROD_ROOT).trim();
   const outputDir = path.resolve(options.outputDir || 'scripts/production/artifacts');
 
-  assertConfig(expectedSha, alias, prodRoot);
+  assertConfig(expectedSha, alias, prodRoot, expectedRunId);
   await fs.mkdir(outputDir, { recursive: true });
 
   // Fetch deploy identity from the canonical production WordPress root. The
@@ -69,18 +71,18 @@ export async function verifyProductionIdentity(options = {}) {
     issues.push(`Production DEPLOY_SHA mismatch: expected ${expectedSha}, found ${deployStamp.DEPLOY_SHA}`);
   }
 
-  if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID)) {
+  if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID)) {
     issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
+  } else if (expectedRunId && deployStamp.DEPLOY_RUN_ID !== expectedRunId) {
+    issues.push(`Production DEPLOY_RUN_ID mismatch: expected ${expectedRunId}, found ${deployStamp.DEPLOY_RUN_ID}`);
   }
 
-  // Validate DEPLOY_TIMESTAMP against ISO 8601 format for stricter parsing
   if (!deployStamp.DEPLOY_TIMESTAMP) {
     issues.push('Production DEPLOY_TIMESTAMP not found in deploy stamp');
   } else {
-    // ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ or similar
-    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
     if (!iso8601Regex.test(deployStamp.DEPLOY_TIMESTAMP)) {
-      issues.push(`Production DEPLOY_TIMESTAMP invalid format (expected ISO 8601): ${deployStamp.DEPLOY_TIMESTAMP}`);
+      issues.push(`Production DEPLOY_TIMESTAMP invalid format (expected timezone-qualified ISO 8601): ${deployStamp.DEPLOY_TIMESTAMP}`);
     } else if (Number.isNaN(Date.parse(deployStamp.DEPLOY_TIMESTAMP))) {
       issues.push(`Production DEPLOY_TIMESTAMP invalid date: ${deployStamp.DEPLOY_TIMESTAMP}`);
     }
@@ -94,6 +96,7 @@ export async function verifyProductionIdentity(options = {}) {
     schema: 'production-identity-verification',
     checkedAt: new Date().toISOString(),
     expectedSha,
+    expectedRunId: expectedRunId || null,
     productionRoot: prodRoot,
     productionDeployStamp: deployStamp,
     validation: issues.length === 0 ? 'PASS' : 'FAIL',
@@ -112,7 +115,6 @@ export async function verifyProductionIdentity(options = {}) {
   return report;
 }
 
-// Auto-run when executed directly
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   verifyProductionIdentity().catch((err) => {
     console.error(err);

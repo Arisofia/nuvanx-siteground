@@ -85,6 +85,7 @@ function summarizeJsonLdBlock(block, index) {
     attributes: block.attrs.slice(0, 500),
     context: null,
     topLevelTypes: [],
+    hasGraph: false,
     graphTypes: [],
     graphIds: [],
     parseError: null,
@@ -95,6 +96,7 @@ function summarizeJsonLdBlock(block, index) {
     summary.context = parsed?.['@context'] ?? null;
     summary.topLevelTypes = schemaTypes(parsed?.['@type']);
     if (Array.isArray(parsed?.['@graph'])) {
+      summary.hasGraph = true;
       const graphTypes = new Set();
       const graphIds = [];
       for (const node of parsed['@graph']) {
@@ -147,7 +149,7 @@ export async function runSingleJsonLdSourceContract(options = {}) {
         const summary = blockSummaries[0];
         if (summary.parseError) {
           report.issues.push(`${route}: canonical JSON-LD block is invalid JSON: ${summary.parseError}`);
-        } else if (!(summary.context === 'https://schema.org' || summary.context === 'http://schema.org' || summary.graphTypes.length > 0)) {
+        } else if (!(summary.context === 'https://schema.org' || summary.context === 'http://schema.org' || summary.hasGraph)) {
           report.issues.push(`${route}: canonical JSON-LD block does not look like governed Schema.org graph`);
         }
       }

@@ -39,46 +39,25 @@
 }
 
 /* Third-party consent placeholders are actionable controls and must retain
- * WCAG AA contrast independently of Complianz's generated neutral defaults. */
-[class*="cmplz-placeholder-"] > .cmplz-blocked-content-notice.cmplz-accept-category {
+ * WCAG AA contrast independently of Complianz's generated neutral defaults.
+ * Scope to Complianz's blocked-content container instead of matching arbitrary
+ * class-name fragments. Support both nested and single-node placeholder markup. */
+.cmplz-blocked-content-container > .cmplz-blocked-content-notice.cmplz-accept-category,
+.cmplz-blocked-content-container.cmplz-blocked-content-notice.cmplz-accept-category {
   color: var(--nvx-light);
   background: var(--nvx-ink);
   border-color: var(--nvx-ink);
 }
 
-[class*="cmplz-placeholder-"] > .cmplz-blocked-content-notice.cmplz-accept-category:hover,
-[class*="cmplz-placeholder-"] > .cmplz-blocked-content-notice.cmplz-accept-category:focus-visible {
+.cmplz-blocked-content-container > .cmplz-blocked-content-notice.cmplz-accept-category:hover,
+.cmplz-blocked-content-container > .cmplz-blocked-content-notice.cmplz-accept-category:focus-visible,
+.cmplz-blocked-content-container.cmplz-blocked-content-notice.cmplz-accept-category:hover,
+.cmplz-blocked-content-container.cmplz-blocked-content-notice.cmplz-accept-category:focus-visible {
   color: var(--nvx-light);
   background: var(--nvx-charcoal);
   border-color: var(--nvx-light);
 }
 
-/* Generic external-link rules must never replace a canonical button variant.
- * Google Maps CTAs consume their button variables even when href selectors from
- * the shared link layer also match the same anchor. */
-a.nvx-brand-btn[href*="google.com/maps"],
-a.nvx-brand-btn[href*="maps.google.com"],
-a.nvx-button[href*="google.com/maps"],
-a.nvx-button[href*="maps.google.com"],
-a.nvx-btn[href*="google.com/maps"],
-a.nvx-btn[href*="maps.google.com"] {
-  color: var(--button-color, var(--nvx-light));
-}
-
-a.nvx-brand-btn[href*="google.com/maps"]:hover,
-a.nvx-brand-btn[href*="google.com/maps"]:focus-visible,
-a.nvx-brand-btn[href*="maps.google.com"]:hover,
-a.nvx-brand-btn[href*="maps.google.com"]:focus-visible,
-a.nvx-button[href*="google.com/maps"]:hover,
-a.nvx-button[href*="google.com/maps"]:focus-visible,
-a.nvx-button[href*="maps.google.com"]:hover,
-a.nvx-button[href*="maps.google.com"]:focus-visible,
-a.nvx-btn[href*="google.com/maps"]:hover,
-a.nvx-btn[href*="google.com/maps"]:focus-visible,
-a.nvx-btn[href*="maps.google.com"]:hover,
-a.nvx-btn[href*="maps.google.com"]:focus-visible {
-  color: var(--button-hover-color, var(--nvx-light));
-}
 
 /* Closed mobile navigation drawer: inert and non-interactive. */
 .nvx-mobile-nav:not([open]),

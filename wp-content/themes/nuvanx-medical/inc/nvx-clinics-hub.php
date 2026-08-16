@@ -1084,7 +1084,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '</ul>';
 	$html .= '<div class="nvx-brand-actions">';
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $chamberi_url ) . '">' . esc_html__( 'Ficha de la sede Chamberí', 'nuvanx-medical' ) . '</a>';
-	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $chamberi_maps ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $chamberi_maps ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</a>';
 	$html .= '</div></div></section>';
 
 	// Goya.
@@ -1101,7 +1101,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '</ul>';
 	$html .= '<div class="nvx-brand-actions">';
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $goya_url ) . '">' . esc_html__( 'Ficha de la sede Goya', 'nuvanx-medical' ) . '</a>';
-	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $goya_maps ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $goya_maps ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Cómo llegar', 'nuvanx-medical' ) . '</a>';
 	$html .= '</div></div></section>';
 
 	// Closing CTA with clinic codes for GEO/AI reinforcement.

@@ -79,9 +79,9 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   transform: translateX(2px);
 }
 
-/* Links a Google Maps */
-a[href*="google.com/maps"],
-a[href*="maps.google.com"] {
+/* Links a Google Maps (excludes button components to prevent CSS collision) */
+a[href*="google.com/maps"]:not(.nvx-brand-btn):not(.nvx-button):not(.nvx-btn),
+a[href*="maps.google.com"]:not(.nvx-brand-btn):not(.nvx-button):not(.nvx-btn) {
   display: inline-flex;
   align-items: center;
   gap: var(--nvx-space-1);
@@ -90,8 +90,8 @@ a[href*="maps.google.com"] {
   transition: color 160ms ease, transform 160ms ease;
 }
 
-a[href*="google.com/maps"]:hover,
-a[href*="maps.google.com"]:hover {
+a[href*="google.com/maps"]:not(.nvx-brand-btn):not(.nvx-button):not(.nvx-btn):hover,
+a[href*="maps.google.com"]:not(.nvx-brand-btn):not(.nvx-button):not(.nvx-btn):hover {
   color: var(--nvx-ink);
   transform: translateX(2px);
 }

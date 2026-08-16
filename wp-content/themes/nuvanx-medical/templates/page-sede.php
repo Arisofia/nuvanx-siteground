@@ -118,7 +118,7 @@ ob_start();
 						<div class="nvx-brand-card">
 							<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?></h3>
 							<p class="nvx-body">
-								<a href="<?php echo esc_url( $clinic_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
+								<a href="<?php echo esc_url( $clinic_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--primary" rel="noopener noreferrer" target="_blank">
 									<?php esc_html_e( 'Ver en Google Maps', 'nuvanx-medical' ); ?>
 								</a>
 							</p>

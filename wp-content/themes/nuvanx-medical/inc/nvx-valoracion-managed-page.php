@@ -7,7 +7,9 @@
  * depend on historical database HTML.
  *
  * SEO title/description are owned exclusively by nvx-seo-metadata.php. HubSpot
- * script loading is owned exclusively by nvx-runtime-governance.js.
+ * mount normalization is owned by nvx-runtime-governance.js; this dedicated
+ * conversion route also ships a defensive bootstrap so the form cannot remain
+ * blank if that runtime is delayed or dropped by an optimizer.
  *
  * @package nuvanx-medical
  */
@@ -68,6 +70,49 @@ function nvx_valoracion_managed_intro_markup(): string {
 }
 
 /**
+ * Deterministic loader for the dedicated valoración conversion page.
+ *
+ * The normal runtime remains the primary owner. This bootstrap first triggers
+ * that runtime synchronously and only injects the same declarative HubSpot
+ * portal loader when no owner has created it. It also repairs a missing frame
+ * and removes extra frames inside the canonical host, making the page resilient
+ * to optimizer timing without introducing a second form instance.
+ */
+function nvx_valoracion_hubspot_bootstrap_markup(): string {
+	$portal_id = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? (string) NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
+	$form_id   = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+	$region    = defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ? (string) NVX_VALORACION_HS_FRAME_REGION : 'eu1';
+
+	$config = wp_json_encode(
+		array(
+			'portalId' => $portal_id,
+			'formId'   => $form_id,
+			'region'   => $region,
+		),
+		JSON_UNESCAPED_SLASHES
+	);
+	if ( ! is_string( $config ) ) {
+		$config = '{"portalId":"147416356","formId":"5042522a-0bc5-4381-ac3e-5aee8649b69c","region":"eu1"}';
+	}
+
+	return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';'
+		. 'function boot(){var host=document.getElementById("nvx-hubspot-native-form");if(!host){return;}'
+		. 'var frames=host.querySelectorAll(".hs-form-frame");var frame=frames[0]||null;'
+		. 'if(!frame){frame=document.createElement("div");frame.className="hs-form-frame";host.insertBefore(frame,host.firstChild);}'
+		. 'for(var i=1;i<frames.length;i++){frames[i].remove();}'
+		. 'frame.dataset.region=cfg.region;frame.dataset.portalId=cfg.portalId;frame.dataset.formId=cfg.formId;frame.dataset.nvxHubspotLazy="1";'
+		. 'if(frame.querySelector("iframe,.hbspt-form")){return;}'
+		. 'try{host.dispatchEvent(new Event("focusin",{bubbles:true}));}catch(e){}'
+		. 'window.setTimeout(function(){if(frame.querySelector("iframe,.hbspt-form")){return;}'
+		. 'var existing=document.querySelector("#nvx-hubspot-forms-runtime,script[data-nvx-hubspot-canonical=\"1\"],script[src*=\"/forms/embed/\"]");if(existing){return;}'
+		. 'var script=document.createElement("script");script.id="nvx-hubspot-forms-runtime";script.dataset.nvxHubspotCanonical="1";'
+		. 'script.src="https://js-"+cfg.region+".hs"+"forms.net/forms/embed/"+cfg.portalId+".js";script.async=true;'
+		. 'script.addEventListener("load",function(){script.dataset.nvxLoaded="1";},{once:true});document.head.appendChild(script);},0);}'
+		. 'if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot,{once:true});}else{boot();}'
+		. 'window.addEventListener("load",boot,{once:true});})();</script>';
+}
+
+/**
  * Build the canonical valuation page before form-order and HubSpot MU filters.
  */
 function nvx_valoracion_managed_page_markup(): string {
@@ -116,10 +161,10 @@ function nvx_valoracion_managed_page_markup(): string {
 	// Keep clinical explanation and locations after the conversion block.
 	$html .= nvx_valoracion_managed_intro_markup();
 
-	// Runtime governance owns the HubSpot loader. Trigger the page mount once all
-	// DOMContentLoaded listeners are installed so the dedicated form does not wait
-	// for scroll/intersection before loading.
-	$html .= '<script id="nvx-valoracion-form-eager">window.addEventListener("load",function(){var host=document.getElementById("nvx-hubspot-native-form");if(host){host.dispatchEvent(new Event("focusin",{bubbles:true}));}},{once:true});</script>';
+	// Dedicated conversion route: trigger the normal runtime and recover if an
+	// optimizer delayed or removed it. The bootstrap never creates a second frame
+	// or a second portal loader when the canonical owner is already present.
+	$html .= nvx_valoracion_hubspot_bootstrap_markup();
 	$html .= '</div>';
 
 	return $html;

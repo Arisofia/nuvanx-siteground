@@ -8,6 +8,10 @@ const expectedHost = process.env.EXPECTED_HOST || 'nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const expectedRunId = (process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID || '').trim();
 const prodRoot = process.env.PROD_ROOT || '/home/customer/www/nuvanx.com/public_html';
+// PROD_DB_NAME is the canonical production DB identifier used as a boundary
+// assertion. It is not a secret (no password), but externalised so CI can
+// override it without modifying source. Default is the current SiteGround value.
+const prodDbName = (process.env.PROD_DB_NAME || 'db0ecrycwv2tgb').trim();
 const requestTimeoutMs = Number.parseInt(process.env.PRODUCTION_BOUNDARY_REQUEST_TIMEOUT_MS || '15000', 10);
 const routes = [
   '/',
@@ -76,7 +80,7 @@ function verifyFromSiteGroundOrigin() {
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"
 test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
-test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
 test "$(wp option get home)" = 'https://nuvanx.com'
 test "$(wp option get siteurl)" = 'https://nuvanx.com'
 test "$(wp option get blog_public)" = '1'
@@ -160,7 +164,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA run_id=$EXPECTED_RUN_ID 
     '/usr/bin/ssh',
     [
       'nvx-prod',
-      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} bash -se`,
+      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
     ],
     {
       input: remoteScript,

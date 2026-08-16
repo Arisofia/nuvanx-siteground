@@ -4,7 +4,10 @@ import { spawnSync } from 'node:child_process';
 
 const SSH_BIN = '/usr/bin/ssh';
 const ALLOWED_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
-const STAGING_ROOT = '/home/customer/www/staging2.nuvanx.com/public_html';
+// STAGING_ROOT can be overridden via env var for non-standard hosting layouts.
+// The hardcoded default is the canonical SiteGround path and acts as the
+// expected value in security assertions — any override must still be validated.
+const STAGING_ROOT = (process.env.STAGING_ROOT || '/home/customer/www/staging2.nuvanx.com/public_html').trim();
 
 function resolveReleaseMigration() {
   const release = String(process.env.REMOTE_RELEASE || '').trim();

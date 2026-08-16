@@ -142,6 +142,7 @@ async function prepareEvidenceEntry(filePath, content, token) {
 export async function writeEvidenceBundle(entries) {
   const staged = [];
   const committed = [];
+  const preservedBackupPaths = new Set();
   const token = `${process.pid}-${Date.now()}`;
   const artifactsDir = entries.length > 0 ? path.dirname(entries[0][0]) : process.cwd();
   const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
@@ -179,6 +180,7 @@ export async function writeEvidenceBundle(entries) {
     let markerWriteError = '';
     if (rollbackFailures.length > 0) {
       for (const { entry, artifactPath } of rollbackFailures) {
+        if (entry.hadOriginal) preservedBackupPaths.add(entry.backupPath);
         try {
           await fs.rm(entry.filePath, { force: true });
           removedInvalidFiles.push(artifactPath);
@@ -192,7 +194,7 @@ export async function writeEvidenceBundle(entries) {
 
       const failedPaths = new Set(rollbackFailures.map(({ entry }) => entry.filePath));
       const marker = {
-        schema: 4,
+        schema: 5,
         status: 'inconsistent-evidence-bundle',
         writeError: error?.message || String(error),
         rollbackErrors: rollbackFailures.map(({ message }) => message),
@@ -200,8 +202,14 @@ export async function writeEvidenceBundle(entries) {
         remainingInvalidFiles: cleanupFailures.map(({ artifactPath }) => artifactPath),
         cleanupErrors: cleanupFailures.map(({ message }) => message),
         retainedPriorFiles: staged
-          .filter((entry) => !failedPaths.has(entry.filePath))
+          .filter((entry) => entry.hadOriginal && !failedPaths.has(entry.filePath))
           .map((entry) => artifactPathFor(entry.filePath)),
+        absentPriorFiles: staged
+          .filter((entry) => !entry.hadOriginal)
+          .map((entry) => artifactPathFor(entry.filePath)),
+        preservedBackupFiles: rollbackFailures
+          .filter(({ entry }) => entry.hadOriginal)
+          .map(({ entry }) => artifactPathFor(entry.backupPath)),
         generatedAt: new Date().toISOString(),
       };
 
@@ -215,6 +223,7 @@ export async function writeEvidenceBundle(entries) {
     const details = [
       rollbackFailures.length ? `rollback_errors=${rollbackFailures.map(({ message }) => message).join('|')}` : '',
       cleanupFailures.length ? `cleanup_errors=${cleanupFailures.map(({ message }) => message).join('|')}` : '',
+      preservedBackupPaths.size ? `preserved_backups=${[...preservedBackupPaths].map(artifactPathFor).join('|')}` : '',
       markerWriteError ? `marker_write_error=${markerWriteError}` : '',
     ].filter(Boolean);
     const detail = details.length ? ` ${details.join(' ')}` : '';
@@ -222,7 +231,9 @@ export async function writeEvidenceBundle(entries) {
   } finally {
     await Promise.all(staged.flatMap(({ tmpPath, backupPath }) => [
       fs.rm(tmpPath, { force: true }).catch(() => {}),
-      fs.rm(backupPath, { force: true }).catch(() => {}),
+      preservedBackupPaths.has(backupPath)
+        ? Promise.resolve()
+        : fs.rm(backupPath, { force: true }).catch(() => {}),
     ]));
   }
 }

@@ -390,7 +390,21 @@ function nvx_catalog_retire_unapproved_bridal_seed(): void {
 	$content        = (string) $page->post_content;
 	$has_seed_marker = false !== strpos( $content, 'data-nvx-treatment="bridal_protocol"' )
 		|| false !== strpos( $content, "data-nvx-treatment='bridal_protocol'" );
-	$is_seed        = 'bridal_protocol' === $seed_key && $has_seed_marker;
+	
+	// Use OR instead of AND for fail-safe retirement: if either signal is present, treat as seed
+	// This prevents temporary seeds from staying published if one signal is lost during sync or edits
+	$has_meta_key  = 'bridal_protocol' === $seed_key;
+	$is_seed        = $has_meta_key || $has_seed_marker;
+	
+	// Log when signals don't match for visibility into potential sync/edit issues
+	if ( $has_meta_key !== $has_seed_marker && $is_seed ) {
+		error_log( sprintf( 
+			'NUVANX: bridal_protocol signal mismatch (meta=%s, marker=%s) for page %d. Treating as seed for fail-safe retirement.',
+			$has_meta_key ? 'present' : 'missing',
+			$has_seed_marker ? 'present' : 'missing',
+			$page->ID
+		) );
+	}
 
 	if ( ! $is_seed || 'draft' === $page->post_status || 'trash' === $page->post_status ) {
 		return;

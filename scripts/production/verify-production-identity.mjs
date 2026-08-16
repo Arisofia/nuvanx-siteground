@@ -112,6 +112,7 @@ export async function verifyProductionIdentity(options = {}) {
   return report;
 }
 
+// Auto-run when executed directly
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   verifyProductionIdentity().catch((err) => {
     console.error(err);

@@ -14,7 +14,7 @@ function assertConfig(sha, alias, prodRoot) {
 
 export async function verifyProductionIdentity(options = {}) {
   const expectedSha = String(options.expectedSha || process.env.EXPECTED_SHA || '').trim();
-  const alias = options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-prod';
+  const alias = String(options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-prod').trim().toLowerCase();
   const prodRoot = String(options.prodRoot || process.env.PROD_ROOT || CANONICAL_PROD_ROOT).trim();
   const outputDir = path.resolve(options.outputDir || 'scripts/production/artifacts');
 
@@ -72,8 +72,17 @@ export async function verifyProductionIdentity(options = {}) {
     issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
   }
 
-  if (!deployStamp.DEPLOY_TIMESTAMP || Number.isNaN(Date.parse(deployStamp.DEPLOY_TIMESTAMP))) {
-    issues.push(`Production DEPLOY_TIMESTAMP missing or invalid: ${deployStamp.DEPLOY_TIMESTAMP || '(missing)'}`);
+  // Validate DEPLOY_TIMESTAMP against ISO 8601 format for stricter parsing
+  if (!deployStamp.DEPLOY_TIMESTAMP) {
+    issues.push('Production DEPLOY_TIMESTAMP not found in deploy stamp');
+  } else {
+    // ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ or similar
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+    if (!iso8601Regex.test(deployStamp.DEPLOY_TIMESTAMP)) {
+      issues.push(`Production DEPLOY_TIMESTAMP invalid format (expected ISO 8601): ${deployStamp.DEPLOY_TIMESTAMP}`);
+    } else if (Number.isNaN(Date.parse(deployStamp.DEPLOY_TIMESTAMP))) {
+      issues.push(`Production DEPLOY_TIMESTAMP invalid date: ${deployStamp.DEPLOY_TIMESTAMP}`);
+    }
   }
 
   if (!deployStamp.RELEASE_ID) {

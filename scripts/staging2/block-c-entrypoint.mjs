@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
+import { EX_CONFIG, EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
@@ -23,7 +23,8 @@ function positiveIntegerEnv(name, fallback) {
 }
 
 const SUBPROCESS_CONFIG = Object.freeze({
-  timeoutMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_TIMEOUT_MS', 15 * 60 * 1000),
+  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', 45 * 60 * 1000),
+  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', 10 * 60 * 1000),
   hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
 });
 
@@ -36,7 +37,7 @@ class ProcessSignalError extends Error {
   }
 }
 
-function runProcess(script, env = process.env, config = SUBPROCESS_CONFIG) {
+function runProcess(script, env = process.env, timeoutMs) {
   return new Promise((resolve, reject) => {
     let timedOut = false;
     let hardKillTimer = null;
@@ -44,13 +45,13 @@ function runProcess(script, env = process.env, config = SUBPROCESS_CONFIG) {
 
     const timeoutTimer = setTimeout(() => {
       timedOut = true;
-      console.error(`BLOCK_C_SUBPROCESS=TIMEOUT script=${path.basename(script)} timeout_ms=${config.timeoutMs}`);
+      console.error(`BLOCK_C_SUBPROCESS=TIMEOUT script=${path.basename(script)} timeout_ms=${timeoutMs}`);
       child.kill('SIGTERM');
       hardKillTimer = setTimeout(() => {
         if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
-      }, config.hardKillGraceMs);
+      }, SUBPROCESS_CONFIG.hardKillGraceMs);
       hardKillTimer.unref?.();
-    }, config.timeoutMs);
+    }, timeoutMs);
     timeoutTimer.unref?.();
 
     const cleanupTimers = () => {
@@ -83,7 +84,7 @@ async function runCore() {
       ...process.env,
       GITHUB_ENV: shadowGithubEnv,
       GITHUB_STEP_SUMMARY: shadowStepSummary,
-    });
+    }, SUBPROCESS_CONFIG.coreTimeoutMs);
   } catch (error) {
     if (error instanceof ProcessSignalError) {
       console.error(`BLOCK_C_CORE=TRANSIENT_SIGNAL signal=${error.signal}`);
@@ -96,7 +97,7 @@ async function runCore() {
 async function tryHomeMobileVisualRecovery() {
   let code;
   try {
-    code = await runProcess(homeMobileRecoveryScript);
+    code = await runProcess(homeMobileRecoveryScript, process.env, SUBPROCESS_CONFIG.recoveryTimeoutMs);
   } catch (error) {
     if (error instanceof ProcessSignalError) {
       console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT_SIGNAL signal=${error.signal}`);
@@ -113,6 +114,10 @@ async function tryHomeMobileVisualRecovery() {
   if (code === EX_TEMPFAIL) {
     console.error('BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT wrapper=continue');
     return { recovered: false, applicable: true, transient: true };
+  }
+  if (code === EX_CONFIG) {
+    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_CONFIG wrapper_exit=78');
+    return { recovered: false, applicable: true, transient: false, realFailure: true, configFailure: true, code };
   }
   console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL wrapper_exit=${code}`);
   return { recovered: false, applicable: true, transient: false, realFailure: true, code };
@@ -134,8 +139,12 @@ function isRecoverableCompletedVisualTransient(result) {
 async function writeJsonAtomic(url, payload) {
   const filePath = fileURLToPath(url);
   const tmpPath = `${filePath}.tmp-${process.pid}`;
-  await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-  await fs.rename(tmpPath, filePath);
+  try {
+    await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    await fs.rename(tmpPath, filePath);
+  } finally {
+    await fs.rm(tmpPath, { force: true }).catch(() => {});
+  }
 }
 
 async function tryExactOriginNetworkRecovery() {
@@ -238,7 +247,7 @@ try {
       console.log('BLOCK_C_RESILIENT=PASS_PUBLIC_BROWSER_RECOVERY visual_contract=complete');
       process.exitCode = 0;
     } else if (visualRecovery.realFailure) {
-      console.error('BLOCK_C_RESILIENT=FAIL_REAL fallback=public-browser-recovery');
+      console.error(`BLOCK_C_RESILIENT=${visualRecovery.configFailure ? 'FAIL_CONFIG' : 'FAIL_REAL'} fallback=public-browser-recovery`);
       process.exitCode = visualRecovery.code || 1;
     } else {
       const recovered = await tryExactOriginNetworkRecovery();

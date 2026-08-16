@@ -44,10 +44,17 @@ export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
   }),
 });
 
+export class BlockCConfigError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'BlockCConfigError';
+  }
+}
+
 export function getCanonicalViewport(viewportKey) {
   const viewport = BLOCK_C_VIEWPORTS.find((candidate) => candidate.key === viewportKey);
   if (!viewport) {
-    throw new Error(`Unknown canonical Block C viewport: ${viewportKey}`);
+    throw new BlockCConfigError(`Unknown canonical Block C viewport: ${viewportKey}`);
   }
   return viewport;
 }

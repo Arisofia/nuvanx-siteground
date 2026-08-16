@@ -145,6 +145,7 @@ export async function writeEvidenceBundle(entries) {
   const token = `${process.pid}-${Date.now()}`;
   const artifactsDir = entries.length > 0 ? path.dirname(entries[0][0]) : process.cwd();
   const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
+  const artifactPathFor = (filePath) => path.relative(artifactsDir, filePath) || path.basename(filePath);
 
   try {
     await fs.rm(inconsistentMarkerPath, { force: true }).catch(() => {});
@@ -164,9 +165,11 @@ export async function writeEvidenceBundle(entries) {
         if (entry.hadOriginal) await fs.copyFile(entry.backupPath, entry.filePath);
         else await fs.rm(entry.filePath, { force: true });
       } catch (rollbackError) {
+        const artifactPath = artifactPathFor(entry.filePath);
         rollbackFailures.push({
           entry,
-          message: `${path.basename(entry.filePath)}:${rollbackError?.message || rollbackError}`,
+          artifactPath,
+          message: `${artifactPath}:${rollbackError?.message || rollbackError}`,
         });
       }
     }
@@ -175,30 +178,30 @@ export async function writeEvidenceBundle(entries) {
     const cleanupFailures = [];
     let markerWriteError = '';
     if (rollbackFailures.length > 0) {
-      for (const { entry } of rollbackFailures) {
+      for (const { entry, artifactPath } of rollbackFailures) {
         try {
           await fs.rm(entry.filePath, { force: true });
-          removedInvalidFiles.push(path.basename(entry.filePath));
+          removedInvalidFiles.push(artifactPath);
         } catch (cleanupError) {
           cleanupFailures.push({
-            file: path.basename(entry.filePath),
-            message: `${path.basename(entry.filePath)}:${cleanupError?.message || cleanupError}`,
+            artifactPath,
+            message: `${artifactPath}:${cleanupError?.message || cleanupError}`,
           });
         }
       }
 
       const failedPaths = new Set(rollbackFailures.map(({ entry }) => entry.filePath));
       const marker = {
-        schema: 3,
+        schema: 4,
         status: 'inconsistent-evidence-bundle',
         writeError: error?.message || String(error),
         rollbackErrors: rollbackFailures.map(({ message }) => message),
         removedInvalidFiles,
-        remainingInvalidFiles: cleanupFailures.map(({ file }) => file),
+        remainingInvalidFiles: cleanupFailures.map(({ artifactPath }) => artifactPath),
         cleanupErrors: cleanupFailures.map(({ message }) => message),
         retainedPriorFiles: staged
           .filter((entry) => !failedPaths.has(entry.filePath))
-          .map((entry) => path.basename(entry.filePath)),
+          .map((entry) => artifactPathFor(entry.filePath)),
         generatedAt: new Date().toISOString(),
       };
 

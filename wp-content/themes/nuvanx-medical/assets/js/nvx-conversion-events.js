@@ -372,8 +372,8 @@
 
 	/** Return one UUID that remains stable for every retry of a submission. */
 	function createSubmissionId() {
-		if (typeof window.crypto?.randomUUID === 'function') return window.crypto.randomUUID();
-		if (typeof window.crypto?.getRandomValues === 'function') {
+		if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+		if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
 			var bytes = new Uint8Array(16);
 			window.crypto.getRandomValues(bytes);
 			bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -508,7 +508,7 @@
 		} catch (_error) {
 			return null;
 		}
-		return root?.nodeType === 1 && typeof root.querySelector === 'function' ? root : null;
+		return (root && root.nodeType === 1 && typeof root.querySelector === 'function') ? root : null;
 	}
 
 	function legacyFieldInput(root, propertyName) {
@@ -588,7 +588,7 @@
 	function refreshLegacyForms() {
 		if (!hasMarketingConsent()) clearLegacyPendingSubmission();
 		legacyFormRoots = legacyFormRoots.filter(function (root) {
-			return root?.isConnected;
+			return root ? root.isConnected : false;
 		});
 		legacyFormRoots.forEach(function (root) {
 			populateLegacyClickFields(root);
@@ -670,7 +670,7 @@
 			pending.successSeen = true;
 		} else if (!pending.successSeen) {
 			legacyFormRoots = legacyFormRoots.filter(function (root) {
-				return root?.isConnected;
+				return root ? root.isConnected : false;
 			});
 			if (legacyFormRoots.length !== 1 || legacyFormRoots[0] !== pending.root) return;
 			pending.successSeen = true;

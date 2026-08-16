@@ -107,7 +107,7 @@
     });
 
     nav.addEventListener('click', function (event) {
-      const link = event.target?.closest?.('a[href]') || null;
+      const link = (event.target && event.target.closest) ? event.target.closest('a[href]') : null;
       if (!link) return;
       requestClose();
     });
@@ -465,7 +465,7 @@
     }
 
     function isHubSpotIframe(ifr) {
-      if (ifr?.tagName !== 'IFRAME') return false;
+      if (!ifr || ifr.tagName !== 'IFRAME') return false;
       if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
         return true;
       }
@@ -631,7 +631,7 @@
       document.addEventListener(
         'click',
         function (event) {
-          const link = event.target?.closest?.('a') || null;
+          const link = (event.target && event.target.closest) ? event.target.closest('a') : null;
           if (!link) return;
           if (
             link.classList.contains('nvx-open-valoracion-modal') ||
@@ -681,7 +681,7 @@
       document.addEventListener(
         'click',
         function (event) {
-          const link = event.target?.closest?.('a[href*="#nvx-hubspot-form"]') || null;
+          const link = (event.target && event.target.closest) ? event.target.closest('a[href*="#nvx-hubspot-form"]') : null;
           if (link) activate();
         },
         true
@@ -703,7 +703,7 @@
         for (const m of mutations) {
           if (m.type === 'childList') {
             for (const node of m.addedNodes) {
-              if (node?.nodeType === 1 && (node.tagName === 'IFRAME' || node.querySelector?.('iframe'))) {
+              if (node && node.nodeType === 1 && (node.tagName === 'IFRAME' || (node.querySelector && node.querySelector('iframe')))) {
                 shouldRun = true;
                 break;
               }
@@ -711,7 +711,7 @@
             if (shouldRun) break;
           } else if (m.type === 'attributes') {
             const target = m.target;
-            if (target?.tagName === 'IFRAME' && isHubSpotIframe(target)) {
+            if (target && target.tagName === 'IFRAME' && isHubSpotIframe(target)) {
               const currentTitle = target.getAttribute('title');
               const hasAria = target.hasAttribute('aria-label');
               const isCompliant = !hasAria && currentTitle === 'Formulario de valoración médica';

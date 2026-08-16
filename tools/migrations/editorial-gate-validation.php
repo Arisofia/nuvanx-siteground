@@ -38,8 +38,12 @@ $editorialRules = array(
         'description' => 'Draft/review workflow language in published content',
     ),
     'generic_placeholders' => array(
-        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\b\s*:|\bplaceholder\b)/i',
+        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\s*[:\-\—\–]\s*|\bplaceholder\b)/i',
         'description' => 'Editorial placeholder in published content',
+    ),
+    'generic_placeholders_uppercase' => array(
+        'pattern'     => '/\b(?:TODO|FIXME|XXX|HACK)\b/',
+        'description' => 'Editorial placeholder in published content (uppercase only)',
     ),
     'inline_styles' => array(
         'pattern'     => '/\sstyle\s*=\s*["\'][^"\']+["\']/i',

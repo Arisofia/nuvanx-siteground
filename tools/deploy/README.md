@@ -5,7 +5,7 @@ Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 | Script | Purpose |
 |--------|---------|
 | `deploy-to-staging2.sh` | Guard Staging2 identity, PHP lint, backup, rsync theme, stamp SHA and purge caches |
-| `deploy-to-prod.sh` | Guarded production promotion tooling for an explicitly authorized exact SHA |
+| `deploy-to-prod.sh` | Guarded production promotion implementation for the canonical GitHub Actions release |
 | `flush-prod-cache.sh` | Flush WordPress and SiteGround optimizer caches for the production root |
 
 ## Workflow ownership
@@ -16,6 +16,8 @@ The shell scripts in this directory are implementation helpers. Release orchestr
 - `.github/workflows/production.yml` - Production promotion with SEO/GEO audits
 
 A relevant push to `master` can automatically deploy **Staging2 only** through `staging.yml`. Production deployment is explicitly dispatched through `production.yml` and requires verified, immutable exact-SHA Staging2 acceptance evidence before mutation.
+
+`deploy-to-prod.sh` is not an independent authorization surface. It requires the numeric `GITHUB_RUN_ID` supplied by the canonical Production workflow and refuses a host-level invocation that cannot produce the same immutable four-field deployment identity consumed by the production boundary verifiers.
 
 See [`docs/operations/deployment.md`](../../docs/operations/deployment.md) for the canonical release model.
 
@@ -34,20 +36,11 @@ To prevent editorial content changes (e.g. H1 text) from triggering full rollbac
 **Important changes:**
 - The workflow step "Run shared content migration" has been removed. The migration now executes only once, inside deploy-to-prod.sh's atomic post-cutover window.
 - BACKUP_DIR has been moved outside the document root to `$PROD_PARENT/.nvx-backups/` to prevent HTTP exposure of the database dump.
+- Production promotion has one authorization path: `.github/workflows/production.yml`. Direct host invocation of `deploy-to-prod.sh` is intentionally rejected without a numeric GitHub Actions run ID.
 
-## Host-level emergency production operation
+## Host-level maintenance
 
-Direct host operation is an emergency/explicit-authorization path, not the default release trigger:
-
-```bash
-export WP_PROD=/home/customer/www/nuvanx.com/public_html
-export WP_STG2=/home/customer/www/staging2.nuvanx.com/public_html
-
-NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
-  --prod-root "$WP_PROD" \
-  --staging-root "$WP_STG2" \
-  --confirm
-```
+Host-level maintenance may perform non-release operations such as an explicit cache flush. It must not be used to bypass Staging acceptance or create a production release identity.
 
 Production cache flush:
 

@@ -132,6 +132,9 @@ function nvx_schema_merge_website_node( array $merged, array $node ): array {
 /**
  * Merge duplicate canonical WebSite nodes into their first graph position.
  *
+ * Only performs merge when multiple WebSite nodes exist to avoid creating
+ * duplicates or unnecessary processing when there's only one node.
+ *
  * @param array $graph Yoast schema graph.
  * @return array
  */
@@ -141,25 +144,28 @@ function nvx_schema_merge_canonical_website_nodes( $graph ) {
 	}
 
 	$website_id = home_url( '/#website' );
-	$first_key  = null;
-	$merged     = array();
+	$website_nodes = array();
 
+	// First, collect all WebSite nodes
 	foreach ( $graph as $key => $node ) {
-		if ( ! nvx_schema_is_canonical_website_node( $node, $website_id ) ) {
-			continue;
+		if ( nvx_schema_is_canonical_website_node( $node, $website_id ) ) {
+			$website_nodes[ $key ] = $node;
 		}
-
-		if ( null === $first_key ) {
-			$first_key = $key;
-			$merged    = $node;
-			continue;
-		}
-
-		$merged = nvx_schema_merge_website_node( $merged, $node );
-		unset( $graph[ $key ] );
 	}
 
-	if ( null !== $first_key ) {
+	// Only merge if there are multiple WebSite nodes (avoid creating duplicates)
+	if ( count( $website_nodes ) > 1 ) {
+		$first_key  = array_key_first( $website_nodes );
+		$merged     = $website_nodes[ $first_key ];
+
+		foreach ( $website_nodes as $key => $node ) {
+			if ( $key === $first_key ) {
+				continue;
+			}
+			$merged = nvx_schema_merge_website_node( $merged, $node );
+			unset( $graph[ $key ] );
+		}
+
 		$graph[ $first_key ] = $merged;
 	}
 

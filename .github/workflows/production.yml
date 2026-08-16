@@ -87,6 +87,7 @@ jobs:
           bash -n scripts/ci/verify-staging-acceptance.sh
           bash -n scripts/ci/test-mutation-fifo-contract.sh
           bash scripts/ci/test-mutation-fifo-contract.sh
+          node scripts/production/test-deploy-identity-contract.mjs
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
           [[ "${workflows[*]}" == 'production.yml staging.yml' ]] || { printf 'Expected exactly two canonical workflows; found: %s\n' "${workflows[*]}" >&2; exit 1; }
           ! grep -Fq 'StrictHostKeyChecking=no' .github/workflows/production.yml
@@ -95,7 +96,7 @@ jobs:
           bash -n scripts/production/test-configure-siteground-ssh.sh
           bash scripts/production/test-configure-siteground-ssh.sh
           grep -Fq 'PRODUCTION_COMPENSATING_ROLLBACK=PASS' scripts/production/compensating-rollback.sh
-          echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2 compensating_rollback=enforced'
+          echo 'PRODUCTION_CONTROL_PLANE=PASS workflows=2 compensating_rollback=enforced identity_contract=pass'
 
       - name: Resolve immutable requested candidate
         id: candidate
@@ -143,7 +144,10 @@ jobs:
           test "$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)" = "$CANDIDATE_SHA"
           find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
           bash -n "$CANDIDATE_ROOT/tools/deploy/deploy-to-prod.sh"
+          node --check "$CANDIDATE_ROOT/scripts/production/deploy-identity-contract.mjs"
           node --check "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"
+          node --check "$CANDIDATE_ROOT/scripts/production/verify-production-identity.mjs"
+          node "$CANDIDATE_ROOT/scripts/production/test-deploy-identity-contract.mjs"
           node --check "$CANDIDATE_ROOT/scripts/seo/index-pages.js"
           bash -n "$CANDIDATE_ROOT/scripts/production/document-head-title-audit.sh"
           bash -n "$CANDIDATE_ROOT/scripts/production/seo-geo-origin-audit.sh"
@@ -157,7 +161,7 @@ jobs:
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           echo "AUDIT_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           echo "CANONICAL_AUDIT_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
-          echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA compensating_rollback=enforced"
+          echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA compensating_rollback=enforced identity_contract=pass"
 
       - name: Wait for FIFO environment mutation turn
         shell: bash
@@ -233,7 +237,7 @@ jobs:
           set -euo pipefail
           pass=0
           for attempt in {1..6}; do
-            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" PRODUCTION_BOUNDARY_ARTIFACTS_DIR="$GITHUB_WORKSPACE/scripts/production/artifacts" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
+            if BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" EXPECTED_RUN_ID="$GITHUB_RUN_ID" ORIGIN_SSH_ALIAS=nvx-prod PROD_DB_NAME="$PROD_DB_NAME" PRODUCTION_BOUNDARY_ARTIFACTS_DIR="$GITHUB_WORKSPACE/scripts/production/artifacts" node "$CANDIDATE_ROOT/scripts/production/verify-production-boundary.mjs"; then pass=1; break; fi
             sleep 10
           done
           test "$pass" = 1
@@ -252,10 +256,11 @@ jobs:
           REMOTE
 
       - name: Verify full production identity chain (4-field verification)
+        id: production_identity
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED_RUN_ID="$GITHUB_RUN_ID" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-identity.mjs"
+          ORIGIN_SSH_ALIAS=nvx-prod EXPECTED_RUN_ID="$GITHUB_RUN_ID" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-identity.mjs"
           mkdir -p "$GITHUB_WORKSPACE/scripts/production/artifacts"
           cp -f "$CANDIDATE_ROOT/scripts/production/artifacts/production-identity-verification.json" "$GITHUB_WORKSPACE/scripts/production/artifacts/" 2>/dev/null || true
           echo "PRODUCTION_IDENTITY_CHAIN=PASS"
@@ -296,7 +301,7 @@ jobs:
 
       - name: Compensate failed post-cutover production gate
         id: compensating_rollback
-        if: ${{ always() && steps.cutover.outcome == 'success' && (steps.production_boundary.outcome == 'failure' || steps.origin_audits.outcome == 'failure') }}
+        if: ${{ always() && steps.cutover.outcome == 'success' && (steps.production_boundary.outcome == 'failure' || steps.production_identity.outcome == 'failure' || steps.origin_audits.outcome == 'failure') }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -317,7 +322,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload production origin audit evidence
-        if: ${{ always() && (inputs.run_post_audits || steps.production_boundary.outcome == 'failure') }}
+        if: ${{ always() && (inputs.run_post_audits || steps.production_boundary.outcome == 'failure' || steps.production_identity.outcome == 'failure') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-origin-audit-${{ env.CANDIDATE_SHA }}
@@ -353,7 +358,8 @@ jobs:
             echo "- Deploy/audit tooling SHA: \`$CANONICAL_AUDIT_SHA\`"
             echo '- FIFO lease prevented newer Staging/Production mutations from overtaking this release.'
             echo '- Atomic production cutover + rollback contract: PASS.'
-            echo '- Post-cutover boundary/origin audit failure compensation: enforced.'
+            echo '- Four-field production identity: PASS.'
+            echo '- Post-cutover boundary/origin/identity failure compensation: enforced.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:
@@ -379,16 +385,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Validate candidate and production identity
+      - name: Validate candidate tooling identity
         shell: bash
         run: |
           set -euo pipefail
           candidate="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
           [[ "$candidate" =~ ^[0-9a-f]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$candidate"
-          if [[ "${{ inputs.deploy }}" == false ]]; then
-            BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$candidate" node scripts/production/verify-production-boundary.mjs
-          fi
+          node scripts/production/test-deploy-identity-contract.mjs
           echo "POST_AUDIT_TOOLING=PASS sha=$candidate"
 
       - name: Setup Node.js for Search Console audit
@@ -441,17 +445,23 @@ jobs:
           PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
           PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
           PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts
           bash -n scripts/production/configure-siteground-ssh.sh
           bash scripts/production/configure-siteground-ssh.sh
 
-      - name: Run verification-only exact-candidate origin audits
+      - name: Run verification-only exact-candidate boundary and origin audits
         if: ${{ inputs.deploy == false }}
         shell: bash
         run: |
           set -euo pipefail
+          ORIGIN_SSH_ALIAS=nvx-prod-audit PROD_DB_NAME="$PROD_DB_NAME" BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node scripts/production/verify-production-boundary.mjs
           ssh nvx-prod-audit "BASE_URL='$BASE_URL' bash -s" < scripts/production/document-head-title-audit.sh | tee scripts/production/artifacts/document-head-title-audit.log
           ssh nvx-prod-audit "PROD_ROOT='$PROD_ROOT' BASE_URL='$BASE_URL' EXPECTED_HOST='$EXPECTED_HOST' bash -s" < scripts/production/seo-geo-origin-audit.sh | tee scripts/production/artifacts/seo-geo-origin-audit.log
           log='scripts/production/artifacts/seo-geo-origin-audit.log'
@@ -608,7 +618,7 @@ jobs:
 
       - name: Verify production is exact requested SHA
         shell: bash
-        run: BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
+        run: ORIGIN_SSH_ALIAS=nvx-prod-audit PROD_DB_NAME="$PROD_DB_NAME" BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
 
       - name: Run Lighthouse production matrix
         shell: bash
@@ -721,7 +731,7 @@ jobs:
           EXPECTED_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
-          BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$EXPECTED_SHA" node scripts/production/verify-production-boundary.mjs
+          ORIGIN_SSH_ALIAS=nvx-prod-hubspot PROD_DB_NAME="$PROD_DB_NAME" BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$EXPECTED_SHA" node scripts/production/verify-production-boundary.mjs
           cd scripts/staging2
           npm ci --ignore-scripts
           cd ../..

@@ -4,10 +4,15 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { EX_CONFIG, EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
+import { renderBlockCEvidence, writeEvidenceBundle } from './block-c-evidence.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
 const homeMobileRecoveryScript = fileURLToPath(new URL('./block-c-home-mobile-recovery.mjs', import.meta.url));
-const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
+const artifactsDir = fileURLToPath(new URL('./block-c-artifacts/', import.meta.url));
+const resultsPath = path.join(artifactsDir, 'block-c-results.json');
+const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
+const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
+const csvPath = path.join(artifactsDir, 'block-c-results.csv');
 const runnerTemp = process.env.RUNNER_TEMP || '/tmp';
 const realGithubEnv = process.env.GITHUB_ENV || '';
 const realStepSummary = process.env.GITHUB_STEP_SUMMARY || '';
@@ -22,9 +27,10 @@ function positiveIntegerEnv(name, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
+const legacyTimeoutMs = positiveIntegerEnv('BLOCK_C_SUBPROCESS_TIMEOUT_MS', 0);
 const SUBPROCESS_CONFIG = Object.freeze({
-  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', 45 * 60 * 1000),
-  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', 10 * 60 * 1000),
+  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', legacyTimeoutMs || 25 * 60 * 1000),
+  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', 12 * 60 * 1000),
   hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
 });
 
@@ -37,7 +43,11 @@ class ProcessSignalError extends Error {
   }
 }
 
-function runProcess(script, env = process.env, timeoutMs) {
+function runProcess(script, env = process.env, timeoutMs = SUBPROCESS_CONFIG.coreTimeoutMs) {
+  if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) {
+    return Promise.reject(new RangeError(`Invalid Block C subprocess timeout for ${path.basename(script)}: ${timeoutMs}`));
+  }
+
   return new Promise((resolve, reject) => {
     let timedOut = false;
     let hardKillTimer = null;
@@ -136,22 +146,11 @@ function isRecoverableCompletedVisualTransient(result) {
     && networkErrors.length > 0;
 }
 
-async function writeJsonAtomic(url, payload) {
-  const filePath = fileURLToPath(url);
-  const tmpPath = `${filePath}.tmp-${process.pid}`;
-  try {
-    await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    await fs.rename(tmpPath, filePath);
-  } finally {
-    await fs.rm(tmpPath, { force: true }).catch(() => {});
-  }
-}
-
 async function tryExactOriginNetworkRecovery() {
   try {
     let results;
     try {
-      results = JSON.parse(await fs.readFile(resultsUrl, 'utf8'));
+      results = JSON.parse(await fs.readFile(resultsPath, 'utf8'));
     } catch (error) {
       console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=results_unreadable error=${error instanceof Error ? error.message : String(error)}`);
       return false;
@@ -178,9 +177,7 @@ async function tryExactOriginNetworkRecovery() {
     try {
       for (const result of failed) {
         const route = String(result.route || '');
-        if (!verificationByRoute.has(route)) {
-          verificationByRoute.set(route, verifier.verify(route));
-        }
+        if (!verificationByRoute.has(route)) verificationByRoute.set(route, verifier.verify(route));
         const verification = verificationByRoute.get(route);
         if (!verification?.pass || verification.originStatus !== 200 || verification.originDeploySha !== expectedSha) {
           console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=FAIL route=${route} origin_http=${verification?.originStatus ?? 0} origin_sha=${verification?.originDeploySha || 'missing'}`);
@@ -198,7 +195,7 @@ async function tryExactOriginNetworkRecovery() {
       return {
         ...result,
         status: 'PASS',
-        recoveredIssues: Array.isArray(result.issues) ? result.issues : [],
+        recoveredIssues: Array.isArray(result.issues) ? [...result.issues] : [],
         issues: [],
         originVerified: true,
         originStatus: verification.originStatus,
@@ -208,7 +205,13 @@ async function tryExactOriginNetworkRecovery() {
       };
     });
 
-    await writeJsonAtomic(resultsUrl, recovered);
+    const derived = renderBlockCEvidence(recovered, { expectedSha });
+    await writeEvidenceBundle([
+      [matrixPath, derived.matrix],
+      [summaryPath, derived.summary],
+      [csvPath, derived.csv],
+      [resultsPath, `${JSON.stringify(recovered, null, 2)}\n`],
+    ]);
     console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
     return true;
   } catch (error) {

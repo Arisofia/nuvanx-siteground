@@ -34,6 +34,13 @@ class NVX_Editorial_Rules {
     public const GENERIC_PLACEHOLDERS_PATTERN = '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*:\s*)/iu';
 
     /**
+     * Uppercase placeholder pattern (no brackets or separators).
+     * Catches bare TODO/FIXME/XXX/HACK markers in uppercase that may have been
+     * missed by the primary pattern. This is a stricter fallback for explicit editorial markers.
+     */
+    public const GENERIC_PLACEHOLDERS_UPPERCASE_PATTERN = '/\b(?:TODO|FIXME|XXX|HACK)\b/';
+
+    /**
      * Markdown link pattern (excluding images).
      */
     public const MARKDOWN_LINKS_PATTERN = '/\[[^\]]+\]\([^)]+\)/';
@@ -113,6 +120,10 @@ class NVX_Editorial_Rules {
                 'pattern'     => self::GENERIC_PLACEHOLDERS_PATTERN,
                 'description' => 'Editorial placeholder in published content',
             ),
+            'generic_placeholders_uppercase' => array(
+                'pattern'     => self::GENERIC_PLACEHOLDERS_UPPERCASE_PATTERN,
+                'description' => 'Editorial placeholder in published content (uppercase only)',
+            ),
             'inline_styles' => array(
                 'pattern'     => '/\sstyle\s*=\s*["\'][^"\']+["\']/i',
                 'description' => 'Unauthorized inline style',
@@ -134,6 +145,7 @@ class NVX_Editorial_Rules {
             '/%(?:\d+\$)?[sd]/'                  => 'Format string still present',
             self::DRAFT_KEYWORDS_PATTERN          => 'Draft/review language still present',
             self::GENERIC_PLACEHOLDERS_PATTERN      => 'Editorial placeholder still present',
+            self::GENERIC_PLACEHOLDERS_UPPERCASE_PATTERN => 'Uppercase editorial placeholder still present',
             self::EDITORIAL_MARKER_PATTERN         => 'Editorial marker (📌) present - may indicate mid-content placement',
         );
     }

@@ -40,14 +40,25 @@ export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
   homeMobile: Object.freeze({
     route: '/',
     viewportKey: 'mobile-390x844',
-    screenshotStem: 'home--mobile-390x844--public-recovery',
+    screenshotStem: 'home',
   }),
 });
+
+export class BlockCBrowserConfigError extends Error {
+  constructor(message, details = {}) {
+    super(message);
+    this.name = 'BlockCBrowserConfigError';
+    this.details = Object.freeze({ ...details });
+  }
+}
 
 export function getCanonicalViewport(viewportKey) {
   const viewport = BLOCK_C_VIEWPORTS.find((candidate) => candidate.key === viewportKey);
   if (!viewport) {
-    throw new Error(`Unknown canonical Block C viewport: ${viewportKey}`);
+    throw new BlockCBrowserConfigError(
+      `Unknown canonical Block C viewport: ${viewportKey}`,
+      { viewportKey }
+    );
   }
   return viewport;
 }

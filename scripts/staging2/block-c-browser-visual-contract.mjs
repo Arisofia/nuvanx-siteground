@@ -1,25 +1,6 @@
-export const BROWSER_RECOVERY_CONFIG = Object.freeze({
-  maxAttempts: 5,
-  navigationTimeoutMs: 40000,
-  navigationErrorBackoffBaseMs: 2500,
-  transientBackoffBaseMs: 3000,
-  visualRetryBackoffBaseMs: 1800,
-  consentVisibleTimeoutMs: 350,
-  consentClickTimeoutMs: 1500,
-  consentPostClickMs: 150,
-  fontSettleMs: 400,
-  networkIdleTimeoutMs: 3000,
-  lazyScrollMinStepPx: 360,
-  lazyScrollViewportFactor: 0.8,
-  lazyScrollStepDelayMs: 45,
-  lazyBottomSettleMs: 120,
-  lazyPostSettleMs: 120,
-  menuClickTimeoutMs: 2500,
-  menuSettleMs: 220,
-  screenshotQuality: 72,
-});
+import { BLOCK_C_BROWSER_CONFIG } from './block-c-browser-config.mjs';
 
-export async function handleCookieConsent(page, config = BROWSER_RECOVERY_CONFIG) {
+export async function handleCookieConsent(page, config = BLOCK_C_BROWSER_CONFIG) {
   const selectors = [
     'button:has-text("Aceptar todo")',
     'button:has-text("Aceptar")',
@@ -43,14 +24,14 @@ export async function handleCookieConsent(page, config = BROWSER_RECOVERY_CONFIG
   }
 }
 
-export async function waitForVisualStability(page, config = BROWSER_RECOVERY_CONFIG) {
+export async function waitForVisualStability(page, config = BLOCK_C_BROWSER_CONFIG) {
   await page.evaluate(async () => {
     if (document.fonts) await document.fonts.ready;
   }).catch(() => {});
   await page.waitForTimeout(config.fontSettleMs);
 }
 
-export async function activateLazyImages(page, config = BROWSER_RECOVERY_CONFIG) {
+export async function activateLazyImages(page, config = BLOCK_C_BROWSER_CONFIG) {
   await page.evaluate(async (cfg) => {
     const root = document.documentElement;
     const body = document.body;
@@ -190,7 +171,7 @@ export async function collectHomeGeometry(page) {
   });
 }
 
-export async function testResponsiveMenu(page, issues, config = BROWSER_RECOVERY_CONFIG) {
+export async function testResponsiveMenu(page, issues, config = BLOCK_C_BROWSER_CONFIG) {
   const selector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
   const candidates = page.locator(selector);
   let toggle = null;
@@ -232,7 +213,7 @@ export async function evaluateHomeVisualContract({
   consoleErrors,
   networkErrors,
   imageHttpErrors,
-  config = BROWSER_RECOVERY_CONFIG,
+  config = BLOCK_C_BROWSER_CONFIG,
 }) {
   const issues = [];
 

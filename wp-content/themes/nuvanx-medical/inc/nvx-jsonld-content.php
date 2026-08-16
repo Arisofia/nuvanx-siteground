@@ -101,6 +101,48 @@ function nvx_filter_strip_embedded_jsonld( $content ) {
 add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', NVX_HOOK_PRIO_JSONLD_STRIP );
 
 /**
+ * Strip standalone JSON-LD blocks from wp_head output.
+ *
+ * This catches legacy Schema.org emitters that inject JSON-LD directly in wp_head
+ * before the governance retirement routines can remove them. It runs at a very late
+ * priority to ensure it processes all head output after all callbacks have run.
+ *
+ * @param string $head HTML head content.
+ * @return string
+ */
+function nvx_filter_head_standalone_jsonld( $head ) {
+	if ( ! nvx_should_strip_embedded_jsonld() ) {
+		return $head;
+	}
+
+	// Remove all standalone JSON-LD blocks except the canonical Yoast graph
+	// The canonical Yoast graph has class="yoast-schema-graph"
+	$script_tags = [];
+	$patterns = [
+		'/<script\s+[^>]*type\s*=\s*["\']?application\/ld\+json["\']?[^>]*>[\s\S]*?<\/script>/i',
+	];
+
+	foreach ( $patterns as $pattern ) {
+		preg_match_all( $pattern, $head, $matches );
+		if ( ! empty( $matches[0] ) ) {
+			foreach ( $matches[0] as $script ) {
+				// Keep if it has the Yoast class
+				if ( strpos( $script, 'yoast-schema-graph' ) !== false ) {
+					continue;
+				}
+				$script_tags[] = $script;
+			}
+		}
+	}
+
+	// Remove the identified standalone blocks
+	$filtered = str_replace( $script_tags, '', $head );
+
+	return $filtered;
+}
+add_filter( 'wp_head', 'nvx_filter_head_standalone_jsonld', PHP_INT_MAX - 1 );
+
+/**
  * Resolve the source file for a registered WordPress callback without executing it.
  *
  * Results are cached per callback to avoid repeated reflection overhead on busy sites.

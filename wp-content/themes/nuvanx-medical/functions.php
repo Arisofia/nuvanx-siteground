@@ -265,6 +265,7 @@ require_once get_template_directory() . '/inc/nvx-gtm-integration.php';
 
 // 2. Data & SEO Governance
 require_once get_template_directory() . '/inc/nvx-catalog-json.php';
+require_once get_template_directory() . '/inc/nvx-tariff-shortcode.php';
 require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';

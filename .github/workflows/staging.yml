@@ -147,6 +147,7 @@ jobs:
           node scripts/lint/no-hardcoded-colors.mjs --strict
           node scripts/lint/no-hardcoded-fontsize.mjs
           node scripts/lint/no-inline-layout-styles.mjs
+          node scripts/lint/validate-rendered-prices.mjs
           node scripts/lint/test-schema-semantic-contract.mjs
           schema='wp-content/themes/nuvanx-medical/inc/data/routes.schema.json'
           data='wp-content/themes/nuvanx-medical/inc/data/routes.json'

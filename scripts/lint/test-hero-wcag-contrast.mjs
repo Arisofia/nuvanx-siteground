@@ -20,6 +20,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tokensPath = path.join(__dirname, '../../wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css');
 const tokensContent = await fs.readFile(tokensPath, 'utf8');
 
+// Parse --nvx-light (actual text color, not pure white)
+const lightColorMatch = tokensContent.match(/--nvx-light:\s*#([0-9a-fA-F]{6});/);
+if (!lightColorMatch) {
+  throw new Error('Could not find --nvx-light in nvx-tokens.css');
+}
+const lightHex = lightColorMatch[1];
+const lightR = Number.parseInt(lightHex.substring(0, 2), 16);
+const lightG = Number.parseInt(lightHex.substring(2, 4), 16);
+const lightB = Number.parseInt(lightHex.substring(4, 6), 16);
+
 // Parse --nvx-media-overlay stops
 const mediaOverlayMatch = tokensContent.match(/--nvx-media-overlay:\s*linear-gradient\(([\s\S]*?)\);/);
 if (!mediaOverlayMatch) {
@@ -79,9 +89,10 @@ function computeBlendedWorstCase(alpha, overlayR = 26, overlayG = 26, overlayB =
   return { bgR, bgG, bgB, lum: relativeLuminance(bgR, bgG, bgB) };
 }
 
-const whiteTextLum = relativeLuminance(255, 255, 255); // 1.0
+const lightTextLum = relativeLuminance(lightR, lightG, lightB); // actual --nvx-light (#f7f7f5) from tokens
 
-console.log('Testing WCAG 2.1 / 2.2 AA Contrast Compliance on Hero Video Overlay...\n');
+console.log('Testing WCAG 2.1 / 2.2 AA Contrast Compliance on Hero Video Overlay...');
+console.log(`Using actual text color: --nvx-light #${lightHex} (RGB: ${lightR}, ${lightG}, ${lightB})\n`);
 
 // 1. Test across the gradient positions from top (0.0) to bottom (1.0)
 const samplePositions = [0.0, 0.15, 0.28, 0.40, 0.58, 0.75, 1.0];
@@ -90,7 +101,7 @@ let minContrast = Infinity;
 for (const pos of samplePositions) {
   const alpha = getOverlayAlphaAt(pos);
   const blended = computeBlendedWorstCase(alpha);
-  const cr = contrastRatio(whiteTextLum, blended.lum);
+  const cr = contrastRatio(lightTextLum, blended.lum);
   minContrast = Math.min(minContrast, cr);
 
   console.log(
@@ -111,7 +122,7 @@ for (const pos of samplePositions) {
 // 2. Test top-of-hero minimum contrast (even at absolute position 0.0)
 const topAlpha = getOverlayAlphaAt(0.0);
 const topBlended = computeBlendedWorstCase(topAlpha);
-const topCR = contrastRatio(whiteTextLum, topBlended.lum);
+const topCR = contrastRatio(lightTextLum, topBlended.lum);
 assert.ok(
   topCR >= 4.5,
   `Top overlay contrast ratio (${topCR.toFixed(2)}:1) must guarantee >= 4.5:1 for complete AA safety`

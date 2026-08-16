@@ -47,7 +47,7 @@ const criticalRoutes = [
 
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const disabledRules = [
-  'color-contrast',
+  // color-contrast re-enabled after fixing test-hero-wcag-contrast.mjs to use actual --nvx-light (#f7f7f5) instead of hardcoded pure white
   'skip-link',
   'region',
 ];

@@ -65,7 +65,7 @@ Strict adherence to anti-patterns:
 
 ## 2. Design Tokens Reference
 
-All design tokens are defined in [`wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css`](file:///Users/MARIA/.gemini/antigravity/scratch/nuvanx-siteground/wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css).
+All design tokens are defined in `wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css`.
 
 ### 2.1 Colors
 

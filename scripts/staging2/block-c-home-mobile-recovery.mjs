@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  EX_CONFIG,
   EX_NOT_APPLICABLE,
   EX_TEMPFAIL,
   SITEGROUND_CAPTCHA_PATH,
@@ -28,6 +29,7 @@ const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const artifactsDir = path.join(moduleDir, 'block-c-artifacts');
 const screenshotDir = path.join(artifactsDir, 'screenshots');
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+const baseOrigin = new URL(baseUrl).origin;
 const expectedHost = process.env.EXPECTED_HOST || new URL(baseUrl).hostname;
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const resultsPath = path.join(artifactsDir, 'block-c-results.json');
@@ -39,7 +41,7 @@ const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
 const targetViewport = getCanonicalViewport(targetConfig.viewportKey);
 const targetRoute = targetConfig.route;
 const targetUrl = `${baseUrl}${targetRoute}`;
-const screenshotPath = path.join(screenshotDir, `home--${targetViewport.key}--public-recovery.jpg`);
+const screenshotPath = path.join(screenshotDir, `${targetConfig.screenshotStem}.jpg`);
 
 function sanitizeLogValue(value) {
   return String(value ?? '').replace(/\s+/g, '_').slice(0, 500);
@@ -50,21 +52,58 @@ function logNotApplicable(reason) {
   return EX_NOT_APPLICABLE;
 }
 
+function logConfigFailure(reason) {
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_CONFIG reason=${sanitizeLogValue(reason)}`);
+  return EX_CONFIG;
+}
+
+function logTransient(reason) {
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=${sanitizeLogValue(reason)}`);
+  return EX_TEMPFAIL;
+}
+
 async function writeTextAtomic(filePath, content) {
   const tmpPath = `${filePath}.tmp-${process.pid}`;
-  await fs.writeFile(tmpPath, content, 'utf8');
-  await fs.rename(tmpPath, filePath);
+  try {
+    await fs.writeFile(tmpPath, content, 'utf8');
+    await fs.rename(tmpPath, filePath);
+  } finally {
+    await fs.rm(tmpPath, { force: true }).catch(() => {});
+  }
 }
 
 async function writeJsonAtomic(filePath, payload) {
   await writeTextAtomic(filePath, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
+async function writeEvidenceBundle(entries) {
+  const staged = [];
+  try {
+    for (const [filePath, content] of entries) {
+      const tmpPath = `${filePath}.tmp-${process.pid}`;
+      await fs.writeFile(tmpPath, content, 'utf8');
+      staged.push({ filePath, tmpPath });
+    }
+    for (const { filePath, tmpPath } of staged) {
+      await fs.rename(tmpPath, filePath);
+    }
+  } finally {
+    await Promise.all(staged.map(({ tmpPath }) => fs.rm(tmpPath, { force: true }).catch(() => {})));
+  }
+}
+
+function requestUrlFromErrorMessage(message) {
+  const normalized = String(message || '').trim();
+  const separator = normalized.lastIndexOf(': ');
+  return separator >= 0 ? normalized.slice(0, separator) : normalized;
+}
+
 function isAllowedSiteGroundAbort(message, documentUrl) {
   const normalized = String(message || '').trim();
   if (!/net::ERR_ABORTED/i.test(normalized)) return false;
+  const requestUrl = requestUrlFromErrorMessage(normalized);
   const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
-  return normalized.startsWith(documentUrl) || normalized.startsWith(captchaPrefix);
+  return requestUrl === documentUrl || requestUrl.startsWith(captchaPrefix);
 }
 
 function splitNetworkErrors(networkErrors, documentUrl) {
@@ -75,6 +114,14 @@ function splitNetworkErrors(networkErrors, documentUrl) {
     else real.push(message);
   }
   return { transient, real };
+}
+
+function isStagingOriginUrl(value) {
+  try {
+    return new URL(value).origin === baseOrigin;
+  } catch {
+    return false;
+  }
 }
 
 async function backoff(baseMs, attempt) {
@@ -111,12 +158,14 @@ function buildMatrix(results) {
   return rows;
 }
 
-async function refreshDerivedEvidence(results) {
+function renderDerivedEvidence(results) {
   const matrixRows = buildMatrix(results);
   const passCount = results.filter((item) => item.status === 'PASS').length;
   const fixCount = results.filter((item) => item.status === 'FIX').length;
   const blockedCount = results.filter((item) => item.status === 'BLOCKED').length;
-  const inconclusive = results.filter((item) => item.externalInconclusive === true);
+  const originRows = results
+    .filter((item) => item.originVerified)
+    .map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport?.label || 'unknown'} | ${item.edgeHttpStatus || 0} | ${item.originStatus || 0} | \`${item.originDeploySha || ''}\` | ${item.visualValidation || ''} |`);
   const pageCount = new Set(results.map((item) => item.route)).size;
   const viewportLabels = [...new Set(results.map((item) => item.viewport?.label).filter(Boolean))];
   const findings = results.filter((item) => item.status !== 'PASS');
@@ -131,7 +180,9 @@ async function refreshDerivedEvidence(results) {
     `PASS: ${passCount}`,
     `FIX: ${fixCount}`,
     `BLOCKED: ${blockedCount}`,
-    `Origin-verified edge-inconclusive cases: ${inconclusive.length}`,
+    `Origin-verified edge-inconclusive cases: ${originRows.length}`,
+    'Published WordPress pages must remain addressable; editorial readiness is governed by robots/sitemap policy.',
+    'Origin fallback may certify HTTP 200, exact deploy SHA and staging noindex/nofollow when SiteGround Antibot blocks the edge browser; it does not certify geometry, H1 visibility, responsive layout or images for those edge-inconclusive cases.',
     '',
     '## Matrix',
     '',
@@ -144,6 +195,12 @@ async function refreshDerivedEvidence(results) {
     ...(findings.length
       ? findings.map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport?.label || 'unknown'} | ${item.status} | ${[...(item.blockers || []), ...(item.issues || [])].join('; ').replaceAll('|', '\\|')} | \`${item.screenshot || ''}\` |`)
       : ['| — | — | — | PASS | No findings | — |']),
+    '',
+    '## SiteGround origin fallback evidence',
+    '',
+    '| WP ID | URL | Viewport | Edge HTTP | Origin HTTP | Origin SHA | Visual state |',
+    '|---:|---|---|---:|---:|---|---|',
+    ...(originRows.length ? originRows : ['| — | — | — | — | — | — | No origin fallback used |']),
     '',
     '## Public browser recovery',
     '',
@@ -183,25 +240,27 @@ async function refreshDerivedEvidence(results) {
     ].map(csvEscape).join(','));
   }
 
-  await writeTextAtomic(matrixPath, `${matrixRows.join('\n')}\n`);
-  await writeTextAtomic(summaryPath, `${summary}\n`);
-  await writeTextAtomic(csvPath, `${csvRows.join('\n')}\n`);
+  return {
+    matrix: `${matrixRows.join('\n')}\n`,
+    summary: `${summary}\n`,
+    csv: `${csvRows.join('\n')}\n`,
+  };
 }
 
 async function main() {
   if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
-    return logNotApplicable(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
+    return logConfigFailure(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
   }
 
   let results;
   try {
     results = JSON.parse(await fs.readFile(resultsPath, 'utf8'));
   } catch (error) {
-    return logNotApplicable(`results_unreadable ${error instanceof Error ? error.message : String(error)}`);
+    return logTransient(`results_unreadable ${error instanceof Error ? error.message : String(error)}`);
   }
 
   if (!Array.isArray(results) || results.length === 0) {
-    return logNotApplicable('results_empty_or_invalid');
+    return logTransient('results_empty_or_invalid');
   }
 
   const nonPass = results.filter((result) => result?.status !== 'PASS');
@@ -228,13 +287,13 @@ async function main() {
   try {
     browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   } catch (error) {
-    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=browser_launch error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
-    return EX_TEMPFAIL;
+    return logTransient(`browser_launch ${error instanceof Error ? error.message : error}`);
   }
 
   const attempts = [];
   let recovered = null;
   let lastVisualFailure = null;
+  let lastAttemptOutcome = '';
 
   try {
     for (let attempt = 1; attempt <= BLOCK_C_BROWSER_CONFIG.maxAttempts; attempt += 1) {
@@ -271,8 +330,8 @@ async function main() {
           const failureText = request.failure()?.errorText || 'request failed';
           const resourceType = request.resourceType();
           const expectedMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
-          if (requestUrl.startsWith(baseUrl) && !expectedMediaAbort) networkErrors.push(`${requestUrl}: ${failureText}`);
-          if (resourceType === 'image' && requestUrl.startsWith(baseUrl)) imageHttpErrors.push(`${requestUrl}: ${failureText}`);
+          if (isStagingOriginUrl(requestUrl) && !expectedMediaAbort) networkErrors.push(`${requestUrl}: ${failureText}`);
+          if (resourceType === 'image' && isStagingOriginUrl(requestUrl)) imageHttpErrors.push(`${requestUrl}: ${failureText}`);
         });
         page.on('response', (resourceResponse) => {
           const resourceType = resourceResponse.request().resourceType();
@@ -284,13 +343,11 @@ async function main() {
           } catch {
             return;
           }
-          if (parsed.hostname === expectedHost && resourceResponse.status() >= 400) {
-            const message = `${resourceUrl}: HTTP ${resourceResponse.status()}`;
-            if (resourceType === 'image') imageHttpErrors.push(message);
-            else networkErrors.push(message);
+          if (resourceType === 'image' && isStagingOriginUrl(resourceUrl) && resourceResponse.status() >= 400) {
+            imageHttpErrors.push(`${resourceUrl}: HTTP ${resourceResponse.status()}`);
           }
           if (
-            resourceType === 'image'
+            (resourceType === 'image' || resourceType === 'media')
             && (parsed.hostname === 'nuvanx.com' || parsed.hostname === 'www.nuvanx.com')
             && parsed.pathname.includes('/wp-content/uploads/')
           ) {
@@ -305,7 +362,8 @@ async function main() {
             timeout: BLOCK_C_BROWSER_CONFIG.navigationTimeoutMs,
           });
         } catch (error) {
-          attempts.push({ attempt, outcome: 'navigation-error', error: error instanceof Error ? error.message : String(error) });
+          lastAttemptOutcome = 'navigation-error';
+          attempts.push({ attempt, outcome: lastAttemptOutcome, error: error instanceof Error ? error.message : String(error) });
           if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
             await backoff(BLOCK_C_BROWSER_CONFIG.navigationErrorBackoffBaseMs, attempt);
           }
@@ -316,7 +374,8 @@ async function main() {
         const edgeStatus = response?.status() || 0;
         const responseHeaders = response ? response.headers() : {};
         if (!response || isSiteGroundTransientResponse(edgeStatus, responseHeaders, finalUrl)) {
-          attempts.push({ attempt, outcome: 'siteground-transient', edgeHttpStatus: edgeStatus, finalUrl });
+          lastAttemptOutcome = 'siteground-transient';
+          attempts.push({ attempt, outcome: lastAttemptOutcome, edgeHttpStatus: edgeStatus, finalUrl });
           await page.screenshot({
             path: screenshotPath.replace('.jpg', `--challenge-${attempt}.jpg`),
             type: 'jpeg',
@@ -333,9 +392,9 @@ async function main() {
         if (edgeStatus !== 200) blockers.push(`Expected public HTTP 200, got ${edgeStatus}`);
         if (new URL(finalUrl).hostname !== expectedHost) blockers.push(`Final hostname ${new URL(finalUrl).hostname} != ${expectedHost}`);
 
-        await handleCookieConsent(page);
-        await waitForVisualStability(page);
-        await activateLazyImages(page);
+        await handleCookieConsent(page, BLOCK_C_BROWSER_CONFIG);
+        await waitForVisualStability(page, BLOCK_C_BROWSER_CONFIG);
+        await activateLazyImages(page, BLOCK_C_BROWSER_CONFIG);
 
         const metaSha = (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '';
         if (metaSha !== expectedSha) blockers.push(`Deployment SHA mismatch: ${metaSha || 'missing'} != ${expectedSha}`);
@@ -345,7 +404,7 @@ async function main() {
           blockers.push('Staging noindex protection missing');
         }
 
-        const geometry = await collectHomeGeometry(page);
+        const geometry = await collectHomeGeometry(page, BLOCK_C_BROWSER_CONFIG);
         const splitErrors = splitNetworkErrors(networkErrors, targetUrl);
         const issues = await evaluateHomeVisualContract({
           page,
@@ -354,15 +413,17 @@ async function main() {
           consoleErrors,
           networkErrors: splitErrors.real,
           imageHttpErrors,
+          config: BLOCK_C_BROWSER_CONFIG,
         });
         if (productionMediaLeaks.length > 0) {
-          issues.push(`Staging media leaked to production host: ${[...new Set(productionMediaLeaks)].slice(0, 8).join(' | ')}`);
+          issues.push(`Staging media leaked to production host: ${[...new Set(productionMediaLeaks)].slice(0, BLOCK_C_BROWSER_CONFIG.errorPreviewLimit).join(' | ')}`);
         }
 
         if (splitErrors.transient.length > 0 && blockers.length === 0 && issues.length === 0) {
+          lastAttemptOutcome = 'siteground-network-abort';
           attempts.push({
             attempt,
-            outcome: 'siteground-network-abort',
+            outcome: lastAttemptOutcome,
             edgeHttpStatus: edgeStatus,
             finalUrl,
             transientNetworkErrors: splitErrors.transient,
@@ -386,16 +447,18 @@ async function main() {
         }
 
         if (screenshotError) {
-          attempts.push({ attempt, outcome: 'screenshot-error', edgeHttpStatus: edgeStatus, finalUrl, error: screenshotError });
+          lastAttemptOutcome = 'screenshot-error';
+          attempts.push({ attempt, outcome: lastAttemptOutcome, edgeHttpStatus: edgeStatus, finalUrl, error: screenshotError });
           if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
             await backoff(BLOCK_C_BROWSER_CONFIG.visualRetryBackoffBaseMs, attempt);
           }
           continue;
         }
 
+        lastAttemptOutcome = blockers.length || issues.length ? 'visual-failure' : 'pass';
         attempts.push({
           attempt,
-          outcome: blockers.length || issues.length ? 'visual-failure' : 'pass',
+          outcome: lastAttemptOutcome,
           edgeHttpStatus: edgeStatus,
           finalUrl,
           metaSha,
@@ -446,9 +509,10 @@ async function main() {
         };
         break;
       } catch (error) {
+        lastAttemptOutcome = 'attempt-exception';
         attempts.push({
           attempt,
-          outcome: 'attempt-exception',
+          outcome: lastAttemptOutcome,
           error: error instanceof Error ? error.message : String(error),
         });
         if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
@@ -463,9 +527,9 @@ async function main() {
   }
 
   if (!recovered) {
-    if (lastVisualFailure) {
+    if (lastAttemptOutcome === 'visual-failure' && lastVisualFailure) {
       await writeJsonAtomic(recoveryPath, {
-        schema: 2,
+        schema: 3,
         expectedSha,
         status: 'visual-failure-exhausted',
         target: { route: targetRoute, viewport: targetViewport },
@@ -477,13 +541,15 @@ async function main() {
     }
 
     await writeJsonAtomic(recoveryPath, {
-      schema: 2,
+      schema: 3,
       expectedSha,
       status: 'transient-exhausted',
       target: { route: targetRoute, viewport: targetViewport },
       attempts,
+      priorVisualFailure: lastVisualFailure,
+      finalAttemptOutcome: lastAttemptOutcome,
     });
-    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT_EXHAUSTED attempts=${attempts.length}`);
+    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT_EXHAUSTED attempts=${attempts.length} final_outcome=${lastAttemptOutcome || 'unknown'}`);
     return EX_TEMPFAIL;
   }
 
@@ -495,9 +561,12 @@ async function main() {
     blockers: Array.isArray(target.blockers) ? target.blockers : [],
     consoleErrors: Array.isArray(target.consoleErrors) ? target.consoleErrors : [],
     networkErrors: Array.isArray(target.networkErrors) ? target.networkErrors : [],
+    imageHttpErrors: Array.isArray(target.imageHttpErrors) ? target.imageHttpErrors : [],
+    productionMediaLeaks: Array.isArray(target.productionMediaLeaks) ? target.productionMediaLeaks : [],
     screenshot: target.screenshot || '',
   };
 
+  const recoveryNote = `Public browser recovery completed the missing ${targetViewport.label} visual contract after SiteGround Antibot.`;
   const recoveredResults = results.map((result) => {
     if (result !== target) return result;
     return {
@@ -523,21 +592,31 @@ async function main() {
       imageHttpErrors: recovered.imageHttpErrors,
       productionMediaLeaks: recovered.productionMediaLeaks,
       screenshot: recovered.screenshot,
-      notes: [`Public browser recovery completed the missing ${targetViewport.label} visual contract after SiteGround Antibot.`],
+      notes: [...(Array.isArray(result.notes) ? result.notes : []), recoveryNote],
     };
   });
 
-  await writeJsonAtomic(resultsPath, recoveredResults);
-  await refreshDerivedEvidence(recoveredResults);
-  await writeJsonAtomic(recoveryPath, {
-    schema: 2,
+  const derived = renderDerivedEvidence(recoveredResults);
+  const recoveryEvidence = {
+    schema: 3,
     expectedSha,
     status: 'pass',
     target: { route: targetRoute, viewport: targetViewport },
     attempts,
     recovered,
     priorAntibotEvidence,
-  });
+  };
+
+  // Stage every success artifact before replacing any canonical evidence. Results JSON
+  // is committed after matrix/summary/CSV so downstream consumers cannot observe PASS
+  // while derived evidence is still stale.
+  await writeEvidenceBundle([
+    [matrixPath, derived.matrix],
+    [summaryPath, derived.summary],
+    [csvPath, derived.csv],
+    [resultsPath, `${JSON.stringify(recoveredResults, null, 2)}\n`],
+    [recoveryPath, `${JSON.stringify(recoveryEvidence, null, 2)}\n`],
+  ]);
 
   console.log(`BLOCK_C_HOME_MOBILE_RECOVERY=PASS attempt=${recovered.attempt} sha=${expectedSha} visual_contract=complete edge_http=200`);
   return 0;
@@ -547,7 +626,7 @@ let exitCode = 1;
 try {
   exitCode = await main();
 } catch (error) {
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=unexpected_top_level error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
-  exitCode = EX_TEMPFAIL;
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=unexpected_top_level error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
+  exitCode = 1;
 }
 process.exitCode = exitCode;

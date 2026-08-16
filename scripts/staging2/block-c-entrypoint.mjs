@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
+import { EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
@@ -16,31 +16,97 @@ const shadowStepSummary = path.join(runnerTemp, `nvx-block-c-core-summary-${proc
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = new URL(baseUrl).hostname;
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-const RECOVERY_NOT_APPLICABLE = 64;
 
-function runProcess(script, env = process.env) {
+function positiveIntegerEnv(name, fallback) {
+  const value = Number.parseInt(process.env[name] || '', 10);
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+const SUBPROCESS_CONFIG = Object.freeze({
+  timeoutMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_TIMEOUT_MS', 15 * 60 * 1000),
+  hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
+});
+
+class ProcessSignalError extends Error {
+  constructor(script, signal) {
+    super(`${path.basename(script)} terminated by signal ${signal}`);
+    this.name = 'ProcessSignalError';
+    this.signal = signal;
+    this.script = script;
+  }
+}
+
+function runProcess(script, env = process.env, config = SUBPROCESS_CONFIG) {
   return new Promise((resolve, reject) => {
+    let timedOut = false;
+    let hardKillTimer = null;
     const child = spawn(process.execPath, [script], { env, stdio: 'inherit' });
-    child.once('error', reject);
+
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      console.error(`BLOCK_C_SUBPROCESS=TIMEOUT script=${path.basename(script)} timeout_ms=${config.timeoutMs}`);
+      child.kill('SIGTERM');
+      hardKillTimer = setTimeout(() => {
+        if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+      }, config.hardKillGraceMs);
+      hardKillTimer.unref?.();
+    }, config.timeoutMs);
+    timeoutTimer.unref?.();
+
+    const cleanupTimers = () => {
+      clearTimeout(timeoutTimer);
+      if (hardKillTimer) clearTimeout(hardKillTimer);
+    };
+
+    child.once('error', (error) => {
+      cleanupTimers();
+      reject(error);
+    });
     child.once('exit', (code, signal) => {
-      if (signal) reject(new Error(`${path.basename(script)} terminated by signal ${signal}`));
-      else resolve(Number.isInteger(code) ? code : 1);
+      cleanupTimers();
+      if (timedOut) {
+        resolve(EX_TEMPFAIL);
+        return;
+      }
+      if (signal) {
+        reject(new ProcessSignalError(script, signal));
+        return;
+      }
+      resolve(Number.isInteger(code) ? code : 1);
     });
   });
 }
 
-function runCore() {
-  return runProcess(coreScript, {
-    ...process.env,
-    GITHUB_ENV: shadowGithubEnv,
-    GITHUB_STEP_SUMMARY: shadowStepSummary,
-  });
+async function runCore() {
+  try {
+    return await runProcess(coreScript, {
+      ...process.env,
+      GITHUB_ENV: shadowGithubEnv,
+      GITHUB_STEP_SUMMARY: shadowStepSummary,
+    });
+  } catch (error) {
+    if (error instanceof ProcessSignalError) {
+      console.error(`BLOCK_C_CORE=TRANSIENT_SIGNAL signal=${error.signal}`);
+      return EX_TEMPFAIL;
+    }
+    throw error;
+  }
 }
 
 async function tryHomeMobileVisualRecovery() {
-  const code = await runProcess(homeMobileRecoveryScript);
+  let code;
+  try {
+    code = await runProcess(homeMobileRecoveryScript);
+  } catch (error) {
+    if (error instanceof ProcessSignalError) {
+      console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT_SIGNAL signal=${error.signal}`);
+      return { recovered: false, applicable: true, transient: true };
+    }
+    throw error;
+  }
+
   if (code === 0) return { recovered: true, applicable: true, transient: false };
-  if (code === RECOVERY_NOT_APPLICABLE) {
+  if (code === EX_NOT_APPLICABLE) {
     console.error('BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE wrapper=continue');
     return { recovered: false, applicable: false, transient: false };
   }
@@ -63,6 +129,13 @@ function isRecoverableCompletedVisualTransient(result) {
     && issues.length > 0
     && issues.every((message) => /^\d+ same-origin network error\(s\)$/i.test(message))
     && networkErrors.length > 0;
+}
+
+async function writeJsonAtomic(url, payload) {
+  const filePath = fileURLToPath(url);
+  const tmpPath = `${filePath}.tmp-${process.pid}`;
+  await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  await fs.rename(tmpPath, filePath);
 }
 
 async function tryExactOriginNetworkRecovery() {
@@ -92,8 +165,6 @@ async function tryExactOriginNetworkRecovery() {
       return false;
     }
 
-    // Wrap verification in error handling to treat config/transport errors as temporary
-    // rather than application failures.
     const verificationByRoute = new Map();
     try {
       for (const result of failed) {
@@ -108,7 +179,6 @@ async function tryExactOriginNetworkRecovery() {
         }
       }
     } catch (error) {
-      // Config or transport errors in verifier should be treated as unavailable, not hard failures.
       console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=verifier_error error=${String(error.message).replace(/\s+/g, '_')}`);
       return false;
     }
@@ -129,11 +199,10 @@ async function tryExactOriginNetworkRecovery() {
       };
     });
 
-    await fs.writeFile(resultsUrl, `${JSON.stringify(recovered, null, 2)}\n`, 'utf8');
+    await writeJsonAtomic(resultsUrl, recovered);
     console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
     return true;
   } catch (error) {
-    // Catch all unexpected errors to preserve transient exit path.
     console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=unexpected_error error=${String(error.message).replace(/\s+/g, '_')}`);
     return false;
   }

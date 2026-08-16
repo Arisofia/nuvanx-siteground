@@ -15,6 +15,25 @@ function resolveReleaseMigration() {
   return `${release}/tools/migrations/content-hygiene-shared.php`;
 }
 
+/**
+ * Run the full shared content migration on Staging2.
+ *
+ * NOTE: This executes content-hygiene-shared.php in its entirety (Blocks A-E),
+ * not just the new Block C2 (governed-blog-markdown-hygiene.php). The function
+ * name is legacy; it was added when Block C2 was introduced but runs the complete
+ * migration for consistency with the production deployment workflow.
+ *
+ * Side effects:
+ * - Blocks are idempotent as written (retired slugs are already trashed,
+ *   normalized posts no longer match nvxNeedsMarkdownNormalization)
+ * - Retired slugs are not part of the manifest, so the manifest contract that
+ *   runs afterwards is unaffected
+ * - MIGRATION_WRITE_MARKER is not set for this invocation, so the durable
+ *   rollback marker referenced in the Block C2 comment is not armed here
+ *
+ * This broader scope is intentional to ensure Staging2 acceptance validates the
+ * complete content hygiene state that production will receive.
+ */
 export async function runGovernedBlogNormalization(options = {}) {
   const alias = options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');

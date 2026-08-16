@@ -29,7 +29,11 @@ function buildMatrix(results) {
   return rows;
 }
 
-export function renderBlockCEvidence(results, { expectedSha, recoverySummary = null } = {}) {
+export function renderBlockCEvidence(results, {
+  expectedSha,
+  recoverySummary = null,
+  recoverySectionTitle = 'Recovery evidence',
+} = {}) {
   const matrixRows = buildMatrix(results);
   const passCount = results.filter((item) => item.status === 'PASS').length;
   const fixCount = results.filter((item) => item.status === 'FIX').length;
@@ -72,7 +76,7 @@ export function renderBlockCEvidence(results, { expectedSha, recoverySummary = n
     '| WP ID | URL | Viewport | Edge HTTP | Origin HTTP | Origin SHA | Visual state |',
     '|---:|---|---|---:|---:|---|---|',
     ...(originRows.length ? originRows : ['| — | — | — | — | — | — | No edge-inconclusive origin fallback remains |']),
-    ...(recoverySummary ? ['', '## Public browser recovery', '', ...recoverySummary, ''] : []),
+    ...(recoverySummary ? ['', `## ${recoverySectionTitle}`, '', ...recoverySummary, ''] : []),
   ].join('\n');
 
   const csvHeader = ['wp_id', 'title', 'route', 'viewport', 'width', 'height', 'status', 'expected_http_status', 'http_status', 'edge_http_status', 'final_url', 'meta_sha', 'external_inconclusive', 'origin_verified', 'origin_status', 'origin_sha', 'origin_robots', 'visual_validation', 'horizontal_overflow_px', 'h1', 'issues', 'notes', 'screenshot'];
@@ -114,22 +118,39 @@ export function renderBlockCEvidence(results, { expectedSha, recoverySummary = n
   };
 }
 
+async function prepareEvidenceEntry(filePath, content, token) {
+  const tmpPath = `${filePath}.tmp-${token}`;
+  const backupPath = `${filePath}.bak-${token}`;
+  let hadOriginal = true;
+
+  try {
+    await fs.writeFile(tmpPath, content, 'utf8');
+    try {
+      await fs.copyFile(filePath, backupPath);
+    } catch (error) {
+      if (error?.code === 'ENOENT') hadOriginal = false;
+      else throw error;
+    }
+    return { filePath, tmpPath, backupPath, hadOriginal };
+  } catch (error) {
+    await fs.rm(tmpPath, { force: true }).catch(() => {});
+    await fs.rm(backupPath, { force: true }).catch(() => {});
+    throw error;
+  }
+}
+
 export async function writeEvidenceBundle(entries) {
   const staged = [];
   const committed = [];
+  const token = `${process.pid}-${Date.now()}`;
+  const artifactsDir = entries.length > 0 ? path.dirname(entries[0][0]) : process.cwd();
+  const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
+
   try {
+    await fs.rm(inconsistentMarkerPath, { force: true }).catch(() => {});
+
     for (const [filePath, content] of entries) {
-      const tmpPath = `${filePath}.tmp-${process.pid}`;
-      const backupPath = `${filePath}.bak-${process.pid}`;
-      await fs.writeFile(tmpPath, content, 'utf8');
-      let hadOriginal = true;
-      try {
-        await fs.copyFile(filePath, backupPath);
-      } catch (error) {
-        if (error?.code === 'ENOENT') hadOriginal = false;
-        else throw error;
-      }
-      staged.push({ filePath, tmpPath, backupPath, hadOriginal });
+      staged.push(await prepareEvidenceEntry(filePath, content, token));
     }
 
     for (const entry of staged) {
@@ -146,8 +167,21 @@ export async function writeEvidenceBundle(entries) {
         rollbackErrors.push(`${path.basename(entry.filePath)}:${rollbackError?.message || rollbackError}`);
       }
     }
+
+    if (rollbackErrors.length > 0) {
+      await Promise.all(entries.map(([filePath]) => fs.rm(filePath, { force: true }).catch(() => {})));
+      const marker = {
+        schema: 1,
+        status: 'inconsistent-evidence-bundle-cleared',
+        writeError: error?.message || String(error),
+        rollbackErrors,
+        generatedAt: new Date().toISOString(),
+      };
+      await fs.writeFile(inconsistentMarkerPath, `${JSON.stringify(marker, null, 2)}\n`, 'utf8').catch(() => {});
+    }
+
     const detail = rollbackErrors.length ? ` rollback_errors=${rollbackErrors.join('|')}` : '';
-    throw new Error(`Block C evidence bundle commit failed: ${error?.message || error}.${detail}`);
+    throw new Error(`Block C evidence bundle commit failed: ${error?.message || error}.${detail}`, { cause: error });
   } finally {
     await Promise.all(staged.flatMap(({ tmpPath, backupPath }) => [
       fs.rm(tmpPath, { force: true }).catch(() => {}),

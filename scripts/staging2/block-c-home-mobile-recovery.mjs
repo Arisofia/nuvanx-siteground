@@ -15,6 +15,7 @@ import {
   BLOCK_C_BROWSER_UA,
   BLOCK_C_RECOVERY_TARGETS,
   BLOCK_C_VIEWPORTS,
+  BlockCConfigError,
   getCanonicalViewport,
 } from './block-c-browser-config.mjs';
 import {
@@ -38,7 +39,15 @@ const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
 const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
 const csvPath = path.join(artifactsDir, 'block-c-results.csv');
 const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
-const targetViewport = getCanonicalViewport(targetConfig.viewportKey);
+let targetViewport = null;
+let targetViewportConfigError = null;
+try {
+  targetViewport = getCanonicalViewport(targetConfig.viewportKey);
+} catch (error) {
+  targetViewportConfigError = error instanceof BlockCConfigError
+    ? error
+    : new BlockCConfigError(error instanceof Error ? error.message : String(error));
+}
 const targetRoute = targetConfig.route;
 const targetUrl = `${baseUrl}${targetRoute}`;
 const screenshotPath = path.join(screenshotDir, `${targetConfig.screenshotStem}.jpg`);
@@ -248,6 +257,9 @@ function renderDerivedEvidence(results) {
 }
 
 async function main() {
+  if (targetViewportConfigError || !targetViewport) {
+    return logConfigFailure(`invalid_recovery_viewport key=${targetConfig.viewportKey} error=${targetViewportConfigError?.message || 'unresolved'}`);
+  }
   if (expectedHost !== 'staging2.nuvanx.com' || !/^[0-9a-f]{40}$/.test(expectedSha)) {
     return logConfigFailure(`invalid_recovery_identity host=${expectedHost} sha=${expectedSha || 'missing'}`);
   }
@@ -607,9 +619,6 @@ async function main() {
     priorAntibotEvidence,
   };
 
-  // Stage every success artifact before replacing any canonical evidence. Results JSON
-  // is committed after matrix/summary/CSV so downstream consumers cannot observe PASS
-  // while derived evidence is still stale.
   await writeEvidenceBundle([
     [matrixPath, derived.matrix],
     [summaryPath, derived.summary],

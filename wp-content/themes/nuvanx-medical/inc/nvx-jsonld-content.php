@@ -103,26 +103,47 @@ add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', NVX_HOOK_PRIO_JSO
 /**
  * Resolve the source file for a registered WordPress callback without executing it.
  *
+ * Results are cached per callback to avoid repeated reflection overhead on busy sites.
+ *
  * @param mixed $callback Registered hook callback.
  * @return string
  */
 function nvx_jsonld_callback_source_file( $callback ): string {
-	try {
-		if ( $callback instanceof Closure ) {
-			return (string) ( new ReflectionFunction( $callback ) )->getFileName();
-		}
-		if ( is_string( $callback ) && function_exists( $callback ) ) {
-			return (string) ( new ReflectionFunction( $callback ) )->getFileName();
-		}
-		if ( is_array( $callback ) && 2 === count( $callback ) ) {
-			$class = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
-			return (string) ( new ReflectionMethod( $class, (string) $callback[1] ) )->getFileName();
-		}
-	} catch ( Throwable $error ) {
+	static $cache = array();
+	
+	// Generate a cache key based on callback type and value
+	if ( $callback instanceof Closure ) {
+		$cache_key = 'closure_' . spl_object_hash( $callback );
+	} elseif ( is_string( $callback ) ) {
+		$cache_key = 'string_' . $callback;
+	} elseif ( is_array( $callback ) && 2 === count( $callback ) ) {
+		$class = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
+		$cache_key = 'array_' . $class . '::' . (string) $callback[1];
+	} else {
 		return '';
 	}
+	
+	// Return cached result if available
+	if ( isset( $cache[ $cache_key ] ) ) {
+		return $cache[ $cache_key ];
+	}
+	
+	try {
+		if ( $callback instanceof Closure ) {
+			$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
+		} elseif ( is_string( $callback ) && function_exists( $callback ) ) {
+			$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
+		} elseif ( is_array( $callback ) && 2 === count( $callback ) ) {
+			$class = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
+			$cache[ $cache_key ] = (string) ( new ReflectionMethod( $class, (string) $callback[1] ) )->getFileName();
+		} else {
+			$cache[ $cache_key ] = '';
+		}
+	} catch ( Throwable $error ) {
+		$cache[ $cache_key ] = '';
+	}
 
-	return '';
+	return $cache[ $cache_key ];
 }
 
 /**
@@ -172,7 +193,11 @@ function nvx_jsonld_retire_legacy_standalone_schema_callbacks(): void {
 
 		foreach ( $callbacks_by_priority as $priority => $callbacks ) {
 			foreach ( $callbacks as $registered ) {
-				$function = is_array( $registered ) ? ( $registered['function'] ?? null ) : null;
+				// Add robust guards for unexpected hook structures
+				if ( ! is_array( $registered ) || ! isset( $registered['function'] ) ) {
+					continue;
+				}
+				$function = $registered['function'];
 				if ( null !== $function && nvx_jsonld_is_retired_standalone_schema_callback( $function ) ) {
 					remove_action( $hook_name, $function, (int) $priority );
 				}

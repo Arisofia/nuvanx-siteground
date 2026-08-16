@@ -384,7 +384,11 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 
 	foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
 		foreach ( $callbacks as $callback ) {
-			$function = $callback['function'] ?? null;
+			// Add robust guards for unexpected hook structures
+			if ( ! is_array( $callback ) || ! isset( $callback['function'] ) ) {
+				continue;
+			}
+			$function = $callback['function'];
 
 			if ( nvx_schema_is_legacy_emitter( $function ) ) {
 				remove_action( 'wp_head', $function, (int) $priority );

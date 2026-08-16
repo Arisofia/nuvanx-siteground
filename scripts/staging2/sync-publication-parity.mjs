@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const SSH_BIN = '/usr/bin/ssh';
@@ -22,20 +23,40 @@ function resolveRelease() {
 }
 
 async function getExpectedManifestInfo() {
-  const manifestPath = path.resolve('wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
+  // Use fileURLToPath to anchor the manifest path relative to the module location
+  // rather than process cwd, making the reader location-independent
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const manifestPath = path.resolve(moduleDir, '../../wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
+  
   try {
     const manifestContent = await fs.readFile(manifestPath, 'utf8');
     const manifest = JSON.parse(manifestContent);
-    if (manifest.routes && typeof manifest.routes === 'object') {
-      return {
-        routeCount: Object.keys(manifest.routes).length,
-        version: manifest.version || null,
-      };
+    
+    if (!manifest.routes || typeof manifest.routes !== 'object') {
+      throw new Error('Publication manifest missing or invalid routes object');
     }
+    
+    const routeCount = Object.keys(manifest.routes).length;
+    
+    // Explicit non-empty routes assertion to prevent silent pass on empty manifests
+    if (routeCount === 0) {
+      throw new Error('Publication manifest routes object is empty');
+    }
+    
+    return {
+      routeCount,
+      version: manifest.version || null,
+    };
   } catch (error) {
+    // Provide specific error context for read/parse failures vs structural issues
+    if (error.code === 'ENOENT') {
+      throw new Error(`Publication manifest file not found at ${manifestPath}`);
+    }
+    if (error instanceof SyntaxError) {
+      throw new Error(`Publication manifest contains invalid JSON at ${manifestPath}`);
+    }
     throw new Error(`Failed to read publication manifest at ${manifestPath}: ${error.message}`);
   }
-  throw new Error('Publication manifest missing or invalid routes object');
 }
 
 export async function runStagingPublicationParitySync(options = {}) {

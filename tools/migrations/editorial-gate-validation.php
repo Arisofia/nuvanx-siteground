@@ -5,8 +5,6 @@
  * @package NVX\Migrations
  */
 
-declare( strict_types = 1 );
-
 if ( ! defined( 'ABSPATH' ) ) {
     fwrite( STDERR, "EDITORIAL_GATE_VALIDATION=FAIL reason=wordpress_not_loaded\n" );
     exit( 1 );

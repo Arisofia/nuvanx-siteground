@@ -131,8 +131,20 @@ function nvx_jsonld_callback_source_file( $callback ): string {
 	try {
 		if ( $callback instanceof Closure ) {
 			$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
-		} elseif ( is_string( $callback ) && function_exists( $callback ) ) {
-			$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
+		} elseif ( is_string( $callback ) ) {
+			// Handle 'Class::method' string form that WordPress also accepts
+			if ( strpos( $callback, '::' ) !== false ) {
+				list( $class, $method ) = explode( '::', $callback, 2 );
+				if ( class_exists( $class ) && method_exists( $class, $method ) ) {
+					$cache[ $cache_key ] = (string) ( new ReflectionMethod( $class, $method ) )->getFileName();
+				} else {
+					$cache[ $cache_key ] = '';
+				}
+			} elseif ( function_exists( $callback ) ) {
+				$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
+			} else {
+				$cache[ $cache_key ] = '';
+			}
 		} elseif ( is_array( $callback ) && 2 === count( $callback ) ) {
 			$class = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
 			$cache[ $cache_key ] = (string) ( new ReflectionMethod( $class, (string) $callback[1] ) )->getFileName();

@@ -73,7 +73,8 @@ function jsonLdBlocks(html) {
 
 function schemaTypes(value) {
   const values = Array.isArray(value) ? value : value == null ? [] : [value];
-  return values.map((item) => String(item)).filter(Boolean);
+  // Restrict to string-like values to avoid unhelpful entries like '[object Object]'
+  return values.filter((item) => typeof item === 'string').filter(Boolean);
 }
 
 function summarizeJsonLdBlock(block, index) {
@@ -133,7 +134,14 @@ export async function runSingleJsonLdSourceContract(options = {}) {
       if (actualSha !== sha) report.issues.push(`${route}: deploy SHA mismatch actual=${actualSha || '(missing)'} expected=${sha}`);
       if (blocks.length !== 1) {
         report.issues.push(`${route}: expected exactly one application/ld+json block, found ${blocks.length}`);
-        console.error(`SINGLE_JSONLD_SOURCE_DIAGNOSTIC route=${route} blocks=${JSON.stringify(blockSummaries)}`);
+        // Summarize duplicate blocks to keep CI logs readable while providing enough detail
+        const summary = blockSummaries.map((s, i) => ({
+          i,
+          bytes: s.bytes,
+          types: s.topLevelTypes.slice(0, 3),
+          parseError: s.parseError ? 'INVALID_JSON' : null,
+        }));
+        console.error(`SINGLE_JSONLD_SOURCE_DIAGNOSTIC route=${route} blocks=${JSON.stringify(summary)}`);
       }
       if (blocks.length === 1) {
         const summary = blockSummaries[0];

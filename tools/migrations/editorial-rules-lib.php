@@ -28,8 +28,10 @@ class NVX_Editorial_Rules {
      * Generic placeholder pattern.
      * Requires explicit editorial-marker syntax. Bare "placeholder" is a
      * legitimate HTML/data attribute used by Complianz and form controls.
+     * Does not match attribute-style hyphens (e.g., data-placeholder-image) to avoid
+     * false positives with cookie banner markup.
      */
-    public const GENERIC_PLACEHOLDERS_PATTERN = '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu';
+    public const GENERIC_PLACEHOLDERS_PATTERN = '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*:\s*)/iu';
 
     /**
      * Markdown link pattern (excluding images).

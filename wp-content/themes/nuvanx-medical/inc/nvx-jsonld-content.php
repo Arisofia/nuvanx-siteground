@@ -155,6 +155,9 @@ function nvx_jsonld_callback_source_file( $callback ): string {
  * Matching is deliberately narrow: known function/method names or that exact
  * legacy filename only. Unrelated callbacks and non-Schema head output remain.
  *
+ * Filename checks verify the file lives in allowed roots (theme, stylesheet, or MU plugins)
+ * to prevent accidentally removing output from unrelated files with the same name.
+ *
  * @param mixed $callback Registered hook callback.
  * @return bool
  */
@@ -169,7 +172,19 @@ function nvx_jsonld_is_retired_standalone_schema_callback( $callback ): bool {
 	}
 
 	$file = nvx_jsonld_callback_source_file( $callback );
-	return '' !== $file && 'nuvanx-home-unified-faq-schema.php' === basename( $file );
+	if ( '' === $file || 'nuvanx-home-unified-faq-schema.php' !== basename( $file ) ) {
+		return false;
+	}
+	
+	// Verify the file lives in allowed roots to prevent removing output from unrelated files
+	// with the same basename in plugins or other locations
+	$allowed_roots = array( get_template_directory(), get_stylesheet_directory(), WPMU_PLUGIN_DIR );
+	foreach ( $allowed_roots as $root ) {
+		if ( is_string( $root ) && '' !== $root && 0 === strpos( $file, $root ) ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**

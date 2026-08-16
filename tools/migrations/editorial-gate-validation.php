@@ -34,16 +34,16 @@ $editorialRules = array(
         'description' => 'Raw Markdown list marker',
     ),
     'draft_keywords' => array(
-        'pattern'     => '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i',
+        // Keep this restricted to actual workflow residue. Natural patient copy
+        // such as "valoración para revisar el perfil" is not a draft marker.
+        'pattern'     => '/\b(?:borrador|pendiente de revisión|marcad[oa]\s+para\s+revisión|pendiente\s+por\s+revisar|work in progress)\b/iu',
         'description' => 'Draft/review workflow language in published content',
     ),
     'generic_placeholders' => array(
-        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\s*[:\-\—\–]\s*|\bplaceholder\b)/i',
+        // Require explicit editorial-marker syntax. Bare "placeholder" is a
+        // legitimate HTML/data attribute used by Complianz and form controls.
+        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu',
         'description' => 'Editorial placeholder in published content',
-    ),
-    'generic_placeholders_uppercase' => array(
-        'pattern'     => '/\b(?:TODO|FIXME|XXX|HACK)\b/',
-        'description' => 'Editorial placeholder in published content (uppercase only)',
     ),
     'inline_styles' => array(
         'pattern'     => '/\sstyle\s*=\s*["\'][^"\']+["\']/i',
@@ -52,17 +52,42 @@ $editorialRules = array(
 );
 
 $blockedClaimPatterns = array(
-    '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/i' => 'resultado garantizado',
-    '/\b100\s*%\s*efectiv[oa]s?\b/i'               => '100% efectivo',
-    '/\bsin\s+riesgos?\b/i'                        => 'sin riesgos',
-    '/\bsin\s+efectos?\s+secundarios?\b/i'        => 'sin efectos secundarios',
-    '/\binfalible\b/i'                              => 'infalible',
-    '/\bnaturalidad\s+absoluta\b/i'                => 'naturalidad absoluta',
-    '/\bcero\s+sobretratamiento\b/i'               => 'cero sobretratamiento',
-    '/\bm[aá]rgenes?\s+de\s+seguridad\s+exactos?\b/i' => 'márgenes de seguridad exactos',
-    '/\bsin\s+tiempo\s+de\s+inactividad\b/i'      => 'sin tiempo de inactividad',
-    '/\bpiel\s+impecable\b/i'                      => 'piel impecable',
+    '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/iu' => 'resultado garantizado',
+    '/\b100\s*%\s*efectiv[oa]s?\b/iu'               => '100% efectivo',
+    '/\bsin\s+riesgos?\b/iu'                        => 'sin riesgos',
+    '/\bsin\s+efectos?\s+secundarios?\b/iu'        => 'sin efectos secundarios',
+    '/\binfalible\b/iu'                              => 'infalible',
+    '/\bnaturalidad\s+absoluta\b/iu'                => 'naturalidad absoluta',
+    '/\bcero\s+sobretratamiento\b/iu'               => 'cero sobretratamiento',
+    '/\bm[aá]rgenes?\s+de\s+seguridad\s+exactos?\b/iu' => 'márgenes de seguridad exactos',
+    '/\bsin\s+tiempo\s+de\s+inactividad\b/iu'      => 'sin tiempo de inactividad',
+    '/\bpiel\s+impecable\b/iu'                      => 'piel impecable',
 );
+
+/**
+ * Decide whether a blocked phrase is being quoted as something to avoid or
+ * explicitly negated rather than asserted as a NUVANX claim.
+ */
+function nvxEditorialClaimIsAdvisoryContext( string $content, int $offset ): bool {
+    $windowStart = max( 0, $offset - 220 );
+    $beforeRaw   = substr( $content, $windowStart, $offset - $windowStart );
+    $before      = html_entity_decode( wp_strip_all_tags( $beforeRaw ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    $before      = preg_replace( '/\s+/u', ' ', $before ) ?? $before;
+
+    // "No significa/supone/convierte ... sin riesgos" is risk disclosure,
+    // not a risk-free claim. Restrict the context to the current sentence.
+    if ( preg_match( '/\bno\s+(?:significa|implica|supone|convierte|equivale)\b[^.!?]{0,170}$/iu', $before ) ) {
+        return true;
+    }
+
+    // "Desconfía/evita promesas de resultado garantizado" explicitly warns
+    // against the prohibited promise and must remain publishable.
+    if ( preg_match( '/\b(?:desconf[ií]a|evita|rechaza|cuestiona)\b[^.!?]{0,150}\b(?:promesas?|garant[ií]as?)\b[^.!?]{0,80}$/iu', $before ) ) {
+        return true;
+    }
+
+    return false;
+}
 
 $ids = nvxPublicationPublishedIds();
 $violations = array();
@@ -92,13 +117,27 @@ foreach ( $ids as $postId ) {
 
     foreach ( $blockedClaimPatterns as $pattern => $label ) {
         $matches = array();
-        preg_match_all( $pattern, $content, $matches );
-        if ( ! empty( $matches[0] ) ) {
+        preg_match_all( $pattern, $content, $matches, PREG_OFFSET_CAPTURE );
+        if ( empty( $matches[0] ) ) {
+            continue;
+        }
+
+        $assertedMatches = array();
+        foreach ( $matches[0] as $match ) {
+            $matchedText = (string) ( $match[0] ?? '' );
+            $offset      = (int) ( $match[1] ?? -1 );
+            if ( $offset >= 0 && nvxEditorialClaimIsAdvisoryContext( $content, $offset ) ) {
+                continue;
+            }
+            $assertedMatches[] = $matchedText;
+        }
+
+        if ( ! empty( $assertedMatches ) ) {
             $errors[] = array(
                 'rule'        => 'blocked_claim',
                 'description' => 'Blocked absolute marketing/clinical claim',
-                'matches'     => array_values( array_unique( array_slice( $matches[0], 0, 5 ) ) ),
-                'count'       => count( $matches[0] ),
+                'matches'     => array_values( array_unique( array_slice( $assertedMatches, 0, 5 ) ) ),
+                'count'       => count( $assertedMatches ),
                 'label'       => $label,
             );
         }

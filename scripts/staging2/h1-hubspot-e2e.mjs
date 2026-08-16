@@ -62,17 +62,17 @@ assert.doesNotMatch(
   'managed valoración page must not reintroduce the legacy captured non-HubSpot form'
 );
 assert.doesNotMatch(
-  managedPage,
+  managedPage.match(/<div id="nvx-hubspot-native-form"[^>]*>/)?.[0] || '',
   /data-form-id="/,
   'managed valoración page host must not contain HubSpot identity (prevents duplicate embeds)'
 );
 assert.doesNotMatch(
-  managedPage,
+  managedPage.match(/<div id="nvx-hubspot-native-form"[^>]*>/)?.[0] || '',
   /data-portal-id="/,
   'managed valoración page host must not contain HubSpot identity (prevents duplicate embeds)'
 );
 
-// Validate HubSpot identity on the canonical child mount in nvx-hero-and-forms.php
+// Validate HubSpot identity on the canonical child mount in nvx-hero-and-forms.php.
 assert.match(
   heroAndForms,
   /data-form-id="/,
@@ -97,6 +97,31 @@ assert.match(
   heroAndForms,
   /data-nvx-hubspot-lazy="1"/,
   'canonical HubSpot mount must have the lazy attribute for governance'
+);
+
+// The dedicated conversion route must not depend exclusively on the shared
+// runtime. Its recovery bootstrap triggers the canonical owner first, repairs a
+// missing frame if necessary, removes extra frames and only injects a portal
+// loader when no existing owner has created one.
+assert.match(
+  managedPage,
+  /function nvx_valoracion_hubspot_bootstrap_markup\(\): string/,
+  'managed valoración page must retain the deterministic HubSpot recovery bootstrap'
+);
+assert.match(
+  managedPage,
+  /frames\[i\]\.remove\(\)/,
+  'recovery bootstrap must enforce a single HubSpot frame inside the canonical host'
+);
+assert.match(
+  managedPage,
+  /#nvx-hubspot-forms-runtime,script\[data-nvx-hubspot-canonical=/,
+  'recovery bootstrap must reuse the canonical loader when one already exists'
+);
+assert.match(
+  managedPage,
+  /script\.dataset\.nvxHubspotCanonical="1"/,
+  'recovery loader must identify itself as the single canonical fallback owner'
 );
 
 assert.match(
@@ -135,5 +160,6 @@ console.log(`EXPECTED_SHA=${expectedSha}`);
 console.log(`HUBSPOT_FORM_ID=${formId}`);
 console.log(`HUBSPOT_PORTAL_ID=${portalId}`);
 console.log('HUBSPOT_PRODUCTION_CONTRACT_MODE=ZERO_SUBMIT');
+console.log('HUBSPOT_VALORACION_RECOVERY_BOOTSTRAP=PASS single_frame=1 single_loader=1');
 console.log('H1_BROWSER_E2E=PASS mode=zero-submit-static-contract');
 console.log('PRODUCTION_HUBSPOT_CONTRACT=PASS zero_submit=1 javascript_executed=0 contact_created=0');

@@ -23,6 +23,10 @@ export const BLOCK_C_BROWSER_CONFIG = Object.freeze({
 
 export const BLOCK_C_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
 
+export const BLOCK_C_VIEWPORTS = Object.freeze(
+  VIEWPORTS.map((viewport) => Object.freeze({ ...viewport }))
+);
+
 export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
   homeMobile: Object.freeze({
     route: '/',
@@ -31,7 +35,7 @@ export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
 });
 
 export function getCanonicalViewport(viewportKey) {
-  const viewport = VIEWPORTS.find((candidate) => candidate.key === viewportKey);
+  const viewport = BLOCK_C_VIEWPORTS.find((candidate) => candidate.key === viewportKey);
   if (!viewport) {
     throw new Error(`Unknown canonical Block C viewport: ${viewportKey}`);
   }

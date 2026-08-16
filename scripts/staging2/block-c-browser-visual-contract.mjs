@@ -70,8 +70,8 @@ export async function activateLazyImages(page, config = BLOCK_C_BROWSER_CONFIG) 
   await page.waitForTimeout(config.lazyPostSettleMs);
 }
 
-export async function collectHomeGeometry(page) {
-  return page.evaluate(() => {
+export async function collectHomeGeometry(page, config = BLOCK_C_BROWSER_CONFIG) {
+  return page.evaluate((cfg) => {
     const visible = (el) => {
       if (!el) return false;
       const style = getComputedStyle(el);
@@ -106,9 +106,10 @@ export async function collectHomeGeometry(page) {
     const h1s = Array.from(document.querySelectorAll('h1')).filter(visible);
     const h1 = h1s[0] || null;
     const h1Style = h1 ? getComputedStyle(h1) : null;
+    const tolerance = cfg.layoutTolerancePx;
     const h1Clipped = Boolean(h1 && (
-      (h1.scrollWidth > h1.clientWidth + 2 && ['hidden', 'clip'].includes(h1Style.overflowX))
-      || (h1.scrollHeight > h1.clientHeight + 2 && ['hidden', 'clip'].includes(h1Style.overflowY))
+      (h1.scrollWidth > h1.clientWidth + tolerance && ['hidden', 'clip'].includes(h1Style.overflowX))
+      || (h1.scrollHeight > h1.clientHeight + tolerance && ['hidden', 'clip'].includes(h1Style.overflowY))
     ));
     const doc = document.documentElement;
     const body = document.body;
@@ -124,19 +125,19 @@ export async function collectHomeGeometry(page) {
         return !href || href === '#';
       })
       .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120))
-      .slice(0, 10);
+      .slice(0, cfg.ctaPreviewLimit);
     const brokenImages = Array.from(document.images)
       .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && Boolean(img.currentSrc || img.getAttribute('src')))
       .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)')
-      .slice(0, 12);
+      .slice(0, cfg.imagePreviewLimit);
     const unresolvedLazyImages = Array.from(document.images)
       .filter((img) => visible(img) && img.naturalWidth === 0 && !img.currentSrc && Boolean(img.dataset.src || img.dataset.lazySrc || img.dataset.original || img.dataset.srcset))
       .map((img) => img.dataset.src || img.dataset.lazySrc || img.dataset.original || img.dataset.srcset || img.alt || '(unknown lazy image)')
-      .slice(0, 12);
+      .slice(0, cfg.imagePreviewLimit);
     const mainText = (main?.innerText || '').replace(/\s+/g, ' ').trim();
     const runtimeDiagnostics = Array.from(new Set(
       (document.body?.innerText || '').match(/(?:Warning|Deprecated|Fatal error|Notice):[^\n]*/g) || []
-    )).slice(0, 12);
+    )).slice(0, cfg.diagnosticLimit);
     const visibleSections = main ? Array.from(main.querySelectorAll('section, article')).filter(visible) : [];
 
     return {
@@ -168,7 +169,7 @@ export async function collectHomeGeometry(page) {
       videoVisible: visible(video),
       videoRect: rectData(video),
     };
-  });
+  }, config);
 }
 
 export async function testResponsiveMenu(page, issues, config = BLOCK_C_BROWSER_CONFIG) {
@@ -216,6 +217,7 @@ export async function evaluateHomeVisualContract({
   config = BLOCK_C_BROWSER_CONFIG,
 }) {
   const issues = [];
+  const tolerance = config.layoutTolerancePx;
 
   if (!geometry.headerVisible) issues.push('Header is not visibly rendered');
   if (!geometry.footerVisible) issues.push('Footer is not visibly rendered');
@@ -223,24 +225,28 @@ export async function evaluateHomeVisualContract({
   if (geometry.visibleH1Count !== 1) issues.push(`Expected 1 visible H1, found ${geometry.visibleH1Count}`);
   if (!geometry.h1Text) issues.push('H1 is empty or unreadable');
   if (geometry.h1Clipped) issues.push('H1 is clipped/truncated by its container');
-  if (geometry.h1Rect && (geometry.h1Rect.left < -2 || geometry.h1Rect.right > viewport.width + 2)) issues.push('H1 extends outside viewport');
-  if (geometry.h1Rect && geometry.h1Rect.top < -2) issues.push(`H1 starts above viewport (${geometry.h1Rect.top}px)`);
-  if (geometry.horizontalOverflowPx > 2) issues.push(`Horizontal viewport overflow: ${geometry.horizontalOverflowPx}px`);
-  if (geometry.headerRect && (geometry.headerRect.left < -2 || geometry.headerRect.right > viewport.width + 2)) issues.push('Header extends outside viewport bounds');
-  if (geometry.footerRect && (geometry.footerRect.left < -2 || geometry.footerRect.right > viewport.width + 2)) issues.push('Footer extends outside viewport bounds');
+  if (geometry.h1Rect && (geometry.h1Rect.left < -tolerance || geometry.h1Rect.right > viewport.width + tolerance)) issues.push('H1 extends outside viewport');
+  if (geometry.h1Rect && geometry.h1Rect.top < -tolerance) issues.push(`H1 starts above viewport (${geometry.h1Rect.top}px)`);
+  if (geometry.horizontalOverflowPx > tolerance) issues.push(`Horizontal viewport overflow: ${geometry.horizontalOverflowPx}px`);
+  if (geometry.headerRect && (geometry.headerRect.left < -tolerance || geometry.headerRect.right > viewport.width + tolerance)) issues.push('Header extends outside viewport bounds');
+  if (geometry.footerRect && (geometry.footerRect.left < -tolerance || geometry.footerRect.right > viewport.width + tolerance)) issues.push('Footer extends outside viewport bounds');
   if (!geometry.heroVisible) issues.push('Hero/intro is not visibly rendered');
   if (geometry.visibleCtaCount === 0) issues.push('No visible CTA found');
   if (geometry.invalidCtas.length > 0) issues.push(`Invalid visible CTA href (#/empty): ${geometry.invalidCtas.join(' | ')}`);
   if (geometry.brokenImages.length > 0) issues.push(`Broken visible images: ${geometry.brokenImages.join(' | ')}`);
   if (geometry.unresolvedLazyImages.length > 0) issues.push(`Lazy images unresolved after full-page activation: ${geometry.unresolvedLazyImages.join(' | ')}`);
-  if (imageHttpErrors.length > 0) issues.push(`Image request errors: ${[...new Set(imageHttpErrors)].slice(0, 8).join(' | ')}`);
+  if (imageHttpErrors.length > 0) issues.push(`Image request errors: ${[...new Set(imageHttpErrors)].slice(0, config.errorPreviewLimit).join(' | ')}`);
   if (geometry.fontsStatus !== 'loaded') issues.push(`Fonts did not reach loaded state (${geometry.fontsStatus})`);
   if (!geometry.bodyFontFamily) issues.push('Body computed font-family is empty');
   if (geometry.runtimeDiagnostics.length > 0) issues.push(`Visible PHP/runtime diagnostics: ${geometry.runtimeDiagnostics.join(' | ')}`);
-  if (geometry.mainTextLength < 80) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
-  if (geometry.visibleSectionCount < 2 && geometry.mainTextLength < 400) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
+  if (geometry.mainTextLength < config.minimumMainTextChars) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
+  if (geometry.visibleSectionCount < config.minimumSemanticSections && geometry.mainTextLength < config.minimumSectionFallbackTextChars) {
+    issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
+  }
   if (!geometry.videoVisible) issues.push('Home hero video is not visible');
-  if (geometry.videoRect && (geometry.videoRect.width < 100 || geometry.videoRect.height < 100)) issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
+  if (geometry.videoRect && (geometry.videoRect.width < config.minimumVideoDimensionPx || geometry.videoRect.height < config.minimumVideoDimensionPx)) {
+    issues.push(`Home hero video renders too small (${geometry.videoRect.width}×${geometry.videoRect.height})`);
+  }
 
   await testResponsiveMenu(page, issues, config);
   if (consoleErrors.length > 0) issues.push(`${consoleErrors.length} browser console error(s)`);

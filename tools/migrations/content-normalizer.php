@@ -179,7 +179,6 @@ function nvxFlushMarkdownBuffers( array &$paragraph, string &$listType, array &$
  * @param array<int,string> $paragraph
  * @param array<int,string> $listItems
  * @param array<int,string> $output
- * @return bool
  */
 function nvxApplyMarkdownToken(
     array $token,
@@ -187,9 +186,8 @@ function nvxApplyMarkdownToken(
     string &$listType,
     array &$listItems,
     array &$output,
-    bool &$leadingH1Removed,
-    bool &$editorialMarkerSeen
-): bool {
+    bool &$leadingH1Removed
+): void {
     switch ( $token['type'] ) {
         case 'blank':
             nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
@@ -221,7 +219,6 @@ function nvxApplyMarkdownToken(
             $output[] = wp_kses_post( $token['value'] );
             break;
         case 'editorial_marker':
-            $editorialMarkerSeen = true;
             nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
             break;
         default:
@@ -242,13 +239,10 @@ function nvxNormalizeContent( string $content ): string {
     $listType = '';
     $listItems = array();
     $leadingH1Removed = false;
-    $editorialMarkerSeen = false;
 
     foreach ( explode( "\n", $normalized ) as $line ) {
         $token = nvxClassifyMarkdownLine( rtrim( $line ) );
-        if ( ! nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed, $editorialMarkerSeen ) ) {
-            break;
-        }
+        nvxApplyMarkdownToken( $token, $paragraph, $listType, $listItems, $output, $leadingH1Removed );
     }
 
     nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );

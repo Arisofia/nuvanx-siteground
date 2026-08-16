@@ -171,15 +171,34 @@ export async function writeEvidenceBundle(entries) {
       }
     }
 
+    const removedInvalidFiles = [];
     const cleanupFailures = [];
     let markerWriteError = '';
     if (rollbackFailures.length > 0) {
+      for (const { entry } of rollbackFailures) {
+        try {
+          await fs.rm(entry.filePath, { force: true });
+          removedInvalidFiles.push(path.basename(entry.filePath));
+        } catch (cleanupError) {
+          cleanupFailures.push({
+            file: path.basename(entry.filePath),
+            message: `${path.basename(entry.filePath)}:${cleanupError?.message || cleanupError}`,
+          });
+        }
+      }
+
+      const failedPaths = new Set(rollbackFailures.map(({ entry }) => entry.filePath));
       const marker = {
-        schema: 2,
+        schema: 3,
         status: 'inconsistent-evidence-bundle',
         writeError: error?.message || String(error),
         rollbackErrors: rollbackFailures.map(({ message }) => message),
-        invalidFiles: rollbackFailures.map(({ entry }) => path.basename(entry.filePath)),
+        removedInvalidFiles,
+        remainingInvalidFiles: cleanupFailures.map(({ file }) => file),
+        cleanupErrors: cleanupFailures.map(({ message }) => message),
+        retainedPriorFiles: staged
+          .filter((entry) => !failedPaths.has(entry.filePath))
+          .map((entry) => path.basename(entry.filePath)),
         generatedAt: new Date().toISOString(),
       };
 
@@ -188,19 +207,11 @@ export async function writeEvidenceBundle(entries) {
       } catch (markerError) {
         markerWriteError = markerError?.message || String(markerError);
       }
-
-      for (const { entry } of rollbackFailures) {
-        try {
-          await fs.rm(entry.filePath, { force: true });
-        } catch (cleanupError) {
-          cleanupFailures.push(`${path.basename(entry.filePath)}:${cleanupError?.message || cleanupError}`);
-        }
-      }
     }
 
     const details = [
       rollbackFailures.length ? `rollback_errors=${rollbackFailures.map(({ message }) => message).join('|')}` : '',
-      cleanupFailures.length ? `cleanup_errors=${cleanupFailures.join('|')}` : '',
+      cleanupFailures.length ? `cleanup_errors=${cleanupFailures.map(({ message }) => message).join('|')}` : '',
       markerWriteError ? `marker_write_error=${markerWriteError}` : '',
     ].filter(Boolean);
     const detail = details.length ? ` ${details.join(' ')}` : '';

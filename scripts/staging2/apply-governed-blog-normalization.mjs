@@ -12,6 +12,11 @@ function resolveReleaseMigration() {
   if (!release.startsWith(prefix) || !/^[A-Za-z0-9_./-]+$/.test(release)) {
     throw new Error('REMOTE_RELEASE is missing or outside the canonical Staging2 deployment area');
   }
+  // Prevent path traversal attacks by checking for .. segments after the prefix
+  const relativePath = release.slice(prefix.length);
+  if (relativePath.includes('..')) {
+    throw new Error('REMOTE_RELEASE contains path traversal sequences');
+  }
   return `${release}/tools/migrations/content-hygiene-shared.php`;
 }
 

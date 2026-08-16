@@ -95,15 +95,19 @@ foreach ( $manifest['routes'] as $route => $expected ) {
             'name'           => $sourceSlug,
             'post_type'      => $sourceType,
             'post_status'    => array( 'publish', 'draft', 'private', 'pending', 'future' ),
-            'posts_per_page' => 1,
+            'posts_per_page' => -1, // Get all posts with this slug to handle hierarchical duplicates
             'orderby'        => 'ID',
             'order'          => 'ASC',
             'no_found_rows'  => true,
+            'fields'         => 'ids', // Only fetch IDs for performance
         )
     );
-    $slugCollision = is_array( $slugQuery->posts ) ? reset( $slugQuery->posts ) : null;
-    if ( $slugCollision instanceof WP_Post && (int) $slugCollision->ID !== $sourceId ) {
-        $collisionId = (int) $slugCollision->ID;
+    $slugCollisions = is_array( $slugQuery->posts ) ? $slugQuery->posts : array();
+    foreach ( $slugCollisions as $collisionId ) {
+        $collisionId = (int) $collisionId;
+        if ( $collisionId === $sourceId ) {
+            continue; // Skip the canonical post itself
+        }
         if ( isset( $targetLookup[ $collisionId ] ) ) {
             fwrite(
                 STDERR,

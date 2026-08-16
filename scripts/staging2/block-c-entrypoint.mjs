@@ -32,15 +32,17 @@ const hasLegacyTimeoutOverride = Number.isInteger(parsedLegacyTimeoutMs) && pars
 const legacyTimeoutMs = hasLegacyTimeoutOverride ? parsedLegacyTimeoutMs : null;
 const DEFAULT_CORE_TIMEOUT_MS = 45 * 60 * 1000;
 const DEFAULT_RECOVERY_TIMEOUT_MS = 10 * 60 * 1000;
+// BLOCK_C_SUBPROCESS_TIMEOUT_MS is the historical global subprocess budget. For
+// compatibility it remains the core fallback when explicitly set, and recovery
+// must never exceed that global ceiling unless BLOCK_C_RECOVERY_TIMEOUT_MS is
+// explicitly supplied by the caller.
+const coreFallbackTimeoutMs = hasLegacyTimeoutOverride ? legacyTimeoutMs : DEFAULT_CORE_TIMEOUT_MS;
+const recoveryFallbackTimeoutMs = hasLegacyTimeoutOverride
+  ? Math.min(DEFAULT_RECOVERY_TIMEOUT_MS, legacyTimeoutMs)
+  : DEFAULT_RECOVERY_TIMEOUT_MS;
 const SUBPROCESS_CONFIG = Object.freeze({
-  coreTimeoutMs: positiveIntegerEnv(
-    'BLOCK_C_CORE_TIMEOUT_MS',
-    hasLegacyTimeoutOverride ? legacyTimeoutMs : DEFAULT_CORE_TIMEOUT_MS
-  ),
-  recoveryTimeoutMs: positiveIntegerEnv(
-    'BLOCK_C_RECOVERY_TIMEOUT_MS',
-    hasLegacyTimeoutOverride ? Math.min(DEFAULT_RECOVERY_TIMEOUT_MS, legacyTimeoutMs) : DEFAULT_RECOVERY_TIMEOUT_MS
-  ),
+  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', coreFallbackTimeoutMs),
+  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', recoveryFallbackTimeoutMs),
   hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
 });
 

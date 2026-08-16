@@ -224,8 +224,6 @@ function nvxApplyMarkdownToken(
         default:
             $paragraph[] = $token['value'];
     }
-
-    return true;
 }
 
 function nvxNormalizeContent( string $content ): string {
@@ -262,7 +260,7 @@ function nvxValidateNormalizedContent( string $content ): array {
         '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',
         '/%(?:\d+\$)?[sd]/' => 'Format string still present',
         '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
-        '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\s*[:\-\—\–]\s*|\bplaceholder\b)/i' => 'Editorial placeholder still present',
+        '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\b\s*[:\-—–]\s*|\bplaceholder\b)/i' => 'Editorial placeholder still present',
         '/\b(?:TODO|FIXME|XXX|HACK)\b/' => 'Editorial placeholder still present (uppercase only)',
         '/📌/u' => 'Editorial marker (📌) present - may indicate mid-content placement',
     );

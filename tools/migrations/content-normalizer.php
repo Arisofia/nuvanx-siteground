@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit( 1 );
 }
 
-require_once __DIR__ . '/editorial-rules-lib.php';
+require_once __DIR__ . '/../../lib/nvx-editorial-rules.php';
 
 function nvxNeedsMarkdownNormalization( string $content ): bool {
     if ( '' === trim( $content ) || false !== strpos( $content, '<!-- wp:' ) ) {

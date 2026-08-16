@@ -176,9 +176,13 @@ export async function writeEvidenceBundle(entries) {
     }
 
     // Clear an older inconsistency marker only after the replacement bundle
-    // has committed successfully. This keeps prior fail-closed evidence visible
-    // if the process dies while preparing or committing a new bundle.
-    await fs.rm(inconsistentMarkerPath, { force: true });
+    // has committed successfully. Marker cleanup is diagnostic-only: failure
+    // must not roll back an otherwise valid evidence bundle.
+    await fs.rm(inconsistentMarkerPath, { force: true }).catch((markerCleanupError) => {
+      console.warn(
+        `BLOCK_C_EVIDENCE_MARKER_CLEANUP=WARN path=${inconsistentMarkerPath} error=${markerCleanupError?.message || markerCleanupError}`,
+      );
+    });
   } catch (error) {
     const rollbackFailures = [];
     for (const entry of [...committed].reverse()) {

@@ -26,6 +26,21 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
 }
 
 function nvxNormalizeMarkdownInline( string $text ): string {
+    // First, extract inline HTML tags and replace with placeholders to protect them
+    // from HTML escaping. This prevents HTML tags from being escaped into visible markup.
+    $htmlPlaceholders = array();
+    $text = preg_replace_callback(
+        '/<[^>]+>/',
+        static function ( array $matches ) use ( &$htmlPlaceholders ): string {
+            $tag = (string) $matches[0];
+            $placeholder = 'NVX_HTML_PLACEHOLDER_' . count( $htmlPlaceholders );
+            $htmlPlaceholders[ $placeholder ] = $tag;
+            return $placeholder;
+        },
+        $text
+    ) ?? $text;
+
+    // Escape only the text content (HTML is now protected by placeholders)
     $escaped = esc_html( $text );
 
     // First, extract Markdown images and replace with placeholders to protect them
@@ -86,6 +101,15 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         $escaped = str_replace(
             $placeholder,
             '<a href="' . esc_url( $link['url'] ) . '">' . $link['label'] . '</a>',
+            $escaped
+        );
+    }
+
+    // Replace HTML placeholders with sanitized HTML
+    foreach ( $htmlPlaceholders as $placeholder => $tag ) {
+        $escaped = str_replace(
+            $placeholder,
+            wp_kses_post( $tag ),
             $escaped
         );
     }

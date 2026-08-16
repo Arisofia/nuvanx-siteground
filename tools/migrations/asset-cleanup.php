@@ -272,8 +272,11 @@ $orphans = nvx_identify_orphans( $references );
 $consumption = nvx_verify_public_consumption( $orphans );
 $integrity = nvx_generate_media_integrity();
 
-$dry_run = '1' === getenv( 'MIGRATION_DRY_RUN' );
-$deletion_report = nvx_delete_orphans( $orphans, $dry_run );
+// Dry-run mode: controlled via MIGRATION_DRY_RUN env var (same convention
+// as content-hygiene-shared.php and content-hygiene-staging-only.php).
+// Default true — no deletions unless MIGRATION_DRY_RUN=0 is explicitly set.
+$DRY_RUN = '0' !== getenv( 'MIGRATION_DRY_RUN' );
+$deletion_report = nvx_delete_orphans( $orphans, $DRY_RUN );
 
 $report = [
 	'schema' => 'asset-cleanup',
@@ -294,7 +297,7 @@ $report = [
 	'consumption' => $consumption,
 	'deletion' => $deletion_report,
 	'integrity' => $integrity,
-	'dry_run' => $dry_run,
+	'dry_run' => $DRY_RUN,
 ];
 
 echo json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
@@ -315,6 +318,6 @@ fwrite( STDERR, "  Skipped: " . count( $deletion_report['skipped'] ) . "\n" );
 fwrite( STDERR, "  Errors: " . count( $deletion_report['errors'] ) . "\n" );
 fwrite( STDERR, "Media Integrity: " . count( $integrity ) . " hashes generated\n" );
 
-if ( $dry_run ) {
+if ( $DRY_RUN ) {
 	fwrite( STDERR, "\nDRY RUN MODE - Set MIGRATION_DRY_RUN=0 to actually delete files\n" );
 }

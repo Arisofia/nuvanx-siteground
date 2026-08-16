@@ -5,6 +5,9 @@ set -Eeuo pipefail
 BASE_URL="${BASE_URL:-https://nuvanx.com}"
 EXPECTED_HOST="${EXPECTED_HOST:-nuvanx.com}"
 BASE_URL="${BASE_URL%/}"
+# PROD_DB_NAME is the canonical production DB identifier used as a boundary
+# assertion (not a secret — no password). Default is the SiteGround DB name.
+PROD_DB_NAME="${PROD_DB_NAME:-db0ecrycwv2tgb}"
 
 failures=0
 warnings=0
@@ -24,7 +27,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 cd "$PROD_ROOT"
 release_sha="$(tr -d '\r\n[:space:]' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
 [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid production deploy marker.' >&2; exit 1; }
-[[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]]
+[[ "$(wp config get DB_NAME)" == "$PROD_DB_NAME" ]]
 [[ "$(wp option get home)" == "$BASE_URL" ]]
 [[ "$(wp option get siteurl)" == "$BASE_URL" ]]
 [[ "$(wp option get blog_public)" == '1' ]]

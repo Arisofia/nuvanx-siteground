@@ -148,20 +148,32 @@ function nvx_apply_bioestimuladores_official_prices( array $tariffs ): array {
  * keeps the product-dependent 1–3 session / 4–6 week contract already emitted
  * by its structured data, while the official polynucleotide catalogue retains
  * its product-specific 3-session schedule.
+ *
+ * This filter is scoped to the main query to avoid unintended replacements
+ * in auxiliary content (custom loops, blocks, or programmatic the_content calls).
  */
 function nvx_reconcile_bioestimuladores_general_page_copy( string $content ): string {
-	if ( is_admin() || ! is_page( 'bioestimuladores-colageno-madrid' ) ) {
+	if (
+		is_admin()
+		|| ! is_page( 'bioestimuladores-colageno-madrid' )
+		|| ! is_main_query()
+		|| ! in_the_loop()
+	) {
 		return $content;
 	}
 
-	$legacy_protocol = 'El protocolo inicial estándar es de 3 sesiones separadas 4 semanas, seguido de mantenimiento anual. El número exacto depende del punto de partida y el objetivo.';
+	// Use stable key phrases instead of full sentences to make matching more robust
+	// against minor copy edits while still preventing false positives
+	$legacy_protocol_marker = 'El protocolo inicial estándar es de 3 sesiones';
 	$governed_protocol = 'El número de sesiones depende del producto, la zona, la calidad cutánea y el objetivo clínico. Como orientación general, los protocolos pueden requerir entre 1 y 3 sesiones espaciadas aproximadamente 4–6 semanas; el mantenimiento se define en revisión según la evolución.';
 
-	$legacy_price = 'El precio de sesión de bioestimulador parte de 248€ según zona y producto. Se requiere valoración médica previa para establecer el protocolo.';
+	$legacy_price_marker = 'El precio de sesión de bioestimulador parte de 248€';
 	$governed_price = 'El presupuesto depende del producto, la zona y el protocolo indicado. En polinucleótidos, la tarifa de referencia parte de 248 € por sesión en manos; el presupuesto definitivo se establece tras valoración médica.';
 
-	$content = str_replace( $legacy_protocol, $governed_protocol, $content );
-	$content = str_replace( $legacy_price, $governed_price, $content );
+	// Replace all occurrences - this is intentional to ensure consistency
+	// across the entire page content
+	$content = str_replace( $legacy_protocol_marker, $governed_protocol, $content );
+	$content = str_replace( $legacy_price_marker, $governed_price, $content );
 
 	return $content;
 }

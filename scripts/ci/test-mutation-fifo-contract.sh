@@ -120,4 +120,17 @@ set -e
 grep -Fq 'MUTATION_FIFO=SUPERSEDED' "$superseded_log"
 grep -Fq 'mutation=forbidden' "$superseded_log"
 
-echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=5'
+# Case 6: Bridal seed retirement must require both seed signals.
+# A production editorial page can retain historical meta temporarily; treating
+# either signal as sufficient was proven to collapse Staging parity 71 -> 70.
+catalog="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php"
+grep -Fq '$is_seed        = '\''bridal_protocol'\'' === $seed_key && $has_seed_marker;' "$catalog"
+! grep -Fq '$is_seed        = $has_meta_key || $has_seed_marker;' "$catalog"
+
+# Case 7: GitHub Actions run IDs are numeric and must not be widened to arbitrary
+# word/hyphen tokens in the production identity chain.
+identity="$ROOT/scripts/production/verify-production-identity.mjs"
+grep -Fq 'if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID))' "$identity"
+! grep -Fq 'if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID))' "$identity"
+
+echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=7'

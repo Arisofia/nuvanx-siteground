@@ -27,10 +27,20 @@ function positiveIntegerEnv(name, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
-const legacyTimeoutMs = positiveIntegerEnv('BLOCK_C_SUBPROCESS_TIMEOUT_MS', 0);
+const parsedLegacyTimeoutMs = Number.parseInt(process.env.BLOCK_C_SUBPROCESS_TIMEOUT_MS || '', 10);
+const hasLegacyTimeoutOverride = Number.isInteger(parsedLegacyTimeoutMs) && parsedLegacyTimeoutMs > 0;
+const legacyTimeoutMs = hasLegacyTimeoutOverride ? parsedLegacyTimeoutMs : null;
+const DEFAULT_CORE_TIMEOUT_MS = 45 * 60 * 1000;
+const DEFAULT_RECOVERY_TIMEOUT_MS = 10 * 60 * 1000;
 const SUBPROCESS_CONFIG = Object.freeze({
-  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', legacyTimeoutMs || 25 * 60 * 1000),
-  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', 12 * 60 * 1000),
+  coreTimeoutMs: positiveIntegerEnv(
+    'BLOCK_C_CORE_TIMEOUT_MS',
+    hasLegacyTimeoutOverride ? legacyTimeoutMs : DEFAULT_CORE_TIMEOUT_MS
+  ),
+  recoveryTimeoutMs: positiveIntegerEnv(
+    'BLOCK_C_RECOVERY_TIMEOUT_MS',
+    hasLegacyTimeoutOverride ? Math.min(DEFAULT_RECOVERY_TIMEOUT_MS, legacyTimeoutMs) : DEFAULT_RECOVERY_TIMEOUT_MS
+  ),
   hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
 });
 

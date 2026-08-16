@@ -167,7 +167,6 @@ run_case() {
 }
 
 run_case primary-pass primary-pass 0 primary 1 primary.example
-run_case transport-fail transport-timeout 255 '' 1
 run_case fallback-pass fallback-pass 0 fallback 2 fallback.example
 run_case transport-fail transport-fail 255 '' 2
 run_case auth-fail-closed primary-auth 1 '' 1

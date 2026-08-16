@@ -4,6 +4,9 @@ set -Eeuo pipefail
 : "${PROD_ROOT:?Missing PROD_ROOT}"
 BASE_URL="${BASE_URL:-https://nuvanx.com}"
 BASE_URL="${BASE_URL%/}"
+# PROD_DB_NAME is the canonical production DB identifier used as a boundary
+# assertion (not a secret — no password). Default is the SiteGround DB name.
+PROD_DB_NAME="${PROD_DB_NAME:-db0ecrycwv2tgb}"
 
 LIVE_THEME="$PROD_ROOT/wp-content/themes/nuvanx-medical"
 PROD_PARENT="${PROD_ROOT%/public_html}"
@@ -124,7 +127,7 @@ rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combi
 rm -rf wp-content/cache/sgo-cache/* wp-content/cache/* 2>/dev/null || true
 wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
 
-[[ "$(wp config get DB_NAME)" == 'db0ecrycwv2tgb' ]] || { echo 'PRODUCTION_COMPENSATING_ROLLBACK=FAIL reason=db_identity' >&2; exit 2; }
+[[ "$(wp config get DB_NAME)" == "$PROD_DB_NAME" ]] || { echo 'PRODUCTION_COMPENSATING_ROLLBACK=FAIL reason=db_identity' >&2; exit 2; }
 [[ "$(wp option get home)" == "$BASE_URL" ]] || { echo 'PRODUCTION_COMPENSATING_ROLLBACK=FAIL reason=home_identity' >&2; exit 2; }
 [[ "$(wp option get siteurl)" == "$BASE_URL" ]] || { echo 'PRODUCTION_COMPENSATING_ROLLBACK=FAIL reason=siteurl_identity' >&2; exit 2; }
 [[ "$(wp option get blog_public)" == '1' ]] || { echo 'PRODUCTION_COMPENSATING_ROLLBACK=FAIL reason=blog_public_identity' >&2; exit 2; }

@@ -188,6 +188,12 @@ $apply_rx = function(
 // ── Block C2: Governed journal Markdown normalization ─────────────────────────
 // Included here so it shares the same durable write marker and deployment-level
 // database rollback contract as every other shared content migration.
+//
+// NOTE: This block executes before Block A intentionally. Block C2 must run first
+// and re-syncs the in-memory $posts rows so that Blocks A/B, which write whole field
+// values from that array, do not overwrite the normalized content with pre-normalization
+// Markdown. The log output shows "--- Block C2 ---" before "--- Block A ---" because
+// of this deliberate execution order.
 require_once __DIR__ . '/governed-blog-markdown-hygiene.php';
 
 // ── Block A: String replacements ──────────────────────────────────────────────

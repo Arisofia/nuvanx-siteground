@@ -14,7 +14,6 @@ import {
   BLOCK_C_BROWSER_CONFIG,
   BLOCK_C_BROWSER_UA,
   BLOCK_C_RECOVERY_TARGETS,
-  BLOCK_C_VIEWPORTS,
   BlockCConfigError,
   getCanonicalViewport,
 } from './block-c-browser-config.mjs';
@@ -25,6 +24,7 @@ import {
   handleCookieConsent,
   waitForVisualStability,
 } from './block-c-browser-visual-contract.mjs';
+import { renderBlockCEvidence, writeEvidenceBundle } from './block-c-evidence.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const artifactsDir = path.join(moduleDir, 'block-c-artifacts');
@@ -39,6 +39,7 @@ const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
 const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
 const csvPath = path.join(artifactsDir, 'block-c-results.csv');
 const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
+
 let targetViewport = null;
 let targetViewportConfigError = null;
 try {
@@ -48,6 +49,7 @@ try {
     ? error
     : new BlockCConfigError(error instanceof Error ? error.message : String(error));
 }
+
 const targetRoute = targetConfig.route;
 const targetUrl = `${baseUrl}${targetRoute}`;
 const screenshotPath = path.join(screenshotDir, `${targetConfig.screenshotStem}.jpg`);
@@ -71,33 +73,13 @@ function logTransient(reason) {
   return EX_TEMPFAIL;
 }
 
-async function writeTextAtomic(filePath, content) {
+async function writeJsonAtomic(filePath, payload) {
   const tmpPath = `${filePath}.tmp-${process.pid}`;
   try {
-    await fs.writeFile(tmpPath, content, 'utf8');
+    await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     await fs.rename(tmpPath, filePath);
   } finally {
     await fs.rm(tmpPath, { force: true }).catch(() => {});
-  }
-}
-
-async function writeJsonAtomic(filePath, payload) {
-  await writeTextAtomic(filePath, `${JSON.stringify(payload, null, 2)}\n`);
-}
-
-async function writeEvidenceBundle(entries) {
-  const staged = [];
-  try {
-    for (const [filePath, content] of entries) {
-      const tmpPath = `${filePath}.tmp-${process.pid}`;
-      await fs.writeFile(tmpPath, content, 'utf8');
-      staged.push({ filePath, tmpPath });
-    }
-    for (const { filePath, tmpPath } of staged) {
-      await fs.rename(tmpPath, filePath);
-    }
-  } finally {
-    await Promise.all(staged.map(({ tmpPath }) => fs.rm(tmpPath, { force: true }).catch(() => {})));
   }
 }
 
@@ -107,12 +89,22 @@ function requestUrlFromErrorMessage(message) {
   return separator >= 0 ? normalized.slice(0, separator) : normalized;
 }
 
+function isSameDocumentPath(requestUrl, documentUrl) {
+  try {
+    const request = new URL(requestUrl);
+    const document = new URL(documentUrl);
+    return request.origin === document.origin && request.pathname === document.pathname;
+  } catch {
+    return false;
+  }
+}
+
 function isAllowedSiteGroundAbort(message, documentUrl) {
   const normalized = String(message || '').trim();
   if (!/net::ERR_ABORTED/i.test(normalized)) return false;
   const requestUrl = requestUrlFromErrorMessage(normalized);
   const captchaPrefix = `${baseUrl}${SITEGROUND_CAPTCHA_PATH}`;
-  return requestUrl === documentUrl || requestUrl.startsWith(captchaPrefix);
+  return isSameDocumentPath(requestUrl, documentUrl) || requestUrl.startsWith(captchaPrefix);
 }
 
 function splitNetworkErrors(networkErrors, documentUrl) {
@@ -133,127 +125,13 @@ function isStagingOriginUrl(value) {
   }
 }
 
+function isLikelyTransientRunnerError(error) {
+  const code = String(error?.code || '');
+  return new Set(['EAGAIN', 'EBUSY', 'EMFILE', 'ENFILE', 'ENOSPC', 'EIO', 'ETIMEDOUT', 'ECONNRESET']).has(code);
+}
+
 async function backoff(baseMs, attempt) {
   await new Promise((resolve) => setTimeout(resolve, baseMs * attempt));
-}
-
-function buildMatrix(results) {
-  const pageOrder = [];
-  const pages = new Map();
-  const viewportOrder = BLOCK_C_VIEWPORTS.map((viewport) => viewport.key);
-
-  for (const result of results) {
-    const route = String(result.route || '');
-    if (!pages.has(route)) {
-      pages.set(route, {
-        pageId: result.pageId,
-        route,
-        statuses: {},
-      });
-      pageOrder.push(route);
-    }
-    pages.get(route).statuses[result.viewport?.key || 'unknown'] = result.status;
-  }
-
-  const viewportHeaders = BLOCK_C_VIEWPORTS.map((viewport) => `${viewport.width}×${viewport.height}`);
-  const rows = [
-    `| # | WP ID | URL | ${viewportHeaders.join(' | ')} |`,
-    `|---:|---:|---|${viewportHeaders.map(() => '---:').join('|')}|`,
-  ];
-  pageOrder.forEach((route, index) => {
-    const page = pages.get(route);
-    rows.push(`| ${index + 1} | ${page.pageId} | \`${route}\` | ${viewportOrder.map((key) => page.statuses[key] || '—').join(' | ')} |`);
-  });
-  return rows;
-}
-
-function renderDerivedEvidence(results) {
-  const matrixRows = buildMatrix(results);
-  const passCount = results.filter((item) => item.status === 'PASS').length;
-  const fixCount = results.filter((item) => item.status === 'FIX').length;
-  const blockedCount = results.filter((item) => item.status === 'BLOCKED').length;
-  const originRows = results
-    .filter((item) => item.originVerified)
-    .map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport?.label || 'unknown'} | ${item.edgeHttpStatus || 0} | ${item.originStatus || 0} | \`${item.originDeploySha || ''}\` | ${item.visualValidation || ''} |`);
-  const pageCount = new Set(results.map((item) => item.route)).size;
-  const viewportLabels = [...new Set(results.map((item) => item.viewport?.label).filter(Boolean))];
-  const findings = results.filter((item) => item.status !== 'PASS');
-
-  const summary = [
-    '# NUVANX Staging2 — Block C Visual QA',
-    '',
-    `Expected staging SHA: \`${expectedSha}\``,
-    `Published WordPress pages: ${pageCount}`,
-    `Viewports: ${viewportLabels.join(', ')}`,
-    `Total cases: ${results.length}`,
-    `PASS: ${passCount}`,
-    `FIX: ${fixCount}`,
-    `BLOCKED: ${blockedCount}`,
-    `Origin-verified edge-inconclusive cases: ${originRows.length}`,
-    'Published WordPress pages must remain addressable; editorial readiness is governed by robots/sitemap policy.',
-    'Origin fallback may certify HTTP 200, exact deploy SHA and staging noindex/nofollow when SiteGround Antibot blocks the edge browser; it does not certify geometry, H1 visibility, responsive layout or images for those edge-inconclusive cases.',
-    '',
-    '## Matrix',
-    '',
-    ...matrixRows,
-    '',
-    '## Findings',
-    '',
-    '| WP ID | URL | Viewport | Status | Finding | Screenshot |',
-    '|---:|---|---|---|---|---|',
-    ...(findings.length
-      ? findings.map((item) => `| ${item.pageId} | \`${item.route}\` | ${item.viewport?.label || 'unknown'} | ${item.status} | ${[...(item.blockers || []), ...(item.issues || [])].join('; ').replaceAll('|', '\\|')} | \`${item.screenshot || ''}\` |`)
-      : ['| — | — | — | PASS | No findings | — |']),
-    '',
-    '## SiteGround origin fallback evidence',
-    '',
-    '| WP ID | URL | Viewport | Edge HTTP | Origin HTTP | Origin SHA | Visual state |',
-    '|---:|---|---|---:|---:|---|---|',
-    ...(originRows.length ? originRows : ['| — | — | — | — | — | — | No origin fallback used |']),
-    '',
-    '## Public browser recovery',
-    '',
-    `Home mobile recovery completed with public HTTP 200 and exact deploy SHA \`${expectedSha}\`.`,
-    'The recovered case was revalidated for responsive geometry, H1, header/footer, CTAs, images, fonts, mobile navigation, runtime diagnostics and home hero video.',
-    '',
-  ].join('\n');
-
-  const csvHeader = ['wp_id', 'title', 'route', 'viewport', 'width', 'height', 'status', 'expected_http_status', 'http_status', 'edge_http_status', 'final_url', 'meta_sha', 'external_inconclusive', 'origin_verified', 'origin_status', 'origin_sha', 'origin_robots', 'visual_validation', 'horizontal_overflow_px', 'h1', 'issues', 'notes', 'screenshot'];
-  const csvEscape = (value) => `"${String(value ?? '').replaceAll('"', '""').replaceAll('\n', ' ')}"`;
-  const csvRows = [csvHeader.map(csvEscape).join(',')];
-  for (const item of results) {
-    csvRows.push([
-      item.pageId,
-      item.title,
-      item.route,
-      item.viewport?.label || '',
-      item.viewport?.width || '',
-      item.viewport?.height || '',
-      item.status,
-      item.expectedHttpStatus,
-      item.httpStatus,
-      item.edgeHttpStatus,
-      item.finalUrl,
-      item.metaSha,
-      item.externalInconclusive,
-      item.originVerified,
-      item.originStatus ?? '',
-      item.originDeploySha,
-      item.originRobots,
-      item.visualValidation,
-      item.geometry?.horizontalOverflowPx ?? '',
-      item.geometry?.h1Text ?? '',
-      [...(item.blockers || []), ...(item.issues || [])].join('; '),
-      (item.notes || []).join('; '),
-      item.screenshot,
-    ].map(csvEscape).join(','));
-  }
-
-  return {
-    matrix: `${matrixRows.join('\n')}\n`,
-    summary: `${summary}\n`,
-    csv: `${csvRows.join('\n')}\n`,
-  };
 }
 
 async function main() {
@@ -270,10 +148,7 @@ async function main() {
   } catch (error) {
     return logTransient(`results_unreadable ${error instanceof Error ? error.message : String(error)}`);
   }
-
-  if (!Array.isArray(results) || results.length === 0) {
-    return logTransient('results_empty_or_invalid');
-  }
+  if (!Array.isArray(results) || results.length === 0) return logTransient('results_empty_or_invalid');
 
   const nonPass = results.filter((result) => result?.status !== 'PASS');
   const inconclusive = results.filter((result) => result?.externalInconclusive === true);
@@ -288,7 +163,6 @@ async function main() {
     && target?.originVerified === true
     && Number(target?.originStatus || 0) === 200
     && String(target?.originDeploySha || '') === expectedSha;
-
   if (!targetIsExact) {
     return logNotApplicable(`route=${target?.route || 'unknown'} viewport=${target?.viewport?.key || 'unknown'}`);
   }
@@ -355,8 +229,10 @@ async function main() {
           } catch {
             return;
           }
-          if (resourceType === 'image' && isStagingOriginUrl(resourceUrl) && resourceResponse.status() >= 400) {
-            imageHttpErrors.push(`${resourceUrl}: HTTP ${resourceResponse.status()}`);
+          if (isStagingOriginUrl(resourceUrl) && resourceResponse.status() >= 400) {
+            const message = `${resourceUrl}: HTTP ${resourceResponse.status()}`;
+            if (resourceType === 'image') imageHttpErrors.push(message);
+            else networkErrors.push(message);
           }
           if (
             (resourceType === 'image' || resourceType === 'media')
@@ -438,7 +314,7 @@ async function main() {
             outcome: lastAttemptOutcome,
             edgeHttpStatus: edgeStatus,
             finalUrl,
-            transientNetworkErrors: splitErrors.transient,
+            transientNetworkErrors: [...splitErrors.transient],
           });
           if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
             await backoff(BLOCK_C_BROWSER_CONFIG.transientBackoffBaseMs, attempt);
@@ -457,7 +333,6 @@ async function main() {
         } catch (error) {
           screenshotError = error instanceof Error ? error.message : String(error);
         }
-
         if (screenshotError) {
           lastAttemptOutcome = 'screenshot-error';
           attempts.push({ attempt, outcome: lastAttemptOutcome, edgeHttpStatus: edgeStatus, finalUrl, error: screenshotError });
@@ -474,13 +349,13 @@ async function main() {
           edgeHttpStatus: edgeStatus,
           finalUrl,
           metaSha,
-          blockers,
-          issues,
-          consoleErrors,
-          networkErrors: splitErrors.real,
-          transientNetworkErrors: splitErrors.transient,
-          imageHttpErrors,
-          productionMediaLeaks,
+          blockers: [...blockers],
+          issues: [...issues],
+          consoleErrors: [...consoleErrors],
+          networkErrors: [...splitErrors.real],
+          transientNetworkErrors: [...splitErrors.transient],
+          imageHttpErrors: [...imageHttpErrors],
+          productionMediaLeaks: [...productionMediaLeaks],
         });
 
         if (blockers.length > 0 || issues.length > 0) {
@@ -489,14 +364,14 @@ async function main() {
             edgeHttpStatus: edgeStatus,
             finalUrl,
             metaSha,
-            blockers,
-            issues,
+            blockers: [...blockers],
+            issues: [...issues],
             geometry,
-            consoleErrors,
-            networkErrors: splitErrors.real,
-            transientNetworkErrors: splitErrors.transient,
-            imageHttpErrors,
-            productionMediaLeaks,
+            consoleErrors: [...consoleErrors],
+            networkErrors: [...splitErrors.real],
+            transientNetworkErrors: [...splitErrors.transient],
+            imageHttpErrors: [...imageHttpErrors],
+            productionMediaLeaks: [...productionMediaLeaks],
             screenshot: path.relative(artifactsDir, screenshotPath),
           };
           if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
@@ -539,26 +414,26 @@ async function main() {
   }
 
   if (!recovered) {
-    if (lastAttemptOutcome === 'visual-failure' && lastVisualFailure) {
+    if (lastVisualFailure) {
       await writeJsonAtomic(recoveryPath, {
-        schema: 3,
+        schema: 4,
         expectedSha,
         status: 'visual-failure-exhausted',
         target: { route: targetRoute, viewport: targetViewport },
         attempts,
         lastVisualFailure,
+        finalAttemptOutcome: lastAttemptOutcome,
       });
       console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=${sanitizeLogValue([...(lastVisualFailure.blockers || []), ...(lastVisualFailure.issues || [])].join('; '))}`);
       return 1;
     }
 
     await writeJsonAtomic(recoveryPath, {
-      schema: 3,
+      schema: 4,
       expectedSha,
       status: 'transient-exhausted',
       target: { route: targetRoute, viewport: targetViewport },
       attempts,
-      priorVisualFailure: lastVisualFailure,
       finalAttemptOutcome: lastAttemptOutcome,
     });
     console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT_EXHAUSTED attempts=${attempts.length} final_outcome=${lastAttemptOutcome || 'unknown'}`);
@@ -608,9 +483,15 @@ async function main() {
     };
   });
 
-  const derived = renderDerivedEvidence(recoveredResults);
+  const derived = renderBlockCEvidence(recoveredResults, {
+    expectedSha,
+    recoverySummary: [
+      `Home mobile recovery completed with public HTTP 200 and exact deploy SHA \`${expectedSha}\`.`,
+      'The recovered case was revalidated for responsive geometry, H1, header/footer, CTAs, images, fonts, mobile navigation, runtime diagnostics and home hero video.',
+    ],
+  });
   const recoveryEvidence = {
-    schema: 3,
+    schema: 4,
     expectedSha,
     status: 'pass',
     target: { route: targetRoute, viewport: targetViewport },
@@ -635,7 +516,12 @@ let exitCode = 1;
 try {
   exitCode = await main();
 } catch (error) {
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=unexpected_top_level error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
-  exitCode = 1;
+  if (isLikelyTransientRunnerError(error)) {
+    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_TRANSIENT reason=unexpected_runner_io error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
+    exitCode = EX_TEMPFAIL;
+  } else {
+    console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL reason=unexpected_top_level error=${sanitizeLogValue(error instanceof Error ? error.message : error)}`);
+    exitCode = 1;
+  }
 }
 process.exitCode = exitCode;

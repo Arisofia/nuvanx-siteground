@@ -225,6 +225,7 @@ export async function writeEvidenceBundle(entries) {
       // killed during the fs.rm loop, a fail-closed marker still identifies
       // every path that may contain invalid evidence.
       const cleanupStartedAt = new Date().toISOString();
+      let cleanupMarkerReady = false;
       try {
         await writeInconsistencyMarker(inconsistentMarkerPath, {
           ...markerBase,
@@ -234,38 +235,44 @@ export async function writeEvidenceBundle(entries) {
           remainingInvalidFiles: rollbackFailures.map(({ filePath }) => filePath),
           cleanupErrors: [],
         }, token);
+        cleanupMarkerReady = true;
       } catch (markerError) {
         markerWriteErrors.push(`cleanup-in-progress:${markerError?.message || markerError}`);
       }
 
-      for (const { filePath, fileName } of rollbackFailures) {
-        try {
-          await fs.rm(filePath, { force: true });
-          removedInvalidFiles.push(filePath);
-        } catch (cleanupError) {
-          cleanupFailures.push({
-            filePath,
-            fileName,
-            message: `${filePath}:${cleanupError?.message || cleanupError}`,
-          });
+      // Never mutate the invalid files unless the fail-closed marker is already
+      // durable. If phase 1 cannot be persisted, keep files and backups intact
+      // and fail the run rather than opening an unmarked cleanup window.
+      if (cleanupMarkerReady) {
+        for (const { filePath, fileName } of rollbackFailures) {
+          try {
+            await fs.rm(filePath, { force: true });
+            removedInvalidFiles.push(filePath);
+          } catch (cleanupError) {
+            cleanupFailures.push({
+              filePath,
+              fileName,
+              message: `${filePath}:${cleanupError?.message || cleanupError}`,
+            });
+          }
         }
-      }
 
-      // Phase 2 atomically replaces phase 1 with the observed post-cleanup
-      // state. If this replacement fails, the phase-1 marker remains valid and
-      // conservatively lists all affected paths as potentially inconsistent.
-      try {
-        await writeInconsistencyMarker(inconsistentMarkerPath, {
-          ...markerBase,
-          phase: 'cleanup-complete',
-          cleanupStartedAt,
-          cleanupCompletedAt: new Date().toISOString(),
-          removedInvalidFiles,
-          remainingInvalidFiles: cleanupFailures.map(({ filePath }) => filePath),
-          cleanupErrors: cleanupFailures.map(({ message }) => message),
-        }, token);
-      } catch (markerError) {
-        markerWriteErrors.push(`cleanup-complete:${markerError?.message || markerError}`);
+        // Phase 2 atomically replaces phase 1 with the observed post-cleanup
+        // state. If this replacement fails, the phase-1 marker remains valid and
+        // conservatively lists all affected paths as potentially inconsistent.
+        try {
+          await writeInconsistencyMarker(inconsistentMarkerPath, {
+            ...markerBase,
+            phase: 'cleanup-complete',
+            cleanupStartedAt,
+            cleanupCompletedAt: new Date().toISOString(),
+            removedInvalidFiles,
+            remainingInvalidFiles: cleanupFailures.map(({ filePath }) => filePath),
+            cleanupErrors: cleanupFailures.map(({ message }) => message),
+          }, token);
+        } catch (markerError) {
+          markerWriteErrors.push(`cleanup-complete:${markerError?.message || markerError}`);
+        }
       }
     }
 

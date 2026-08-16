@@ -73,6 +73,8 @@ export async function verifyProductionIdentity(options = {}) {
 
   if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID)) {
     issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
+  } else if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID)) {
+    issues.push(`Production DEPLOY_RUN_ID must be numeric (GitHub Actions run ID): ${deployStamp.DEPLOY_RUN_ID}`);
   } else if (expectedRunId && deployStamp.DEPLOY_RUN_ID !== expectedRunId) {
     issues.push(`Production DEPLOY_RUN_ID mismatch: expected ${expectedRunId}, found ${deployStamp.DEPLOY_RUN_ID}`);
   }

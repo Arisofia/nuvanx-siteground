@@ -33,7 +33,7 @@ function nvx_get_deploy_stamp(): array {
 	}
 
 	if ( empty( $stamp['DEPLOY_SHA'] ) ) {
-		$deploy_stamp_file = get_template_directory() . '/inc/data/deploy-stamp.json';
+		$deploy_stamp_file = get_template_directory() . '/.nvx-deploy-stamp.json';
 		if ( is_readable( $deploy_stamp_file ) ) {
 			$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
 			if ( is_array( $deploy_stamp_data ) ) {

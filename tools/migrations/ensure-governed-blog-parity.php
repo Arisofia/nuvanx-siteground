@@ -17,19 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 $expected_id   = 3334;
 $expected_slug = 'matriz-diagnostico-facial-estructura-piel-musculo-grasa';
 
-$identity = array(
-	'db_name'             => defined( 'DB_NAME' ) ? (string) DB_NAME : '',
-	'home'                => (string) get_option( 'home' ),
-	'siteurl'             => (string) get_option( 'siteurl' ),
-	'nvx_env'             => defined( 'NVX_ENV' ) ? (string) NVX_ENV : '',
-	'wp_environment_type' => defined( 'WP_ENVIRONMENT_TYPE' ) ? (string) WP_ENVIRONMENT_TYPE : '',
-);
+$identity = [
+	'db_name'        => defined( 'DB_NAME' ) ? (string) DB_NAME : '',
+	'home'           => (string) get_option( 'home' ),
+	'siteurl'        => (string) get_option( 'siteurl' ),
+	'nvx_env'        => defined( 'NVX_ENV' ) ? (string) NVX_ENV : '',
+	'wp_environment' => function_exists( 'wp_get_environment_type' ) ? (string) wp_get_environment_type() : '',
+];
 
 $is_staging2 = 'dbshcocboodiwr' === $identity['db_name']
 	&& 'https://staging2.nuvanx.com' === $identity['home']
 	&& 'https://staging2.nuvanx.com' === $identity['siteurl']
 	&& 'staging' === $identity['nvx_env']
-	&& 'staging' === $identity['wp_environment_type'];
+	&& 'staging' === $identity['wp_environment'];
 
 if ( ! $is_staging2 ) {
 	fwrite( STDERR, "STAGING_GOVERNED_BLOG_PARITY=FAIL reason=wrong_environment\n" );

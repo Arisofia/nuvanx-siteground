@@ -272,8 +272,8 @@ $orphans = nvx_identify_orphans( $references );
 $consumption = nvx_verify_public_consumption( $orphans );
 $integrity = nvx_generate_media_integrity();
 
-$DRY_RUN = true; // Set to false to actually delete files
-$deletion_report = nvx_delete_orphans( $orphans, $DRY_RUN );
+$dry_run = '1' === getenv( 'MIGRATION_DRY_RUN' );
+$deletion_report = nvx_delete_orphans( $orphans, $dry_run );
 
 $report = [
 	'schema' => 'asset-cleanup',
@@ -294,7 +294,7 @@ $report = [
 	'consumption' => $consumption,
 	'deletion' => $deletion_report,
 	'integrity' => $integrity,
-	'dry_run' => $DRY_RUN,
+	'dry_run' => $dry_run,
 ];
 
 echo json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
@@ -315,6 +315,6 @@ fwrite( STDERR, "  Skipped: " . count( $deletion_report['skipped'] ) . "\n" );
 fwrite( STDERR, "  Errors: " . count( $deletion_report['errors'] ) . "\n" );
 fwrite( STDERR, "Media Integrity: " . count( $integrity ) . " hashes generated\n" );
 
-if ( $DRY_RUN ) {
-	fwrite( STDERR, "\nDRY RUN MODE - Set \$DRY_RUN = false to actually delete files\n" );
+if ( $dry_run ) {
+	fwrite( STDERR, "\nDRY RUN MODE - Set MIGRATION_DRY_RUN=0 to actually delete files\n" );
 }

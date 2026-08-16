@@ -5,19 +5,19 @@ require_once __DIR__ . '/../../lib/nvx-content-hygiene-rules.php';
 // Note: require_once above only declares functions, so this remains the first
 // executable statement that checks environment invariants.
 
-$nvx_staging_identity = array(
+$nvx_staging_identity = [
     'db_name'             => defined( 'DB_NAME' ) ? (string) DB_NAME : '',
     'home'                => (string) get_option( 'home' ),
     'siteurl'             => (string) get_option( 'siteurl' ),
     'nvx_env'             => defined( 'NVX_ENV' ) ? (string) NVX_ENV : '',
-    'wp_environment_type' => defined( 'WP_ENVIRONMENT_TYPE' ) ? (string) WP_ENVIRONMENT_TYPE : '',
-);
+    'wp_environment'      => function_exists( 'wp_get_environment_type' ) ? (string) wp_get_environment_type() : '',
+];
 
 $nvx_is_staging2_cli = 'dbshcocboodiwr' === $nvx_staging_identity['db_name']
     && 'https://staging2.nuvanx.com' === $nvx_staging_identity['home']
     && 'https://staging2.nuvanx.com' === $nvx_staging_identity['siteurl']
     && 'staging' === $nvx_staging_identity['nvx_env']
-    && 'staging' === $nvx_staging_identity['wp_environment_type'];
+    && 'staging' === $nvx_staging_identity['wp_environment'];
 
 if ( ! $nvx_is_staging2_cli ) {
     fwrite(

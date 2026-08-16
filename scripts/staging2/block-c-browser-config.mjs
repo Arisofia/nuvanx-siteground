@@ -19,6 +19,15 @@ export const BLOCK_C_BROWSER_CONFIG = Object.freeze({
   menuClickTimeoutMs: 2500,
   menuSettleMs: 220,
   screenshotQuality: 72,
+  layoutTolerancePx: 2,
+  minimumMainTextChars: 80,
+  minimumSemanticSections: 2,
+  minimumSectionFallbackTextChars: 400,
+  minimumVideoDimensionPx: 100,
+  diagnosticLimit: 12,
+  ctaPreviewLimit: 10,
+  imagePreviewLimit: 12,
+  errorPreviewLimit: 8,
 });
 
 export const BLOCK_C_BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
@@ -31,6 +40,7 @@ export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
   homeMobile: Object.freeze({
     route: '/',
     viewportKey: 'mobile-390x844',
+    screenshotStem: 'home--mobile-390x844--public-recovery',
   }),
 });
 

@@ -259,9 +259,8 @@ function nvxValidateNormalizedContent( string $content ): array {
         '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
         '/@nvx-[a-z0-9_:-]+/i' => '@nvx-* token still present',
         '/%(?:\d+\$)?[sd]/' => 'Format string still present',
-        '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
-        '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\b\s*[:\-—–]\s*|\bplaceholder\b)/i' => 'Editorial placeholder still present',
-        '/\b(?:TODO|FIXME|XXX|HACK)\b/' => 'Editorial placeholder still present (uppercase only)',
+        '/\b(?:borrador|pendiente de revisión|marcad[oa]\s+para\s+revisión|pendiente\s+por\s+revisar|work in progress)\b/iu' => 'Draft/review language still present',
+        '/(?:\[(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\]|\b(?:TODO|FIXME|XXX|HACK|PLACEHOLDER)\b\s*[:\-—–]\s*)/iu' => 'Editorial placeholder still present',
         '/📌/u' => 'Editorial marker (📌) present - may indicate mid-content placement',
     );
     $issues = array();

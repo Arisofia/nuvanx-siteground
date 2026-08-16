@@ -307,6 +307,9 @@ function nvx_schema_runtime_callback_file( $callback ): string {
  *
  * The canonical structured-data owner is wpseo_schema_graph plus the governed
  * theme filters above. This deliberately does NOT disable Code Snippets or any
+ * other plugin mechanisms unless they explicitly emit standalone Schema.org blocks.
+ */
+
 /**
  * Determine if a callback is a legacy emitter that should be retired.
  *
@@ -378,24 +381,24 @@ function nvx_schema_runtime_retire_legacy_emitters(): void {
 	if ( ! isset( $wp_filter['wp_head']->callbacks ) || ! is_array( $wp_filter['wp_head']->callbacks ) ) {
 		return;
 	}
-		foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
-			foreach ( $callbacks as $callback ) {
-				$function = $callback['function'] ?? null;
 
-				if ( nvx_schema_is_legacy_emitter( $function ) ) {
+	foreach ( $wp_filter['wp_head']->callbacks as $priority => $callbacks ) {
+		foreach ( $callbacks as $callback ) {
+			$function = $callback['function'] ?? null;
+
+			if ( nvx_schema_is_legacy_emitter( $function ) ) {
+				remove_action( 'wp_head', $function, (int) $priority );
+				continue;
+			}
+
+			$file = nvx_schema_runtime_callback_file( $function );
+			// Use full path matching instead of basename to avoid removing unrelated callbacks
+			// Only remove if the file is exactly in the theme's inc directory with the specific name
+			if ( '' !== $file && false !== strpos( $file, 'nuvanx-home-unified-faq-schema.php' ) ) {
+				// Additional check: ensure it's in the theme directory
+				$theme_dir = get_template_directory();
+				if ( 0 === strpos( $file, $theme_dir ) ) {
 					remove_action( 'wp_head', $function, (int) $priority );
-					continue;
-				}
-
-				$file = nvx_schema_runtime_callback_file( $function );
-				// Use full path matching instead of basename to avoid removing unrelated callbacks
-				// Only remove if the file is exactly in the theme's inc directory with the specific name
-				if ( '' !== $file && false !== strpos( $file, 'nuvanx-home-unified-faq-schema.php' ) ) {
-					// Additional check: ensure it's in the theme directory
-					$theme_dir = get_template_directory();
-					if ( 0 === strpos( $file, $theme_dir ) ) {
-						remove_action( 'wp_head', $function, (int) $priority );
-					}
 				}
 			}
 		}

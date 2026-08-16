@@ -75,7 +75,9 @@ function nvx_render_deploy_stamp_meta(): void {
 		if ( '' === $value ) {
 			continue;
 		}
-		echo '<meta name="nvx-' . esc_attr( strtolower( $key ) ) . '" content="' . esc_attr( $value ) . '">' . "\n";
+		// Convert underscores to hyphens to match the verifier's expected format
+		$tag_name = str_replace( '_', '-', strtolower( $key ) );
+		echo '<meta name="nvx-' . esc_attr( $tag_name ) . '" content="' . esc_attr( $value ) . '">' . "\n";
 	}
 }
 

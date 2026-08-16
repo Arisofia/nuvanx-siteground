@@ -4,9 +4,11 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { EX_CONFIG, EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
+import { writeBlockCEvidenceBundle } from './block-c-derived-evidence.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
 const homeMobileRecoveryScript = fileURLToPath(new URL('./block-c-home-mobile-recovery.mjs', import.meta.url));
+const artifactsDir = fileURLToPath(new URL('./block-c-artifacts/', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const runnerTemp = process.env.RUNNER_TEMP || '/tmp';
 const realGithubEnv = process.env.GITHUB_ENV || '';
@@ -22,9 +24,10 @@ function positiveIntegerEnv(name, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
+const legacySubprocessTimeoutMs = positiveIntegerEnv('BLOCK_C_SUBPROCESS_TIMEOUT_MS', 30 * 60 * 1000);
 const SUBPROCESS_CONFIG = Object.freeze({
-  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', 45 * 60 * 1000),
-  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', 10 * 60 * 1000),
+  coreTimeoutMs: positiveIntegerEnv('BLOCK_C_CORE_TIMEOUT_MS', legacySubprocessTimeoutMs),
+  recoveryTimeoutMs: positiveIntegerEnv('BLOCK_C_RECOVERY_TIMEOUT_MS', Math.min(10 * 60 * 1000, legacySubprocessTimeoutMs)),
   hardKillGraceMs: positiveIntegerEnv('BLOCK_C_SUBPROCESS_KILL_GRACE_MS', 5000),
 });
 
@@ -37,7 +40,11 @@ class ProcessSignalError extends Error {
   }
 }
 
-function runProcess(script, env = process.env, timeoutMs) {
+function runProcess(script, env = process.env, timeoutMs = SUBPROCESS_CONFIG.coreTimeoutMs) {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    return Promise.reject(new RangeError(`Invalid subprocess timeout for ${path.basename(script)}: ${timeoutMs}`));
+  }
+
   return new Promise((resolve, reject) => {
     let timedOut = false;
     let hardKillTimer = null;
@@ -136,17 +143,6 @@ function isRecoverableCompletedVisualTransient(result) {
     && networkErrors.length > 0;
 }
 
-async function writeJsonAtomic(url, payload) {
-  const filePath = fileURLToPath(url);
-  const tmpPath = `${filePath}.tmp-${process.pid}`;
-  try {
-    await fs.writeFile(tmpPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-    await fs.rename(tmpPath, filePath);
-  } finally {
-    await fs.rm(tmpPath, { force: true }).catch(() => {});
-  }
-}
-
 async function tryExactOriginNetworkRecovery() {
   try {
     let results;
@@ -198,17 +194,25 @@ async function tryExactOriginNetworkRecovery() {
       return {
         ...result,
         status: 'PASS',
-        recoveredIssues: Array.isArray(result.issues) ? result.issues : [],
+        recoveredIssues: Array.isArray(result.issues) ? [...result.issues] : [],
         issues: [],
         originVerified: true,
         originStatus: verification.originStatus,
         originDeploySha: verification.originDeploySha,
         validationTransport: 'public-browser+siteground-origin-network-verification',
         transientNetworkEvidencePreserved: true,
+        notes: [
+          ...(Array.isArray(result.notes) ? result.notes : []),
+          `Exact-SHA SiteGround origin verification recovered transient same-origin network errors for ${result.route}.`,
+        ],
       };
     });
 
-    await writeJsonAtomic(resultsUrl, recovered);
+    await writeBlockCEvidenceBundle({
+      results: recovered,
+      expectedSha,
+      artifactsDir,
+    });
     console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
     return true;
   } catch (error) {

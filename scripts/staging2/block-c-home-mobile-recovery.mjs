@@ -10,7 +10,13 @@ import {
 } from './siteground-transient-classifier.mjs';
 import { isIgnorableExternalConsoleError } from './console-error-classifier.mjs';
 import {
-  BROWSER_RECOVERY_CONFIG,
+  BLOCK_C_BROWSER_CONFIG,
+  BLOCK_C_BROWSER_UA,
+  BLOCK_C_RECOVERY_TARGETS,
+  BLOCK_C_VIEWPORTS,
+  getCanonicalViewport,
+} from './block-c-browser-config.mjs';
+import {
   activateLazyImages,
   collectHomeGeometry,
   evaluateHomeVisualContract,
@@ -29,10 +35,11 @@ const recoveryPath = path.join(artifactsDir, 'block-c-home-mobile-recovery.json'
 const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
 const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
 const csvPath = path.join(artifactsDir, 'block-c-results.csv');
-const screenshotPath = path.join(screenshotDir, 'home--mobile-390x844--public-recovery.jpg');
-const realisticBrowserUa = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
-const targetViewport = Object.freeze({ key: 'mobile-390x844', label: 'Mobile 390×844', width: 390, height: 844 });
-const targetRoute = '/';
+const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
+const targetViewport = getCanonicalViewport(targetConfig.viewportKey);
+const targetRoute = targetConfig.route;
+const targetUrl = `${baseUrl}${targetRoute}`;
+const screenshotPath = path.join(screenshotDir, `home--${targetViewport.key}--public-recovery.jpg`);
 
 function sanitizeLogValue(value) {
   return String(value ?? '').replace(/\s+/g, '_').slice(0, 500);
@@ -77,7 +84,7 @@ async function backoff(baseMs, attempt) {
 function buildMatrix(results) {
   const pageOrder = [];
   const pages = new Map();
-  const viewportOrder = ['desktop-1440x1100', 'tablet-1024x768', 'mobile-390x844'];
+  const viewportOrder = BLOCK_C_VIEWPORTS.map((viewport) => viewport.key);
 
   for (const result of results) {
     const route = String(result.route || '');
@@ -92,9 +99,10 @@ function buildMatrix(results) {
     pages.get(route).statuses[result.viewport?.key || 'unknown'] = result.status;
   }
 
+  const viewportHeaders = BLOCK_C_VIEWPORTS.map((viewport) => `${viewport.width}×${viewport.height}`);
   const rows = [
-    '| # | WP ID | URL | 1440×1100 | 1024×768 | 390×844 |',
-    '|---:|---:|---|---:|---:|---:|',
+    `| # | WP ID | URL | ${viewportHeaders.join(' | ')} |`,
+    `|---:|---:|---|${viewportHeaders.map(() => '---:').join('|')}|`,
   ];
   pageOrder.forEach((route, index) => {
     const page = pages.get(route);
@@ -229,7 +237,7 @@ async function main() {
   let lastVisualFailure = null;
 
   try {
-    for (let attempt = 1; attempt <= BROWSER_RECOVERY_CONFIG.maxAttempts; attempt += 1) {
+    for (let attempt = 1; attempt <= BLOCK_C_BROWSER_CONFIG.maxAttempts; attempt += 1) {
       let context = null;
       try {
         context = await browser.newContext({
@@ -237,7 +245,7 @@ async function main() {
           screen: { width: targetViewport.width, height: targetViewport.height },
           deviceScaleFactor: 1,
           ignoreHTTPSErrors: true,
-          userAgent: realisticBrowserUa,
+          userAgent: BLOCK_C_BROWSER_UA,
           locale: 'es-ES',
           extraHTTPHeaders: {
             'Cache-Control': 'no-cache',
@@ -245,7 +253,7 @@ async function main() {
             'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
           },
         });
-        await context.addCookies([{ name: 'wpSGCacheBypass', value: '1', url: `${baseUrl}/` }]);
+        await context.addCookies([{ name: 'wpSGCacheBypass', value: '1', url: targetUrl }]);
         const page = await context.newPage();
         const consoleErrors = [];
         const networkErrors = [];
@@ -292,14 +300,14 @@ async function main() {
 
         let response;
         try {
-          response = await page.goto(`${baseUrl}/`, {
+          response = await page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
-            timeout: BROWSER_RECOVERY_CONFIG.navigationTimeoutMs,
+            timeout: BLOCK_C_BROWSER_CONFIG.navigationTimeoutMs,
           });
         } catch (error) {
           attempts.push({ attempt, outcome: 'navigation-error', error: error instanceof Error ? error.message : String(error) });
-          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-            await backoff(BROWSER_RECOVERY_CONFIG.navigationErrorBackoffBaseMs, attempt);
+          if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+            await backoff(BLOCK_C_BROWSER_CONFIG.navigationErrorBackoffBaseMs, attempt);
           }
           continue;
         }
@@ -312,11 +320,11 @@ async function main() {
           await page.screenshot({
             path: screenshotPath.replace('.jpg', `--challenge-${attempt}.jpg`),
             type: 'jpeg',
-            quality: BROWSER_RECOVERY_CONFIG.screenshotQuality,
+            quality: BLOCK_C_BROWSER_CONFIG.screenshotQuality,
             fullPage: true,
           }).catch(() => {});
-          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-            await backoff(BROWSER_RECOVERY_CONFIG.transientBackoffBaseMs, attempt);
+          if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+            await backoff(BLOCK_C_BROWSER_CONFIG.transientBackoffBaseMs, attempt);
           }
           continue;
         }
@@ -338,7 +346,7 @@ async function main() {
         }
 
         const geometry = await collectHomeGeometry(page);
-        const splitErrors = splitNetworkErrors(networkErrors, `${baseUrl}/`);
+        const splitErrors = splitNetworkErrors(networkErrors, targetUrl);
         const issues = await evaluateHomeVisualContract({
           page,
           geometry,
@@ -359,8 +367,8 @@ async function main() {
             finalUrl,
             transientNetworkErrors: splitErrors.transient,
           });
-          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-            await backoff(BROWSER_RECOVERY_CONFIG.transientBackoffBaseMs, attempt);
+          if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+            await backoff(BLOCK_C_BROWSER_CONFIG.transientBackoffBaseMs, attempt);
           }
           continue;
         }
@@ -370,7 +378,7 @@ async function main() {
           await page.screenshot({
             path: screenshotPath,
             type: 'jpeg',
-            quality: BROWSER_RECOVERY_CONFIG.screenshotQuality,
+            quality: BLOCK_C_BROWSER_CONFIG.screenshotQuality,
             fullPage: true,
           });
         } catch (error) {
@@ -379,8 +387,8 @@ async function main() {
 
         if (screenshotError) {
           attempts.push({ attempt, outcome: 'screenshot-error', edgeHttpStatus: edgeStatus, finalUrl, error: screenshotError });
-          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-            await backoff(BROWSER_RECOVERY_CONFIG.visualRetryBackoffBaseMs, attempt);
+          if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+            await backoff(BLOCK_C_BROWSER_CONFIG.visualRetryBackoffBaseMs, attempt);
           }
           continue;
         }
@@ -393,7 +401,11 @@ async function main() {
           metaSha,
           blockers,
           issues,
+          consoleErrors,
+          networkErrors: splitErrors.real,
           transientNetworkErrors: splitErrors.transient,
+          imageHttpErrors,
+          productionMediaLeaks,
         });
 
         if (blockers.length > 0 || issues.length > 0) {
@@ -412,8 +424,8 @@ async function main() {
             productionMediaLeaks,
             screenshot: path.relative(artifactsDir, screenshotPath),
           };
-          if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-            await backoff(BROWSER_RECOVERY_CONFIG.visualRetryBackoffBaseMs, attempt);
+          if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+            await backoff(BLOCK_C_BROWSER_CONFIG.visualRetryBackoffBaseMs, attempt);
             continue;
           }
           break;
@@ -425,10 +437,11 @@ async function main() {
           finalUrl,
           metaSha,
           geometry,
-          consoleErrors: [],
-          networkErrors: [],
-          imageHttpErrors: [],
-          productionMediaLeaks: [],
+          consoleErrors: [...consoleErrors],
+          networkErrors: [...splitErrors.real],
+          transientNetworkErrors: [...splitErrors.transient],
+          imageHttpErrors: [...imageHttpErrors],
+          productionMediaLeaks: [...productionMediaLeaks],
           screenshot: path.relative(artifactsDir, screenshotPath),
         };
         break;
@@ -438,8 +451,8 @@ async function main() {
           outcome: 'attempt-exception',
           error: error instanceof Error ? error.message : String(error),
         });
-        if (attempt < BROWSER_RECOVERY_CONFIG.maxAttempts) {
-          await backoff(BROWSER_RECOVERY_CONFIG.navigationErrorBackoffBaseMs, attempt);
+        if (attempt < BLOCK_C_BROWSER_CONFIG.maxAttempts) {
+          await backoff(BLOCK_C_BROWSER_CONFIG.navigationErrorBackoffBaseMs, attempt);
         }
       } finally {
         if (context) await context.close().catch(() => {});
@@ -506,6 +519,7 @@ async function main() {
       issues: [],
       consoleErrors: recovered.consoleErrors,
       networkErrors: recovered.networkErrors,
+      transientNetworkErrors: recovered.transientNetworkErrors,
       imageHttpErrors: recovered.imageHttpErrors,
       productionMediaLeaks: recovered.productionMediaLeaks,
       screenshot: recovered.screenshot,

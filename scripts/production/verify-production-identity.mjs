@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const SSH_BIN = '/usr/bin/ssh';
@@ -68,7 +69,7 @@ export async function verifyProductionIdentity(options = {}) {
     issues.push(`Production DEPLOY_SHA mismatch: expected ${expectedSha}, found ${deployStamp.DEPLOY_SHA}`);
   }
 
-  if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID)) {
+  if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID)) {
     issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
   }
 
@@ -109,4 +110,11 @@ export async function verifyProductionIdentity(options = {}) {
 
   console.log(`PRODUCTION_IDENTITY_VERIFICATION=PASS sha=${deployStamp.DEPLOY_SHA} run_id=${deployStamp.DEPLOY_RUN_ID} release_id=${deployStamp.RELEASE_ID}`);
   return report;
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  verifyProductionIdentity().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 }

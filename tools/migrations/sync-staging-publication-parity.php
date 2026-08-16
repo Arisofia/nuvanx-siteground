@@ -278,6 +278,22 @@ try {
     foreach ( array_unique( $touchedIds ) as $touchedId ) {
         clean_post_cache( $touchedId );
     }
+
+    // Reconcile front-page options to ensure '/' route matches manifest
+    // The manifest maps '/' to post 9 (inicio), and get_permalink() for a static front page
+    // depends on show_on_front and page_on_front options. If Staging2's front-page setting
+    // differs from Production, verification will see '/inicio/' instead of '/' and fail.
+    $homeRoute = '/';
+    $homeExpected = $manifest['routes'][ $homeRoute ] ?? null;
+    if ( is_array( $homeExpected ) && isset( $homeExpected['post_id'] ) ) {
+        $homePostId = (int) $homeExpected['post_id'];
+        $homePost = get_post( $homePostId );
+        if ( $homePost instanceof WP_Post && 'page' === $homePost->post_type ) {
+            update_option( 'show_on_front', 'page' );
+            update_option( 'page_on_front', $homePostId );
+        }
+    }
+
     nvxPublicationVerifyRuntime( $manifest );
     $wpdb->query( 'COMMIT' );
 } catch ( Throwable $error ) {

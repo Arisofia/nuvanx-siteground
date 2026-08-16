@@ -7,19 +7,21 @@ const SSH_BIN = '/usr/bin/ssh';
 const CANONICAL_PROD_ROOT = '/home/customer/www/nuvanx.com/public_html';
 const ALLOWED_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'production-siteground']);
 
-function assertConfig(sha, alias, prodRoot) {
+function assertConfig(sha, runId, alias, prodRoot) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
+  if (runId && !/^[a-zA-Z0-9_-]+$/.test(runId)) throw new Error('EXPECTED_RUN_ID must be a valid run ID');
   if (!ALLOWED_ALIASES.has(alias)) throw new Error(`Unsupported SSH alias: ${alias}`);
   if (prodRoot !== CANONICAL_PROD_ROOT) throw new Error(`Refusing unexpected production root: ${prodRoot}`);
 }
 
 export async function verifyProductionIdentity(options = {}) {
   const expectedSha = String(options.expectedSha || process.env.EXPECTED_SHA || '').trim();
+  const expectedRunId = String(options.expectedRunId || process.env.EXPECTED_RUN_ID || '').trim();
   const alias = String(options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-prod').trim().toLowerCase();
   const prodRoot = String(options.prodRoot || process.env.PROD_ROOT || CANONICAL_PROD_ROOT).trim();
   const outputDir = path.resolve(options.outputDir || 'scripts/production/artifacts');
 
-  assertConfig(expectedSha, alias, prodRoot);
+  assertConfig(expectedSha, expectedRunId, alias, prodRoot);
   await fs.mkdir(outputDir, { recursive: true });
 
   // Fetch deploy identity from the canonical production WordPress root. The
@@ -71,6 +73,8 @@ export async function verifyProductionIdentity(options = {}) {
 
   if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID)) {
     issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
+  } else if (expectedRunId && deployStamp.DEPLOY_RUN_ID !== expectedRunId) {
+    issues.push(`Production DEPLOY_RUN_ID mismatch: expected ${expectedRunId}, found ${deployStamp.DEPLOY_RUN_ID}`);
   }
 
   // Validate DEPLOY_TIMESTAMP against ISO 8601 format for stricter parsing

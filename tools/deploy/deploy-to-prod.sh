@@ -60,6 +60,15 @@ command -v php >/dev/null 2>&1 || { echo "php required" >&2; exit 2; }
 command -v tar >/dev/null 2>&1 || { echo "tar required" >&2; exit 2; }
 require_confirm
 
+# Production identity is owned by the canonical GitHub Actions release. A
+# host-level invocation without a numeric run ID would create a stamp that the
+# T04 verifiers intentionally reject, so fail before staging or mutation.
+DEPLOY_RUN_ID="${GITHUB_RUN_ID:-}"
+[[ "$DEPLOY_RUN_ID" =~ ^[0-9]+$ ]] || {
+  echo 'ERROR: GITHUB_RUN_ID must be a numeric GitHub Actions run ID for production deployment' >&2
+  exit 2
+}
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
 # Resolve the migration tooling for both the flattened CI payload layout
 # ($SCRIPT_DIR/tools/migrations, script at the release root) and a repository
@@ -254,17 +263,13 @@ rsync -a --delete \
 printf '%s\n' "$SHA" > "$STAGED_THEME/.nvx-deploy-sha"
 [[ "$(tr -d '\r\n' < "$STAGED_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 
-# Generate atomic deploy-stamp.json with full identity chain
-# Contract: GITHUB_RUN_ID must be passed from workflow for automated deployments
-# Manual deployments may omit GITHUB_RUN_ID, but production workflow must always provide it
-DEPLOY_RUN_ID="${GITHUB_RUN_ID:-manual}"
+# Generate the immutable production stamp from the GitHub Actions release ID.
 DEPLOY_TIMESTAMP="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 RELEASE_ID="${RELEASE_ID:-${SHA:0:12}}"
-
-# Contract enforcement: automated deployments must have numeric run ID
-if [[ "$DEPLOY_RUN_ID" == "manual" ]]; then
-  echo "WARNING: DEPLOY_RUN_ID is 'manual' - this should only happen for manual deployments, not CI" >&2
-fi
+[[ "$RELEASE_ID" =~ ^[A-Za-z0-9_-]+$ ]] || {
+  echo 'ERROR: RELEASE_ID contains unsupported characters' >&2
+  exit 2
+}
 cat > "$STAGED_THEME/.nvx-deploy-stamp.json" <<STAMP
 {
   "DEPLOY_SHA": "$SHA",

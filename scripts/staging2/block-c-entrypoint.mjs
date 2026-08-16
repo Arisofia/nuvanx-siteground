@@ -6,6 +6,7 @@ import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
+const homeMobileRecoveryScript = fileURLToPath(new URL('./block-c-home-mobile-recovery.mjs', import.meta.url));
 const resultsUrl = new URL('./block-c-artifacts/block-c-results.json', import.meta.url);
 const runnerTemp = process.env.RUNNER_TEMP || '/tmp';
 const realGithubEnv = process.env.GITHUB_ENV || '';
@@ -15,21 +16,40 @@ const shadowStepSummary = path.join(runnerTemp, `nvx-block-c-core-summary-${proc
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedHost = new URL(baseUrl).hostname;
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const RECOVERY_NOT_APPLICABLE = 64;
 
-function runCore() {
+function runProcess(script, env = process.env) {
   return new Promise((resolve, reject) => {
-    const env = {
-      ...process.env,
-      GITHUB_ENV: shadowGithubEnv,
-      GITHUB_STEP_SUMMARY: shadowStepSummary,
-    };
-    const child = spawn(process.execPath, [coreScript], { env, stdio: 'inherit' });
+    const child = spawn(process.execPath, [script], { env, stdio: 'inherit' });
     child.once('error', reject);
     child.once('exit', (code, signal) => {
-      if (signal) reject(new Error(`Block C core terminated by signal ${signal}`));
+      if (signal) reject(new Error(`${path.basename(script)} terminated by signal ${signal}`));
       else resolve(Number.isInteger(code) ? code : 1);
     });
   });
+}
+
+function runCore() {
+  return runProcess(coreScript, {
+    ...process.env,
+    GITHUB_ENV: shadowGithubEnv,
+    GITHUB_STEP_SUMMARY: shadowStepSummary,
+  });
+}
+
+async function tryHomeMobileVisualRecovery() {
+  const code = await runProcess(homeMobileRecoveryScript);
+  if (code === 0) return { recovered: true, applicable: true, transient: false };
+  if (code === RECOVERY_NOT_APPLICABLE) {
+    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE wrapper=continue');
+    return { recovered: false, applicable: false, transient: false };
+  }
+  if (code === EX_TEMPFAIL) {
+    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT wrapper=continue');
+    return { recovered: false, applicable: true, transient: true };
+  }
+  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL wrapper_exit=${code}`);
+  return { recovered: false, applicable: true, transient: false, realFailure: true, code };
 }
 
 function isRecoverableCompletedVisualTransient(result) {
@@ -73,7 +93,7 @@ async function tryExactOriginNetworkRecovery() {
     }
 
     // Wrap verification in error handling to treat config/transport errors as temporary
-    // rather than application failures
+    // rather than application failures.
     const verificationByRoute = new Map();
     try {
       for (const result of failed) {
@@ -88,7 +108,7 @@ async function tryExactOriginNetworkRecovery() {
         }
       }
     } catch (error) {
-      // Config or transport errors in verifier should be treated as unavailable, not hard failures
+      // Config or transport errors in verifier should be treated as unavailable, not hard failures.
       console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=verifier_error error=${String(error.message).replace(/\s+/g, '_')}`);
       return false;
     }
@@ -113,10 +133,7 @@ async function tryExactOriginNetworkRecovery() {
     console.log(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=PASS cases=${failed.length} sha=${expectedSha}`);
     return true;
   } catch (error) {
-    // Catch all unexpected errors to preserve transient exit path
-    // createSiteGroundOriginVerifier() throws on unexpected ORIGIN_SSH_ALIAS
-    // verifier.verify(route) throws on routes with unsupported characters
-    // fs.writeFile can fail
+    // Catch all unexpected errors to preserve transient exit path.
     console.error(`BLOCK_C_ORIGIN_NETWORK_RECOVERY=UNAVAILABLE reason=unexpected_error error=${String(error.message).replace(/\s+/g, '_')}`);
     return false;
   }
@@ -147,14 +164,23 @@ try {
   if (coreCode !== EX_TEMPFAIL) {
     process.exitCode = coreCode;
   } else {
-    const recovered = await tryExactOriginNetworkRecovery();
-    if (recovered) {
-      console.log('BLOCK_C_RESILIENT=PASS_EXACT_ORIGIN_NETWORK_RECOVERY visual_contract=complete');
+    const visualRecovery = await tryHomeMobileVisualRecovery();
+    if (visualRecovery.recovered) {
+      console.log('BLOCK_C_RESILIENT=PASS_PUBLIC_BROWSER_RECOVERY visual_contract=complete');
       process.exitCode = 0;
+    } else if (visualRecovery.realFailure) {
+      console.error('BLOCK_C_RESILIENT=FAIL_REAL fallback=public-browser-recovery');
+      process.exitCode = visualRecovery.code || 1;
     } else {
-      await propagateTransientFailureState();
-      console.error('BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED fallback=exact-origin-verification-unavailable-or-inapplicable');
-      process.exitCode = EX_TEMPFAIL;
+      const recovered = await tryExactOriginNetworkRecovery();
+      if (recovered) {
+        console.log('BLOCK_C_RESILIENT=PASS_EXACT_ORIGIN_NETWORK_RECOVERY visual_contract=complete');
+        process.exitCode = 0;
+      } else {
+        await propagateTransientFailureState();
+        console.error('BLOCK_C_RESILIENT=FAIL_TRANSIENT_EXHAUSTED fallback=public-browser-and-origin-verification-unavailable-or-inapplicable');
+        process.exitCode = EX_TEMPFAIL;
+      }
     }
   }
 } catch (error) {

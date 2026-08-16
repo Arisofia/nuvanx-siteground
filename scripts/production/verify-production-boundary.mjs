@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const baseUrl = (process.env.BASE_URL || 'https://nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const expectedRunId = (process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID || '').trim();
 const prodRoot = process.env.PROD_ROOT || '/home/customer/www/nuvanx.com/public_html';
 const requestTimeoutMs = Number.parseInt(process.env.PRODUCTION_BOUNDARY_REQUEST_TIMEOUT_MS || '15000', 10);
 const routes = [
@@ -24,6 +25,10 @@ const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
+  process.exit(1);
+}
+if (!/^\d+$/.test(expectedRunId)) {
+  console.error('EXPECTED_RUN_ID (or GITHUB_RUN_ID) must be a numeric GitHub Actions run ID.');
   process.exit(1);
 }
 if (!Number.isInteger(requestTimeoutMs) || requestTimeoutMs < 1000 || requestTimeoutMs > 60000) {
@@ -58,6 +63,11 @@ function robotsTokens(value) {
   );
 }
 
+function validIsoTimestamp(value) {
+  const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
+  return iso8601Regex.test(value) && !Number.isNaN(Date.parse(value));
+}
+
 /**
  * Verifies the production site from its SiteGround origin.
  * @return {string} The trimmed verification output from the remote origin.
@@ -71,6 +81,14 @@ test "$(wp option get home)" = 'https://nuvanx.com'
 test "$(wp option get siteurl)" = 'https://nuvanx.com'
 test "$(wp option get blog_public)" = '1'
 test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+test -f 'wp-content/themes/nuvanx-medical/.nvx-deploy-stamp.json'
+test "$(wp eval 'echo function_exists("nvx_get_deploy_stamp_value") ? nvx_get_deploy_stamp_value("DEPLOY_SHA") : "";' --allow-root)" = "$EXPECTED_SHA"
+test "$(wp eval 'echo function_exists("nvx_get_deploy_stamp_value") ? nvx_get_deploy_stamp_value("DEPLOY_RUN_ID") : "";' --allow-root)" = "$EXPECTED_RUN_ID"
+stamp_timestamp="$(wp eval 'echo function_exists("nvx_get_deploy_stamp_value") ? nvx_get_deploy_stamp_value("DEPLOY_TIMESTAMP") : "";' --allow-root)"
+stamp_release="$(wp eval 'echo function_exists("nvx_get_deploy_stamp_value") ? nvx_get_deploy_stamp_value("RELEASE_ID") : "";' --allow-root)"
+test -n "$stamp_timestamp"
+test -n "$stamp_release"
+php -r '$v=$argv[1]; $d=DateTimeImmutable::createFromFormat("Y-m-d\\TH:i:s\\Z", $v, new DateTimeZone("UTC")); if ($d === false || $d->format("Y-m-d\\TH:i:s\\Z") !== $v) { exit(1); }' "$stamp_timestamp"
 
 ua='NUVANX-Production-Origin-Boundary/1.0'
 for route in \
@@ -96,6 +114,9 @@ do
   ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"
   ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"
   grep -Fq "$EXPECTED_SHA" "$body"
+  grep -Fq "name=\"nvx-deploy-run-id\" content=\"$EXPECTED_RUN_ID\"" "$body"
+  grep -Eq 'name="nvx-deploy-timestamp" content="[^" ]+"' "$body"
+  grep -Eq 'name="nvx-release-id" content="[^" ]+"' "$body"
 
   robots_meta="$(grep -Eio "<meta[^>]+name=['\"]robots['\"][^>]*>" "$body" | head -n 1 || true)"
   xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
@@ -132,14 +153,14 @@ do
   echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route"
 done
 
-echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA routes=8"
+echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$EXPECTED_SHA run_id=$EXPECTED_RUN_ID routes=8 identity_fields=4"
 `;
 
   const output = execFileSync(
     '/usr/bin/ssh',
     [
       'nvx-prod',
-      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} bash -se`,
+      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} bash -se`,
     ],
     {
       input: remoteScript,
@@ -164,7 +185,7 @@ async function fetchSameHost(url, maxRedirects = 5) {
       redirect: 'manual',
       signal: AbortSignal.timeout(requestTimeoutMs),
       headers: {
-        'user-agent': 'NUVANX-Production-Boundary/1.1',
+        'user-agent': 'NUVANX-Production-Boundary/1.2',
         accept: 'text/html,application/xhtml+xml',
         'cache-control': 'no-cache',
         pragma: 'no-cache',
@@ -200,6 +221,7 @@ const report = {
   baseUrl,
   expectedHost,
   expectedSha,
+  expectedRunId,
   checkedAt: new Date().toISOString(),
   requestTimeoutMs,
   origin: { pass: false, output: '', issue: '' },
@@ -228,6 +250,9 @@ if (report.origin.pass) {
       const html = await response.text();
       const robots = extractMetaContent(html, 'robots');
       const deploySha = extractMetaContent(html, 'nvx-deploy-sha');
+      const deployRunId = extractMetaContent(html, 'nvx-deploy-run-id');
+      const deployTimestamp = extractMetaContent(html, 'nvx-deploy-timestamp');
+      const releaseId = extractMetaContent(html, 'nvx-release-id');
       const xRobotsTag = response.headers.get('x-robots-tag') || '';
       const tokens = robotsTokens(`${robots},${xRobotsTag}`);
 
@@ -238,6 +263,9 @@ if (report.origin.pass) {
       result.robots = robots;
       result.xRobotsTag = xRobotsTag;
       result.deploySha = deploySha;
+      result.deployRunId = deployRunId;
+      result.deployTimestamp = deployTimestamp;
+      result.releaseId = releaseId;
       result.issues = [];
 
       if (response.status !== 200) result.issues.push(`Expected HTTP 200, got ${response.status}`);
@@ -250,6 +278,15 @@ if (report.origin.pass) {
       }
       if (deploySha !== expectedSha) {
         result.issues.push(`Deployment SHA mismatch: meta=${deploySha || '(missing)'} expected=${expectedSha}`);
+      }
+      if (deployRunId !== expectedRunId) {
+        result.issues.push(`Deployment run ID mismatch: meta=${deployRunId || '(missing)'} expected=${expectedRunId}`);
+      }
+      if (!validIsoTimestamp(deployTimestamp)) {
+        result.issues.push(`Deployment timestamp missing or invalid ISO 8601: ${deployTimestamp || '(missing)'}`);
+      }
+      if (!releaseId) {
+        result.issues.push('Release ID missing from production deploy stamp');
       }
 
       result.pass = result.issues.length === 0;
@@ -292,10 +329,10 @@ if (!report.pass) {
 
 if (report.external.inconclusiveAntiBot) {
   console.log(
-    `Production boundary PASS via SiteGround origin: ${routes.length} routes are 200, index/follow, expose SHA ${expectedSha}, and Signature hubs match the canonical shell. External GitHub probe=INCONCLUSIVE_ANTIBOT.`
+    `Production boundary PASS via SiteGround origin: ${routes.length} routes are 200, index/follow, expose the 4-field identity for SHA ${expectedSha} / run ${expectedRunId}, and Signature hubs match the canonical shell. External GitHub probe=INCONCLUSIVE_ANTIBOT.`
   );
 } else {
   console.log(
-    `Production boundary PASS: origin and external probes agree across ${routes.length} routes; index/follow and SHA ${expectedSha} verified.`
+    `Production boundary PASS: origin and external probes agree across ${routes.length} routes; index/follow and 4-field identity SHA ${expectedSha} / run ${expectedRunId} verified.`
   );
 }

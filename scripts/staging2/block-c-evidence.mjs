@@ -119,19 +119,27 @@ export function renderBlockCEvidence(results, {
 }
 
 async function prepareEvidenceEntry(filePath, content, token) {
-  const tmpPath = `${filePath}.tmp-${token}`;
-  const backupPath = `${filePath}.bak-${token}`;
+  const resolvedFilePath = path.resolve(filePath);
+  const fileName = path.basename(resolvedFilePath);
+  const tmpPath = `${resolvedFilePath}.tmp-${token}`;
+  const backupPath = `${resolvedFilePath}.bak-${token}`;
   let hadOriginal = true;
 
   try {
     await fs.writeFile(tmpPath, content, 'utf8');
     try {
-      await fs.copyFile(filePath, backupPath);
+      await fs.copyFile(resolvedFilePath, backupPath);
     } catch (error) {
       if (error?.code === 'ENOENT') hadOriginal = false;
       else throw error;
     }
-    return { filePath, tmpPath, backupPath, hadOriginal };
+    return {
+      filePath: resolvedFilePath,
+      fileName,
+      tmpPath,
+      backupPath,
+      hadOriginal,
+    };
   } catch (error) {
     await fs.rm(tmpPath, { force: true }).catch(() => {});
     await fs.rm(backupPath, { force: true }).catch(() => {});
@@ -139,16 +147,25 @@ async function prepareEvidenceEntry(filePath, content, token) {
   }
 }
 
+async function writeInconsistencyMarker(markerPath, marker, token) {
+  const tmpPath = `${markerPath}.tmp-${token}`;
+  try {
+    await fs.writeFile(tmpPath, `${JSON.stringify(marker, null, 2)}\n`, 'utf8');
+    await fs.rename(tmpPath, markerPath);
+  } finally {
+    await fs.rm(tmpPath, { force: true }).catch(() => {});
+  }
+}
+
 export async function writeEvidenceBundle(entries) {
   const staged = [];
   const committed = [];
+  const preservedBackupPaths = new Set();
   const token = `${process.pid}-${Date.now()}`;
-  const artifactsDir = entries.length > 0 ? path.dirname(entries[0][0]) : process.cwd();
+  const artifactsDir = entries.length > 0 ? path.dirname(path.resolve(entries[0][0])) : process.cwd();
   const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
 
   try {
-    await fs.rm(inconsistentMarkerPath, { force: true }).catch(() => {});
-
     for (const [filePath, content] of entries) {
       staged.push(await prepareEvidenceEntry(filePath, content, token));
     }
@@ -157,6 +174,15 @@ export async function writeEvidenceBundle(entries) {
       await fs.rename(entry.tmpPath, entry.filePath);
       committed.push(entry);
     }
+
+    // Clear an older inconsistency marker only after the replacement bundle
+    // has committed successfully. Marker cleanup is diagnostic-only: failure
+    // must not roll back an otherwise valid evidence bundle.
+    await fs.rm(inconsistentMarkerPath, { force: true }).catch((markerCleanupError) => {
+      console.warn(
+        `BLOCK_C_EVIDENCE_MARKER_CLEANUP=WARN path=${inconsistentMarkerPath} error=${markerCleanupError?.message || markerCleanupError}`,
+      );
+    });
   } catch (error) {
     const rollbackFailures = [];
     for (const entry of [...committed].reverse()) {
@@ -166,49 +192,108 @@ export async function writeEvidenceBundle(entries) {
       } catch (rollbackError) {
         rollbackFailures.push({
           entry,
-          message: `${path.basename(entry.filePath)}:${rollbackError?.message || rollbackError}`,
+          filePath: entry.filePath,
+          fileName: entry.fileName,
+          message: `${entry.filePath}:${rollbackError?.message || rollbackError}`,
         });
       }
     }
 
+    const removedInvalidFiles = [];
     const cleanupFailures = [];
-    let markerWriteError = '';
+    const markerWriteErrors = [];
     if (rollbackFailures.length > 0) {
-      const marker = {
-        schema: 2,
+      for (const { entry } of rollbackFailures) {
+        if (entry.hadOriginal) preservedBackupPaths.add(entry.backupPath);
+      }
+
+      const failedPaths = new Set(rollbackFailures.map(({ filePath }) => filePath));
+      const markerBase = {
+        schema: 6,
         status: 'inconsistent-evidence-bundle',
         writeError: error?.message || String(error),
         rollbackErrors: rollbackFailures.map(({ message }) => message),
-        invalidFiles: rollbackFailures.map(({ entry }) => path.basename(entry.filePath)),
+        retainedPriorFiles: staged
+          .filter((entry) => entry.hadOriginal && !failedPaths.has(entry.filePath))
+          .map((entry) => entry.filePath),
+        absentPriorFiles: staged
+          .filter((entry) => !entry.hadOriginal)
+          .map((entry) => entry.filePath),
+        preservedBackupFiles: rollbackFailures
+          .filter(({ entry }) => entry.hadOriginal)
+          .map(({ entry }) => entry.backupPath),
         generatedAt: new Date().toISOString(),
       };
 
+      // Phase 1 is deliberately persisted before cleanup. If the runner is
+      // killed during the fs.rm loop, a fail-closed marker still identifies
+      // every path that may contain invalid evidence.
+      const cleanupStartedAt = new Date().toISOString();
+      let cleanupMarkerReady = false;
       try {
-        await fs.writeFile(inconsistentMarkerPath, `${JSON.stringify(marker, null, 2)}\n`, 'utf8');
+        await writeInconsistencyMarker(inconsistentMarkerPath, {
+          ...markerBase,
+          phase: 'cleanup-in-progress',
+          cleanupStartedAt,
+          removedInvalidFiles: [],
+          remainingInvalidFiles: rollbackFailures.map(({ filePath }) => filePath),
+          cleanupErrors: [],
+        }, token);
+        cleanupMarkerReady = true;
       } catch (markerError) {
-        markerWriteError = markerError?.message || String(markerError);
+        markerWriteErrors.push(`cleanup-in-progress:${markerError?.message || markerError}`);
       }
 
-      for (const { entry } of rollbackFailures) {
+      // Never mutate the invalid files unless the fail-closed marker is already
+      // durable. If phase 1 cannot be persisted, keep files and backups intact
+      // and fail the run rather than opening an unmarked cleanup window.
+      if (cleanupMarkerReady) {
+        for (const { filePath, fileName } of rollbackFailures) {
+          try {
+            await fs.rm(filePath, { force: true });
+            removedInvalidFiles.push(filePath);
+          } catch (cleanupError) {
+            cleanupFailures.push({
+              filePath,
+              fileName,
+              message: `${filePath}:${cleanupError?.message || cleanupError}`,
+            });
+          }
+        }
+
+        // Phase 2 atomically replaces phase 1 with the observed post-cleanup
+        // state. If this replacement fails, the phase-1 marker remains valid and
+        // conservatively lists all affected paths as potentially inconsistent.
         try {
-          await fs.rm(entry.filePath, { force: true });
-        } catch (cleanupError) {
-          cleanupFailures.push(`${path.basename(entry.filePath)}:${cleanupError?.message || cleanupError}`);
+          await writeInconsistencyMarker(inconsistentMarkerPath, {
+            ...markerBase,
+            phase: 'cleanup-complete',
+            cleanupStartedAt,
+            cleanupCompletedAt: new Date().toISOString(),
+            removedInvalidFiles,
+            remainingInvalidFiles: cleanupFailures.map(({ filePath }) => filePath),
+            cleanupErrors: cleanupFailures.map(({ message }) => message),
+          }, token);
+        } catch (markerError) {
+          markerWriteErrors.push(`cleanup-complete:${markerError?.message || markerError}`);
         }
       }
     }
 
     const details = [
       rollbackFailures.length ? `rollback_errors=${rollbackFailures.map(({ message }) => message).join('|')}` : '',
-      cleanupFailures.length ? `cleanup_errors=${cleanupFailures.join('|')}` : '',
-      markerWriteError ? `marker_write_error=${markerWriteError}` : '',
+      cleanupFailures.length ? `cleanup_errors=${cleanupFailures.map(({ message }) => message).join('|')}` : '',
+      preservedBackupPaths.size ? `preserved_backups=${[...preservedBackupPaths].join('|')}` : '',
+      markerWriteErrors.length ? `marker_write_errors=${markerWriteErrors.join('|')}` : '',
     ].filter(Boolean);
     const detail = details.length ? ` ${details.join(' ')}` : '';
     throw new Error(`Block C evidence bundle commit failed: ${error?.message || error}.${detail}`, { cause: error });
   } finally {
     await Promise.all(staged.flatMap(({ tmpPath, backupPath }) => [
       fs.rm(tmpPath, { force: true }).catch(() => {}),
-      fs.rm(backupPath, { force: true }).catch(() => {}),
+      preservedBackupPaths.has(backupPath)
+        ? Promise.resolve()
+        : fs.rm(backupPath, { force: true }).catch(() => {}),
     ]));
   }
 }

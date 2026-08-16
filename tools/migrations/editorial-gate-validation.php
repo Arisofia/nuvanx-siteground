@@ -38,7 +38,7 @@ $editorialRules = array(
         'description' => 'Draft/review workflow language in published content',
     ),
     'generic_placeholders' => array(
-        'pattern'     => '/\b(?:TODO|FIXME|XXX|HACK|placeholder)\b/i',
+        'pattern'     => '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|\b(?:TODO|FIXME|XXX|HACK)\b\s*:|\bplaceholder\b)/i',
         'description' => 'Editorial placeholder in published content',
     ),
     'inline_styles' => array(

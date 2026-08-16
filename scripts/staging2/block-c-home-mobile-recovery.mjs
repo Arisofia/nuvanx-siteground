@@ -39,6 +39,16 @@ const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
 const summaryPath = path.join(artifactsDir, 'block-c-summary.md');
 const csvPath = path.join(artifactsDir, 'block-c-results.csv');
 const targetConfig = BLOCK_C_RECOVERY_TARGETS.homeMobile;
+const TRANSIENT_RUNNER_ERROR_CODES = new Set([
+  'EAGAIN',
+  'EBUSY',
+  'EMFILE',
+  'ENFILE',
+  'ENOSPC',
+  'EIO',
+  'ETIMEDOUT',
+  'ECONNRESET',
+]);
 
 let targetViewport = null;
 let targetViewportConfigError = null;
@@ -127,7 +137,7 @@ function isStagingOriginUrl(value) {
 
 function isLikelyTransientRunnerError(error) {
   const code = String(error?.code || '');
-  return new Set(['EAGAIN', 'EBUSY', 'EMFILE', 'ENFILE', 'ENOSPC', 'EIO', 'ETIMEDOUT', 'ECONNRESET']).has(code);
+  return TRANSIENT_RUNNER_ERROR_CODES.has(code);
 }
 
 async function backoff(baseMs, attempt) {

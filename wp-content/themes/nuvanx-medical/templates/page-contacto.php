@@ -93,7 +93,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 12:00–20:00; sábados, 10:00–18:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><?php esc_html_e( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ); ?></li>
 						</ul>
-						<a href="<?php echo esc_url( $chamberi_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
+						<a href="<?php echo esc_url( $chamberi_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--primary" rel="noopener noreferrer" target="_blank">
 							<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 						</a>
 					</article>
@@ -119,7 +119,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 11:00–20:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><?php esc_html_e( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ); ?></li>
 						</ul>
-						<a href="<?php echo esc_url( $goya_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
+						<a href="<?php echo esc_url( $goya_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--primary" rel="noopener noreferrer" target="_blank">
 							<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 						</a>
 					</article>

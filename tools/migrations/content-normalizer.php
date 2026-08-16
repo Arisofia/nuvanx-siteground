@@ -26,33 +26,32 @@ function nvxNeedsMarkdownNormalization( string $content ): bool {
 }
 
 function nvxNormalizeMarkdownInline( string $text ): string {
-    // First, extract inline HTML tags and replace with placeholders to protect them
-    // from HTML escaping. This prevents HTML tags from being escaped into visible markup.
+    // Protect inline HTML from escaping with alphanumeric-only sentinels.
+    // Sentinels deliberately contain neither underscores nor the word "placeholder"
+    // so the emphasis and editorial-residue regexes cannot mutate or reject them.
     $htmlPlaceholders = array();
     $text = preg_replace_callback(
         '/<[^>]+>/',
         static function ( array $matches ) use ( &$htmlPlaceholders ): string {
             $tag = (string) $matches[0];
-            $placeholder = 'NVX_HTML_PLACEHOLDER_' . count( $htmlPlaceholders );
+            $placeholder = 'NVXHTMLTOKEN' . count( $htmlPlaceholders ) . 'Q';
             $htmlPlaceholders[ $placeholder ] = $tag;
             return $placeholder;
         },
         $text
     ) ?? $text;
 
-    // Escape only the text content (HTML is now protected by placeholders)
+    // Escape only the text content (HTML is now protected by sentinels).
     $escaped = esc_html( $text );
 
-    // First, extract Markdown images and replace with placeholders to protect them
-    // from link and emphasis replacement. This prevents images from being converted
-    // to links with a stray exclamation mark.
+    // Extract Markdown images before links/emphasis so image syntax remains atomic.
     $imagePlaceholders = array();
     $escaped = preg_replace_callback(
         '/!\[([^\]]*)\]\(([^)\s]+)\)/',
         static function ( array $matches ) use ( &$imagePlaceholders ): string {
             $alt = (string) $matches[1];
             $url = html_entity_decode( (string) $matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-            $placeholder = 'NVX_IMAGE_PLACEHOLDER_' . count( $imagePlaceholders );
+            $placeholder = 'NVXIMAGETOKEN' . count( $imagePlaceholders ) . 'Q';
             $imagePlaceholders[ $placeholder ] = array(
                 'alt' => $alt,
                 'url' => $url,
@@ -62,16 +61,14 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         $escaped
     ) ?? $escaped;
 
-    // Next, extract Markdown links and replace with placeholders to protect them
-    // from emphasis replacement. This prevents emphasis tags from being injected
-    // into href attributes when URLs contain underscores or asterisks.
+    // Extract Markdown links before emphasis so URL punctuation cannot be rewritten.
     $linkPlaceholders = array();
     $escaped = preg_replace_callback(
         '/\[([^\]]+)\]\(([^)\s]+)\)/',
         static function ( array $matches ) use ( &$linkPlaceholders ): string {
             $label = (string) $matches[1];
             $url = html_entity_decode( (string) $matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-            $placeholder = 'NVX_LINK_PLACEHOLDER_' . count( $linkPlaceholders );
+            $placeholder = 'NVXLINKTOKEN' . count( $linkPlaceholders ) . 'Q';
             $linkPlaceholders[ $placeholder ] = array(
                 'label' => $label,
                 'url' => $url,
@@ -81,13 +78,12 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         $escaped
     ) ?? $escaped;
 
-    // Apply emphasis replacements to the text (now safe since links and images are placeholdered)
+    // Apply emphasis replacements after protected constructs have been extracted.
     $escaped = preg_replace( '/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/__([^_\n]+)__/', '<strong>$1</strong>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $escaped ) ?? $escaped;
     $escaped = preg_replace( '/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $escaped ) ?? $escaped;
 
-    // Replace image placeholders with final img markup
     foreach ( $imagePlaceholders as $placeholder => $image ) {
         $escaped = str_replace(
             $placeholder,
@@ -96,7 +92,6 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         );
     }
 
-    // Replace link placeholders with final anchor markup
     foreach ( $linkPlaceholders as $placeholder => $link ) {
         $escaped = str_replace(
             $placeholder,
@@ -105,7 +100,6 @@ function nvxNormalizeMarkdownInline( string $text ): string {
         );
     }
 
-    // Replace HTML placeholders with sanitized HTML
     foreach ( $htmlPlaceholders as $placeholder => $tag ) {
         $escaped = str_replace(
             $placeholder,
@@ -156,7 +150,6 @@ function nvxClassifyMarkdownLine( string $line ): array {
     if ( '' === $trimmed ) {
         $token = array( 'type' => 'blank', 'value' => '', 'level' => 0 );
     } elseif ( preg_match( '/^#{2,6}\s*📌\s*$/u', $trimmed ) ) {
-        // Changed from editorial_residue to editorial_marker to allow detection of mid-content placement
         $token = array( 'type' => 'editorial_marker', 'value' => '', 'level' => 0 );
     } elseif ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $matches ) ) {
         $token = array( 'type' => 'heading', 'value' => trim( $matches[2] ), 'level' => strlen( $matches[1] ) );
@@ -186,7 +179,7 @@ function nvxFlushMarkdownBuffers( array &$paragraph, string &$listType, array &$
  * @param array<int,string> $paragraph
  * @param array<int,string> $listItems
  * @param array<int,string> $output
- * @return bool False when the technical metadata tail has been reached.
+ * @return bool
  */
 function nvxApplyMarkdownToken(
     array $token,
@@ -228,8 +221,6 @@ function nvxApplyMarkdownToken(
             $output[] = wp_kses_post( $token['value'] );
             break;
         case 'editorial_marker':
-            // Editorial marker (📌) seen - record it but don't stop processing
-            // This allows detection of mid-content placement vs. tail placement
             $editorialMarkerSeen = true;
             nvxFlushMarkdownBuffers( $paragraph, $listType, $listItems, $output );
             break;
@@ -271,9 +262,6 @@ function nvxNormalizeToHtml( string $content ): string {
 /** @return array{valid:bool,issues:array<int,string>} */
 function nvxValidateNormalizedContent( string $content ): array {
     $checks = array(
-        // Use the same restrictive pattern as nvxNormalizeMarkdownInline to avoid
-        // requiring conversion for links that cannot be converted (links with spaces or titles).
-        // Explicitly exclude images (![...](...)) since they are handled separately.
         '/(?<!!)\[[^\]]+\]\(([^)\s]+)\)/' => 'Markdown links still present',
         '/^#{1,6}\s+.+$/m' => 'Markdown headings still present',
         '/^\s*(?:[-+*]|\d+[.)])\s+\S+/m' => 'Markdown list markers still present',
@@ -281,9 +269,6 @@ function nvxValidateNormalizedContent( string $content ): array {
         '/%(?:\d+\$)?[sd]/' => 'Format string still present',
         '/\b(?:borrador|pendiente de revisión|para revisar|work in progress)\b/i' => 'Draft/review language still present',
         '/(?:\[(?:TODO|FIXME|XXX|HACK)\]|(?:TODO|FIXME|XXX|HACK)\s*:|\bplaceholder\b)/i' => 'Editorial placeholder still present',
-        // Check for editorial marker (📌) which may indicate unexpected mid-content placement
-        // If this appears in normalized content, it suggests the marker was in the middle of the post
-        // rather than at the end, which could indicate content was truncated unexpectedly
         '/📌/u' => 'Editorial marker (📌) present - may indicate mid-content placement',
     );
     $issues = array();

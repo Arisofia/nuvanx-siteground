@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Get the deploy stamp array.
  *
- * @return array<string, mixed> Deploy stamp information.
+ * @return array<string, string> Deploy stamp information with normalized string values.
  */
 function nvx_get_deploy_stamp(): array {
 	$stamp = array(
@@ -37,6 +37,7 @@ function nvx_get_deploy_stamp(): array {
 		if ( is_readable( $deploy_stamp_file ) ) {
 			$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
 			if ( is_array( $deploy_stamp_data ) ) {
+				// Reuse $environment_keys to keep the source of truth for valid keys centralized
 				foreach ( $environment_keys as $key ) {
 					if ( isset( $deploy_stamp_data[ $key ] ) && is_scalar( $deploy_stamp_data[ $key ] ) ) {
 						$stamp[ $key ] = trim( (string) $deploy_stamp_data[ $key ] );
@@ -44,6 +45,11 @@ function nvx_get_deploy_stamp(): array {
 				}
 			}
 		}
+	}
+
+	// Normalize all values to strings once here to simplify rendering
+	foreach ( $stamp as $key => $value ) {
+		$stamp[ $key ] = (string) $value;
 	}
 
 	return $stamp;
@@ -54,7 +60,7 @@ function nvx_get_deploy_stamp(): array {
  */
 function nvx_get_deploy_stamp_value( string $key ): string {
 	$stamp = nvx_get_deploy_stamp();
-	return isset( $stamp[ $key ] ) ? (string) $stamp[ $key ] : '';
+	return $stamp[ $key ] ?? '';
 }
 
 /**
@@ -66,10 +72,10 @@ function nvx_get_deploy_stamp_value( string $key ): string {
  */
 function nvx_render_deploy_stamp_meta(): void {
 	foreach ( nvx_get_deploy_stamp() as $key => $value ) {
-		if ( '' === (string) $value ) {
+		if ( '' === $value ) {
 			continue;
 		}
-		echo '<meta name="nvx-' . esc_attr( strtolower( $key ) ) . '" content="' . esc_attr( (string) $value ) . '">' . "\n";
+		echo '<meta name="nvx-' . esc_attr( strtolower( $key ) ) . '" content="' . esc_attr( $value ) . '">' . "\n";
 	}
 }
 

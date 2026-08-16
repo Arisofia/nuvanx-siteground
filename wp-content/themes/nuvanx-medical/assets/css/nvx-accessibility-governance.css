@@ -39,7 +39,7 @@
 }
 
 /* Third-party consent placeholders are actionable controls and must retain
- * WCAG AA contrast independently of Complianz's generated gray defaults. */
+ * WCAG AA contrast independently of Complianz's generated neutral defaults. */
 [class*="cmplz-placeholder-"] > .cmplz-blocked-content-notice.cmplz-accept-category {
   color: var(--nvx-light);
   background: var(--nvx-ink);

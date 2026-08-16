@@ -76,7 +76,24 @@ foreach ( $ids as $postId ) {
 
     foreach ( $blockedClaimPatterns as $pattern => $label ) {
         $matches = array();
-        preg_match_all( $pattern, $content, $matches, PREG_OFFSET_CAPTURE );
+        $matchResult = preg_match_all( $pattern, $content, $matches, PREG_OFFSET_CAPTURE );
+        
+        // Check for preg_match_all errors to maintain fail-closed behavior
+        // Without /u on some patterns, byte-wise matching works even with malformed UTF-8
+        // With /u, preg_match_all returns false on invalid UTF-8, converting fail-closed to fail-open
+        if ( false === $matchResult ) {
+            $error = preg_last_error();
+            $errors[] = array(
+                'rule'        => 'blocked_claim',
+                'description' => 'Regex matching error (possibly malformed UTF-8)',
+                'matches'     => array( $label ),
+                'count'       => 1,
+                'label'       => $label,
+                'error_code'  => $error,
+            );
+            continue;
+        }
+        
         if ( empty( $matches[0] ) ) {
             continue;
         }

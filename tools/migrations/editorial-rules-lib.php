@@ -62,11 +62,16 @@ class NVX_Editorial_Rules {
 
     /**
      * Blocked claim patterns.
+     * Removed /u modifier from non-accented patterns to maintain fail-closed behavior on malformed UTF-8.
+     * The /u modifier would cause preg_match_all() to return false on invalid UTF-8,
+     * converting a fail-closed check into fail-open. Without /u, byte-wise matching
+     * still works even with malformed content. Kept /u on patterns with accented characters
+     * (márgenes, sin efectos secundarios, etc.) which require proper UTF-8 handling.
      */
     public const BLOCKED_CLAIM_PATTERNS = array(
-        '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/iu' => 'resultado garantizado',
-        '/\b100\s*%\s*efectiv[oa]s?\b/iu'               => '100% efectivo',
-        '/\bsin\s+riesgos?\b/iu'                        => 'sin riesgos',
+        '/\bresultado(?:s)?\s+garantizado(?:s|as)?\b/i' => 'resultado garantizado',
+        '/\b100\s*%\s*efectiv[oa]s?\b/i'               => '100% efectivo',
+        '/\bsin\s+riesgos?\b/i'                        => 'sin riesgos',
         '/\bsin\s+efectos?\s+secundarios?\b/iu'        => 'sin efectos secundarios',
         '/\binfalible\b/iu'                              => 'infalible',
         '/\bnaturalidad\s+absoluta\b/iu'                => 'naturalidad absoluta',
@@ -78,12 +83,17 @@ class NVX_Editorial_Rules {
 
     /**
      * Advisory context detection constants.
+     * Tightened to prevent whitelisting real claims in the same sentence.
+     * Changed from sentence boundaries [^.!?] to clause separators [^.!?,;] to prevent
+     * chaining clauses with commas/semicolons from being exempted. Also tightened max
+     * character limits to require immediate proximity to advisory phrases.
      */
-    public const ADVISORY_WINDOW_SIZE = 220;        // Characters to look back before match
-    public const ADVISORY_SENTENCE_BOUNDARY = '[^.!?]'; // Sentence delimiter pattern
-    public const ADVISORY_NEGATION_MAX_LENGTH = 170;  // Max chars after negation phrase
-    public const ADVISORY_WARNING_MAX_LENGTH = 150;  // Max chars before "promesas/garantías"
-    public const ADVISORY_WARNING_SUFFIX_LENGTH = 80; // Max chars after warning phrases
+    public const ADVISORY_WINDOW_SIZE = 220;            // Characters to look back before match
+    public const ADVISORY_NEGATION_MAX_LENGTH = 50;   // Max chars after negation (tightened from 170)
+    public const ADVISORY_WARNING_MAX_LENGTH = 40;  // Max chars before warning phrases (tightened from 150)
+    public const ADVISORY_WARNING_SUFFIX_LENGTH = 30; // Max chars after warning phrases (tightened from 80)
+    public const ADVISORY_CLAUSE_SEPARATORS = '[^.!?,;]'; // Clause-level separators for context restriction
+    public const ADVISORY_SENTENCE_BOUNDARY = '[^.!?,;]'; // Alias for clause separators (legacy name)
 
     /**
      * Get all editorial rules as associative array.

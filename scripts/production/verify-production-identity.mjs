@@ -2,14 +2,19 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import {
+  extractMetaContent,
+  validGitHubRunId,
+  validateDeployIdentity,
+} from './deploy-identity-contract.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
 const CANONICAL_PROD_ROOT = '/home/customer/www/nuvanx.com/public_html';
-const ALLOWED_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'production-siteground']);
+const ALLOWED_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'nvx-prod-hubspot', 'production-siteground']);
 
 function assertConfig(sha, runId, alias, prodRoot) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('EXPECTED_SHA must be a full lowercase SHA');
-  if (runId && !/^[a-zA-Z0-9_-]+$/.test(runId)) throw new Error('EXPECTED_RUN_ID must be a valid run ID');
+  if (runId && !validGitHubRunId(runId)) throw new Error('EXPECTED_RUN_ID must be numeric when supplied');
   if (!ALLOWED_ALIASES.has(alias)) throw new Error(`Unsupported SSH alias: ${alias}`);
   if (prodRoot !== CANONICAL_PROD_ROOT) throw new Error(`Refusing unexpected production root: ${prodRoot}`);
 }
@@ -24,9 +29,6 @@ export async function verifyProductionIdentity(options = {}) {
   assertConfig(expectedSha, expectedRunId, alias, prodRoot);
   await fs.mkdir(outputDir, { recursive: true });
 
-  // Fetch deploy identity from the canonical production WordPress root. The
-  // function may already be loaded by the active theme, so require it only when
-  // necessary to avoid redeclaration in WP-CLI.
   const remoteScript = [
     'set -Eeuo pipefail',
     `cd '${prodRoot}'`,
@@ -45,68 +47,31 @@ export async function verifyProductionIdentity(options = {}) {
   }
 
   const stdout = result.stdout || '';
-  const extractMeta = (name) => {
-    const tags = stdout.match(/<meta\b[^>]*>/gi) || [];
-    for (const tag of tags) {
-      const nameMatch = tag.match(/\bname\s*=\s*["']([^"']+)["']/i);
-      if (!nameMatch || nameMatch[1].toLowerCase() !== name.toLowerCase()) continue;
-      const contentMatch = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
-      return contentMatch ? contentMatch[1].trim() : '';
-    }
-    return '';
-  };
-
   const deployStamp = {
-    DEPLOY_SHA: extractMeta('nvx-deploy-sha'),
-    DEPLOY_RUN_ID: extractMeta('nvx-deploy-run-id'),
-    DEPLOY_TIMESTAMP: extractMeta('nvx-deploy-timestamp'),
-    RELEASE_ID: extractMeta('nvx-release-id'),
+    DEPLOY_SHA: extractMetaContent(stdout, 'nvx-deploy-sha'),
+    DEPLOY_RUN_ID: extractMetaContent(stdout, 'nvx-deploy-run-id'),
+    DEPLOY_TIMESTAMP: extractMetaContent(stdout, 'nvx-deploy-timestamp'),
+    RELEASE_ID: extractMetaContent(stdout, 'nvx-release-id'),
   };
-
-  const issues = [];
-
-  if (!deployStamp.DEPLOY_SHA) {
-    issues.push('Production DEPLOY_SHA not found in deploy stamp');
-  } else if (deployStamp.DEPLOY_SHA !== expectedSha) {
-    issues.push(`Production DEPLOY_SHA mismatch: expected ${expectedSha}, found ${deployStamp.DEPLOY_SHA}`);
-  }
-
-  if (!/^[\w-]+$/.test(deployStamp.DEPLOY_RUN_ID)) {
-    issues.push(`Production DEPLOY_RUN_ID missing or invalid: ${deployStamp.DEPLOY_RUN_ID || '(missing)'}`);
-  } else if (!/^\d+$/.test(deployStamp.DEPLOY_RUN_ID)) {
-    issues.push(`Production DEPLOY_RUN_ID must be numeric (GitHub Actions run ID): ${deployStamp.DEPLOY_RUN_ID}`);
-  } else if (expectedRunId && deployStamp.DEPLOY_RUN_ID !== expectedRunId) {
-    issues.push(`Production DEPLOY_RUN_ID mismatch: expected ${expectedRunId}, found ${deployStamp.DEPLOY_RUN_ID}`);
-  }
-
-  // Validate DEPLOY_TIMESTAMP against ISO 8601 format for stricter parsing
-  if (!deployStamp.DEPLOY_TIMESTAMP) {
-    issues.push('Production DEPLOY_TIMESTAMP not found in deploy stamp');
-  } else {
-    // ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ or similar
-    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
-    if (!iso8601Regex.test(deployStamp.DEPLOY_TIMESTAMP)) {
-      issues.push(`Production DEPLOY_TIMESTAMP invalid format (expected ISO 8601): ${deployStamp.DEPLOY_TIMESTAMP}`);
-    } else if (Number.isNaN(Date.parse(deployStamp.DEPLOY_TIMESTAMP))) {
-      issues.push(`Production DEPLOY_TIMESTAMP invalid date: ${deployStamp.DEPLOY_TIMESTAMP}`);
-    }
-  }
-
-  if (!deployStamp.RELEASE_ID) {
-    issues.push('Production RELEASE_ID not found in deploy stamp');
-  }
+  const issues = validateDeployIdentity(deployStamp, { expectedSha, expectedRunId });
 
   const report = {
     schema: 'production-identity-verification',
     checkedAt: new Date().toISOString(),
     expectedSha,
+    expectedRunId: expectedRunId || null,
+    originSshAlias: alias,
     productionRoot: prodRoot,
     productionDeployStamp: deployStamp,
     validation: issues.length === 0 ? 'PASS' : 'FAIL',
     issues,
   };
 
-  await fs.writeFile(path.join(outputDir, 'production-identity-verification.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  await fs.writeFile(
+    path.join(outputDir, 'production-identity-verification.json'),
+    `${JSON.stringify(report, null, 2)}\n`,
+    'utf8',
+  );
 
   if (issues.length > 0) {
     console.error('PRODUCTION_IDENTITY_VERIFICATION=FAIL');
@@ -114,11 +79,12 @@ export async function verifyProductionIdentity(options = {}) {
     throw new Error(`Production identity verification failed with ${issues.length} issue(s). Chain of trust is incomplete.`);
   }
 
-  console.log(`PRODUCTION_IDENTITY_VERIFICATION=PASS sha=${deployStamp.DEPLOY_SHA} run_id=${deployStamp.DEPLOY_RUN_ID} release_id=${deployStamp.RELEASE_ID}`);
+  console.log(
+    `PRODUCTION_IDENTITY_VERIFICATION=PASS sha=${deployStamp.DEPLOY_SHA} run_id=${deployStamp.DEPLOY_RUN_ID} timestamp=${deployStamp.DEPLOY_TIMESTAMP} release_id=${deployStamp.RELEASE_ID}`,
+  );
   return report;
 }
 
-// Auto-run when executed directly
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   verifyProductionIdentity().catch((err) => {
     console.error(err);

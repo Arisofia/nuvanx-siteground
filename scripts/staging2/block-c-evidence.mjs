@@ -32,7 +32,7 @@ function buildMatrix(results) {
 export function renderBlockCEvidence(results, {
   expectedSha,
   recoverySummary = null,
-  recoverySectionTitle = 'Recovery evidence',
+  recoverySectionTitle = 'Public browser recovery',
 } = {}) {
   const matrixRows = buildMatrix(results);
   const passCount = results.filter((item) => item.status === 'PASS').length;
@@ -158,29 +158,52 @@ export async function writeEvidenceBundle(entries) {
       committed.push(entry);
     }
   } catch (error) {
-    const rollbackErrors = [];
+    const rollbackFailures = [];
     for (const entry of [...committed].reverse()) {
       try {
         if (entry.hadOriginal) await fs.copyFile(entry.backupPath, entry.filePath);
         else await fs.rm(entry.filePath, { force: true });
       } catch (rollbackError) {
-        rollbackErrors.push(`${path.basename(entry.filePath)}:${rollbackError?.message || rollbackError}`);
+        rollbackFailures.push({
+          entry,
+          message: `${path.basename(entry.filePath)}:${rollbackError?.message || rollbackError}`,
+        });
       }
     }
 
-    if (rollbackErrors.length > 0) {
-      await Promise.all(entries.map(([filePath]) => fs.rm(filePath, { force: true }).catch(() => {})));
+    const cleanupFailures = [];
+    let markerWriteError = '';
+    if (rollbackFailures.length > 0) {
       const marker = {
-        schema: 1,
-        status: 'inconsistent-evidence-bundle-cleared',
+        schema: 2,
+        status: 'inconsistent-evidence-bundle',
         writeError: error?.message || String(error),
-        rollbackErrors,
+        rollbackErrors: rollbackFailures.map(({ message }) => message),
+        invalidFiles: rollbackFailures.map(({ entry }) => path.basename(entry.filePath)),
         generatedAt: new Date().toISOString(),
       };
-      await fs.writeFile(inconsistentMarkerPath, `${JSON.stringify(marker, null, 2)}\n`, 'utf8').catch(() => {});
+
+      try {
+        await fs.writeFile(inconsistentMarkerPath, `${JSON.stringify(marker, null, 2)}\n`, 'utf8');
+      } catch (markerError) {
+        markerWriteError = markerError?.message || String(markerError);
+      }
+
+      for (const { entry } of rollbackFailures) {
+        try {
+          await fs.rm(entry.filePath, { force: true });
+        } catch (cleanupError) {
+          cleanupFailures.push(`${path.basename(entry.filePath)}:${cleanupError?.message || cleanupError}`);
+        }
+      }
     }
 
-    const detail = rollbackErrors.length ? ` rollback_errors=${rollbackErrors.join('|')}` : '';
+    const details = [
+      rollbackFailures.length ? `rollback_errors=${rollbackFailures.map(({ message }) => message).join('|')}` : '',
+      cleanupFailures.length ? `cleanup_errors=${cleanupFailures.join('|')}` : '',
+      markerWriteError ? `marker_write_error=${markerWriteError}` : '',
+    ].filter(Boolean);
+    const detail = details.length ? ` ${details.join(' ')}` : '';
     throw new Error(`Block C evidence bundle commit failed: ${error?.message || error}.${detail}`, { cause: error });
   } finally {
     await Promise.all(staged.flatMap(({ tmpPath, backupPath }) => [

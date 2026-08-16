@@ -54,6 +54,13 @@ export async function runStagingPublicationParitySync(options = {}) {
     `cd '${PROD_ROOT}'`,
     `PUBLICATION_MANIFEST_FILE='${manifest}' wp eval-file '${exporter}' --allow-root > "$snapshot"`,
     'test -s "$snapshot"',
+    // Validate snapshot is valid JSON before proceeding
+    // This catches wp-cli notices, PHP deprecations, or plugin output that would corrupt the JSON
+    'if ! jq empty < "$snapshot" 2>/dev/null; then',
+    '  echo "ERROR: Snapshot is not valid JSON. First 500 bytes:" >&2',
+    '  head -c 500 "$snapshot" >&2',
+    '  exit 1',
+    'fi',
     `cd '${STAGING_ROOT}'`,
     `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval-file '${collisionPrep}' --allow-root >&2`,
     `PUBLICATION_SNAPSHOT_FILE="$snapshot" wp eval-file '${synchronizer}' --allow-root`,

@@ -212,10 +212,23 @@ async function tryExactOriginNetworkRecovery() {
         originDeploySha: verification.originDeploySha,
         validationTransport: 'public-browser+siteground-origin-network-verification',
         transientNetworkEvidencePreserved: true,
+        recoveredByExactOriginNetworkVerification: true,
+        notes: [
+          ...(Array.isArray(result.notes) ? result.notes : []),
+          `Exact-SHA origin verification recovered transient same-origin network errors for ${result.route}.`,
+        ],
       };
     });
 
-    const derived = renderBlockCEvidence(recovered, { expectedSha });
+    const recoverySummary = failed.map((result) => {
+      const verification = verificationByRoute.get(String(result.route || ''));
+      return `- \`${result.route}\` · ${result.viewport?.label || 'unknown'}: exact-origin HTTP ${verification.originStatus}, deploy SHA \`${verification.originDeploySha}\`; prior browser network evidence preserved.`;
+    });
+    const derived = renderBlockCEvidence(recovered, {
+      expectedSha,
+      recoverySummary,
+      recoverySectionTitle: 'Exact-origin network recovery',
+    });
     await writeEvidenceBundle([
       [matrixPath, derived.matrix],
       [summaryPath, derived.summary],

@@ -327,6 +327,50 @@
   line-height: var(--nvx-lh-nav-submenu);
 }
 
+/* Mobile nav accordion - collapse submenus by default */
+.nvx-mobile-nav__list .sub-menu {
+  display: none;
+  padding-left: var(--nvx-space-4);
+}
+
+.nvx-mobile-nav__list .sub-menu.is-expanded {
+  display: block;
+}
+
+/* Mobile nav accordion toggle button */
+.nvx-mobile-nav__toggle {
+  position: absolute;
+  right: var(--nvx-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--nvx-control-size);
+  height: var(--nvx-control-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--nvx-ink);
+  font-size: var(--nvx-space-3);
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--nvx-radius-button);
+  transition: background-color 160ms ease;
+}
+
+.nvx-mobile-nav__toggle:hover,
+.nvx-mobile-nav__toggle:focus-visible {
+  background-color: var(--nvx-surface-soft);
+}
+
+.nvx-mobile-nav__toggle[aria-expanded="true"]::before {
+  content: "−";
+}
+
+.nvx-mobile-nav__toggle[aria-expanded="false"]::before {
+  content: "+";
+}
+
 .nvx-nav {
   min-width: 0;
 }

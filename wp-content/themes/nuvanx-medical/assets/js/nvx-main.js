@@ -44,6 +44,40 @@
     mobileNav.addEventListener('cancel', closeNav);
   }
 
+  /* --- Mobile nav accordion for submenus --- */
+  var mobileNavList = document.querySelector('.nvx-mobile-nav__list');
+  if (mobileNavList) {
+    var parentItems = mobileNavList.querySelectorAll('.menu-item-has-children');
+    parentItems.forEach(function (item) {
+      var link = item.querySelector('a');
+      var subMenu = item.querySelector('.sub-menu');
+      if (!link || !subMenu) return;
+
+      // Add position relative to parent for toggle button positioning
+      item.style.position = 'relative';
+
+      // Create toggle button
+      var toggle = document.createElement('button');
+      toggle.className = 'nvx-mobile-nav__toggle';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Expandir submenú');
+      toggle.setAttribute('type', 'button');
+
+      // Toggle click handler
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !isExpanded);
+        toggle.setAttribute('aria-label', isExpanded ? 'Expandir submenú' : 'Contraer submenú');
+        subMenu.classList.toggle('is-expanded', !isExpanded);
+      });
+
+      // Append toggle to parent item
+      item.appendChild(toggle);
+    });
+  }
+
   /* FAQ: native <details>/<summary> (.nvx-faq / .nvx-brand-faq-*) — no JS. */
 
   /* --- Smooth scroll en anclas --- */

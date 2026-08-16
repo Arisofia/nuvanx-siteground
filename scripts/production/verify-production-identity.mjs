@@ -19,10 +19,11 @@ export async function verifyProductionIdentity(options = {}) {
   await fs.mkdir(outputDir, { recursive: true });
 
   // Fetch deploy stamp from production
+  // Call nvx_render_deploy_stamp_meta() directly to emit meta tags to stdout
   const remoteScript = [
     'set -Eeuo pipefail',
     'cd /home/customer/www/nuvanx-siteground/public_html',
-    'wp eval "require \'wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php\';" --allow-root',
+    'wp eval "require \'wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php\'; nvx_render_deploy_stamp_meta();" --allow-root',
   ].join('\n');
 
   const result = spawnSync(

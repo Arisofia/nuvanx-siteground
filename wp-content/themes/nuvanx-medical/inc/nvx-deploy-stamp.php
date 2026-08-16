@@ -57,6 +57,9 @@ function nvx_get_deploy_stamp(): array {
 
 /**
  * Get a specific deploy stamp value.
+ *
+ * @param string $key Stamp key (DEPLOY_SHA, DEPLOY_RUN_ID, DEPLOY_TIMESTAMP, RELEASE_ID).
+ * @return string Stamp value or empty string if not set.
  */
 function nvx_get_deploy_stamp_value( string $key ): string {
 	$stamp = nvx_get_deploy_stamp();
@@ -83,6 +86,9 @@ function nvx_render_deploy_stamp_meta(): void {
 
 /**
  * Validate deploy stamp chain of trust.
+ *
+ * @param string $expected_sha Expected SHA to verify against.
+ * @return bool True if chain of trust is valid, false otherwise.
  */
 function nvx_validate_deploy_stamp_chain( string $expected_sha ): bool {
 	$deployed_sha = nvx_get_deploy_stamp_value( 'DEPLOY_SHA' );

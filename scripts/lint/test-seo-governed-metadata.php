@@ -104,82 +104,111 @@ function nvx_test_merge_conflict_integrity(): void {
 
 nvx_test_merge_conflict_integrity();
 
-/**
- * Block prescription-drug advertising terms from public governed SEO surfaces.
- *
- * Historical URLs may retain restricted words only as alias-only redirect keys,
- * and those aliases must point to a clean canonical route that exists in the
- * route catalog. This preserves link equity without making restricted terms a
- * canonical advertising destination.
- */
-function nvx_test_google_ads_healthcare_compliance(): void {
-    $data_dir           = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
-    $restricted_pattern = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
-    $failures            = array();
-    $public_files        = array(
+/** Return true when a value contains a restricted prescription-drug advertising term. */
+function nvxAdsRestrictedTerm( string $value, string $pattern ): bool {
+    return 1 === preg_match( $pattern, $value );
+}
+
+/** Check public governed metadata files that may become advertising surfaces. */
+function nvxAdsMetadataFailures( string $dataDir, string $pattern ): array {
+    $failures = array();
+    $publicFiles = array(
         'seo-metadata.json',
         'seo-blog-post-metadata.json',
         'publication-manifest.json',
         'treatment-hub-schema.json',
     );
 
-    foreach ( $public_files as $filename ) {
-        $path = $data_dir . '/' . $filename;
-        $raw  = file_get_contents( $path );
+    foreach ( $publicFiles as $filename ) {
+        $raw = file_get_contents( $dataDir . '/' . $filename );
         if ( false === $raw ) {
             $failures[] = 'Unreadable compliance source: ' . $filename;
             continue;
         }
-
-        if ( 1 === preg_match( $restricted_pattern, $raw ) ) {
+        if ( nvxAdsRestrictedTerm( $raw, $pattern ) ) {
             $failures[] = 'Restricted prescription-drug term in public governed metadata: ' . $filename;
         }
     }
 
-    $routes_path = $data_dir . '/routes.json';
-    $routes_raw  = file_get_contents( $routes_path );
-    $routes      = false === $routes_raw ? null : json_decode( $routes_raw, true );
+    return $failures;
+}
 
+/** Validate a legacy route containing a restricted term. */
+function nvxAdsLegacyRouteFailure( string $route, $config, array $routes, string $pattern ): ?string {
+    if ( ! nvxAdsRestrictedTerm( $route, $pattern ) ) {
+        return null;
+    }
+    if ( ! is_array( $config ) ) {
+        return 'Restricted route is not an alias object: ' . $route;
+    }
+
+    $keys = array_keys( $config );
+    sort( $keys );
+    $alias = (string) ( $config['route_alias'] ?? '' );
+
+    if ( array( 'route_alias' ) !== $keys || '' === $alias ) {
+        return 'Restricted route is not alias-only to a clean canonical target: ' . $route;
+    }
+    if ( nvxAdsRestrictedTerm( $alias, $pattern ) ) {
+        return 'Restricted term in route_alias target: ' . $route . ' -> ' . $alias;
+    }
+    if ( ! array_key_exists( $alias, $routes ) ) {
+        return 'Restricted legacy alias points outside canonical route catalog: ' . $route . ' -> ' . $alias;
+    }
+
+    return null;
+}
+
+/** Validate canonical route configuration that does not use a restricted legacy key. */
+function nvxAdsCanonicalRouteFailure( string $route, $config, string $pattern ): ?string {
+    if ( nvxAdsRestrictedTerm( $route, $pattern ) || ! is_array( $config ) ) {
+        return null;
+    }
+
+    $encoded = json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+    if ( false !== $encoded && nvxAdsRestrictedTerm( $encoded, $pattern ) ) {
+        return 'Restricted prescription-drug term in canonical route configuration: ' . $route;
+    }
+
+    return null;
+}
+
+/** Check route aliases and canonical route configuration. */
+function nvxAdsRouteFailures( string $dataDir, string $pattern ): array {
+    $raw = file_get_contents( $dataDir . '/routes.json' );
+    $routes = false === $raw ? null : json_decode( $raw, true );
     if ( ! is_array( $routes ) ) {
-        $failures[] = 'Unable to parse routes.json for healthcare compliance';
-    } else {
-        foreach ( $routes as $route => $config ) {
-            $route          = (string) $route;
-            $route_restricted = 1 === preg_match( $restricted_pattern, $route );
+        return array( 'Unable to parse routes.json for healthcare compliance' );
+    }
 
-            if ( ! is_array( $config ) ) {
-                if ( $route_restricted ) {
-                    $failures[] = 'Restricted route is not an alias object: ' . $route;
-                }
-                continue;
-            }
-
-            $alias            = (string) ( $config['route_alias'] ?? '' );
-            $alias_restricted = '' !== $alias && 1 === preg_match( $restricted_pattern, $alias );
-
-            if ( $alias_restricted ) {
-                $failures[] = 'Restricted term in route_alias target: ' . $route . ' -> ' . $alias;
-            }
-
-            if ( $route_restricted ) {
-                $keys = array_keys( $config );
-                sort( $keys );
-                if ( array( 'route_alias' ) !== $keys || '' === $alias || $alias_restricted ) {
-                    $failures[] = 'Restricted route is not alias-only to a clean canonical target: ' . $route;
-                    continue;
-                }
-                if ( ! array_key_exists( $alias, $routes ) ) {
-                    $failures[] = 'Restricted legacy alias points outside canonical route catalog: ' . $route . ' -> ' . $alias;
-                }
-                continue;
-            }
-
-            $encoded = json_encode( $config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-            if ( false !== $encoded && 1 === preg_match( $restricted_pattern, $encoded ) ) {
-                $failures[] = 'Restricted prescription-drug term in canonical route configuration: ' . $route;
-            }
+    $failures = array();
+    foreach ( $routes as $route => $config ) {
+        $route = (string) $route;
+        $legacyFailure = nvxAdsLegacyRouteFailure( $route, $config, $routes, $pattern );
+        $canonicalFailure = nvxAdsCanonicalRouteFailure( $route, $config, $pattern );
+        if ( null !== $legacyFailure ) {
+            $failures[] = $legacyFailure;
+        }
+        if ( null !== $canonicalFailure ) {
+            $failures[] = $canonicalFailure;
         }
     }
+
+    return $failures;
+}
+
+/**
+ * Block prescription-drug advertising terms from public governed SEO surfaces.
+ * Historical URLs may retain restricted words only as alias-only redirects to
+ * clean, existing canonical routes.
+ */
+function nvxTestGoogleAdsHealthcareCompliance(): void {
+    $dataDir = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
+    $pattern = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $failures = array_merge(
+        nvxAdsMetadataFailures( $dataDir, $pattern ),
+        nvxAdsRouteFailures( $dataDir, $pattern )
+    );
 
     if ( array() !== $failures ) {
         fwrite( STDERR, 'GOOGLE_ADS_HEALTHCARE_COMPLIANCE_TEST=FAIL' . PHP_EOL );
@@ -190,7 +219,7 @@ function nvx_test_google_ads_healthcare_compliance(): void {
     echo 'GOOGLE_ADS_HEALTHCARE_COMPLIANCE_TEST=PASS' . PHP_EOL;
 }
 
-nvx_test_google_ads_healthcare_compliance();
+nvxTestGoogleAdsHealthcareCompliance();
 
 function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
     unset( $hook_name, $callback, $priority, $accepted_args );

@@ -73,21 +73,9 @@ assert.match(
   /function isAllowedHubSpotHost\(hostname\)/,
   'Valoration bootstrap must validate HubSpot iframe hosts through an explicit allowlist',
 );
-assert.match(
-  managedPage,
-  /hsforms\.net/,
-  'Valoration bootstrap allowlist must include hsforms.net',
-);
-assert.match(
-  managedPage,
-  /hsforms\.com/,
-  'Valoration bootstrap allowlist must include hsforms.com',
-);
-assert.match(
-  managedPage,
-  /hubspot\.com/,
-  'Valoration bootstrap allowlist must include hubspot.com',
-);
+assert.match(managedPage, /hsforms\.net/, 'Valoration bootstrap allowlist must include hsforms.net');
+assert.match(managedPage, /hsforms\.com/, 'Valoration bootstrap allowlist must include hsforms.com');
+assert.match(managedPage, /hubspot\.com/, 'Valoration bootstrap allowlist must include hubspot.com');
 assert.doesNotMatch(
   managedPage,
   /hostname\.indexOf\("(?:hsforms|hubspot)"\)/,
@@ -111,7 +99,17 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   managedPage,
   /hasMarketingConsent/,
-  'HubSpot is functional in the current consent contract; the theme must not reintroduce a marketing-consent gate',
+  'Form availability must not be coupled to marketing-consent tracking cookies',
+);
+assert.doesNotMatch(
+  managedPage,
+  /formReady/,
+  'A valid allowlisted HubSpot iframe must not depend on a separate ready-event state flag',
+);
+assert.match(
+  managedPage,
+  /return hasUsableHubSpotIframe\(root\);/,
+  'A valid HubSpot iframe inside the canonical host must be sufficient render evidence',
 );
 assert.match(
   managedPage,
@@ -128,11 +126,7 @@ assert.match(
   /script\.dataset\.nvxHubspotCanonical="1"/,
   'Valoration bootstrap fallback loader must identify itself as the canonical recovery owner',
 );
-assert.match(
-  managedPage,
-  /isRenderable/,
-  'Valoration bootstrap must detect an actually rendered HubSpot form',
-);
+assert.match(managedPage, /isRenderable/, 'Valoration bootstrap must detect an actually rendered HubSpot form');
 assert.match(
   mountGovernance,
   /nvx_valoracion_direct_form_markup/,
@@ -144,4 +138,4 @@ assert.doesNotMatch(
   'Managed PHP must not expose a literal eager hsforms URL that consent/optimizer scanners can rewrite',
 );
 
-console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1');
+console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1 deterministic_iframe_ready=1');

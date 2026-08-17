@@ -86,3 +86,4 @@ scratch/
 /wp-content/themes/nuvanx-medical/.nvx-deploy-sha
 
 scripts/seo/raw-ads-audit-data.json
+scripts/seo/run-e2e-qa-test.js

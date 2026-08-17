@@ -83,6 +83,16 @@ assert.doesNotMatch(
 );
 assert.match(
   managedPage,
+  /preg_match\( '\/\^\[0-9\]\{1,20\}\$\/', \$portal_id \)/,
+  'HubSpot portal ID must be validated before it is interpolated into the recovery loader URL',
+);
+assert.match(
+  managedPage,
+  /preg_match\( '\/\^\[a-z\]\{2,4\}\[0-9\]\{1,2\}\$\/', \$region \)/,
+  'HubSpot region must be validated before it is interpolated into the recovery loader hostname',
+);
+assert.match(
+  managedPage,
   /hasUsableHubSpotIframe\(frames\[i\]\)/,
   'Valoration bootstrap must prefer an already usable HubSpot frame before removing duplicates',
 );
@@ -126,6 +136,21 @@ assert.match(
   /script\.dataset\.nvxHubspotCanonical="1"/,
   'Valoration bootstrap fallback loader must identify itself as the canonical recovery owner',
 );
+assert.match(
+  managedPage,
+  /var recoveryTimer=0;/,
+  'Valoration bootstrap must track a single pending recovery timer',
+);
+assert.match(
+  managedPage,
+  /if\(recoveryTimer\)\{return;\}/,
+  'Valoration bootstrap must not schedule duplicate recovery work while a timer is pending',
+);
+assert.match(
+  managedPage,
+  /recoveryTimer=window\.setTimeout\(function\(\)\{recoveryTimer=0;/,
+  'Valoration bootstrap must clear the recovery guard when the scheduled attempt begins',
+);
 assert.match(managedPage, /isRenderable/, 'Valoration bootstrap must detect an actually rendered HubSpot form');
 assert.match(
   mountGovernance,
@@ -138,4 +163,4 @@ assert.doesNotMatch(
   'Managed PHP must not expose a literal eager hsforms URL that consent/optimizer scanners can rewrite',
 );
 
-console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1 deterministic_iframe_ready=1');
+console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1 deterministic_iframe_ready=1 config_validation=1 recovery_dedupe=1');

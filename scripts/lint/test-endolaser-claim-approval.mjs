@@ -200,44 +200,156 @@ function extractPhpFunctionBlocks(source) {
   return blocks;
 }
 
-function extractEndolaserConditionalBlocks(source) {
-  const blocks = [];
-  const conditional = /if\s*\(\s*['\"]endolaser_corporal['\"]\s*===\s*\$key\s*\)\s*\{/g;
-  for (const match of source.matchAll(conditional)) {
-    const opening = match.index + match[0].lastIndexOf('{');
-    let depth = 0;
-    let closing = -1;
-    for (let index = opening; index < source.length; index += 1) {
-      if (source[index] === '{') depth += 1;
-      if (source[index] === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          closing = index;
-          break;
-        }
-      }
+function scanQuoted(source, index, quote, escaped) {
+  const character = source[index];
+  if (escaped) return { quote, escaped: false };
+  if (character === '\\') return { quote, escaped: true };
+  if (character === quote) return { quote: '', escaped: false };
+  return { quote, escaped: false };
+}
+
+function findBalancedEnd(source, opening, openChar, closeChar) {
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (let index = opening; index < source.length; index += 1) {
+    const character = source[index];
+    if (quote) {
+      ({ quote, escaped } = scanQuoted(source, index, quote, escaped));
+      continue;
     }
-    if (closing < 0) throw new Error('structured_data_endolaser_branch_unbalanced');
-    blocks.push(source.slice(match.index, closing + 1));
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
+    if (character === openChar) depth += 1;
+    else if (character === closeChar) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function findStatementEnd(source, start) {
+  let depthParen = 0;
+  let depthBrace = 0;
+  let depthBracket = 0;
+  let quote = '';
+  let escaped = false;
+  for (let index = start; index < source.length; index += 1) {
+    const character = source[index];
+    if (quote) {
+      ({ quote, escaped } = scanQuoted(source, index, quote, escaped));
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
+    if (character === '(') depthParen += 1;
+    else if (character === ')') depthParen -= 1;
+    else if (character === '{') depthBrace += 1;
+    else if (character === '}') depthBrace -= 1;
+    else if (character === '[') depthBracket += 1;
+    else if (character === ']') depthBracket -= 1;
+    else if (character === ';' && depthParen === 0 && depthBrace === 0 && depthBracket === 0) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function extractRegexBlocks(source, pattern, kind, closer) {
+  const blocks = [];
+  for (const match of source.matchAll(pattern)) {
+    const text = closer(source, match);
+    if (text === null) throw new Error(`structured_data_endolaser_${kind}_unbalanced`);
+    blocks.push({ kind, text });
   }
   return blocks;
+}
+
+function closeFromOpening(source, match, openChar, closeChar) {
+  const opening = match.index + match[0].lastIndexOf(openChar);
+  if (opening < match.index) return null;
+  const closing = findBalancedEnd(source, opening, openChar, closeChar);
+  if (closing < 0) return null;
+  return source.slice(match.index, closing + 1);
+}
+
+function closeAssignment(source, match) {
+  const end = findStatementEnd(source, match.index);
+  if (end < 0) return null;
+  return source.slice(match.index, end + 1);
+}
+
+function closeArrayEntry(source, match) {
+  const remainder = source.slice(match.index + match[0].length);
+  const first = remainder.search(/\S/);
+  if (first < 0) return null;
+  const valueStart = match.index + match[0].length + first;
+  const value = source.slice(valueStart);
+  if (/^array\s*\(/.test(value)) {
+    const paren = valueStart + value.search(/\(/);
+    const end = findBalancedEnd(source, paren, '(', ')');
+    if (end < 0) return null;
+    return source.slice(match.index, end + 1);
+  }
+  if (value.startsWith('[')) {
+    const end = findBalancedEnd(source, valueStart, '[', ']');
+    if (end < 0) return null;
+    return source.slice(match.index, end + 1);
+  }
+  if (value.startsWith('{')) {
+    const end = findBalancedEnd(source, valueStart, '{', '}');
+    if (end < 0) return null;
+    return source.slice(match.index, end + 1);
+  }
+  const end = findStatementEnd(source, match.index);
+  if (end < 0) return null;
+  return source.slice(match.index, end + 1);
+}
+
+function extractExclusiveEndolaserBlocks(source) {
+  return [
+    ...extractRegexBlocks(
+      source,
+      /if\s*\(\s*(?:['"]endolaser_corporal['"]\s*===\s*\$key|\$key\s*===\s*['"]endolaser_corporal['"])\s*\)\s*\{/g,
+      'key_branch',
+      (text, match) => closeFromOpening(text, match, '{', '}'),
+    ),
+    ...extractRegexBlocks(
+      source,
+      /if\s*\(\s*empty\s*\(\s*\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*\)\s*\)\s*\{/g,
+      'catalog_fallback',
+      (text, match) => closeFromOpening(text, match, '{', '}'),
+    ),
+    ...extractRegexBlocks(
+      source,
+      /\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*=/g,
+      'catalog_assignment',
+      closeAssignment,
+    ),
+    ...extractRegexBlocks(
+      source,
+      /['"]endolaser_corporal['"]\s*=>/g,
+      'array_entry',
+      closeArrayEntry,
+    ),
+  ];
 }
 
 function structuredDataProjection(source) {
   if (typeof source !== 'string') throw new Error('structured_data_source_unavailable');
   const functional = stripNonFunctionalPhpLines(source);
-  const functions = extractPhpFunctionBlocks(functional);
+  extractPhpFunctionBlocks(functional);
+  const exclusive = extractExclusiveEndolaserBlocks(functional);
+  const relevant = exclusive.map((item, index) => [
+    `${item.kind}_${index}`,
+    item.text.replace(/\s+/g, ' ').trim(),
+  ]);
   const anchors = [ENDOLASER_SCHEMA_ID, 'endolaser-page.json', ENDOLASER_ROUTE];
-  const relevant = [];
-  for (const [name, block] of functions.entries()) {
-    if (!anchors.some((anchor) => block.includes(anchor))) continue;
-    const keyedBranches = extractEndolaserConditionalBlocks(block);
-    if (keyedBranches.length > 0) {
-      keyedBranches.forEach((branch, index) => relevant.push([`${name}:endolaser_branch_${index}`, branch.replace(/\s+/g, ' ').trim()]));
-    } else {
-      relevant.push([name, block.replace(/\s+/g, ' ').trim()]);
-    }
-  }
   const sourceHasAnchor = anchors.some((anchor) => functional.includes(anchor));
   if (sourceHasAnchor && relevant.length === 0) {
     throw new Error('structured_data_endolaser_block_unresolved');

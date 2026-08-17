@@ -48,6 +48,39 @@ function nvx_schema_treatment_node_laser( $key ) {
 }
 `;
 
+const faqStructuredData = `<?php
+function nvx_schema_faq_catalog() {
+  $catalog = array();
+  $catalog['endolift_facial'] = nvx_schema_faq_load_single_page( 'endolift-page.json' );
+  $catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
+  if ( empty( $catalog['endolift_facial'] ) ) {
+    $catalog['endolift_facial'] = array(
+      array( 'q' => '¿Cuánto cuesta Endolift?', 'a' => 'Respuesta Endolift vigente.' ),
+    );
+  }
+  if ( empty( $catalog['endolaser_corporal'] ) ) {
+    $catalog['endolaser_corporal'] = array(
+      array( 'q' => '¿Cuántas sesiones de Endoláser?', 'a' => 'Una sesión única.' ),
+    );
+  }
+  if ( empty( $catalog['post-maternity'] ) ) {
+    $catalog['post-maternity'] = array(
+      array( 'q' => '¿Puedo tratarme en lactancia?', 'a' => 'Solo tras valoración.' ),
+    );
+  }
+  return $catalog;
+}
+
+function nvx_schema_treatment_node_laser( $key ) {
+  if ( 'endolaser_corporal' === $key ) {
+    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endoláser corporal' );
+  }
+  if ( 'endolift_facial' === $key ) {
+    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endolift facial' );
+  }
+}
+`;
+
 const baseFiles = {
   [ENDOLASER_PATHS.content]: '{"page":"endolaser"}\n',
   [ENDOLASER_PATHS.emitter]: '<?php function nvx_endolaser_editorial_body_markup() { return ""; }\n',
@@ -89,6 +122,30 @@ assertPass('ENDOLASER_APPROVAL_UNRELATED_SEO', decisionFor(ENDOLASER_PATHS.seo, 
 
 const unrelatedSchema = structuredData.replace("'CO₂ fraccionado'", "'CO₂ fraccionado facial'");
 assertPass('ENDOLASER_APPROVAL_UNRELATED_SCHEMA', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedSchema));
+
+const faqBaseFiles = { ...baseFiles, [ENDOLASER_PATHS.structuredData]: faqStructuredData };
+function faqDecision(nextSource) {
+  return evaluateEndolaserChanges({
+    changedPaths: [ENDOLASER_PATHS.structuredData],
+    baseFiles: faqBaseFiles,
+    headFiles: { ...faqBaseFiles, [ENDOLASER_PATHS.structuredData]: nextSource },
+  });
+}
+
+const unrelatedPostMaternity = faqStructuredData.replace('Solo tras valoración.', 'Solo tras valoración individual.');
+const unrelatedEndoliftFaq = faqStructuredData.replace('Respuesta Endolift vigente.', 'Respuesta Endolift actualizada.');
+assert.equal(faqDecision(unrelatedPostMaternity).protected, false, 'post-maternity FAQ must not trip the Endoláser gate');
+assert.equal(faqDecision(unrelatedEndoliftFaq).protected, false, 'Endolift FAQ must not trip the Endoláser gate');
+console.log('ENDOLASER_APPROVAL_UNRELATED_FAQ=PASS');
+
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
+  faqDecision(faqStructuredData.replace('endolaser-page.json', 'endolaser-page-v2.json')),
+);
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
+  faqDecision(faqStructuredData.replace('Una sesión única.', 'Dos sesiones autorizadas.')),
+);
 
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_CONTENT_CHANGE_WITHOUT_APPROVAL',

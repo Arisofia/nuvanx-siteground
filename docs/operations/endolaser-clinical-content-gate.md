@@ -51,7 +51,7 @@ Una PR requiere un registro de aprobación completo solo cuando cambia una super
 | Archivo o superficie | Cuándo queda protegida |
 |---|---|
 | `inc/data/endolaser-page.json` | Cualquier cambio. |
-| `inc/nvx-endolaser-page.php` | Cualquier cambio funcional; los cambios exclusivos de comentarios no activan el gate. |
+| `inc/nvx-endolaser-page.php` | Cualquier cambio activa el gate. |
 | `inc/data/routes.json` | Cambia la entrada de `/endolaser-corporal-grasa-localizada/` o una entrada asociada por `seo_id=endolaser`, `schema_id=endolaser_corporal`, canonical/ruta o `post_id`. |
 | `inc/data/seo-metadata.json` | Cambia el registro `endolaser` o un registro cuyo `seo_id` sea `endolaser`. |
 | `inc/data/tariff-catalog.json` | Cambia cualquier namespace `endolaser.*` o una clave corporal Endolift/Endolift combo declarada explícitamente en el contrato del gate. Los cambios de EXION, CO₂ u otros catálogos no relacionados no se bloquean. |

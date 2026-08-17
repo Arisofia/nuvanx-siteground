@@ -208,8 +208,16 @@
 	var ENDPOINT = /^https:\/\/[a-z0-9]+\.supabase\.co\/functions\/v1\//.test(configEndpoint)
 		? configEndpoint
 		: 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
-	var normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
-	var eligiblePath = normalizedPath === '/madrid/valoracion';
+	var eligiblePath = normalizedPath === '/madrid/valoracion'
+		|| normalizedPath.indexOf('/endolift') === 0
+		|| normalizedPath.indexOf('/endolaser') === 0
+		|| normalizedPath.indexOf('/neuromoduladores') === 0
+		|| normalizedPath.indexOf('/laser-co2') === 0
+		|| normalizedPath.indexOf('/exion') === 0
+		|| normalizedPath.indexOf('/btl-exilite') === 0
+		|| normalizedPath.indexOf('/soluciones-medicas') === 0
+		|| normalizedPath.indexOf('/protocolos-signature') === 0
+		|| normalizedPath.indexOf('/contacto') === 0;
 	var sent = false;
 	var inFlight = false;
 	var auditClaimed = false;

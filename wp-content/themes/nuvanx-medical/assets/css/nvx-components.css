@@ -244,6 +244,50 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   }
 }
 
+/* Sticky Mobile Conversion CTA */
+.nvx-sticky-mobile-cta {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nvx-sticky-mobile-cta {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    padding: var(--nvx-space-2) var(--nvx-space-3);
+    background: var(--nvx-ink);
+    border-top: 1px solid var(--nvx-border-on-dark-45);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .nvx-sticky-mobile-cta__btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--nvx-space-2) var(--nvx-space-3);
+    font-family: var(--nvx-sans);
+    font-size: var(--nvx-type-body);
+    font-weight: var(--nvx-fw-medium);
+    text-decoration: none;
+    background: var(--nvx-light);
+    color: var(--nvx-ink);
+    border: 1px solid var(--nvx-light);
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .nvx-sticky-mobile-cta__btn:hover,
+  .nvx-sticky-mobile-cta__btn:focus-visible {
+    background: var(--nvx-surface-soft);
+    color: var(--nvx-ink);
+  }
+}
+
+
 /* Canonical conversion button: one shape, type scale and interaction contract. */
 
 .nvx-button--primary, .nvx-btn--primary, .nvx-brand-btn--primary {

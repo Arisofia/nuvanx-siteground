@@ -16,8 +16,9 @@ WORKFLOW="$ROOT/.github/workflows/production.yml"
 BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
 ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
 DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
+LCP_CSS_CONTRACT="$ROOT/scripts/lint/test-lcp-css-delivery.mjs"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -75,5 +76,11 @@ grep -Fq "function_exists( 'nvx_environment_deploy_sha' )" "$DEPLOY_STAMP" || fa
 grep -Fq "nvx_environment_deploy_sha()" "$DEPLOY_STAMP" || fail 'deploy_stamp_environment_fallback_missing'
 grep -Fq "add_action( 'wp_head', 'nvx_render_deploy_stamp_meta', 1 );" "$DEPLOY_STAMP" || fail 'canonical_deploy_stamp_head_owner_missing'
 pass_assert 'single-deploy-sha-head-owner'
+
+# LCP delivery rules are part of the release contract, not an optional lint.
+# The canonical test protects the inlined foundation, blocking structural CSS,
+# non-blocking Google Fonts, and the narrow editorial-only defer boundary.
+node "$LCP_CSS_CONTRACT" || fail 'lcp_css_delivery_contract'
+pass_assert 'lcp-css-delivery'
 
 echo "RELEASE_REGRESSION_CONTRACT=PASS assertions=$assertion_count"

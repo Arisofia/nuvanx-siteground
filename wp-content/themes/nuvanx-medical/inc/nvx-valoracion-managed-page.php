@@ -83,6 +83,15 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 	$form_id   = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 	$region    = defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ? (string) NVX_VALORACION_HS_FRAME_REGION : 'eu1';
 
+	$portal_id = trim( $portal_id );
+	$region    = strtolower( trim( $region ) );
+	if ( 1 !== preg_match( '/^[0-9]{1,20}$/', $portal_id ) ) {
+		$portal_id = '147416356';
+	}
+	if ( 1 !== preg_match( '/^[a-z]{2,4}[0-9]{1,2}$/', $region ) ) {
+		$region = 'eu1';
+	}
+
 	$config = wp_json_encode(
 		array(
 			'portalId' => $portal_id,
@@ -95,7 +104,7 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 		$config = '{"portalId":"147416356","formId":"5042522a-0bc5-4381-ac3e-5aee8649b69c","region":"eu1"}';
 	}
 
-	return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';'
+	return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';var recoveryTimer=0;'
 		. 'function hostMatches(hostname,domain){hostname=String(hostname||"").toLowerCase();return hostname===domain||hostname.slice(-(domain.length+1))==="."+domain;}'
 		. 'function isAllowedHubSpotHost(hostname){return hostMatches(hostname,"hsforms.net")||hostMatches(hostname,"hsforms.com")||hostMatches(hostname,"hubspot.com");}'
 		. 'function iframeIsHubSpot(iframe){if(!iframe){return false;}var src=(iframe.getAttribute("src")||"").trim();if(!src||src==="about:blank"){return false;}try{return isAllowedHubSpotHost(new URL(src,window.location.href).hostname);}catch(e){return false;}}'
@@ -113,8 +122,9 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 		. 'frame.dataset.region=cfg.region;frame.dataset.portalId=cfg.portalId;frame.dataset.formId=cfg.formId;frame.dataset.nvxHubspotLazy="1";sync(host,frame);'
 		. 'if(typeof MutationObserver==="function"&&!host.dataset.nvxHubspotObserver){host.dataset.nvxHubspotObserver="1";new MutationObserver(function(){sync(host,frame);}).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:["src","data-category"]});}'
 		. 'if(isRenderable(host)||isRenderable(frame)){return;}'
+		. 'if(recoveryTimer){return;}'
 		. 'try{host.dispatchEvent(new Event("focusin",{bubbles:true}));}catch(e){}'
-		. 'window.setTimeout(function(){sync(host,frame);if(isRenderable(host)||isRenderable(frame)){return;}'
+		. 'recoveryTimer=window.setTimeout(function(){recoveryTimer=0;sync(host,frame);if(isRenderable(host)||isRenderable(frame)){return;}'
 		. 'if(hasActiveEmbed()){return;}'
 		. 'var script=document.createElement("script");script.id="nvx-hubspot-forms-runtime";script.dataset.nvxHubspotCanonical="1";'
 		. 'script.src="https://js-"+cfg.region+".hs"+"forms.net/forms/embed/"+cfg.portalId+".js";script.async=true;'

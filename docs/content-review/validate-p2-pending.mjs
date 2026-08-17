@@ -1,7 +1,19 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const file = process.argv[2];
-if (!file) throw new Error('Usage: node validate-p2-pending.mjs path/to/p2-endolaser-page-pending.json');
+const root = path.dirname(fileURLToPath(import.meta.url));
+const requested = process.argv[2];
+if (!requested) throw new Error('Usage: node validate-p2-pending.mjs p2-endolaser-page-pending.json');
+if (requested.split(/[\\/]/).includes('..')) {
+  throw new Error('P2_PENDING_PATH=FAIL reason=parent_traversal');
+}
+
+const file = path.resolve(root, requested);
+const relative = path.relative(root, file);
+if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  throw new Error('P2_PENDING_PATH=FAIL reason=outside_content_review_dir');
+}
 
 const payload = JSON.parse(await fs.readFile(file, 'utf8'));
 const requiredObjects = ['hero', 'mechanism', 'zones', 'exclusion', 'planning', 'faq', 'downtime', 'pricing'];

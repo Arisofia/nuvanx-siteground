@@ -19,6 +19,7 @@ class Nvx_Third_Party_Scripts_Manager {
 		'connect.facebook.net',
 		'js.hs-scripts.com',
 		'hs-analytics.net',
+		'static.klaviyo.com',
 	);
 
 	/**

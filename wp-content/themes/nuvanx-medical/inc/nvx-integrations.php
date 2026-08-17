@@ -120,10 +120,8 @@ function nvx_resolve_home_hero_poster_url(): string {
 add_action(
 	'wp_head',
 	function (): void {
-		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
-		/*
-		Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
-		 * Ver Playwright tests para garantizar que las fuentes de marca se aplican correctamente. */
+		// Font preconnect lives once in header.php. Repeating it here doubles
+		// the early connection work without shortening the critical path.
 
 		if ( is_front_page() ) {
 			$poster_url = nvx_resolve_home_hero_poster_url();
@@ -419,7 +417,8 @@ add_filter(
 					$href = is_array( $url ) ? (string) ( $url['href'] ?? '' ) : (string) $url;
 					$href = strtolower( $href );
 					return ! str_contains( $href, 'hsforms' )
-						&& ! str_contains( $href, 'hs-scripts.com' );
+						&& ! str_contains( $href, 'hs-scripts.com' )
+						&& ! str_contains( $href, 'klaviyo.com' );
 				}
 			)
 		);
@@ -427,3 +426,20 @@ add_filter(
 	10,
 	2
 );
+
+/**
+ * Klaviyo onsite JS is not used for conversion. Strip the public identify
+ * bundle so Lighthouse does not pay 18KB of ES5 polyfills on every view.
+ * Admin / Klaviyo account flows are unchanged.
+ */
+function nvx_dequeue_klaviyo_onsite(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	foreach ( array( 'klaviyo', 'klaviyo-js', 'kl-identify-browser', 'klaviyo_identify' ) as $handle ) {
+		wp_dequeue_script( $handle );
+		wp_deregister_script( $handle );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'nvx_dequeue_klaviyo_onsite', 999 );

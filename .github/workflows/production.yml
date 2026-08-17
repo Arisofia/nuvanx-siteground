@@ -905,7 +905,7 @@ jobs:
           jq -e '.mode == "read_only" and (.entries | length) > 0 and ([.entries[] | select(.hash_match and .php_syntax == "PASS")] | length) == (.entries | length)' "$REPORT_DIR/mu-plugins-production-manifest.json" >/dev/null
           jq -e '([.findings[] | select(.category == "SECRET")] | length) == 0' "$REPORT_DIR/mu-plugins-secret-scan-redacted.json" >/dev/null
           test -f "$REPORT_DIR/mu-plugins-production.zip"
-          echo 'MU_PLUGIN_FORENSICS_EXTRACTION=PASS sources=8 secrets=0'
+          echo "MU_PLUGIN_FORENSICS_EXTRACTION=PASS sources=$(jq '.entries | length' "$REPORT_DIR/mu-plugins-production-manifest.json") secrets=0"
 
       - name: Discover Staging2 document root read-only
         shell: bash

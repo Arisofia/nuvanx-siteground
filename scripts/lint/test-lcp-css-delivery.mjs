@@ -29,6 +29,11 @@ assert.match(
 );
 assert.match(
   governance,
+  /wp_register_style\(\s*'nvx-fonts'\s*,\s*false\s*,\s*array\(\s*'nvx-google-fonts'\s*,\s*'nvx-critical-inline'\s*\)/,
+  'inlined nvx-fonts handle must preserve its Google Fonts dependency',
+);
+assert.match(
+  governance,
   /function nvx_theme_nonblocking_google_fonts/,
   'Google Fonts stylesheet must not block first paint',
 );

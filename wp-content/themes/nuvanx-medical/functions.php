@@ -279,6 +279,7 @@ require_once get_template_directory() . '/inc/nvx-bioestimuladores-official.php'
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
+require_once get_template_directory() . '/inc/nvx-valoracion-direct-form.php';
 require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
 
 // 4. Page Templates & Editorial Modules

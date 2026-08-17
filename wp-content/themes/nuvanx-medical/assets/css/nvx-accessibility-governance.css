@@ -90,7 +90,7 @@
 }
 
 /* Desktop breakpoint: mobile drawer never rendered as an active navigation surface. */
-@media (min-width: 90rem) {
+@media (min-width: 64rem) {
   .nvx-mobile-nav,
   .nvx-mobile-nav[open],
   .nvx-mobile-nav.is-open,

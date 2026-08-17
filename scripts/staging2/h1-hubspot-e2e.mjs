@@ -34,11 +34,22 @@ const runtimeGovernanceUrl = new URL(
   import.meta.url
 );
 
-const [managedPage, heroAndForms, conversionEvents, runtimeGovernance] = await Promise.all([
+const directFormUrl = new URL(
+  '../../wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php',
+  import.meta.url
+);
+const pageHygieneUrl = new URL(
+  '../../wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php',
+  import.meta.url
+);
+
+const [managedPage, heroAndForms, conversionEvents, runtimeGovernance, directForm, pageHygiene] = await Promise.all([
   fs.readFile(managedPageUrl, 'utf8'),
   fs.readFile(heroAndFormsUrl, 'utf8'),
   fs.readFile(conversionEventsUrl, 'utf8'),
   fs.readFile(runtimeGovernanceUrl, 'utf8'),
+  fs.readFile(directFormUrl, 'utf8'),
+  fs.readFile(pageHygieneUrl, 'utf8'),
 ]);
 
 assert.match(
@@ -154,6 +165,69 @@ assert.match(
   runtimeGovernance,
   /Formulario de valoración médica/,
   'runtime governance must retain an accessible HubSpot iframe name'
+);
+assert.match(
+  runtimeGovernance,
+  /isHubSpotRenderable/,
+  'runtime must distinguish a live HubSpot iframe from a Complianz-blocked placeholder'
+);
+assert.match(
+  runtimeGovernance,
+  /text\/plain/,
+  'runtime must ignore Complianz-inert HubSpot scripts when deciding the embed is loaded'
+);
+assert.match(
+  runtimeGovernance,
+  /cmplz_enable_category/,
+  'runtime must retry the HubSpot embed after Complianz consent'
+);
+
+assert.match(
+  heroAndForms,
+  /nvx_valoracion_direct_form_markup/,
+  'canonical mount must render the first-party valoración form'
+);
+assert.doesNotMatch(
+  heroAndForms,
+  /style="display:none;"/,
+  'canonical mount must not hide the conversion surface with an inline display:none'
+);
+
+assert.match(
+  directForm,
+  /name="firstname"/,
+  'first-party form must collect a name'
+);
+assert.match(
+  directForm,
+  /name="phone"/,
+  'first-party form must collect a phone'
+);
+assert.match(
+  directForm,
+  /name="email"/,
+  'first-party form must collect an email'
+);
+assert.match(
+  directForm,
+  /api\.hsforms\.com\/submissions\/v3\/integration\/submit/,
+  'first-party form must forward leads to the HubSpot Forms API'
+);
+assert.match(
+  managedPage,
+  /function isRenderable\(root\)/,
+  'recovery bootstrap must treat a Complianz-blocked iframe as not renderable'
+);
+
+assert.match(
+  pageHygiene,
+  /cmplz_whitelisted_script_tags/,
+  'Complianz must whitelist HubSpot form scripts so the embed can render without marketing consent'
+);
+assert.match(
+  pageHygiene,
+  /hsforms\.net/,
+  'Complianz whitelist must include the HubSpot forms host'
 );
 
 console.log(`EXPECTED_SHA=${expectedSha}`);

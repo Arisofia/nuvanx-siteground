@@ -83,6 +83,16 @@ assert.match(
   /script\.dataset\.nvxHubspotCanonical="1"/,
   'Valoration bootstrap fallback loader must identify itself as the canonical recovery owner',
 );
+assert.match(
+  managedPage,
+  /isRenderable/,
+  'Valoration bootstrap must detect a Complianz-blocked HubSpot iframe as not renderable',
+);
+assert.match(
+  mountGovernance,
+  /nvx_valoracion_direct_form_markup/,
+  'Mount governance must render the first-party valoración form beside the HubSpot frame',
+);
 assert.doesNotMatch(
   managedPage,
   /https:\/\/js-eu1\.hsforms\.net\/forms\/embed\/147416356\.js/,

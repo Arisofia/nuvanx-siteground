@@ -244,6 +244,49 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   }
 }
 
+/* Sticky mobile conversion CTA. Hidden on desktop; intercepts into the valoración modal. */
+.nvx-sticky-mobile-cta {
+  display: none;
+}
+
+@media (max-width: 63.999rem) {
+  .nvx-sticky-mobile-cta {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    padding: var(--nvx-space-2) var(--nvx-space-3);
+    background: var(--nvx-ink);
+    border-top: var(--nvx-border-hairline) solid var(--nvx-border-on-dark-45);
+    box-shadow: var(--nvx-shadow-button);
+  }
+
+  .nvx-sticky-mobile-cta__btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--nvx-space-2) var(--nvx-space-3);
+    font-family: var(--nvx-sans);
+    font-size: var(--nvx-type-body);
+    font-weight: var(--nvx-fw-medium);
+    text-decoration: none;
+    background: var(--nvx-light);
+    color: var(--nvx-ink);
+    border: var(--nvx-border-hairline) solid var(--nvx-light);
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .nvx-sticky-mobile-cta__btn:hover,
+  .nvx-sticky-mobile-cta__btn:focus-visible {
+    background: var(--nvx-surface-soft);
+    color: var(--nvx-ink);
+  }
+}
+
 /* Canonical conversion button: one shape, type scale and interaction contract. */
 
 .nvx-button--primary, .nvx-btn--primary, .nvx-brand-btn--primary {
@@ -538,7 +581,9 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 }
 
 .nvx-hs-lead-form,
+.nvx-valoracion-direct-form,
 .nvx-hubspot-form-section form.nvx-hs-lead-form,
+.nvx-hubspot-form-section form.nvx-valoracion-direct-form,
 .nvx-hubspot-form-section .hs-form,
 .nvx-hubspot-form-section form.hs-form {
   display: grid;
@@ -752,7 +797,81 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 /* HubSpot embed frame: keep card width, soft frame */
 .nvx-hubspot-form-section .hs-form-frame {
   width: 100%;
+  min-height: 0;
+}
+
+.nvx-hubspot-form-section .hs-form-frame iframe,
+.nvx-valoracion-modal__form .hs-form-frame iframe {
+  display: none;
+}
+
+.nvx-hubspot-is-live .hs-form-frame {
   min-height: 12rem;
+}
+
+.nvx-hubspot-is-live .hs-form-frame iframe {
+  display: block;
+  width: 100%;
+}
+
+.nvx-hubspot-is-live .nvx-valoracion-direct-form,
+.nvx-hubspot-is-live .nvx-hubspot-fallback,
+.nvx-hubspot-is-live .nvx-skeleton-wrapper {
+  display: none;
+}
+
+.nvx-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nvx-valoracion-direct-form__field {
+  margin: 0;
+}
+
+.nvx-valoracion-direct-form__consent {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  line-height: 1.5;
+  color: var(--nvx-text-body);
+}
+
+.nvx-valoracion-direct-form__consent label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nvx-space-2);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--nvx-type-small);
+  color: var(--nvx-text-body);
+}
+
+.nvx-valoracion-direct-form__consent input[type="checkbox"] {
+  margin-top: 0.2em;
+  flex: 0 0 auto;
+}
+
+.nvx-valoracion-direct-form__error {
+  margin: 0 0 var(--nvx-space-3);
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-button);
+  background: var(--nvx-surface-soft);
+  color: var(--nvx-ink);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+}
+
+.nvx-valoracion-direct-form__submit {
+  width: 100%;
 }
 
 /* —— Valoración modal (global CTA, keeps page context) —— */
@@ -825,10 +944,18 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   color:var(--nvx-text-body);
 }
 .nvx-valoracion-modal__form{
-  min-height:12rem;
+  min-height:0;
 }
 .nvx-valoracion-modal__form .hs-form-frame{
   width:100%;
+  min-height:0;
+}
+.nvx-hubspot-is-live.nvx-valoracion-modal__form,
+.nvx-hubspot-is-live .nvx-valoracion-modal__form {
+  min-height:12rem;
+}
+.nvx-hubspot-is-live .nvx-valoracion-modal__form .hs-form-frame,
+.nvx-valoracion-modal__form.nvx-hubspot-is-live .hs-form-frame {
   min-height:14rem;
 }
 .nvx-valoracion-modal__legal{

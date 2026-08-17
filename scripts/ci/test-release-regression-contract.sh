@@ -14,8 +14,10 @@ IDENTITY_CONTRACT="$ROOT/scripts/production/test-deploy-identity-contract.mjs"
 DEPLOY="$ROOT/tools/deploy/deploy-to-prod.sh"
 WORKFLOW="$ROOT/.github/workflows/production.yml"
 BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
+ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
+DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -63,5 +65,15 @@ grep -Fq 'expected_re="$(escape_ere "$expected")"' "$BOUNDARY" || fail 'boundary
 grep -Fq '$name_re' "$BOUNDARY" || fail 'boundary_escaped_name_reference_missing'
 grep -Fq '$expected_re' "$BOUNDARY" || fail 'boundary_escaped_expected_reference_missing'
 pass_assert 'boundary-shell-local-interpolation'
+
+# Public deploy identity has exactly one wp_head owner. Staging only writes the
+# legacy `.nvx-deploy-sha` file, so the canonical stamp renderer must fall back
+# to nvx_environment_deploy_sha() while the environment module remains resolver-only.
+! grep -Fq "add_action( 'wp_head', 'nvx_environment_render_deploy_sha'" "$ENV_FLAGS" || fail 'legacy_deploy_sha_head_emitter_forbidden'
+! grep -Fq 'function nvx_environment_render_deploy_sha' "$ENV_FLAGS" || fail 'legacy_deploy_sha_renderer_forbidden'
+grep -Fq "function_exists( 'nvx_environment_deploy_sha' )" "$DEPLOY_STAMP" || fail 'deploy_stamp_environment_fallback_guard_missing'
+grep -Fq "nvx_environment_deploy_sha()" "$DEPLOY_STAMP" || fail 'deploy_stamp_environment_fallback_missing'
+grep -Fq "add_action( 'wp_head', 'nvx_render_deploy_stamp_meta', 1 );" "$DEPLOY_STAMP" || fail 'canonical_deploy_stamp_head_owner_missing'
+pass_assert 'single-deploy-sha-head-owner'
 
 echo "RELEASE_REGRESSION_CONTRACT=PASS assertions=$assertion_count"

@@ -2,9 +2,9 @@
 /**
  * Native WordPress style governance for fully theme-owned templates.
  *
- * Gutenberg styles remain available everywhere except templates whose complete
- * markup and component styling are owned by the theme. No core enqueue action
- * is removed globally.
+ * Theme CSS is delivered through one inline critical bundle. The source files
+ * remain canonical and linted, but public requests no longer serialise local
+ * stylesheet requests ahead of the LCP element.
  *
  * @package nuvanx-medical
  */
@@ -24,62 +24,157 @@ function nvx_theme_owns_complete_page_markup(): bool {
 }
 
 /**
- * Inline the small, universally required CSS foundation.
+ * Return the ordered local stylesheets required by the current public route.
  *
- * Source files remain canonical and linted. Delivery inlines three tiny files
- * so first paint does not wait on extra stylesheets. Structural CSS
- * (header/layout/components) stays render-blocking on purpose.
+ * The order mirrors the original dependency graph. Route-local styles are
+ * appended only when their template can render the matching markup.
+ *
+ * @return string[] Relative paths below the active theme directory.
+ */
+function nvx_theme_critical_stylesheet_files(): array {
+	$files = array(
+		'assets/css/nvx-fonts.css',
+		'assets/css/nvx-tokens.css',
+		'assets/css/nvx-base.css',
+		'assets/css/nvx-site-layout.css',
+		'assets/css/nvx-components.css',
+		'assets/css/nvx-patterns-editorial.css',
+		'assets/css/nvx-header.css',
+		'assets/css/nvx-footer.css',
+		'assets/css/nvx-accessibility-governance.css',
+	);
+
+	if ( is_front_page() ) {
+		$files[] = 'assets/css/nvx-home-v3.css';
+	}
+
+	if ( nvx_theme_is_treatments_hub_page() ) {
+		$files[] = 'assets/css/nvx-portfolio-hub.css';
+	}
+
+	if ( function_exists( 'nvx_theme_is_blog_context' ) && nvx_theme_is_blog_context() ) {
+		$files[] = 'assets/css/nvx-posts.css';
+	}
+
+	if ( function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page() ) {
+		$files[] = 'assets/css/nvx-soluciones-medicas.css';
+	}
+
+	if ( is_page( 'casos-de-pacientes' ) ) {
+		$files[] = 'assets/css/nvx-cases-holding.css';
+	}
+
+	return $files;
+}
+
+/**
+ * Handles owned by the local theme stylesheets.
+ *
+ * @return string[]
+ */
+function nvx_theme_local_style_handles(): array {
+	return array(
+		'nvx-fonts',
+		'nvx-tokens',
+		'nvx-base',
+		'nvx-layout',
+		'nvx-components',
+		'nvx-patterns',
+		'nvx-header',
+		'nvx-footer',
+		'nvx-accessibility-governance',
+		'nvx-home-v3',
+		'nvx-portfolio-hub',
+		'nvx-posts',
+		'nvx-soluciones-medicas',
+		'nvx-cases-holding',
+	);
+}
+
+/**
+ * Collect WordPress-generated inline additions for a stylesheet handle.
+ *
+ * @param WP_Styles $styles Registered style collection.
+ * @param string    $handle Stylesheet handle.
+ * @return string
+ */
+function nvx_theme_style_after_data( WP_Styles $styles, string $handle ): string {
+	$after = $styles->get_data( $handle, 'after' );
+	if ( ! is_array( $after ) ) {
+		return '';
+	}
+
+	return implode( "\n", array_filter( $after, 'is_string' ) );
+}
+
+/**
+ * Inline the complete theme stylesheet contract before WordPress prints head
+ * styles. This removes local theme <link> requests while preserving dynamic
+ * wp_add_inline_style() additions such as the valoración form stage image.
  */
 function nvx_theme_inline_critical_style_foundation(): void {
 	if ( is_admin() ) {
 		return;
 	}
 
-	$relative_files = array(
-		'assets/css/nvx-fonts.css',
-		'assets/css/nvx-tokens.css',
-		'assets/css/nvx-base.css',
-	);
+	$styles       = wp_styles();
 	$critical_css = '';
 
-	foreach ( $relative_files as $relative_file ) {
+	foreach ( nvx_theme_critical_stylesheet_files() as $relative_file ) {
 		$absolute_file = get_template_directory() . '/' . $relative_file;
 		if ( ! is_readable( $absolute_file ) ) {
-			return;
+			continue;
 		}
 
 		$contents = file_get_contents( $absolute_file );
 		if ( false === $contents || '' === trim( $contents ) ) {
-			return;
+			continue;
 		}
+
 		$critical_css .= "\n/* " . basename( $relative_file ) . " */\n" . $contents;
 	}
 
-	foreach ( array( 'nvx-fonts', 'nvx-tokens', 'nvx-base' ) as $handle ) {
+	foreach ( nvx_theme_local_style_handles() as $handle ) {
+		$inline_css = nvx_theme_style_after_data( $styles, $handle );
+		if ( '' !== $inline_css ) {
+			$critical_css .= "\n/* Inline additions for " . $handle . " */\n" . $inline_css;
+		}
+
 		wp_dequeue_style( $handle );
 		wp_deregister_style( $handle );
+	}
+
+	if ( '' === trim( $critical_css ) ) {
+		return;
 	}
 
 	wp_register_style( 'nvx-critical-inline', false, array(), NVX_THEME_VERSION );
 	wp_enqueue_style( 'nvx-critical-inline' );
 	wp_add_inline_style( 'nvx-critical-inline', $critical_css );
-
-	// Preserve the original Google Fonts dependency while replacing the local
-	// nvx-fonts network request with the inlined critical foundation.
-	wp_register_style( 'nvx-fonts', false, array( 'nvx-google-fonts', 'nvx-critical-inline' ), NVX_THEME_VERSION );
-	wp_register_style( 'nvx-tokens', false, array( 'nvx-fonts' ), NVX_THEME_VERSION );
-	wp_register_style( 'nvx-base', false, array( 'nvx-tokens' ), NVX_THEME_VERSION );
-	wp_enqueue_style( 'nvx-fonts' );
-	wp_enqueue_style( 'nvx-tokens' );
-	wp_enqueue_style( 'nvx-base' );
 }
-add_action( 'wp_enqueue_scripts', 'nvx_theme_inline_critical_style_foundation', 20 );
+add_action( 'wp_enqueue_scripts', 'nvx_theme_inline_critical_style_foundation', 999 );
+
+/**
+ * Remove a local stylesheet that a page template registered after the normal
+ * enqueue hook. Its source has already been incorporated in the route bundle.
+ */
+function nvx_theme_dequeue_late_local_styles(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	foreach ( nvx_theme_local_style_handles() as $handle ) {
+		wp_dequeue_style( $handle );
+		wp_deregister_style( $handle );
+	}
+}
+add_action( 'wp_head', 'nvx_theme_dequeue_late_local_styles', 7 );
 
 /**
  * Start Google Fonts immediately without blocking first paint.
  *
- * display=swap is already on the request URL. Structural theme CSS never
- * uses this path, so a blocked onload cannot collapse the header or form.
+ * display=swap is already on the request URL. The local theme CSS is inlined,
+ * so a delayed font stylesheet cannot hide the page structure or hero surface.
  *
  * @param string $html   Generated stylesheet tag.
  * @param string $handle Registered stylesheet handle.
@@ -100,30 +195,6 @@ function nvx_theme_nonblocking_google_fonts( string $html, string $handle, strin
 		. '<noscript><link rel="stylesheet" id="' . esc_attr( $handle . '-css-noscript' ) . '" href="' . $safe_href . '" /></noscript>' . "\n";
 }
 add_filter( 'style_loader_tag', 'nvx_theme_nonblocking_google_fonts', 20, 4 );
-
-/**
- * Defer editorial pattern CSS. It is never required for first paint.
- *
- * @param string $html   Generated stylesheet tag.
- * @param string $handle Registered stylesheet handle.
- */
-function nvx_theme_defer_editorial_css( string $html, string $handle ): string {
-	if ( 'nvx-patterns' !== $handle || is_admin() ) {
-		return $html;
-	}
-
-	$deferred = str_replace(
-		array( "rel='stylesheet'", 'rel="stylesheet"' ),
-		array( "rel='stylesheet' media='print' onload=\"this.media='all'\"", 'rel="stylesheet" media="print" onload="this.media=\'all\'"' ),
-		$html
-	);
-	if ( $deferred === $html ) {
-		return $html;
-	}
-
-	return $deferred . '<noscript>' . $html . '</noscript>';
-}
-add_filter( 'style_loader_tag', 'nvx_theme_defer_editorial_css', 20, 2 );
 
 /** Dequeue block styles only when the rendered page contains no block markup. */
 function nvx_theme_dequeue_native_block_styles(): void {

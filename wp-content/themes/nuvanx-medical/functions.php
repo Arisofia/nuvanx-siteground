@@ -161,9 +161,9 @@ function nvx_theme_scripts(): void {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';
 
-	// Structural CSS is deliberately render-blocking. These styles own the global
-	// layout/header/footer contract and must remain available when JavaScript or an
-	// onload handler is blocked. Performance work must not make page structure JS-dependent.
+	// Source files remain registered here for editor/runtime ownership. On public
+	// requests nvx-native-style-governance.php consolidates the complete local
+	// theme stack into one inline critical bundle before styles are printed.
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), nvx_asset_version( 'assets/css/nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-base.css' ) );
 	wp_enqueue_style( 'nvx-layout', $css . 'nvx-site-layout.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-site-layout.css' ) );

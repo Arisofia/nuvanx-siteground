@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
@@ -11,6 +10,10 @@ const integrations = fs.readFileSync(
   'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
   'utf8',
 );
+const components = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/css/nvx-components.css',
+  'utf8',
+);
 
 assert.match(
   functionsPhp,
@@ -19,18 +22,63 @@ assert.match(
 );
 assert.match(
   functionsPhp,
-  /Structural CSS is deliberately render-blocking/,
-  'header/layout/components must remain render-blocking',
+  /consolidates the complete local\s+\/\/ theme stack into one inline critical bundle/,
+  'theme stylesheet registration must document the public inline delivery',
+);
+assert.match(
+  governance,
+  /function nvx_theme_critical_stylesheet_files/,
+  'the critical bundle must have a route-aware source manifest',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-site-layout\.css/,
+  'layout CSS must be part of the inline bundle',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-components\.css/,
+  'component CSS must be part of the inline bundle',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-patterns-editorial\.css/,
+  'interior hero CSS must be reserved before deferred assets',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-accessibility-governance\.css/,
+  'accessibility CSS must be part of the inline bundle',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-home-v3\.css/,
+  'home CSS must be included only on the front page',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-posts\.css/,
+  'blog CSS must be included on editorial routes',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-soluciones-medicas\.css/,
+  'solutions CSS must be included on its route',
+);
+assert.match(
+  governance,
+  /assets\/css\/nvx-cases-holding\.css/,
+  'patient-cases CSS must be included on its route',
 );
 assert.match(
   governance,
   /function nvx_theme_inline_critical_style_foundation/,
-  'critical tokens/base/fonts must be inlined',
+  'the stylesheet bundle must be emitted inline',
 );
 assert.match(
   governance,
-  /wp_register_style\(\s*'nvx-fonts'\s*,\s*false\s*,\s*array\(\s*'nvx-google-fonts'\s*,\s*'nvx-critical-inline'\s*\)/,
-  'inlined nvx-fonts handle must preserve its Google Fonts dependency',
+  /function nvx_theme_dequeue_late_local_styles/,
+  'late template styles must not recreate local stylesheet links',
 );
 assert.match(
   governance,
@@ -38,29 +86,29 @@ assert.match(
   'Google Fonts stylesheet must not block first paint',
 );
 assert.match(
-  governance,
-  /nvx-patterns/,
-  'editorial pattern CSS is the only theme sheet allowed to defer',
-);
-assert.doesNotMatch(
-  governance,
-  /nvx-components['"]\s*,/,
-  'nvx-components must not be print-deferred',
+  integrations,
+  /function nvx_theme_is_klaviyo_asset/,
+  'Klaviyo assets must be identified on all public routes',
 );
 assert.match(
   integrations,
-  /nvx_is_valoracion_klaviyo_excluded/,
-  'Klaviyo Onsite must stay available off the valoración landing',
+  /function nvx_dequeue_public_klaviyo_onsite/,
+  'Klaviyo Onsite must be removed globally from the public frontend',
 );
 assert.match(
   integrations,
-  /nvx_dequeue_klaviyo_onsite_on_valoracion/,
-  'Klaviyo Onsite must be removed only on the HubSpot conversion landing',
+  /function nvx_theme_defer_auxiliary_script_tags/,
+  'Complianz and Joinchat scripts must be deferred',
 );
 assert.match(
   integrations,
-  /R5dw99/,
-  'Klaviyo exclusion comments must name the live onsite popup',
+  /function nvx_theme_defer_auxiliary_style_tags/,
+  'Complianz and Joinchat styles must be non-blocking',
+);
+assert.match(
+  components,
+  /\.nvx-brand-microcopy--dark\s*\{\s*color:\s*var\(--nvx-text-on-dark-82\)/,
+  'dark hero microcopy must meet the requested AA contrast token',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

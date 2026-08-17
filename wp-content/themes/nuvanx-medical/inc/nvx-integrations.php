@@ -416,12 +416,10 @@ add_filter(
 				static function ( $url ): bool {
 					$href = is_array( $url ) ? (string) ( $url['href'] ?? '' ) : (string) $url;
 					$href = strtolower( $href );
-					$keep = ! str_contains( $href, 'hsforms' )
-						&& ! str_contains( $href, 'hs-scripts.com' );
-					if ( $keep && str_contains( $href, 'klaviyo.com' ) && nvx_is_valoracion_klaviyo_excluded() ) {
-						return false;
-					}
-					return $keep;
+						$keep = ! str_contains( $href, 'hsforms' )
+							&& ! str_contains( $href, 'hs-scripts.com' )
+							&& ! str_contains( $href, 'klaviyo' );
+						return $keep;
 				}
 			)
 		);
@@ -431,32 +429,27 @@ add_filter(
 );
 
 /**
- * Whether the current request is the dedicated valoración conversion landing.
+ * Whether a public asset belongs to Klaviyo Onsite or its inherited runtime.
  *
- * Matches WP snippet #8 (page 2636): keep Klaviyo Onsite everywhere else so the
- * live popup R5dw99 and its email/SMS welcome flows can run.
+ * Klaviyo is intentionally removed from every public route. It was previously
+ * excluded only on valoración; the global policy eliminates its short cache
+ * TTL and legacy sharedUtils/polyfill payload from the critical path.
+ *
+ * @param string $handle Script handle.
+ * @param string $src    Script URL.
+ * @param string $tag    Generated script tag.
  */
-function nvx_is_valoracion_klaviyo_excluded(): bool {
-	if ( is_admin() ) {
-		return false;
-	}
-	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-		return true;
-	}
-	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
-		return true;
-	}
-	if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
-		return true;
-	}
-	return is_page( 2636 ) || is_page( 'valoracion' );
+function nvx_theme_is_klaviyo_asset( string $handle = '', string $src = '', string $tag = '' ): bool {
+	$haystack = strtolower( $handle . ' ' . $src . ' ' . $tag );
+
+	return str_contains( $haystack, 'klaviyo' )
+		|| str_contains( $haystack, 'kl-identify' )
+		|| str_contains( $haystack, '_learnq' );
 }
 
-/**
- * Keep Klaviyo Onsite off the HubSpot conversion landing only.
- */
-function nvx_dequeue_klaviyo_onsite_on_valoracion(): void {
-	if ( ! nvx_is_valoracion_klaviyo_excluded() ) {
+/** Remove Klaviyo Onsite from all public frontend requests. */
+function nvx_dequeue_public_klaviyo_onsite(): void {
+	if ( is_admin() ) {
 		return;
 	}
 
@@ -465,22 +458,57 @@ function nvx_dequeue_klaviyo_onsite_on_valoracion(): void {
 		wp_deregister_script( $handle );
 	}
 }
-add_action( 'wp_enqueue_scripts', 'nvx_dequeue_klaviyo_onsite_on_valoracion', 999 );
+add_action( 'wp_enqueue_scripts', 'nvx_dequeue_public_klaviyo_onsite', 999 );
 
-/**
- * Drop leftover Klaviyo script tags on the conversion landing.
- *
- * @param string $tag    Generated script tag.
- * @param string $handle Script handle.
- */
-function nvx_strip_klaviyo_script_tags_on_valoracion( string $tag, string $handle ): string {
-	unset( $handle );
-	if ( ! nvx_is_valoracion_klaviyo_excluded() ) {
-		return $tag;
-	}
-	if ( str_contains( strtolower( $tag ), 'klaviyo' ) ) {
+/** Drop any remaining public Klaviyo script tag, including optimizer rewrites. */
+function nvx_strip_public_klaviyo_script_tags( string $tag, string $handle, string $src = '' ): string {
+	if ( ! is_admin() && nvx_theme_is_klaviyo_asset( $handle, $src, $tag ) ) {
 		return '';
 	}
+
 	return $tag;
 }
-add_filter( 'script_loader_tag', 'nvx_strip_klaviyo_script_tags_on_valoracion', 1000, 2 );
+add_filter( 'script_loader_tag', 'nvx_strip_public_klaviyo_script_tags', 1000, 3 );
+
+/**
+ * Whether an asset belongs to a non-LCP consent or chat integration.
+ *
+ * @param string $handle Asset handle.
+ * @param string $source Asset URL or generated tag.
+ */
+function nvx_theme_is_deferred_auxiliary_asset( string $handle, string $source ): bool {
+	$haystack = strtolower( $handle . ' ' . $source );
+
+	return str_contains( $haystack, 'complianz' )
+		|| str_contains( $haystack, 'cmplz' )
+		|| str_contains( $haystack, 'joinchat' )
+		|| str_contains( $haystack, 'creame-whatsapp-me' );
+}
+
+/** Defer public Complianz and Joinchat JavaScript without making page UI JS-dependent. */
+function nvx_theme_defer_auxiliary_script_tags( string $tag, string $handle, string $src = '' ): string {
+	if ( is_admin() || ! nvx_theme_is_deferred_auxiliary_asset( $handle, $src . ' ' . $tag ) || ! str_contains( $tag, '<script' ) ) {
+		return $tag;
+	}
+
+	$tag = (string) preg_replace( '/\s(?:async|defer)(?:=(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?/i', '', $tag );
+	return str_replace( '<script', '<script defer', $tag );
+}
+add_filter( 'script_loader_tag', 'nvx_theme_defer_auxiliary_script_tags', 11, 3 );
+
+/** Defer non-critical Complianz and Joinchat stylesheets while retaining a no-JS fallback. */
+function nvx_theme_defer_auxiliary_style_tags( string $html, string $handle, string $href, string $media ): string {
+	unset( $media );
+	if ( is_admin() || ! nvx_theme_is_deferred_auxiliary_asset( $handle, $href ) ) {
+		return $html;
+	}
+
+	$deferred = str_replace(
+		array( "rel='stylesheet'", 'rel="stylesheet"' ),
+		array( "rel='stylesheet' media='print' onload=\"this.media='all'\"", 'rel="stylesheet" media="print" onload="this.media=\'all\'"' ),
+		$html
+	);
+
+	return $deferred === $html ? $html : $deferred . '<noscript>' . $html . '</noscript>';
+}
+add_filter( 'style_loader_tag', 'nvx_theme_defer_auxiliary_style_tags', 30, 4 );

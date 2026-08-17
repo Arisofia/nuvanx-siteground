@@ -325,7 +325,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 }
 
 .nvx-brand-microcopy--dark {
-  color: var(--nvx-border-on-dark);
+  color: var(--nvx-text-on-dark-82);
 }
 
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {

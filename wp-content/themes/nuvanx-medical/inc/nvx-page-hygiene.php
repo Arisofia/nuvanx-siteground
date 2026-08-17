@@ -131,6 +131,76 @@ function nvx_redirect_goya_alias(): void {
 add_action( 'template_redirect', 'nvx_redirect_goya_alias', 1 );
 
 /**
+ * Public slugs that must not stay as soft 404s while the CMS row is unpublished.
+ *
+ * The redirect is skipped the moment a published page or governed post exists,
+ * so a later medical-review publish reclaims the canonical URL automatically.
+ *
+ * @return array<string,string> slug => target path
+ */
+function nvx_unpublished_public_route_redirects(): array {
+	return array(
+		'intrusismo-tratamientos-inyectables-riesgos' => '/blog/',
+		'acido-hialuronico-relleno-madrid'            => '/medicina-estetica/',
+	);
+}
+
+/**
+ * Whether a published singular already owns this public slug.
+ */
+function nvx_published_singular_exists_for_slug( string $slug ): bool {
+	$slug = sanitize_title( $slug );
+	if ( '' === $slug ) {
+		return false;
+	}
+
+	if ( function_exists( 'nvx_governed_blog_runtime_db_post_by_slug' ) ) {
+		$post = nvx_governed_blog_runtime_db_post_by_slug( $slug );
+		if ( $post instanceof WP_Post ) {
+			return true;
+		}
+	}
+
+	foreach ( array( 'page', 'post' ) as $type ) {
+		$found = get_page_by_path( $slug, OBJECT, $type );
+		if ( $found instanceof WP_Post && 'publish' === $found->post_status ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * 301 unpublished-but-known public slugs so Google does not keep a soft 404.
+ */
+function nvx_redirect_unpublished_public_routes(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$slug = sanitize_title( trim( rawurldecode( $path ), '/' ) );
+	$map  = nvx_unpublished_public_route_redirects();
+
+	if ( ! isset( $map[ $slug ] ) || nvx_published_singular_exists_for_slug( $slug ) ) {
+		return;
+	}
+
+	$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+		? '?' . $_SERVER['QUERY_STRING']
+		: '';
+
+	wp_safe_redirect( home_url( $map[ $slug ] ) . $query, 301, 'NUVANX' );
+	exit;
+}
+add_action( 'template_redirect', 'nvx_redirect_unpublished_public_routes', 0 );
+
+/**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
  *
  * Resolved by slug so IDs may differ across environments.

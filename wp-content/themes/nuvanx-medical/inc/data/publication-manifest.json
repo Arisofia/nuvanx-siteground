@@ -39,6 +39,7 @@
     "/gracias/": {"post_id":78,"post_type":"page","slug":"gracias","status":"publish","robots":{"index":true,"follow":true}},
     "/grasa-espalda-zona-sujetador-madrid/": {"post_id":3378,"post_type":"page","slug":"grasa-espalda-zona-sujetador-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/grasa-localizada-abdomen-flancos-madrid/": {"post_id":3376,"post_type":"page","slug":"grasa-localizada-abdomen-flancos-madrid","status":"publish","robots":{"index":true,"follow":true}},
+    "/intrusismo-tratamientos-inyectables-riesgos/": {"post_id":2820,"post_type":"post","slug":"intrusismo-tratamientos-inyectables-riesgos","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/inversion-medicina-estetica/": {"post_id":3367,"post_type":"page","slug":"inversion-medicina-estetica","status":"publish","robots":{"index":true,"follow":true}},
     "/ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento/": {"post_id":3056,"post_type":"post","slug":"ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/labios-acido-hialuronico-madrid/": {"post_id":3318,"post_type":"page","slug":"labios-acido-hialuronico-madrid","status":"publish","robots":{"index":true,"follow":true}},

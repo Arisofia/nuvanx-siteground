@@ -96,20 +96,24 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 	}
 
 	return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';'
+		. 'function isRenderable(frame){var iframe=frame?frame.querySelector("iframe"):null;if(!iframe){return false;}var src=(iframe.getAttribute("src")||"").trim();if(!src||src==="about:blank"){return false;}var category=(iframe.getAttribute("data-category")||"").toLowerCase();if(category==="marketing"){if(typeof window.cmplz_has_consent!=="function"||!window.cmplz_has_consent("marketing")){return false;}}try{var hostname=new URL(src,window.location.href).hostname.toLowerCase();return hostname.indexOf("hsforms")!==-1||hostname.indexOf("hubspot")!==-1;}catch(e){return false;}}'
+		. 'function sync(frame){var fallback=document.querySelector("[data-nvx-hubspot-fallback]");if(!fallback){return;}fallback.style.display=isRenderable(frame)?"none":"block";}'
 		. 'function boot(){var host=document.getElementById("nvx-hubspot-native-form");if(!host){return;}'
 		. 'var frames=host.querySelectorAll(".hs-form-frame");var frame=frames[0]||null;'
 		. 'if(!frame){frame=document.createElement("div");frame.className="hs-form-frame";host.insertBefore(frame,host.firstChild);}'
 		. 'for(var i=1;i<frames.length;i++){frames[i].remove();}'
-		. 'frame.dataset.region=cfg.region;frame.dataset.portalId=cfg.portalId;frame.dataset.formId=cfg.formId;frame.dataset.nvxHubspotLazy="1";'
-		. 'if(frame.querySelector("iframe,.hbspt-form")){return;}'
+		. 'frame.dataset.region=cfg.region;frame.dataset.portalId=cfg.portalId;frame.dataset.formId=cfg.formId;frame.dataset.nvxHubspotLazy="1";sync(frame);'
+		. 'if(typeof MutationObserver==="function"&&!frame.dataset.nvxFallbackObserver){frame.dataset.nvxFallbackObserver="1";new MutationObserver(function(){sync(frame);}).observe(frame,{childList:true,subtree:true,attributes:true,attributeFilter:["src","data-category"]});}'
+		. 'if(isRenderable(frame)){return;}'
 		. 'try{host.dispatchEvent(new Event("focusin",{bubbles:true}));}catch(e){}'
-		. 'window.setTimeout(function(){if(frame.querySelector("iframe,.hbspt-form")){return;}'
+		. 'window.setTimeout(function(){sync(frame);if(isRenderable(frame)){return;}'
 		. 'var existing=document.querySelector("#nvx-hubspot-forms-runtime,script[data-nvx-hubspot-canonical=\"1\"],script[src*=\"/forms/embed/\"]");if(existing){return;}'
 		. 'var script=document.createElement("script");script.id="nvx-hubspot-forms-runtime";script.dataset.nvxHubspotCanonical="1";'
 		. 'script.src="https://js-"+cfg.region+".hs"+"forms.net/forms/embed/"+cfg.portalId+".js";script.async=true;'
-		. 'script.addEventListener("load",function(){script.dataset.nvxLoaded="1";},{once:true});document.head.appendChild(script);},0);}'
+		. 'script.addEventListener("load",function(){script.dataset.nvxLoaded="1";sync(frame);},{once:true});document.head.appendChild(script);},0);}'
 		. 'if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot,{once:true});}else{boot();}'
-		. 'window.addEventListener("load",boot,{once:true});})();</script>';
+		. 'window.addEventListener("load",boot,{once:true});'
+		. 'document.addEventListener("cmplz_enable_category",function(){window.setTimeout(boot,0);});document.addEventListener("cmplz_status_change",function(){window.setTimeout(boot,0);});})();</script>';
 }
 
 /**

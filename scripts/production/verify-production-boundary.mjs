@@ -113,12 +113,12 @@ echo "PRODUCTION_ORIGIN_IDENTITY=PASS sha=$stamp_sha run_id=$stamp_run_id timest
 
 assert_meta_equals() {
   local body="$1" name="$2" expected="$3" tag
-  tag="$(tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]${name}['\"]" | head -n 1 || true)"
+  tag="$(tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name['\"]" | head -n 1 || true)"
   if [[ -z "$tag" ]]; then
     echo "PRODUCTION_ORIGIN_FAIL reason=missing_meta name=$name" >&2
     return 1
   fi
-  if ! printf '%s' "$tag" | grep -Eq "content[[:space:]]*=[[:space:]]*['\"]${expected}['\"]"; then
+  if ! printf '%s' "$tag" | grep -Eq "content[[:space:]]*=[[:space:]]*['\"]$expected['\"]"; then
     echo "PRODUCTION_ORIGIN_FAIL reason=meta_mismatch name=$name expected=$expected tag=$tag" >&2
     return 1
   fi
@@ -126,7 +126,7 @@ assert_meta_equals() {
 
 meta_tag_for() {
   local body="$1" name="$2"
-  tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]${name}['\"]" | head -n 1 || true
+  tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name['\"]" | head -n 1 || true
 }
 
 ua='NUVANX-Production-Origin-Boundary/1.1'

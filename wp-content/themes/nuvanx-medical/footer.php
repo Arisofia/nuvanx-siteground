@@ -154,18 +154,6 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 	</div>
 </footer>
 
-<?php if ( function_exists( 'nvx_valoracion_modal_enabled' ) && nvx_valoracion_modal_enabled() ) : ?>
-<div class="nvx-sticky-mobile-cta" aria-label="<?php esc_attr_e( 'Acción rápida de reserva', 'nuvanx-medical' ); ?>">
-	<a
-		href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"
-		class="nvx-sticky-mobile-cta__btn nvx-open-valoracion-modal"
-		data-gtag="click-reserve"
-	>
-		<?php esc_html_e( 'Solicitar Valoración Médica', 'nuvanx-medical' ); ?>
-	</a>
-</div>
-<?php endif; ?>
-
 <?php wp_footer(); ?>
 
 </body>

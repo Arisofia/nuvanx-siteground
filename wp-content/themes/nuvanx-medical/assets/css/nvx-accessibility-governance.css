@@ -67,8 +67,14 @@
   pointer-events: none;
 }
 
-/* Mobile breakpoint: hamburger visible, desktop nav hidden, drawer visible only when open and not inert. */
-@media (max-width: 63.999rem) {
+/* Conversion-stage content must paint above its decorative background layers. */
+.nvx-form-stage > .nvx-brand-section__inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Compact navigation contract: use the hamburger until a true wide desktop can fit the full menu. */
+@media (max-width: 119.999rem) {
   .nvx-header .nvx-nav,
   .nvx-header .nvx-header__cta {
     display: none;
@@ -89,8 +95,12 @@
   }
 }
 
-/* Desktop breakpoint: mobile drawer never rendered as an active navigation surface. */
-@media (min-width: 64rem) {
+/* Wide desktop: give the full navigation enough horizontal room and keep the drawer inactive. */
+@media (min-width: 120rem) {
+  .nvx-header__inner {
+    width: min(1600px, calc(100vw - var(--nvx-gutter)));
+  }
+
   .nvx-mobile-nav,
   .nvx-mobile-nav[open],
   .nvx-mobile-nav.is-open,

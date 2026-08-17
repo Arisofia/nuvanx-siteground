@@ -32,13 +32,23 @@ function nvx_get_deploy_stamp(): array {
 		}
 	}
 
-	$deploy_stamp_file = get_template_directory() . '/.nvx-deploy-stamp.json';
-	if ( is_readable( $deploy_stamp_file ) ) {
-		$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
-		if ( is_array( $deploy_stamp_data ) ) {
-			foreach ( $environment_keys as $key ) {
-				if ( '' === $stamp[ $key ] && isset( $deploy_stamp_data[ $key ] ) && is_scalar( $deploy_stamp_data[ $key ] ) ) {
-					$stamp[ $key ] = trim( (string) $deploy_stamp_data[ $key ] );
+	$needs_deploy_stamp_file = false;
+	foreach ( $environment_keys as $key ) {
+		if ( '' === ( $stamp[ $key ] ?? '' ) ) {
+			$needs_deploy_stamp_file = true;
+			break;
+		}
+	}
+
+	if ( $needs_deploy_stamp_file ) {
+		$deploy_stamp_file = get_template_directory() . '/.nvx-deploy-stamp.json';
+		if ( is_readable( $deploy_stamp_file ) ) {
+			$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
+			if ( is_array( $deploy_stamp_data ) ) {
+				foreach ( $environment_keys as $key ) {
+					if ( '' === ( $stamp[ $key ] ?? '' ) && isset( $deploy_stamp_data[ $key ] ) && is_scalar( $deploy_stamp_data[ $key ] ) ) {
+						$stamp[ $key ] = trim( (string) $deploy_stamp_data[ $key ] );
+					}
 				}
 			}
 		}

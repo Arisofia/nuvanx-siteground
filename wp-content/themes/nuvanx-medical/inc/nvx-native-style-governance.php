@@ -74,10 +74,24 @@ function nvx_theme_inline_critical_style_foundation(): void {
 add_action( 'wp_enqueue_scripts', 'nvx_theme_inline_critical_style_foundation', 20 );
 
 /**
+ * Whether a stylesheet may use an inline onload handler for deferred delivery.
+ *
+ * Sites enforcing a strict Content-Security-Policy can return false and retain
+ * the original blocking stylesheet tag instead of relying on inline JavaScript.
+ *
+ * @param string $handle Registered stylesheet handle.
+ */
+function nvx_theme_inline_style_onload_enabled( string $handle ): bool {
+	return (bool) apply_filters( 'nvx_theme_inline_style_onload_enabled', true, $handle );
+}
+
+/**
  * Start Google Fonts immediately without blocking first paint.
  *
  * display=swap is already on the request URL. Structural theme CSS never
  * uses this path, so a blocked onload cannot collapse the header or form.
+ * Strict-CSP deployments can disable inline onload via
+ * `nvx_theme_inline_style_onload_enabled` and fall back to the original tag.
  *
  * @param string $html   Generated stylesheet tag.
  * @param string $handle Registered stylesheet handle.
@@ -85,8 +99,10 @@ add_action( 'wp_enqueue_scripts', 'nvx_theme_inline_critical_style_foundation', 
  * @param string $media  Original media attribute.
  */
 function nvx_theme_nonblocking_google_fonts( string $html, string $handle, string $href, string $media ): string {
-	unset( $media );
 	if ( 'nvx-google-fonts' !== $handle || '' === $href ) {
+		return $html;
+	}
+	if ( ! nvx_theme_inline_style_onload_enabled( $handle ) ) {
 		return $html;
 	}
 
@@ -102,11 +118,14 @@ add_filter( 'style_loader_tag', 'nvx_theme_nonblocking_google_fonts', 20, 4 );
 /**
  * Defer editorial pattern CSS. It is never required for first paint.
  *
+ * Strict-CSP deployments retain the original blocking tag rather than using an
+ * inline onload handler.
+ *
  * @param string $html   Generated stylesheet tag.
  * @param string $handle Registered stylesheet handle.
  */
 function nvx_theme_defer_editorial_css( string $html, string $handle ): string {
-	if ( 'nvx-patterns' !== $handle || is_admin() ) {
+	if ( 'nvx-patterns' !== $handle || is_admin() || ! nvx_theme_inline_style_onload_enabled( $handle ) ) {
 		return $html;
 	}
 

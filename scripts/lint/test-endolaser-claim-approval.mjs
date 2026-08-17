@@ -64,7 +64,7 @@ try {
   process.exit(1);
 }
 
-const required = ['equipment', 'technique', 'claims', 'identity', 'tariff'];
+const required = ['equipment', 'technique', 'claims', 'identity', 'tariff', 'taxonomy'];
 const missing = required.filter((key) => !validApproval(approval[key]));
 if (approval.status !== 'APPROVED' || missing.length > 0) {
   console.error(`ENDOLASER_APPROVAL=FAIL reason=incomplete_or_unapproved_record missing=${missing.join(',') || 'none'}`);

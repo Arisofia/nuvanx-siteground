@@ -187,9 +187,9 @@ for (const file of phpFiles) {
       }
     }
 
-    const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética)/gi) || [];
+    const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética|AEMPS|Agencia Española de Medicamentos y Productos Sanitarios)/gi) || [];
     if (recognizingAuthorityClaims.length > 0) {
-      addViolation(file, 'recognizingAuthority', 'Ungoverned SEME recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
+      addViolation(file, 'recognizingAuthority', 'Ungoverned SEME or AEMPS recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
     }
 
     const wrongPapadaMatches = content.match(/nvx_endolift_papada_price_eur/g) || [];
@@ -260,8 +260,8 @@ for (const file of jsonFiles) {
             }
           }
         }
-        if (key === 'recognizingAuthority' && /SEME|Sociedad Española de Medicina Estética/i.test(JSON.stringify(value))) {
-          addViolation(file, 'recognizingAuthority', `Ungoverned SEME recognizingAuthority claim at ${currentPath}`);
+        if (key === 'recognizingAuthority' && /SEME|Sociedad Española de Medicina Estética|AEMPS|Agencia Española de Medicamentos y Productos Sanitarios/i.test(JSON.stringify(value))) {
+          addViolation(file, 'recognizingAuthority', `Ungoverned SEME or AEMPS recognizingAuthority claim at ${currentPath}`);
         }
         if (file === 'inc/data/treatment-hub-schema.json' && key === 'additionalFields') {
           addViolation(file, 'hubArchitecture', `Treatment hub is reference-only; additionalFields is dead/duplicated metadata at ${currentPath}`);

@@ -28,6 +28,7 @@ Antes de abrir una PR de contenido deben quedar registrados los cinco bloques si
 | Claims | Fuente de soporte y redacción autorizada para sesiones, evolución, compresión, reincorporación, actividad física, resultados y límites. | Dirección médica + compliance | Todo texto clínico, meta descripción y schema. |
 | Identidad | Nombre editorial autorizado, identidad estructurada, número ICOMEM y vínculo de la persona con el servicio. | Dirección médica + operaciones | Byline, página profesional y schema. |
 | Tarifas | Alias contractual Endoláser ↔ Endolift corporal, o catálogo `endolaser.*` con PVP, vigencia y responsable. | Operaciones + dirección médica | Shortcodes, copy de precios y ofertas. |
+| Taxonomía | Clasificación regulatoria/editorial: relación entre Endoláser corporal, Laserlipólisis, Endolift® corporal y cualquier marca/equipo. | Dirección médica + operaciones/compliance | Denominación de servicio, catálogo, copy y schema. |
 
 ## 3. Matriz de claims que actualmente requiere reconciliación
 
@@ -40,7 +41,8 @@ Los siguientes contenidos existentes se consideran `RECONCILIATION_REQUIRED`: no
 | Técnica | Anestesia, sedación, ecografía, fibra, lipólisis y aspiración. | Describir únicamente lo confirmado para NUVANX. |
 | Resultado | Permanencia de adipocitos, reducción de volumen, retracción o firmeza. | Evitar garantías y absolutos; usar redacción respaldada y condicionada. |
 | Equipo | Smartlipo, DEKA, Cynosure u otra marca/modelo. | No mencionar hasta confirmar fabricante y modelo. |
-| Tarifas | Uso de referencias Endolift en servicio Endoláser. | Documentar alias explícito o crear claves propias. |
+| Tarifas | El catálogo no define `endolaser.*`; los PVP corporales actualmente utilizados proceden de `endolift.*` y `endolift_combo.*`, con zonas y combinaciones corporales. | Documentar alias explícito o crear claves y PVP Endoláser propios. |
+| Taxonomía | Endoláser corporal, Laserlipólisis, Endolift® corporal y posibles marcas/equipos aparecen como términos relacionados sin una equivalencia aprobada. | Aprobar la taxonomía comercial y clínica antes de reutilizar precios o claims. |
 
 ## 4. Regla de aprobación de PR
 
@@ -61,6 +63,7 @@ inc/data/routes.json
 | Aprobación | Dirección médica y operación/compliance confirman por escrito la versión final. |
 | Identidad | El nombre editorial no contradice la identidad estructurada/colegiación verificable. |
 | Tarifas | Cada precio proviene de una clave de catálogo existente y aprobada. |
+| Taxonomía | La nomenclatura de servicio, técnica y marca coincide con la decisión regulatoria/editorial aprobada. |
 | Schema | No se crean emisores paralelos; los datos visibles, FAQ y JSON-LD se mantienen coherentes. |
 | Pruebas | Lint SEO/schema, validación de tarifas, prueba de FAQ visible/schema y Staging2 completos. |
 
@@ -76,6 +79,7 @@ inc/data/routes.json
 | Claims clínicos aprobados y soporte |  |  |  |
 | Nombre editorial e identidad ICOMEM |  |  |  |
 | Decisión tarifaria y vigencia |  |  |  |
+| Clasificación taxonómica y denominación autorizada |  |  |  |
 
 **Dirección médica:** nombre, fecha y aprobación explícita
 **Operaciones/compliance:** nombre, fecha y aprobación explícita

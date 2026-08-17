@@ -521,7 +521,7 @@ function nvx_theme_defer_auxiliary_script_tags( string $tag, string $handle, str
 	}
 
 	$tag = (string) preg_replace( '/\s(?:async|defer)(?:=(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?/i', '', $tag );
-	return str_replace( '<script', '<script defer', $tag );
+	return (string) preg_replace( '/^<script\b/i', '<script defer', $tag, 1 );
 }
 add_filter( 'script_loader_tag', 'nvx_theme_defer_auxiliary_script_tags', 11, 3 );
 

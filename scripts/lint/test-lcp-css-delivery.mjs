@@ -110,6 +110,16 @@ assert.match(
   'Complianz and Joinchat styles must be non-blocking',
 );
 assert.match(
+  integrations,
+  /preg_replace\( '\/\^<script\\b\/i', '<script defer', \$tag, 1 \)/,
+  'script deferral must only alter the opening tag, not inline JavaScript content',
+);
+assert.doesNotMatch(
+  integrations,
+  /return str_replace\( '<script', '<script defer', \$tag \)/,
+  'script deferral must not rewrite comparisons such as <scripts.length inside inline code',
+);
+assert.match(
   components,
   /\.nvx-brand-microcopy--dark/,
   'dark hero microcopy must meet the requested AA contrast token',

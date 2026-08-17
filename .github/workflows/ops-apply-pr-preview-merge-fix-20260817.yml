@@ -1,9 +1,9 @@
-name: Ops apply PR preview merge fix
+name: Ops apply PR preview merge fix v2
 
 on:
   push:
     branches:
-      - ops/apply-pr-preview-merge-fix-20260817
+      - ops/apply-pr-preview-merge-fix-v2-20260817
     paths:
       - .github/workflows/ops-apply-pr-preview-merge-fix-20260817.yml
 
@@ -18,7 +18,7 @@ jobs:
       - name: Check out operations helper
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ops/apply-pr-preview-merge-fix-20260817
+          ref: ops/apply-pr-preview-merge-fix-v2-20260817
           persist-credentials: false
 
       - name: Patch fix branch
@@ -51,5 +51,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set +e
-          gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/git/refs/heads/ops/apply-pr-preview-merge-fix-20260817" >/dev/null 2>&1
+          gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/git/refs/heads/ops/apply-pr-preview-merge-fix-v2-20260817" >/dev/null 2>&1
           exit 0

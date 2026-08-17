@@ -156,6 +156,7 @@ jobs:
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
           bash -n scripts/ci/test-mutation-fifo-contract.sh
+          bash -n tools/remote-compare.sh
           bash scripts/ci/test-mutation-fifo-contract.sh
           find scripts/staging2 -maxdepth 1 -name '*.mjs' -type f -print0 | xargs -0 -r -n1 node --check
           echo 'STATIC_GATES=PASS'
@@ -865,6 +866,7 @@ jobs:
           for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
           CANDIDATE_ROOT="$RUNNER_TEMP/nvx-pr-${PR_NUMBER}-${PR_SHA}"
           git worktree add --detach "$CANDIDATE_ROOT" origin/master
+          echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           set +e
           git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' merge --no-commit --no-ff "$PR_SHA"
           merge_rc=$?
@@ -874,7 +876,9 @@ jobs:
             echo 'PR preview merge conflict against current master; resolve or rebase the PR.' >&2
             exit 1
           fi
-          git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' commit --no-gpg-sign -m "ci: preview merge PR #${PR_NUMBER} into master"
+          if git -C "$CANDIDATE_ROOT" rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' commit --no-gpg-sign -m "ci: preview merge PR #${PR_NUMBER} into master"
+          fi
           PR_PREVIEW_SHA="$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)"
           [[ "$PR_PREVIEW_SHA" =~ ^[0-9a-f]{40}$ ]]
           git -C "$CANDIDATE_ROOT" diff --check origin/master "$PR_PREVIEW_SHA"

@@ -85,6 +85,9 @@ function nvx_valoracion_modal_markup(): string {
 	// Presentation host only: runtime governance inserts the canonical .hs-form-frame with identity.
 	// Repeating data-form-id/data-portal-id here would cause duplicate HubSpot embed initialization.
 	$html .= '<div class="hs-form-frame"></div>';
+	if ( function_exists( 'nvx_valoracion_direct_form_markup' ) ) {
+		$html .= nvx_valoracion_direct_form_markup();
+	}
 	$html .= '</div>';
 	$html .= '<p class="nvx-valoracion-modal__legal">' . sprintf(
 		/* translators: %s: Enlace a la política de privacidad */

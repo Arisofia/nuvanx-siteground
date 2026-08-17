@@ -131,6 +131,76 @@ function nvx_redirect_goya_alias(): void {
 add_action( 'template_redirect', 'nvx_redirect_goya_alias', 1 );
 
 /**
+ * Public slugs that must not stay as soft 404s while the CMS row is unpublished.
+ *
+ * The redirect is skipped the moment a published page or governed post exists,
+ * so a later medical-review publish reclaims the canonical URL automatically.
+ *
+ * @return array<string,string> slug => target path
+ */
+function nvx_unpublished_public_route_redirects(): array {
+	return array(
+		'intrusismo-tratamientos-inyectables-riesgos' => '/blog/',
+		'acido-hialuronico-relleno-madrid'            => '/medicina-estetica/',
+	);
+}
+
+/**
+ * Whether a published singular already owns this public slug.
+ */
+function nvx_published_singular_exists_for_slug( string $slug ): bool {
+	$slug = sanitize_title( $slug );
+	if ( '' === $slug ) {
+		return false;
+	}
+
+	if ( function_exists( 'nvx_governed_blog_runtime_db_post_by_slug' ) ) {
+		$post = nvx_governed_blog_runtime_db_post_by_slug( $slug );
+		if ( $post instanceof WP_Post ) {
+			return true;
+		}
+	}
+
+	foreach ( array( 'page', 'post' ) as $type ) {
+		$found = get_page_by_path( $slug, OBJECT, $type );
+		if ( $found instanceof WP_Post && 'publish' === $found->post_status ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * 301 unpublished-but-known public slugs so Google does not keep a soft 404.
+ */
+function nvx_redirect_unpublished_public_routes(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$slug = sanitize_title( trim( rawurldecode( $path ), '/' ) );
+	$map  = nvx_unpublished_public_route_redirects();
+
+	if ( ! isset( $map[ $slug ] ) || nvx_published_singular_exists_for_slug( $slug ) ) {
+		return;
+	}
+
+	$query = isset( $_SERVER['QUERY_STRING'] ) && '' !== $_SERVER['QUERY_STRING']
+		? '?' . $_SERVER['QUERY_STRING']
+		: '';
+
+	wp_safe_redirect( home_url( $map[ $slug ] ) . $query, 301, 'NUVANX' );
+	exit;
+}
+add_action( 'template_redirect', 'nvx_redirect_unpublished_public_routes', 0 );
+
+/**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
  *
  * Resolved by slug so IDs may differ across environments.
@@ -603,3 +673,75 @@ function nvx_sanitize_complianz_banner_html( string $html ): string {
 }
 add_filter( 'cmplz_banner_html', 'nvx_sanitize_complianz_banner_html', 20 );
 add_filter( 'cmplz_template', 'nvx_sanitize_complianz_banner_html', 20 );
+
+/**
+ * HubSpot form embed tokens that must stay functional.
+ *
+ * Tracking pixels (hs-analytics, js.hs-scripts.com) remain marketing-gated.
+ *
+ * @return string[]
+ */
+function nvx_complianz_hubspot_form_tokens(): array {
+	return array(
+		'hsforms.net',
+		'hsforms.com',
+		'js-eu1.hsforms.net',
+		'forms-eu1.hsforms.com',
+		'forms-eu1.hsforms.net',
+	);
+}
+
+/**
+ * Tell Complianz not to block the HubSpot form embed.
+ *
+ * @param mixed $tags Existing whitelist entries.
+ * @return array<int,string>
+ */
+function nvx_complianz_whitelist_hubspot_forms( $tags ): array {
+	$tags = is_array( $tags ) ? $tags : array();
+	foreach ( nvx_complianz_hubspot_form_tokens() as $token ) {
+		$tags[] = $token;
+	}
+	return $tags;
+}
+add_filter( 'cmplz_whitelisted_script_tags', 'nvx_complianz_whitelist_hubspot_forms' );
+add_filter( 'cmplz_whitelisted_iframe_tags', 'nvx_complianz_whitelist_hubspot_forms' );
+
+/**
+ * Remove HubSpot form hosts from Complianz blocked-script lists.
+ *
+ * @param mixed $tags Known script or iframe tags.
+ * @return mixed
+ */
+function nvx_complianz_unblock_hubspot_form_tags( $tags ) {
+	if ( ! is_array( $tags ) ) {
+		return $tags;
+	}
+
+	return array_values(
+		array_filter(
+			$tags,
+			static function ( $tag ): bool {
+				$hay = strtolower( is_array( $tag ) ? (string) wp_json_encode( $tag ) : (string) $tag );
+				return false === strpos( $hay, 'hsforms' );
+			}
+		)
+	);
+}
+add_filter( 'cmplz_known_script_tags', 'nvx_complianz_unblock_hubspot_form_tags' );
+add_filter( 'cmplz_known_iframe_tags', 'nvx_complianz_unblock_hubspot_form_tags' );
+
+/**
+ * Keep dynamically injected HubSpot form sources out of the marketing blocker.
+ *
+ * @param bool   $whitelisted Whether Complianz already treats the src as allowed.
+ * @param string $src         Script or iframe source.
+ */
+function nvx_complianz_whitelist_hubspot_form_src( $whitelisted, $src ): bool {
+	$src = strtolower( (string) $src );
+	if ( false !== strpos( $src, 'hsforms.net' ) || false !== strpos( $src, 'hsforms.com' ) ) {
+		return true;
+	}
+	return (bool) $whitelisted;
+}
+add_filter( 'cmplz_src_whitelisted', 'nvx_complianz_whitelist_hubspot_form_src', 10, 2 );

@@ -464,6 +464,87 @@
       }
     }
 
+    function hasMarketingConsent() {
+      try {
+        if (typeof window.cmplz_has_consent === 'function') return Boolean(window.cmplz_has_consent('marketing'));
+        if (typeof window.wp_has_consent === 'function') return window.wp_has_consent('marketing') === true;
+      } catch (error) {
+        return false;
+      }
+      return false;
+    }
+
+    let hubspotFormReady = false;
+
+    function markHubSpotReady() {
+      hubspotFormReady = true;
+      syncConversionSurfaces();
+    }
+
+    function isHubSpotFormMessage(data) {
+      if (!data) return false;
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data) || {}; } catch (error) { return false; }
+      }
+      if (typeof data !== 'object') return false;
+      const eventName = String(data.eventName || data.type || '').toLowerCase();
+      return data.type === 'hsFormCallback' && (eventName === 'onformready' || eventName === 'onbeforesubmit' || eventName === 'onformsubmitted');
+    }
+
+    function isHubSpotRenderable(root) {
+      if (!root) return false;
+      if (root.querySelector('.hbspt-form input, .hbspt-form textarea, .hs-form input')) return true;
+      if (!hubspotFormReady) return false;
+      const iframes = root.querySelectorAll('iframe');
+      for (let i = 0; i < iframes.length; i++) {
+        const iframe = iframes[i];
+        const src = String(iframe.getAttribute('src') || '').trim();
+        if (!src || src === 'about:blank') continue;
+        const category = String(iframe.getAttribute('data-category') || '').toLowerCase();
+        if (category === 'marketing' && !hasMarketingConsent()) continue;
+        try {
+          const host = new URL(src, window.location.href).hostname.toLowerCase();
+          if (host.indexOf('hsforms') !== -1 || host.indexOf('hubspot') !== -1) return true;
+        } catch (error) {
+          // Ignore malformed iframe src values.
+        }
+      }
+      return false;
+    }
+
+    function directFormIsDirty(form) {
+      if (!form) return false;
+      const fields = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="checkbox"]), textarea');
+      for (let i = 0; i < fields.length; i++) {
+        if (String(fields[i].value || '').trim()) return true;
+      }
+      return false;
+    }
+
+    function syncConversionSurfaces() {
+      const hosts = document.querySelectorAll('#nvx-hubspot-native-form, [data-nvx-hubspot-native="1"], #nvx-valoracion-modal-form');
+      hosts.forEach(function (host) {
+        const live = isHubSpotRenderable(host);
+        const form = host.querySelector('[data-nvx-direct-form]');
+        if (live && !directFormIsDirty(form)) host.classList.add('nvx-hubspot-is-live');
+        else host.classList.remove('nvx-hubspot-is-live');
+      });
+    }
+
+    function hasActiveHubSpotEmbed() {
+      const scripts = document.querySelectorAll('script[src*="forms/embed/"]');
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        const type = String(script.getAttribute('type') || 'text/javascript').toLowerCase();
+        if (type === 'text/plain') continue;
+        if (String(script.getAttribute('data-category') || '').toLowerCase() === 'marketing' && !hasMarketingConsent()) {
+          continue;
+        }
+        return true;
+      }
+      return false;
+    }
+
     function isHubSpotIframe(ifr) {
       if (!ifr || ifr.tagName !== 'IFRAME') return false;
       if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
@@ -525,25 +606,7 @@
       }
 
       enforceAccessibleIframeTitles();
-
-      // Schedule fallback check in case script is blocked or network times out.
-      // The per-frame guard below only reveals the fallback for mounts that
-      // still contain neither .hbspt-form nor an iframe, so a working form is
-      // never covered even when other mounts on the page fail.
-      setTimeout(function () {
-        const uninitialized = document.querySelectorAll('.hs-form-frame, #nvx-hubspot-native-form');
-        uninitialized.forEach(function (f) {
-          if (!f.querySelector('.hbspt-form') && !f.querySelector('iframe')) {
-            const wrapper = f.closest('#nvx-hubspot-form, .nvx-hs-native-section, .nvx-hubspot-form-section') || f.parentElement;
-            if (wrapper) {
-              const sk = wrapper.querySelector('.nvx-skeleton-wrapper');
-              if (sk) sk.style.display = 'none';
-              const fb = wrapper.querySelector('.nvx-hubspot-fallback');
-              if (fb) fb.style.display = 'block';
-            }
-          }
-        });
-      }, 5500);
+      syncConversionSurfaces();
     }
 
     function loadHubSpot() {
@@ -551,7 +614,7 @@
       // (forms/embed/{portalId}.js) does not. Only short-circuit if we have the
       // script element already loaded, not just the global object.
       removeLegacyHubSpotV2Scripts();
-      if (document.querySelector('script[src*="forms/embed/"]')) {
+      if (hasActiveHubSpotEmbed()) {
         initializeForms();
         return Promise.resolve();
       }
@@ -688,6 +751,22 @@
       );
     }
 
+    syncConversionSurfaces();
+    document.addEventListener('cmplz_enable_category', function () {
+      promise = null;
+      loadHubSpot();
+      syncConversionSurfaces();
+    });
+    document.addEventListener('cmplz_status_change', function () {
+      promise = null;
+      loadHubSpot();
+      syncConversionSurfaces();
+    });
+    window.addEventListener('hs-form-event:on-ready', markHubSpotReady);
+    window.addEventListener('message', function (event) {
+      if (isHubSpotFormMessage(event && event.data)) markHubSpotReady();
+    });
+
     if (typeof MutationObserver === 'function') {
       // Coalesce bursts of DOM mutations into a single title pass per frame:
       // the observer fires on every insertion across document.body, so running
@@ -736,6 +815,7 @@
           }
           window.clearTimeout(timeoutId);
           enforceAccessibleIframeTitles();
+          syncConversionSurfaces();
         };
 
         const timeoutId = window.setTimeout(runTitlePass, 100);

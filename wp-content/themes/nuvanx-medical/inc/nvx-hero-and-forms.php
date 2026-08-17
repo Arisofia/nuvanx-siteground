@@ -339,40 +339,13 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
 		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
 		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
-		$wa_url      = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : 'https://wa.me/34689317399';
 
-		$skeleton_html = '<style>
-			.nvx-skeleton-wrapper { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; width: 100%; max-width: 520px; animation: nvx-pulse-anim 1.5s infinite ease-in-out; }
-			.nvx-skeleton-field { height: 38px; background-color: rgba(0,0,0,0.05); border-radius: 4px; width: 100%; }
-			.nvx-skeleton-field.short { width: 50%; }
-			.nvx-skeleton-button { height: 44px; background-color: rgba(0,0,0,0.1); border-radius: 999px; width: 200px; margin-top: 6px; }
-			@keyframes nvx-pulse-anim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-skeleton-wrapper,
-			#nvx-hubspot-native-form:has(iframe) .nvx-skeleton-wrapper,
-			.nvx-hubspot-native-form-v2:has(.hbspt-form) .nvx-skeleton-wrapper,
-			.nvx-hubspot-native-form-v2:has(iframe) .nvx-skeleton-wrapper { display: none; }
-			#nvx-hubspot-native-form:has(.hbspt-form) .nvx-hubspot-fallback,
-			#nvx-hubspot-native-form:has(iframe) .nvx-hubspot-fallback,
-			.nvx-hubspot-native-form-v2:has(.hbspt-form) .nvx-hubspot-fallback,
-			.nvx-hubspot-native-form-v2:has(iframe) .nvx-hubspot-fallback { display: none; }
-		</style>
-		<div class="nvx-skeleton-wrapper" aria-hidden="true">
-			<div class="nvx-skeleton-field"></div>
-			<div class="nvx-skeleton-field"></div>
-			<div class="nvx-skeleton-field short"></div>
-			<div class="nvx-skeleton-button"></div>
-		</div>';
+		$direct_form = function_exists( 'nvx_valoracion_direct_form_markup' )
+			? nvx_valoracion_direct_form_markup()
+			: '';
 
-		$fallback_html = '<div class="nvx-hubspot-fallback" id="nvx-hubspot-fallback" style="display:none;" aria-live="polite">'
-			. '<p class="nvx-hubspot-fallback__msg">' . esc_html__( 'Si el formulario interactivo no carga debido a las preferencias de tu navegador o bloqueo de scripts externos, puedes contactarnos directamente:', 'nuvanx-medical' ) . '</p>'
-			. '<div class="nvx-hubspot-fallback__actions">'
-			. '<a href="' . esc_url( $wa_url ) . '" class="nvx-brand-btn nvx-btn--primary" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' ) . '</a>'
-			. '<a href="tel:+34689317399" class="nvx-brand-btn nvx-btn--secondary">' . esc_html__( 'Llamar a la clínica: 689 31 73 99', 'nuvanx-medical' ) . '</a>'
-			. '</div></div>';
-
-		return $skeleton_html
-			. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
-			. $fallback_html
+		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
+			. $direct_form
 			. '<p class="nvx-copy nvx-hubspot-privacy">' . esc_html__( 'Al facilitar tus datos aceptas la', 'nuvanx-medical' ) . ' <a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>.</p>';
 	}
 }

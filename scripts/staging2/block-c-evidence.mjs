@@ -118,6 +118,15 @@ export function renderBlockCEvidence(results, {
   };
 }
 
+export class BlockCEvidenceDirectoryError extends Error {
+  constructor(directories) {
+    super(`Block C evidence bundle entries must share one directory: ${directories.join(',')}`);
+    this.name = 'BlockCEvidenceDirectoryError';
+    this.code = 'BLOCK_C_EVIDENCE_MIXED_DIRECTORIES';
+    this.directories = [...directories];
+  }
+}
+
 async function prepareEvidenceEntry(filePath, content, token) {
   const tmpPath = `${filePath}.tmp-${token}`;
   const backupPath = `${filePath}.bak-${token}`;
@@ -160,11 +169,13 @@ export async function writeEvidenceBundle(entries) {
   const preservedBackupPaths = new Set();
   const token = `${process.pid}-${Date.now()}`;
   const resolvedEntries = entries.map(([filePath, content]) => [path.resolve(filePath), content]);
-  const artifactDirs = new Set(resolvedEntries.map(([filePath]) => path.dirname(filePath)));
-  if (artifactDirs.size > 1) {
-    throw new Error(`Block C evidence bundle entries must share one directory: ${[...artifactDirs].join(',')}`);
+  const lexicalDirs = [...new Set(resolvedEntries.map(([filePath]) => path.dirname(filePath)))];
+  const canonicalDirs = await Promise.all(lexicalDirs.map((directory) => fs.realpath(directory)));
+  const artifactDirs = [...new Set(canonicalDirs)];
+  if (artifactDirs.length > 1) {
+    throw new BlockCEvidenceDirectoryError(artifactDirs);
   }
-  const artifactsDir = resolvedEntries.length > 0 ? path.dirname(resolvedEntries[0][0]) : process.cwd();
+  const artifactsDir = artifactDirs[0] || await fs.realpath(process.cwd());
   const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
 
   try {

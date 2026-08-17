@@ -154,6 +154,15 @@ function nvx_valoracion_managed_page_markup(): string {
 	// the single canonical .hs-form-frame child with the HubSpot identity. Repeating
 	// data-form-id/data-portal-id here makes the portal embed initialize a second form.
 	$html .= '<div id="nvx-hubspot-native-form" class="nvx-hubspot-native-form-v2" data-nvx-hubspot-native="1" data-nvx-hubspot-eager="1" data-page-origin="' . esc_attr__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '" data-page-url="' . esc_url( $valuation_url ) . '"></div>';
+	// Server-rendered escape hatch: Complianz or a network policy can block the
+	// third-party form before consent. Keep a visible, non-tracking path so a
+	// first-time visitor never sees an unexplained blank conversion surface.
+	$html .= '<div class="nvx-hubspot-fallback" data-nvx-hubspot-fallback role="status">';
+	$html .= '<p class="nvx-hubspot-fallback__msg">' . esc_html__( 'Si el formulario no aparece, puede estar pendiente de tus preferencias de cookies para cargar contenido de HubSpot. Puedes continuar sin aceptar cookies por WhatsApp o por teléfono.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-hubspot-fallback__actions">';
+	$html .= '<a href="' . esc_url( $wa_url ) . '" class="nvx-brand-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer">' . esc_html__( 'WhatsApp directo', 'nuvanx-medical' ) . '</a>';
+	$html .= '<a href="tel:+34689317399" class="nvx-brand-btn nvx-btn--secondary">' . esc_html__( 'Llamar: 689 31 73 99', 'nuvanx-medical' ) . '</a>';
+	$html .= '</div></div>';
 	$html .= '<p class="nvx-copy nvx-form-note">' . esc_html__( 'La información enviada se utiliza para gestionar tu solicitud. La indicación final depende de valoración médica y los resultados pueden variar según cada paciente.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-copy nvx-form-note nvx-doctoralia-proof">' . esc_html__( 'Más de 100 opiniones verificadas en Doctoralia.', 'nuvanx-medical' ) . ' <a class="nvx-brand-inline-link" href="' . esc_url( $doctoralia_url ) . '" target="_blank" rel="noopener noreferrer external">' . esc_html__( 'Consultar opiniones verificadas', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></div></div></section>';

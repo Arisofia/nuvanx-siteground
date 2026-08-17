@@ -208,6 +208,10 @@
 	var ENDPOINT = /^https:\/\/[a-z0-9]+\.supabase\.co\/functions\/v1\//.test(configEndpoint)
 		? configEndpoint
 		: 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
+	var normalizedPath = String(window.location.pathname || '/');
+	while (normalizedPath.length > 1 && normalizedPath.endsWith('/')) {
+		normalizedPath = normalizedPath.slice(0, -1);
+	}
 	var eligiblePath = normalizedPath === '/madrid/valoracion'
 		|| normalizedPath.indexOf('/endolift') === 0
 		|| normalizedPath.indexOf('/endolaser') === 0

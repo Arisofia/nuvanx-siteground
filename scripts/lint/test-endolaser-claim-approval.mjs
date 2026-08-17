@@ -451,7 +451,18 @@ async function run() {
   console.log(`ENDOLASER_APPROVAL=PASS protected_change_with_approved_record protected=${decision.signals.join(',')}`);
 }
 
+function runSemanticRegressionContract() {
+  const contractPath = path.join(repoRoot, 'scripts/lint/test-endolaser-approval-semantic-contract.mjs');
+  execFileSync(process.execPath, [contractPath], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+  });
+}
+
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
-if (invokedPath === fileURLToPath(import.meta.url)) await run();
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  runSemanticRegressionContract();
+  await run();
+}
 
 export { canonicalJson, routeProjection, seoProjection, tariffProjection, structuredDataProjection };

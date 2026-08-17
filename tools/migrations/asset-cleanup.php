@@ -106,6 +106,8 @@ function nvx_inventory_real_references(): array {
  * @return array Orphaned assets
  */
 function nvx_identify_orphans( array $references ): array {
+	global $wpdb;
+
 	$orphans = [
 		'images' => [],
 		'scripts' => [],

@@ -416,9 +416,12 @@ add_filter(
 				static function ( $url ): bool {
 					$href = is_array( $url ) ? (string) ( $url['href'] ?? '' ) : (string) $url;
 					$href = strtolower( $href );
-					return ! str_contains( $href, 'hsforms' )
-						&& ! str_contains( $href, 'hs-scripts.com' )
-						&& ! str_contains( $href, 'klaviyo.com' );
+					$keep = ! str_contains( $href, 'hsforms' )
+						&& ! str_contains( $href, 'hs-scripts.com' );
+					if ( $keep && str_contains( $href, 'klaviyo.com' ) && nvx_is_valoracion_klaviyo_excluded() ) {
+						return false;
+					}
+					return $keep;
 				}
 			)
 		);
@@ -428,12 +431,32 @@ add_filter(
 );
 
 /**
- * Klaviyo onsite JS is not used for conversion. Strip the public identify
- * bundle so Lighthouse does not pay 18KB of ES5 polyfills on every view.
- * Admin / Klaviyo account flows are unchanged.
+ * Whether the current request is the dedicated valoración conversion landing.
+ *
+ * Matches WP snippet #8 (page 2636): keep Klaviyo Onsite everywhere else so the
+ * live popup R5dw99 and its email/SMS welcome flows can run.
  */
-function nvx_dequeue_klaviyo_onsite(): void {
+function nvx_is_valoracion_klaviyo_excluded(): bool {
 	if ( is_admin() ) {
+		return false;
+	}
+	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+		return true;
+	}
+	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
+		return true;
+	}
+	if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
+		return true;
+	}
+	return is_page( 2636 ) || is_page( 'valoracion' );
+}
+
+/**
+ * Keep Klaviyo Onsite off the HubSpot conversion landing only.
+ */
+function nvx_dequeue_klaviyo_onsite_on_valoracion(): void {
+	if ( ! nvx_is_valoracion_klaviyo_excluded() ) {
 		return;
 	}
 
@@ -442,4 +465,22 @@ function nvx_dequeue_klaviyo_onsite(): void {
 		wp_deregister_script( $handle );
 	}
 }
-add_action( 'wp_enqueue_scripts', 'nvx_dequeue_klaviyo_onsite', 999 );
+add_action( 'wp_enqueue_scripts', 'nvx_dequeue_klaviyo_onsite_on_valoracion', 999 );
+
+/**
+ * Drop leftover Klaviyo script tags on the conversion landing.
+ *
+ * @param string $tag    Generated script tag.
+ * @param string $handle Script handle.
+ */
+function nvx_strip_klaviyo_script_tags_on_valoracion( string $tag, string $handle ): string {
+	unset( $handle );
+	if ( ! nvx_is_valoracion_klaviyo_excluded() ) {
+		return $tag;
+	}
+	if ( str_contains( strtolower( $tag ), 'klaviyo' ) ) {
+		return '';
+	}
+	return $tag;
+}
+add_filter( 'script_loader_tag', 'nvx_strip_klaviyo_script_tags_on_valoracion', 1000, 2 );

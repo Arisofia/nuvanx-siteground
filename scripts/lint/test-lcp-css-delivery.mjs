@@ -44,13 +44,18 @@ assert.doesNotMatch(
 );
 assert.match(
   integrations,
-  /klaviyo\.com/,
-  'Klaviyo must stay out of the early resource-hint list',
+  /nvx_is_valoracion_klaviyo_excluded/,
+  'Klaviyo Onsite must stay available off the valoración landing',
 );
 assert.match(
   integrations,
-  /nvx_dequeue_klaviyo_onsite/,
-  'Klaviyo onsite identify must be dequeued on the public site',
+  /nvx_dequeue_klaviyo_onsite_on_valoracion/,
+  'Klaviyo Onsite must be removed only on the HubSpot conversion landing',
+);
+assert.match(
+  integrations,
+  /R5dw99/,
+  'Klaviyo exclusion comments must name the live onsite popup',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

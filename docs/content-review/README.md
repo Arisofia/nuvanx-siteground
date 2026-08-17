@@ -20,6 +20,10 @@ Se han actualizado las instrucciones de enlazado Top 1, las instrucciones de P1 
 | `/well-aging-estrategia-medica-global/` | No contiene una mención apta de relajación muscular/expresión ni de composición o grasa corporal. | No añadir copy fuera de la instrucción. |
 | `/endolaser-corporal-vs-no-invasivos-grasa-localizada/` | El bloque final solicitado ya está publicado con la URL correcta. | No duplicar. |
 
+## Mapa verificable de las páginas existentes
+
+`EXISTING-PAGE-CHANGE-MAP.md` identifica, para cada una de las cinco páginas Top 1 ya publicadas, el ID de WordPress, el anchor o bloque solicitado, la ubicación exacta, el estado detectado y la acción correcta. Distingue expresamente entre el enlace ya presente, el enlace condicional que no debe duplicarse y los casos que requerirían una instrucción editorial nueva porque no existe texto fuente apto.
+
 ## Compatibilidad de plantilla para P1 y P2
 
 P1 y P2 no deben pegarse como HTML íntegro en el contenido administrado de WordPress. Ambas rutas son superficies gobernadas por el tema, donde el contenido visible se renderiza desde sus archivos de datos y su controlador de plantilla.

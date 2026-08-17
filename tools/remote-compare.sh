@@ -22,7 +22,7 @@ LOCAL_MANIFEST="$WORK_DIR/local-theme-sha256.txt"
 STAGING_MANIFEST="$WORK_DIR/staging-theme-sha256.txt"
 PROD_MANIFEST="$WORK_DIR/prod-theme-sha256.txt"
 
-# These files/directories are deployment/runtime state, not immutable theme source.
+# Single source of truth for files that are deployment/runtime state rather than immutable theme source.
 FIND_FILTER=(
   ! -name '.nvx-deploy-sha'
   ! -name '.nvx-deploy-stamp.json'
@@ -48,17 +48,15 @@ make_remote_manifest() {
   local alias="$1"
   local root="$2"
   local output="$3"
-  ssh "$alias" "cd '$root/$THEME_REL' && find . -type f \
-    ! -name '.nvx-deploy-sha' \
-    ! -name '.nvx-deploy-stamp.json' \
-    ! -name 'php_errorlog' \
-    ! -name '*.log' \
-    ! -name '*.bak*' \
-    ! -path './backups-nuvanx/*' \
-    ! -path './quarantine/*' \
-    ! -path './_archive*' \
-    ! -path './_disabled*' \
-    -print0 | sort -z | xargs -0 -r sha256sum" > "$output"
+  local remote_theme="$root/$THEME_REL"
+
+  {
+    printf 'set -Eeuo pipefail\n'
+    printf 'cd %q\n' "$remote_theme"
+    printf 'find . -type f'
+    printf ' %q' "${FIND_FILTER[@]}"
+    printf ' -print0 | sort -z | xargs -0 -r sha256sum\n'
+  } | ssh "$alias" bash -se > "$output"
 }
 
 paths_from_manifest() {

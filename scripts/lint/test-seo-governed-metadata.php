@@ -135,28 +135,27 @@ function nvxAdsMetadataFailures( string $dataDir, string $pattern ): array {
 
 /** Validate a legacy route containing a restricted term. */
 function nvxAdsLegacyRouteFailure( string $route, $config, array $routes, string $pattern ): ?string {
-    if ( ! nvxAdsRestrictedTerm( $route, $pattern ) ) {
-        return null;
-    }
-    if ( ! is_array( $config ) ) {
-        return 'Restricted route is not an alias object: ' . $route;
+    $failure = null;
+
+    if ( nvxAdsRestrictedTerm( $route, $pattern ) ) {
+        if ( ! is_array( $config ) ) {
+            $failure = 'Restricted route is not an alias object: ' . $route;
+        } else {
+            $keys = array_keys( $config );
+            sort( $keys );
+            $alias = (string) ( $config['route_alias'] ?? '' );
+
+            if ( array( 'route_alias' ) !== $keys || '' === $alias ) {
+                $failure = 'Restricted route is not alias-only to a clean canonical target: ' . $route;
+            } elseif ( nvxAdsRestrictedTerm( $alias, $pattern ) ) {
+                $failure = 'Restricted term in route_alias target: ' . $route . ' -> ' . $alias;
+            } elseif ( ! array_key_exists( $alias, $routes ) ) {
+                $failure = 'Restricted legacy alias points outside canonical route catalog: ' . $route . ' -> ' . $alias;
+            }
+        }
     }
 
-    $keys = array_keys( $config );
-    sort( $keys );
-    $alias = (string) ( $config['route_alias'] ?? '' );
-
-    if ( array( 'route_alias' ) !== $keys || '' === $alias ) {
-        return 'Restricted route is not alias-only to a clean canonical target: ' . $route;
-    }
-    if ( nvxAdsRestrictedTerm( $alias, $pattern ) ) {
-        return 'Restricted term in route_alias target: ' . $route . ' -> ' . $alias;
-    }
-    if ( ! array_key_exists( $alias, $routes ) ) {
-        return 'Restricted legacy alias points outside canonical route catalog: ' . $route . ' -> ' . $alias;
-    }
-
-    return null;
+    return $failure;
 }
 
 /** Validate canonical route configuration that does not use a restricted legacy key. */

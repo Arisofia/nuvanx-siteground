@@ -42,6 +42,11 @@ on:
         required: true
         default: false
         type: boolean
+      run_mu_plugin_forensics:
+        description: Extract private MU-plugin forensic evidence in read-only mode. No deployment or runtime mutation is performed.
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -829,3 +834,112 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$HOME/.ssh/prod_final_close_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
+
+  mu_plugin_forensics:
+    name: Production MU-plugin private forensic extraction
+    needs: release
+    if: >-
+      always() &&
+      inputs.run_mu_plugin_forensics &&
+      (needs.release.result == 'success' || inputs.deploy == false)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact candidate tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          persist-credentials: false
+
+      - name: Validate read-only forensic tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n tools/migrations/collect-mu-plugin-forensics.sh
+          python3 -m py_compile tools/migrations/scan-forensic-source.py
+          grep -Fq 'Raw sources stay in RAW_DIR' tools/migrations/collect-mu-plugin-forensics.sh
+          grep -Fq 'wp-config is never copied' tools/migrations/collect-mu-plugin-forensics.sh
+          echo 'MU_PLUGIN_FORENSICS_TOOLING=PASS mode=read_only_private'
+
+      - name: Configure strict production forensic SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod-mu-forensics
+          NVX_SSH_KEY_BASENAME: prod_mu_forensics_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
+
+      - name: Assert production origin before source extraction
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin_home="$(ssh -n nvx-prod-mu-forensics "cd '$PROD_ROOT' && wp option get home --skip-plugins --skip-themes --allow-root")"
+          test "$origin_home" = 'https://nuvanx.com'
+          echo 'MU_PLUGIN_FORENSICS_ORIGIN=PASS host=nuvanx.com'
+
+      - name: Extract private production MU-plugin evidence
+        shell: bash
+        env:
+          SSH_ALIAS: nvx-prod-mu-forensics
+          RAW_DIR: ${{ runner.temp }}/nuvanx-mu-plugin-raw
+          REPORT_DIR: mu-plugin-forensics
+          SCANNER: tools/migrations/scan-forensic-source.py
+          PUBLIC_BASE_URL: https://nuvanx.com
+        run: |
+          set -euo pipefail
+          cleanup() {
+            rm -rf "$RAW_DIR"
+          }
+          trap cleanup EXIT
+          SSH_ALIAS="$SSH_ALIAS" PROD_ROOT="$PROD_ROOT" RAW_DIR="$RAW_DIR" REPORT_DIR="$REPORT_DIR" SCANNER="$SCANNER" PUBLIC_BASE_URL="$PUBLIC_BASE_URL" bash tools/migrations/collect-mu-plugin-forensics.sh
+          jq -e '.mode == "read_only" and ([.entries[] | select(.hash_match and .php_syntax == "PASS")] | length == 8)' "$REPORT_DIR/mu-plugins-production-manifest.json" >/dev/null
+          jq -e '([.findings[] | select(.category == "SECRET")] | length) == 0' "$REPORT_DIR/mu-plugins-secret-scan-redacted.json" >/dev/null
+          test -f "$REPORT_DIR/mu-plugins-production-20260817.zip"
+          echo 'MU_PLUGIN_FORENSICS_EXTRACTION=PASS sources=8 secrets=0'
+
+      - name: Discover Staging2 document root read-only
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-staging2-mu-forensics
+          NVX_SSH_KEY_BASENAME: staging2_mu_forensics_key
+          PRIMARY_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.STAGING2_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          bash scripts/production/configure-siteground-ssh.sh
+          mkdir -p mu-plugin-forensics
+          ssh -n nvx-staging2-mu-forensics 'for p in /home/customer/www/staging2.nuvanx.com/public_html /home/customer/www/nuvanx.com/staging2/public_html /home/customer/www/nuvanx.com/staging2.nuvanx.com/public_html; do if test -f "$p/wp-load.php"; then home="$(cd "$p" && wp option get home --skip-plugins --skip-themes --allow-root 2>/dev/null || true)"; printf "%s\t%s\n" "$p" "$home"; fi; done' > mu-plugin-forensics/staging2-root-discovery.tsv
+          grep -F $'\thttps://staging2.nuvanx.com' mu-plugin-forensics/staging2-root-discovery.tsv >/dev/null
+          echo 'STAGING2_ROOT_DISCOVERY=PASS'
+
+      - name: Upload private forensic evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: private-mu-plugin-forensics-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: mu-plugin-forensics/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Cleanup forensic SSH identities
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_mu_forensics_key" "$HOME/.ssh/staging2_mu_forensics_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

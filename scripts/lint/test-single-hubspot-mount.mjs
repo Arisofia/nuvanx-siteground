@@ -83,12 +83,12 @@ assert.doesNotMatch(
 );
 assert.match(
   managedPage,
-  /preg_match\( '\/\^\[0-9\]\{1,20\}\$\/', \$portal_id \)/,
+  /preg_match\( '\/\^\\d\{1,20\}\$\/', \$portal_id \)/,
   'HubSpot portal ID must be validated before it is interpolated into the recovery loader URL',
 );
 assert.match(
   managedPage,
-  /preg_match\( '\/\^\[a-z\]\{2,4\}\[0-9\]\{1,2\}\$\/', \$region \)/,
+  /preg_match\( '\/\^\[a-z\]\{2,4\}\\d\{1,2\}\$\/', \$region \)/,
   'HubSpot region must be validated before it is interpolated into the recovery loader hostname',
 );
 assert.match(

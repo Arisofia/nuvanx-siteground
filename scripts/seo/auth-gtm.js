@@ -131,8 +131,8 @@ rl.question('Pega aquí la URL completa a la que fuiste redirigido: ', async (co
     console.log('source .env.local && GTM_CONFIRM_PUBLISH=yes node scripts/seo/setup-gtm-conversion-trigger.js\n');
   } catch (persistErr) {
     console.error(`\n⚠️ No se pudo guardar automáticamente el token en ${envPath}: ${persistErr.message}`);
-    console.log('\nGuárdalo manualmente en tu archivo .env.local:');
-    console.log(`export GTM_REFRESH_TOKEN='${tokens.refresh_token}'\n`);
+    console.log('\nGuarda el refresh token manualmente en .env.local mediante un canal seguro.');
+    console.log('El valor no se imprimirá en la consola.');
   } finally {
     rl.close();
   }

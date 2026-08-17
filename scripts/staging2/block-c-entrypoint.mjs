@@ -30,7 +30,7 @@ function positiveIntegerEnv(name, fallback) {
 const parsedLegacyTimeoutMs = Number.parseInt(process.env.BLOCK_C_SUBPROCESS_TIMEOUT_MS || '', 10);
 const hasLegacyTimeoutOverride = Number.isInteger(parsedLegacyTimeoutMs) && parsedLegacyTimeoutMs > 0;
 const legacyTimeoutMs = hasLegacyTimeoutOverride ? parsedLegacyTimeoutMs : null;
-const DEFAULT_CORE_TIMEOUT_MS = 45 * 60 * 1000;
+const DEFAULT_CORE_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_RECOVERY_TIMEOUT_MS = 10 * 60 * 1000;
 // BLOCK_C_SUBPROCESS_TIMEOUT_MS is the historical global subprocess budget. For
 // compatibility it remains the core fallback when explicitly set, and recovery

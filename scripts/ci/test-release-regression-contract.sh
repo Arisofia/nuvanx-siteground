@@ -3,6 +3,11 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fail() { echo "RELEASE_REGRESSION_CONTRACT=FAIL reason=$1" >&2; exit 1; }
+assertion_count=0
+pass_assert() {
+  assertion_count=$((assertion_count + 1))
+  echo "RELEASE_REGRESSION_ASSERT=PASS name=$1"
+}
 
 BRIDAL="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php"
 IDENTITY_CONTRACT="$ROOT/scripts/production/test-deploy-identity-contract.mjs"
@@ -22,16 +27,16 @@ grep -Eq '\$is_seed[[:space:]]*=[[:space:]]*\$has_meta_key[[:space:]]*&&[[:space
 if grep -Eq '\$is_seed[[:space:]]*=[[:space:]]*\$has_meta_key[[:space:]]*\|\|[[:space:]]*\$has_seed_marker' "$BRIDAL"; then
   fail 'bridal_seed_or_logic_forbidden'
 fi
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=bridal-seed-and-contract'
+pass_assert 'bridal-seed-and-contract'
 
 node "$IDENTITY_CONTRACT" || fail 'deploy_identity_behavior'
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=deploy-identity-behavior'
+pass_assert 'deploy-identity-behavior'
 
 # Production deploys must refuse anonymous/manual identity before cutover.
 grep -Eq 'DEPLOY_RUN_ID=.*GITHUB_RUN_ID' "$DEPLOY" || fail 'deploy_run_id_not_sourced_from_github'
 grep -Eq 'DEPLOY_RUN_ID.*\^\[0-9\].*\$' "$DEPLOY" || fail 'deploy_run_id_numeric_guard_missing'
 ! grep -Eq 'DEPLOY_RUN_ID=.*manual' "$DEPLOY" || fail 'manual_deploy_identity_still_allowed'
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=deploy-run-id-enforcement'
+pass_assert 'deploy-run-id-enforcement'
 
 # Validate semantic workflow wiring without depending on step display names or
 # environment assignment ordering.
@@ -39,21 +44,24 @@ grep -Eq 'EXPECTED_RUN_ID=.*GITHUB_RUN_ID' "$WORKFLOW" || fail 'release_expected
 grep -Fq 'ORIGIN_SSH_ALIAS=nvx-prod-audit' "$WORKFLOW" || fail 'audit_origin_alias_not_wired'
 grep -Fq 'ORIGIN_SSH_ALIAS=nvx-prod-hubspot' "$WORKFLOW" || fail 'hubspot_origin_alias_not_wired'
 grep -Fq 'steps.production_identity.outcome' "$WORKFLOW" || fail 'identity_failure_not_compensated'
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=workflow-identity-wiring'
+pass_assert 'workflow-identity-wiring'
 
 # Boundary must use the shared semantic parser/validator and explicit run ID.
 grep -Fq "from './deploy-identity-contract.mjs'" "$BOUNDARY" || fail 'boundary_shared_contract_missing'
 grep -Fq "process.env.EXPECTED_RUN_ID || ''" "$BOUNDARY" || fail 'boundary_expected_run_id_not_explicit'
 ! grep -Fq 'process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID' "$BOUNDARY" || fail 'boundary_current_audit_run_fallback_forbidden'
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=boundary-identity-semantics'
+pass_assert 'boundary-identity-semantics'
 
 # Shell-local variables inside the origin String.raw script must not use
-# JavaScript template interpolation syntax. `${name}` / `${expected}` would be
-# evaluated before SSH and throw ReferenceError instead of running Bash.
+# JavaScript template interpolation syntax. Dynamic values used in ERE matches
+# must be escaped before interpolation so regex metacharacters stay literal.
 ! grep -Fq '${name}' "$BOUNDARY" || fail 'boundary_shell_name_js_interpolation_forbidden'
 ! grep -Fq '${expected}' "$BOUNDARY" || fail 'boundary_shell_expected_js_interpolation_forbidden'
-grep -Fq '$name' "$BOUNDARY" || fail 'boundary_shell_name_reference_missing'
-grep -Fq '$expected' "$BOUNDARY" || fail 'boundary_shell_expected_reference_missing'
-echo 'RELEASE_REGRESSION_ASSERT=PASS name=boundary-shell-local-interpolation'
+grep -Fq 'escape_ere()' "$BOUNDARY" || fail 'boundary_ere_escape_helper_missing'
+grep -Fq 'name_re="$(escape_ere "$name")"' "$BOUNDARY" || fail 'boundary_name_regex_escape_missing'
+grep -Fq 'expected_re="$(escape_ere "$expected")"' "$BOUNDARY" || fail 'boundary_expected_regex_escape_missing'
+grep -Fq '$name_re' "$BOUNDARY" || fail 'boundary_escaped_name_reference_missing'
+grep -Fq '$expected_re' "$BOUNDARY" || fail 'boundary_escaped_expected_reference_missing'
+pass_assert 'boundary-shell-local-interpolation'
 
-echo 'RELEASE_REGRESSION_CONTRACT=PASS assertions=6'
+echo "RELEASE_REGRESSION_CONTRACT=PASS assertions=$assertion_count"

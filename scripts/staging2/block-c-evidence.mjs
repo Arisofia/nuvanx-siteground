@@ -118,24 +118,30 @@ export function renderBlockCEvidence(results, {
   };
 }
 
+export class BlockCEvidenceDirectoryError extends Error {
+  constructor(directories) {
+    super(`Block C evidence bundle entries must share one directory: ${directories.join(',')}`);
+    this.name = 'BlockCEvidenceDirectoryError';
+    this.code = 'BLOCK_C_EVIDENCE_MIXED_DIRECTORIES';
+    this.directories = [...directories];
+  }
+}
+
 async function prepareEvidenceEntry(filePath, content, token) {
-  const resolvedFilePath = path.resolve(filePath);
-  const fileName = path.basename(resolvedFilePath);
-  const tmpPath = `${resolvedFilePath}.tmp-${token}`;
-  const backupPath = `${resolvedFilePath}.bak-${token}`;
+  const tmpPath = `${filePath}.tmp-${token}`;
+  const backupPath = `${filePath}.bak-${token}`;
   let hadOriginal = true;
 
   try {
     await fs.writeFile(tmpPath, content, 'utf8');
     try {
-      await fs.copyFile(resolvedFilePath, backupPath);
+      await fs.copyFile(filePath, backupPath);
     } catch (error) {
       if (error?.code === 'ENOENT') hadOriginal = false;
       else throw error;
     }
     return {
-      filePath: resolvedFilePath,
-      fileName,
+      filePath,
       tmpPath,
       backupPath,
       hadOriginal,
@@ -162,11 +168,18 @@ export async function writeEvidenceBundle(entries) {
   const committed = [];
   const preservedBackupPaths = new Set();
   const token = `${process.pid}-${Date.now()}`;
-  const artifactsDir = entries.length > 0 ? path.dirname(path.resolve(entries[0][0])) : process.cwd();
+  const resolvedEntries = entries.map(([filePath, content]) => [path.resolve(filePath), content]);
+  const lexicalDirs = [...new Set(resolvedEntries.map(([filePath]) => path.dirname(filePath)))];
+  const canonicalDirs = await Promise.all(lexicalDirs.map((directory) => fs.realpath(directory)));
+  const artifactDirs = [...new Set(canonicalDirs)];
+  if (artifactDirs.length > 1) {
+    throw new BlockCEvidenceDirectoryError(artifactDirs);
+  }
+  const artifactsDir = artifactDirs[0] || await fs.realpath(process.cwd());
   const inconsistentMarkerPath = path.join(artifactsDir, 'block-c-evidence-inconsistent.json');
 
   try {
-    for (const [filePath, content] of entries) {
+    for (const [filePath, content] of resolvedEntries) {
       staged.push(await prepareEvidenceEntry(filePath, content, token));
     }
 
@@ -193,7 +206,6 @@ export async function writeEvidenceBundle(entries) {
         rollbackFailures.push({
           entry,
           filePath: entry.filePath,
-          fileName: entry.fileName,
           message: `${entry.filePath}:${rollbackError?.message || rollbackError}`,
         });
       }
@@ -248,14 +260,13 @@ export async function writeEvidenceBundle(entries) {
       // durable. If phase 1 cannot be persisted, keep files and backups intact
       // and fail the run rather than opening an unmarked cleanup window.
       if (cleanupMarkerReady) {
-        for (const { filePath, fileName } of rollbackFailures) {
+        for (const { filePath } of rollbackFailures) {
           try {
             await fs.rm(filePath, { force: true });
             removedInvalidFiles.push(filePath);
           } catch (cleanupError) {
             cleanupFailures.push({
               filePath,
-              fileName,
               message: `${filePath}:${cleanupError?.message || cleanupError}`,
             });
           }

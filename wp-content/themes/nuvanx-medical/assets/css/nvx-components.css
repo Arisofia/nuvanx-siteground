@@ -1509,6 +1509,7 @@ select[aria-invalid="true"] {
   -webkit-overflow-scrolling:touch}
 
 .nvx-valoracion-modal__fallback{
+  display:none;
   margin:var(--nvx-space-3, calc(var(--nvx-space-1) * 2.5)) 0 0;
   font-family:var(--nvx-sans);
   font-size:var(--nvx-type-caption, .875rem);

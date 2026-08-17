@@ -59,6 +59,68 @@
 
 
 
+	var adsClickSendTo = 'AW-18236597403/qut3CLWflOAcEJvJ8fdD';
+	var adsLeadSendToPrimary = 'AW-18182220789/86RgCI2dht4cEPXX-t1D';
+	var adsLeadSendToSecondary = 'AW-18236597403/-1UOCISYlOAcEJvJ8fdD';
+
+	function pushAdsConversion(sendTo, extra) {
+		var payload = Object.assign({ send_to: sendTo }, extra || {});
+		window.dataLayer = window.dataLayer || [];
+		if (typeof window.gtag === 'function') {
+			window.gtag('event', 'conversion', payload);
+			return;
+		}
+		window.dataLayer.push(['event', 'conversion', payload]);
+		window.dataLayer.push(Object.assign({ event: 'conversion' }, payload));
+	}
+
+	function whenGtagReady(callback) {
+		if (typeof window.gtag === 'function') {
+			callback();
+			return;
+		}
+		var started = Date.now();
+		var timer = window.setInterval(function () {
+			if (typeof window.gtag === 'function' || Date.now() - started > 2000) {
+				window.clearInterval(timer);
+				callback();
+			}
+		}, 50);
+	}
+
+	/**
+	 * Official Ads click snippet for "Clic en teléfono o WhatsApp".
+	 * Returns true when the caller must preventDefault and navigate in event_callback.
+	 */
+	function reportPhoneWhatsAppConversion(url, options) {
+		var newTab = Boolean(options && options.newTab);
+		var navigatesAway = Boolean(url) && !newTab;
+		var finished = false;
+		var finish = function () {
+			if (finished || !navigatesAway) return;
+			finished = true;
+			window.location = url;
+		};
+
+		whenGtagReady(function () {
+			pushAdsConversion(adsClickSendTo, navigatesAway ? { event_callback: finish } : {});
+		});
+
+		if (navigatesAway) {
+			window.setTimeout(finish, 1500);
+			return true;
+		}
+		return false;
+	}
+
+	function isWhatsAppHref(href) {
+		return /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href || '');
+	}
+
+	function isJoinchatTarget(element) {
+		return Boolean(element && element.closest && element.closest('.joinchat, .joinchat__button, [class*="joinchat"]'));
+	}
+
 	function emit(eventName, parameters) {
 		var normalizedName = cleanToken(eventName);
 		var params = allowedParameters(parameters);
@@ -70,18 +132,11 @@
 		}, params));
 
 		if (normalizedName === 'generate_lead') {
-			var sendTo908 = 'AW-18182220789/86RgCI2dht4cEPXX-t1D';
-			var sendTo820 = 'AW-18236597403/-1UOCISYlOAcEJvJ8fdD';
-
 			if (typeof window.gtag === 'function') {
 				window.gtag('config', 'AW-18236597403');
-				window.gtag('event', 'conversion', { send_to: sendTo908 });
-				window.gtag('event', 'conversion', { send_to: sendTo820 });
-			} else {
-				window.dataLayer.push(['config', 'AW-18236597403']);
-				window.dataLayer.push(['event', 'conversion', { send_to: sendTo908 }]);
-				window.dataLayer.push(['event', 'conversion', { send_to: sendTo820 }]);
 			}
+			pushAdsConversion(adsLeadSendToPrimary);
+			pushAdsConversion(adsLeadSendToSecondary);
 		}
 
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
@@ -92,21 +147,22 @@
 
 	function trackClick(event) {
 		var target = event.target && typeof event.target.closest === 'function'
-			? event.target.closest('a, button')
+			? event.target.closest('a, button, .joinchat, .joinchat__button')
 			: null;
 		if (!target) return;
 
 		var href = target.getAttribute('href') || '';
-		var dataEvent = target.dataset.gtag || '';
+		var dataEvent = target.dataset ? (target.dataset.gtag || '') : '';
 		var common = {
 			cta_region: regionFor(target),
 			cta_marker: dataEvent || 'selector',
 		};
 
-		var isReserve = target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
+		var isReserve = (target.matches && target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal'))
 			|| href.indexOf('/madrid/valoracion/') !== -1;
-		var isWhatsApp = target.matches('[data-gtag="click-whatsapp"]')
-			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href);
+		var isWhatsApp = (target.matches && target.matches('[data-gtag="click-whatsapp"]'))
+			|| isWhatsAppHref(href)
+			|| isJoinchatTarget(target);
 		var isPhone = /^tel:/i.test(href);
 
 		// Track treatment-specific clicks for Google Ads conversion attribution.
@@ -130,6 +186,11 @@
 		// Track WhatsApp clicks
 		if (isWhatsApp) {
 			emit('whatsapp_click', Object.assign({ contact_method: 'whatsapp' }, common));
+			if (reportPhoneWhatsAppConversion(href || undefined, {
+				newTab: target.getAttribute('target') === '_blank' || isJoinchatTarget(target) || !href,
+			})) {
+				event.preventDefault();
+			}
 			return;
 		}
 
@@ -140,7 +201,9 @@
 				cta_region: regionFor(target),
 				cta_marker: dataEvent || 'tel_link',
 			});
-			return;
+			if (reportPhoneWhatsAppConversion(href, { newTab: false })) {
+				event.preventDefault();
+			}
 		}
 	}
 

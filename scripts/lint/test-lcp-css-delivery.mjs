@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
+const conversionEvents = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js',
+  'utf8',
+);
 const functionsPhp = fs.readFileSync('wp-content/themes/nuvanx-medical/functions.php', 'utf8');
 const governance = fs.readFileSync(
   'wp-content/themes/nuvanx-medical/inc/nvx-native-style-governance.php',
@@ -124,6 +128,17 @@ assert.match(
   integrations,
   /klaviyojs/,
   'the official plugin handle klaviyojs must be dequeued',
+);
+
+assert.match(
+  conversionEvents,
+  /AW-18236597403\/qut3CLWflOAcEJvJ8fdD/,
+  'phone/WhatsApp clicks must send the official Ads click conversion',
+);
+assert.match(
+  conversionEvents,
+  /joinchat/,
+  'Joinchat widget clicks must count as WhatsApp conversions',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

@@ -96,7 +96,7 @@ wp_head();
 	<a href="<?php echo esc_url( home_url( '/madrid/valoracion/#nvx-hubspot-form' ) ); ?>" class="<?php echo esc_attr( $nvx_mobile_class ); ?>" id="nvx-mobile-cta"<?php if ( $nvx_modal_enabled ) : ?>
 		data-nvx-valoracion-modal="1" aria-haspopup="dialog"
 	<?php endif; ?>><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
-	<a href="<?php echo function_exists( 'nvx_whatsapp_url' ) ? esc_url( nvx_whatsapp_url( 'primary' ) ) : '#'; ?>" class="nvx-brand-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
+	<a href="<?php echo function_exists( 'nvx_whatsapp_url' ) ? esc_url( nvx_whatsapp_url( 'primary' ) ) : '#'; ?>" class="nvx-brand-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer" data-gtag="click-whatsapp"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </dialog>
 
 <main id="nvx-main" class="nvx-main" role="main" tabindex="-1">

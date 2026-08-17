@@ -37,6 +37,11 @@ on:
         required: true
         default: false
         type: boolean
+      run_final_close_audit:
+        description: Run the final-close read-only WordPress and filesystem inventory. No deployment or runtime mutation is performed.
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -748,3 +753,79 @@ jobs:
           path: scripts/staging2/h1-artifacts/*.log
           if-no-files-found: warn
           retention-days: 7
+
+  final_close_audit:
+    name: Production final-close redacted inventory
+    needs: release
+    if: >-
+      always() &&
+      inputs.run_final_close_audit &&
+      (needs.release.result == 'success' || inputs.deploy == false)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          persist-credentials: false
+
+      - name: Validate read-only collector
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l tools/migrations/final-close-wp-inventory.php
+          grep -Fq 'read_only_skip_plugins_skip_themes' tools/migrations/final-close-wp-inventory.php
+          echo 'FINAL_CLOSE_COLLECTOR=PASS mode=read_only'
+
+      - name: Configure strict production audit SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod-final-close
+          NVX_SSH_KEY_BASENAME: prod_final_close_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
+
+      - name: Collect redacted production inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-final-close
+          remote_collector="/tmp/nvx-final-close-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.php"
+          cleanup() {
+            ssh -n nvx-prod-final-close "rm -f '$remote_collector'" || true
+          }
+          trap cleanup EXIT
+          scp -q tools/migrations/final-close-wp-inventory.php "nvx-prod-final-close:$remote_collector"
+          ssh nvx-prod-final-close "PROD_ROOT='$PROD_ROOT' AUDIT_FILE='$remote_collector' bash -se" <<'REMOTE' > audit-final-close/production-inventory.json
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          test -f "$AUDIT_FILE"
+          wp eval-file "$AUDIT_FILE" --skip-plugins --skip-themes --allow-root
+          REMOTE
+          jq -e '.mode == "read_only_skip_plugins_skip_themes" and (.redaction | contains("never emitted"))' audit-final-close/production-inventory.json >/dev/null
+          sha256sum audit-final-close/production-inventory.json > audit-final-close/SHA256SUMS
+          echo 'FINAL_CLOSE_PRODUCTION_INVENTORY=PASS mode=read_only'
+
+      - name: Upload final-close inventory evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: final-close-production-inventory-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: audit-final-close/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Cleanup audit SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_final_close_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

@@ -383,7 +383,7 @@
     padding-inline: calc(var(--nvx-space-1) * 0.4);
     letter-spacing: calc(var(--nvx-track-nav) * 0.9);
   }
-  
+
   .nvx-nav__list {
     gap: 1px;
   }

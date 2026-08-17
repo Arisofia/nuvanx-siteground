@@ -117,18 +117,18 @@ add_filter( 'script_loader_tag', static function ( $tag, $handle, $src = '' ): s
 ```php
 /*
  * Third-party script filtering architecture:
- * 
+ *
  * PRIMARY: MU-plugin nvx-third-party-scripts-manager.php
  * - Loads at init (earliest possible)
  * - Removes hooks from Facebook/HubSpot plugins
  * - Filters script tags by src (priority 999)
- * 
+ *
  * COMPLEMENTARY: Theme nvx-integrations.php
  * - Dequeue/deregister specific handles (priority 100)
  * - Filter script tags by handle (priority 20)
  * - Full-document buffer processing (priority 999999)
  * - GTM delay execution
- * 
+ *
  * This dual-layer approach ensures:
  * 1. Earliest possible blocking (MU-plugin)
  * 2. Theme-specific control (theme filters)

@@ -32,7 +32,7 @@ async function validateHubSpotIframe(url) {
 
     // Get snapshot for interactive elements
     const snapshot = runAgentBrowser(['snapshot', '-i']);
-    
+
     // Get HTML for detailed analysis
     const html = runAgentBrowser(['read']);
 
@@ -71,7 +71,7 @@ async function validateHubSpotIframe(url) {
       `;
       const bboxResult = runAgentBrowser(['eval', '-b', Buffer.from(bboxScript).toString('base64')]);
       checks.iframeBoundingBox = JSON.parse(bboxResult);
-      
+
       if (checks.iframeBoundingBox) {
         const MIN_WIDTH = 300;
         const MIN_HEIGHT = 200;
@@ -98,7 +98,7 @@ async function validateHubSpotIframe(url) {
       `;
       const viewportResult = runAgentBrowser(['eval', '-b', Buffer.from(viewportScript).toString('base64')]);
       checks.formIntersectsViewport = JSON.parse(viewportResult);
-      
+
       if (!checks.formIntersectsViewport) {
         issues.push('HubSpot form does not intersect viewport');
       }
@@ -154,7 +154,7 @@ async function validateHubSpotIframe(url) {
 export async function runHubSpotSpecificGate(options = {}) {
   const url = options.url || process.env.STAGING_URL || 'https://staging2.nuvanx.com';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');
-  
+
   await fs.mkdir(outputDir, { recursive: true });
 
   // Check if agent-browser is installed

@@ -55,13 +55,13 @@ $nuvx_components = [
  */
 function nvx_detect_free_html_elements( string $content ): array {
 	global $nuvx_components;
-	
+
 	$detected = [];
-	
+
 	foreach ( $nuvx_components as $component_name => $component ) {
 		$matches = [];
 		preg_match_all( $component['pattern'], $content, $matches );
-		
+
 		if ( ! empty( $matches[0] ) ) {
 			$detected[ $component_name ] = [
 				'description' => $component['description'],
@@ -70,7 +70,7 @@ function nvx_detect_free_html_elements( string $content ): array {
 			];
 		}
 	}
-	
+
 	return $detected;
 }
 
@@ -82,13 +82,13 @@ function nvx_detect_free_html_elements( string $content ): array {
  */
 function nvx_replace_with_components( string $content ): string {
 	global $nuvx_components;
-	
+
 	$updated = $content;
-	
+
 	foreach ( $nuvx_components as $component_name => $component ) {
 		$updated = preg_replace( $component['pattern'], $component['replacement'], $updated );
 	}
-	
+
 	return $updated;
 }
 
@@ -99,7 +99,7 @@ function nvx_replace_with_components( string $content ): string {
  */
 function nvx_validate_component_availability(): array {
 	$available = [];
-	
+
 	// Check if component functions exist
 	$component_functions = [
 		'nvx_render_cta' => 'cta',
@@ -107,7 +107,7 @@ function nvx_validate_component_availability(): array {
 		'nvx_render_claim' => 'claim',
 		'nvx_render_cronograma' => 'cronograma',
 	];
-	
+
 	foreach ( $component_functions as $function => $component ) {
 		if ( function_exists( $function ) ) {
 			$available[ $component ] = true;
@@ -115,7 +115,7 @@ function nvx_validate_component_availability(): array {
 			$available[ $component ] = false;
 		}
 	}
-	
+
 	return $available;
 }
 
@@ -151,21 +151,21 @@ foreach ( $posts as $post_id ) {
 	];
 
 	$content = $post->post_content;
-	
+
 	// Detect free HTML elements
 	$detected = nvx_detect_free_html_elements( $content );
-	
+
 	if ( empty( $detected ) ) {
 		$extraction_results['posts'][] = $post_result;
 		continue;
 	}
-	
+
 	$post_result['detected_elements'] = $detected;
 	$extraction_results['has_free_html']++;
-	
+
 	// Replace with components
 	$updated_content = nvx_replace_with_components( $content );
-	
+
 	// Check if content changed
 	if ( $updated_content !== $content ) {
 		wp_update_post( [
@@ -179,7 +179,7 @@ foreach ( $posts as $post_id ) {
 			fwrite( STDERR, "  - {$info['description']}: {$info['count']} found\n" );
 		}
 	}
-	
+
 	$extraction_results['posts'][] = $post_result;
 }
 

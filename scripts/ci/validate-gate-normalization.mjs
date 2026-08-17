@@ -21,7 +21,7 @@ async function loadConfig() {
 
 async function validateWorkflowGateCoverage(workflowName, config) {
   const workflowConfig = config.workflows[workflowName];
-  
+
   if (!workflowConfig) {
     throw new Error(`Workflow "${workflowName}" not found in configuration`);
   }
@@ -80,7 +80,7 @@ async function compareWorkflowCoverage(config) {
 
 async function main() {
   const workflowName = process.argv[2] || 'staging';
-  
+
   try {
     const config = await loadConfig();
 
@@ -91,7 +91,7 @@ async function main() {
 
     // Validate workflow gate coverage
     const coverageValidation = await validateWorkflowGateCoverage(workflowName, config);
-    
+
     console.log(`Required gates: ${coverageValidation.requiredGates.join(', ')}`);
     console.log(`Gate coverage: ${coverageValidation.coverage}`);
     console.log('');
@@ -104,7 +104,7 @@ async function main() {
 
     // Compare workflow coverage
     const comparisonValidation = await compareWorkflowCoverage(config);
-    
+
     console.log('Workflow coverage comparison:');
     console.log(JSON.stringify(comparisonValidation.coverage, null, 2));
     console.log('');
@@ -118,7 +118,7 @@ async function main() {
     console.log('✓ Gate normalization validation PASSED');
     console.log('All workflows execute the same complete set of gates');
     console.log('No workflow "green" means lower coverage than another');
-    
+
     process.exit(0);
   } catch (error) {
     console.error(`VALIDATION ERROR: ${error.message}`);

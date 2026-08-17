@@ -350,12 +350,12 @@ async function auditThirdPartyOverlays() {
       const all = document.querySelectorAll('*');
       const overlays = [];
       let maxZ = 0;
-      
+
       all.forEach(el => {
         const computed = window.getComputedStyle(el);
         const position = computed.position;
         const zIndex = parseInt(computed.zIndex) || 0;
-        
+
         if ((position === 'fixed' || position === 'absolute') && zIndex > 0) {
           const rect = el.getBoundingClientRect();
           overlays.push({
@@ -367,16 +367,16 @@ async function auditThirdPartyOverlays() {
             height: rect.height,
             visible: rect.width > 0 && rect.height > 0
           });
-          
+
           if (zIndex > maxZ) maxZ = zIndex;
         }
       });
-      
+
       JSON.stringify({ overlays, maxZIndex: maxZ });
     `;
     const findResult = runAgentBrowser(['eval', '-b', Buffer.from(findScript).toString('base64')]);
     const result = JSON.parse(findResult);
-    
+
     audit.count = result.overlays.length;
     audit.overlays = result.overlays.filter(o => o.visible);
     audit.maxZIndex = result.maxZIndex;
@@ -401,7 +401,7 @@ async function auditThirdPartyOverlays() {
 export async function runOverlaysDesignSystemAudit(options = {}) {
   const url = options.url || process.env.STAGING_URL || 'https://staging2.nuvanx.com';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');
-  
+
   await fs.mkdir(outputDir, { recursive: true });
 
   // Check if agent-browser is installed

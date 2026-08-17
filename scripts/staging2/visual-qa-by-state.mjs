@@ -32,17 +32,17 @@ function runAgentBrowser(args) {
 
 async function testViewportState(url, viewportName, viewport, stateName, outputDir) {
   const screenshotPath = path.join(outputDir, `${viewportName}_${stateName}.png`);
-  
+
   try {
     // Close any existing session
     runAgentBrowser(['close', '--all']);
-    
+
     // Open with viewport
     runAgentBrowser(['open', url, '--viewport', `${viewport.width}x${viewport.height}`]);
-    
+
     // Wait for page load
     runAgentBrowser(['wait', '--load', 'networkidle']);
-    
+
     // State-specific actions
     switch (stateName) {
       case 'first_visit':
@@ -72,13 +72,13 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
         // Would need to trigger modal
         break;
     }
-    
+
     // Take screenshot
     runAgentBrowser(['screenshot', screenshotPath]);
-    
+
     // Close session
     runAgentBrowser(['close']);
-    
+
     return { success: true, screenshot: screenshotPath };
   } catch (error) {
     runAgentBrowser(['close']);
@@ -105,11 +105,11 @@ async function runVisualQA(url, outputDir) {
     };
 
     const states = ['first_visit', 'consent_open', 'consent_accepted', 'menu_open', 'hubspot_loaded', 'hubspot_blocked', 'modal_open'];
-    
+
     for (const stateName of states) {
       console.log(`Testing ${viewportName} - ${stateName}...`);
       const result = await testViewportState(url, viewportName, viewport, stateName, outputDir);
-      
+
       viewportResults.states.push({
         name: stateName,
         success: result.success,

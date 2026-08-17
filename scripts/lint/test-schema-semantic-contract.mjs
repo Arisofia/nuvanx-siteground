@@ -48,7 +48,7 @@ function extractPhpFunctionBody(content, functionName) {
   for (let i = open; i < content.length; i += 1) {
     const ch = content[i];
     const next = content[i + 1] || '';
-    
+
     // Handle comment transitions
     if (!quote && !escaped) {
       if (commentLine) {
@@ -74,10 +74,10 @@ function extractPhpFunctionBody(content, functionName) {
         continue;
       }
     }
-    
+
     // Skip content inside comments
     if (comment || commentLine) continue;
-    
+
     if (quote) {
       if (escaped) {
         escaped = false;

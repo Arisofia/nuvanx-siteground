@@ -34,9 +34,9 @@ CHECKS_FAILED=0
 run_check() {
   local check_name="$1"
   local check_command="$2"
-  
+
   echo "Running: ${check_name}..."
-  
+
   if eval "${check_command}" > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} ${check_name}: PASS"
     ((CHECKS_PASSED++))

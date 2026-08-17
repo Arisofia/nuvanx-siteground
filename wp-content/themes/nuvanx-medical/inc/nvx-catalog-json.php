@@ -395,7 +395,7 @@ function nvx_catalog_retire_unapproved_bridal_seed(): void {
 
 	// Log when signals don't match for visibility into potential sync/edit issues
 	if ( $has_meta_key !== $has_seed_marker ) {
-		error_log( sprintf( 
+		error_log( sprintf(
 			'NUVANX: bridal_protocol signal mismatch (meta=%s, marker=%s) for page %d. Seed status: %s.',
 			$has_meta_key ? 'present' : 'missing',
 			$has_seed_marker ? 'present' : 'missing',

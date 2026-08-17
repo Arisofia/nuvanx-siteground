@@ -152,7 +152,7 @@ add_filter( 'wp_head', 'nvx_filter_head_standalone_jsonld', PHP_INT_MAX - 1 );
  */
 function nvx_jsonld_callback_source_file( $callback ): string {
 	static $cache = array();
-	
+
 	// Generate a cache key based on callback type and value
 	if ( $callback instanceof Closure ) {
 		$cache_key = 'closure_' . spl_object_hash( $callback );
@@ -164,12 +164,12 @@ function nvx_jsonld_callback_source_file( $callback ): string {
 	} else {
 		return '';
 	}
-	
+
 	// Return cached result if available
 	if ( isset( $cache[ $cache_key ] ) ) {
 		return $cache[ $cache_key ];
 	}
-	
+
 	try {
 		if ( $callback instanceof Closure ) {
 			$cache[ $cache_key ] = (string) ( new ReflectionFunction( $callback ) )->getFileName();
@@ -229,7 +229,7 @@ function nvx_jsonld_is_retired_standalone_schema_callback( $callback ): bool {
 	if ( '' === $file || 'nuvanx-home-unified-faq-schema.php' !== basename( $file ) ) {
 		return false;
 	}
-	
+
 	// Verify the file lives in allowed roots to prevent removing output from unrelated files
 	// with the same basename in plugins or other locations
 	$allowed_roots = array( get_template_directory(), get_stylesheet_directory(), WPMU_PLUGIN_DIR );

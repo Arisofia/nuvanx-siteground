@@ -5,6 +5,7 @@ import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } 
 import { createSiteGroundOriginVerifier, SITEGROUND_CAPTCHA_PATH } from './siteground-origin-verifier.mjs';
 import { isSiteGroundTransientResponse } from './siteground-transient-classifier.mjs';
 import { isIgnorableExternalConsoleError } from './console-error-classifier.mjs';
+import { isExpectedClientResourceAbort } from './browser-request-failure-classifier.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
@@ -573,11 +574,11 @@ for (const viewport of viewports) {
       const target = request.url();
       const resourceType = request.resourceType();
       const failureText = request.failure()?.errorText || 'request failed';
-      const expectedClientMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
-      if (target.startsWith(baseUrl) && !expectedClientMediaAbort) {
+      const expectedClientAbort = isExpectedClientResourceAbort(resourceType, failureText);
+      if (target.startsWith(baseUrl) && !expectedClientAbort) {
         networkErrors.push(`${target}: ${failureText}`);
       }
-      if (resourceType === 'image') {
+      if (resourceType === 'image' && !expectedClientAbort) {
         let hostname = '';
         try {
           hostname = new URL(target).hostname;

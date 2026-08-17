@@ -47,4 +47,13 @@ grep -Fq "process.env.EXPECTED_RUN_ID || ''" "$BOUNDARY" || fail 'boundary_expec
 ! grep -Fq 'process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID' "$BOUNDARY" || fail 'boundary_current_audit_run_fallback_forbidden'
 echo 'RELEASE_REGRESSION_ASSERT=PASS name=boundary-identity-semantics'
 
-echo 'RELEASE_REGRESSION_CONTRACT=PASS assertions=5'
+# Shell-local variables inside the origin String.raw script must not use
+# JavaScript template interpolation syntax. `${name}` / `${expected}` would be
+# evaluated before SSH and throw ReferenceError instead of running Bash.
+! grep -Fq '${name}' "$BOUNDARY" || fail 'boundary_shell_name_js_interpolation_forbidden'
+! grep -Fq '${expected}' "$BOUNDARY" || fail 'boundary_shell_expected_js_interpolation_forbidden'
+grep -Fq '$name' "$BOUNDARY" || fail 'boundary_shell_name_reference_missing'
+grep -Fq '$expected' "$BOUNDARY" || fail 'boundary_shell_expected_reference_missing'
+echo 'RELEASE_REGRESSION_ASSERT=PASS name=boundary-shell-local-interpolation'
+
+echo 'RELEASE_REGRESSION_CONTRACT=PASS assertions=6'

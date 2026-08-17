@@ -138,7 +138,11 @@ rebuild_pr_preview_after_fifo() {
 
   git fetch --no-tags origin master
   git fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/nvx-pr-preview"
-  test "$(git rev-parse refs/remotes/origin/nvx-pr-preview)" = "$PR_SHA"
+  resolved_pr_sha="$(git rev-parse refs/remotes/origin/nvx-pr-preview)"
+  [[ "$resolved_pr_sha" == "$PR_SHA" ]] || {
+    echo "MUTATION_FIFO=FAIL reason=pr_head_mismatch expected=$PR_SHA actual=$resolved_pr_sha" >&2
+    exit 1
+  }
 
   if git worktree list --porcelain | grep -Fqx "worktree $CANDIDATE_ROOT"; then
     git worktree remove --force "$CANDIDATE_ROOT"

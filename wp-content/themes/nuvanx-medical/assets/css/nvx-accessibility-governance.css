@@ -68,7 +68,7 @@
 }
 
 /* Mobile breakpoint: hamburger visible, desktop nav hidden, drawer visible only when open and not inert. */
-@media (max-width: 89.999rem) {
+@media (max-width: 63.999rem) {
   .nvx-header .nvx-nav,
   .nvx-header .nvx-header__cta {
     display: none;

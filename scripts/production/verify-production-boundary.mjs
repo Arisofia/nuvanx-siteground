@@ -111,22 +111,29 @@ php -r '$v=$argv[1]; $d=DateTimeImmutable::createFromFormat("Y-m-d\\TH:i:s\\Z", 
 [[ "$stamp_release" =~ ^[A-Za-z0-9_-]+$ ]]
 echo "PRODUCTION_ORIGIN_IDENTITY=PASS sha=$stamp_sha run_id=$stamp_run_id timestamp=$stamp_timestamp release_id=$stamp_release"
 
+escape_ere() {
+  printf '%s' "$1" | sed 's/[][\\.^$*+?(){}|]/\\&/g'
+}
+
 assert_meta_equals() {
-  local body="$1" name="$2" expected="$3" tag
-  tag="$(tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name['\"]" | head -n 1 || true)"
+  local body="$1" name="$2" expected="$3" tag name_re expected_re
+  name_re="$(escape_ere "$name")"
+  expected_re="$(escape_ere "$expected")"
+  tag="$(tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name_re['\"]" | head -n 1 || true)"
   if [[ -z "$tag" ]]; then
     echo "PRODUCTION_ORIGIN_FAIL reason=missing_meta name=$name" >&2
     return 1
   fi
-  if ! printf '%s' "$tag" | grep -Eq "content[[:space:]]*=[[:space:]]*['\"]$expected['\"]"; then
+  if ! printf '%s' "$tag" | grep -Eq "content[[:space:]]*=[[:space:]]*['\"]$expected_re['\"]"; then
     echo "PRODUCTION_ORIGIN_FAIL reason=meta_mismatch name=$name expected=$expected tag=$tag" >&2
     return 1
   fi
 }
 
 meta_tag_for() {
-  local body="$1" name="$2"
-  tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name['\"]" | head -n 1 || true
+  local body="$1" name="$2" name_re
+  name_re="$(escape_ere "$name")"
+  tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name_re['\"]" | head -n 1 || true
 }
 
 ua='NUVANX-Production-Origin-Boundary/1.1'

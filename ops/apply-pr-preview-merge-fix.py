@@ -82,24 +82,32 @@ replace_once(
     "preview-identity-log",
 )
 
-replace_once(
-    '          EXPECTED_SHA: ${{ env.PR_SHA }}\n',
-    '',
-    "remove-pr-sha-browser-env",
-)
+section_start_marker = "      - name: Verify PR preview boundary and browser acceptance\n"
+section_end_marker = "\n      - name: Verify production unchanged\n"
+section_start = text.find(section_start_marker)
+if section_start < 0:
+    raise SystemExit("browser step start not found")
+section_end = text.find(section_end_marker, section_start)
+if section_end < 0:
+    raise SystemExit("browser step end not found")
+browser = text[section_start:section_end]
 
-old_browser = '''        run: |
-          set -euo pipefail
-          ssh nvx-staging2-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_SHA'"
-          pass=0; for attempt in {1..12}; do if node scripts/staging2/verify-staging-boundary.mjs; then pass=1; break; fi; sleep 10; done; test "$pass" = 1
-'''
-new_browser = '''        run: |
-          set -euo pipefail
-          export EXPECTED_SHA="$PR_PREVIEW_SHA"
-          ssh nvx-staging2-pr "cd '$STAGING_ROOT' && test \"\$(tr -d '\\r\\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)\" = '$PR_PREVIEW_SHA'"
-          pass=0; for attempt in {1..12}; do if node scripts/staging2/verify-staging-boundary.mjs; then pass=1; break; fi; sleep 10; done; test "$pass" = 1
-'''
-replace_once(old_browser, new_browser, "browser-preview-identity")
+env_line = '          EXPECTED_SHA: ${{ env.PR_SHA }}\n'
+if browser.count(env_line) != 1:
+    raise SystemExit(f"browser EXPECTED_SHA: expected 1 occurrence, found {browser.count(env_line)}")
+browser = browser.replace(env_line, "", 1)
+
+shell_start = "          set -euo pipefail\n"
+if browser.count(shell_start) != 1:
+    raise SystemExit(f"browser shell start: expected 1 occurrence, found {browser.count(shell_start)}")
+browser = browser.replace(shell_start, shell_start + '          export EXPECTED_SHA="$PR_PREVIEW_SHA"\n', 1)
+
+old_browser_identity = " = '$PR_SHA'\"\n"
+new_browser_identity = " = '$PR_PREVIEW_SHA'\"\n"
+if browser.count(old_browser_identity) != 1:
+    raise SystemExit(f"browser marker identity: expected 1 occurrence, found {browser.count(old_browser_identity)}")
+browser = browser.replace(old_browser_identity, new_browser_identity, 1)
+text = text[:section_start] + browser + text[section_end:]
 
 replace_once(
     '          rm -f "$HOME/.ssh/staging_pr_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"\n',

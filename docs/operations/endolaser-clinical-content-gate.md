@@ -2,7 +2,7 @@
 
 **Estado:** pendiente de completar por la dirección médica y la persona responsable de operación/compliance.
 **Ámbito:** `/endolaser-corporal-grasa-localizada/`, su catálogo de contenido, tarifas y `MedicalProcedure` canónico.
-**Principio:** ninguna modificación de la página puede introducir, ampliar o hacer más específica una afirmación clínica, técnica, temporal, económica o de identidad profesional sin evidencia y una aprobación rastreables.
+**Principio:** ninguna modificación de la página puede introducir, ampliar o hacer más específica una afirmación clínica, técnica, temporal, económica o de identidad profesional sin evidencia y una aprobación rastreable.
 
 > Este documento es un control de gobernanza editorial. No valida indicaciones médicas, no sustituye la autorización sanitaria que pueda ser aplicable ni autoriza publicar contenidos.
 

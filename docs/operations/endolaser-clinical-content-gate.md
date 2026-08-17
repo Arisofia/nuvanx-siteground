@@ -51,13 +51,13 @@ Una PR requiere un registro de aprobación completo solo cuando cambia una super
 | Archivo o superficie | Cuándo queda protegida |
 |---|---|
 | `inc/data/endolaser-page.json` | Cualquier cambio. |
-| `inc/nvx-endolaser-page.php` | Cualquier cambio activa el gate. |
+| `inc/nvx-endolaser-page.php` | Cualquier cambio activa el gate, incluidos comentarios o documentación, para mantener un contrato fail-closed sobre el renderer dedicado. |
 | `inc/data/routes.json` | Cambia la entrada de `/endolaser-corporal-grasa-localizada/` o una entrada asociada por `seo_id=endolaser`, `schema_id=endolaser_corporal`, canonical/ruta o `post_id`. |
 | `inc/data/seo-metadata.json` | Cambia el registro `endolaser` o un registro cuyo `seo_id` sea `endolaser`. |
 | `inc/data/tariff-catalog.json` | Cambia cualquier namespace `endolaser.*` o una clave corporal Endolift/Endolift combo declarada explícitamente en el contrato del gate. Los cambios de EXION, CO₂ u otros catálogos no relacionados no se bloquean. |
-| `inc/nvx-structured-data.php` | Cambia el bloque condicional que construye `endolaser_corporal`, su FAQ o cualquier bloque de construcción específicamente anclado a Endoláser. Un cambio exclusivo de otro tratamiento no se bloquea. |
+| `inc/nvx-structured-data.php` | Cambia la asignación o fallback FAQ de `endolaser_corporal`, el branch `MedicalProcedure/Service` de Endoláser, su entrada de ofertas/etiqueta u otro anclaje Endoláser reconocido. Los cambios exclusivos de FAQ/schema de otros tratamientos no se bloquean; un anclaje Endoláser nuevo no clasificable falla cerrado. |
 
-La lista de claves tarifarias corporales protegidas se declara y se prueba en `scripts/lint/test-endolaser-claim-approval.mjs`; no se infiere mediante búsquedas globales ambiguas.
+La lista de claves tarifarias corporales protegidas se declara y se prueba en `scripts/lint/test-endolaser-claim-approval.mjs`; no se infiere mediante búsquedas globales ambiguas. El contrato semántico reproduce la estructura compartida de `nvx_schema_faq_catalog()` para demostrar que una modificación exclusiva de otra FAQ no activa el gate, mientras que una modificación de la FAQ Endoláser sí lo activa.
 
 | Control | Criterio de aceptación |
 |---|---|

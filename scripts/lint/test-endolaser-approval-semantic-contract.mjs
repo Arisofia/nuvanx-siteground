@@ -38,6 +38,36 @@ const tariffs = {
 };
 
 const structuredData = `<?php
+if ( ! defined( 'NVX_SD_ID_MEDICAL_PROCEDURE' ) ) {
+  define( 'NVX_SD_ENDOLASER_CORPORAL', 'Endoláser corporal' );
+}
+
+function nvx_schema_faq_catalog() {
+  $catalog = array();
+  $catalog['endolift_facial'] = nvx_schema_faq_load_single_page( 'endolift-page.json' );
+  $catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
+
+  if ( empty( $catalog['endolift_facial'] ) ) {
+    $catalog['endolift_facial'] = array(
+      array( 'q' => '¿Cuánto cuesta Endolift?', 'a' => 'Respuesta Endolift vigente.' ),
+    );
+  }
+
+  if ( empty( $catalog['post-maternity'] ) ) {
+    $catalog['post-maternity'] = array(
+      array( 'q' => '¿Cuándo valorar?', 'a' => 'Respuesta postparto.' ),
+    );
+  }
+
+  if ( empty( $catalog['endolaser_corporal'] ) ) {
+    $catalog['endolaser_corporal'] = array(
+      array( 'q' => '¿Cuántas sesiones?', 'a' => 'Respuesta Endoláser.' ),
+    );
+  }
+
+  return $catalog;
+}
+
 function nvx_schema_treatment_node_laser( $key ) {
   if ( 'endolaser_corporal' === $key ) {
     return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endoláser corporal' );
@@ -46,38 +76,28 @@ function nvx_schema_treatment_node_laser( $key ) {
     return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'CO₂ fraccionado' );
   }
 }
-`;
 
-const faqStructuredData = `<?php
-function nvx_schema_faq_catalog() {
-  $catalog = array();
-  $catalog['endolift_facial'] = nvx_schema_faq_load_single_page( 'endolift-page.json' );
-  $catalog['endolaser_corporal'] = nvx_schema_faq_load_single_page( 'endolaser-page.json' );
-  if ( empty( $catalog['endolift_facial'] ) ) {
-    $catalog['endolift_facial'] = array(
-      array( 'q' => '¿Cuánto cuesta Endolift?', 'a' => 'Respuesta Endolift vigente.' ),
-    );
-  }
-  if ( empty( $catalog['endolaser_corporal'] ) ) {
-    $catalog['endolaser_corporal'] = array(
-      array( 'q' => '¿Cuántas sesiones de Endoláser?', 'a' => 'Una sesión única.' ),
-    );
-  }
-  if ( empty( $catalog['post-maternity'] ) ) {
-    $catalog['post-maternity'] = array(
-      array( 'q' => '¿Puedo tratarme en lactancia?', 'a' => 'Solo tras valoración.' ),
-    );
-  }
-  return $catalog;
+function nvx_schema_offer_catalog() {
+  $catalog_defs = array(
+    'endolaser_corporal' => array(
+      'label' => NVX_SD_ENDOLASER_CORPORAL,
+      'price' => null,
+    ),
+    'laser_co2' => array(
+      'label' => 'Láser CO₂ fraccionado',
+      'price' => 330,
+    ),
+  );
+  return $catalog_defs;
 }
 
-function nvx_schema_treatment_node_laser( $key ) {
-  if ( 'endolaser_corporal' === $key ) {
-    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endoláser corporal' );
-  }
-  if ( 'endolift_facial' === $key ) {
-    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endolift facial' );
-  }
+function nvx_schema_enrich_organization() {
+  return array(
+    'knowsAbout' => array(
+      NVX_SD_ENDOLASER_CORPORAL,
+      'Láser CO₂ fraccionado',
+    ),
+  );
 }
 `;
 
@@ -123,33 +143,20 @@ assertPass('ENDOLASER_APPROVAL_UNRELATED_SEO', decisionFor(ENDOLASER_PATHS.seo, 
 const unrelatedSchema = structuredData.replace("'CO₂ fraccionado'", "'CO₂ fraccionado facial'");
 assertPass('ENDOLASER_APPROVAL_UNRELATED_SCHEMA', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedSchema));
 
-const faqBaseFiles = { ...baseFiles, [ENDOLASER_PATHS.structuredData]: faqStructuredData };
-function faqDecision(nextSource) {
-  return evaluateEndolaserChanges({
-    changedPaths: [ENDOLASER_PATHS.structuredData],
-    baseFiles: faqBaseFiles,
-    headFiles: { ...faqBaseFiles, [ENDOLASER_PATHS.structuredData]: nextSource },
-  });
-}
+const unrelatedFaq = structuredData.replace('Respuesta postparto.', 'Respuesta postparto actualizada.');
+assertPass('ENDOLASER_APPROVAL_UNRELATED_FAQ', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedFaq));
 
-const unrelatedPostMaternity = faqStructuredData.replace('Solo tras valoración.', 'Solo tras valoración individual.');
-const unrelatedEndoliftFaq = faqStructuredData.replace('Respuesta Endolift vigente.', 'Respuesta Endolift actualizada.');
-assert.equal(faqDecision(unrelatedPostMaternity).protected, false, 'post-maternity FAQ must not trip the Endoláser gate');
-assert.equal(faqDecision(unrelatedEndoliftFaq).protected, false, 'Endolift FAQ must not trip the Endoláser gate');
-console.log('ENDOLASER_APPROVAL_UNRELATED_FAQ=PASS');
-
-assertExpectedFailure(
-  'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
-  faqDecision(faqStructuredData.replace('endolaser-page.json', 'endolaser-page-v2.json')),
-);
-assertExpectedFailure(
-  'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
-  faqDecision(faqStructuredData.replace('Una sesión única.', 'Dos sesiones autorizadas.')),
-);
+const unrelatedEndoliftFaq = structuredData.replace('Respuesta Endolift vigente.', 'Respuesta Endolift actualizada.');
+assertPass('ENDOLASER_APPROVAL_UNRELATED_ENDOLIFT_FAQ', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedEndoliftFaq));
 
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_CONTENT_CHANGE_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.content, '{"page":"endolaser","changed":true}\n'),
+);
+
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_EMITTER_COMMENT_CHANGE_WITHOUT_APPROVAL',
+  decisionFor(ENDOLASER_PATHS.emitter, `${baseFiles[ENDOLASER_PATHS.emitter]}// governance note\n`),
 );
 
 const changedRoute = clone(routes);
@@ -159,10 +166,16 @@ assertExpectedFailure(
   decisionFor(ENDOLASER_PATHS.routes, json(changedRoute)),
 );
 
-const changedSchema = structuredData.replace("'Endoláser corporal'", "'Endoláser corporal actualizado'");
+const changedSchema = structuredData.replace("'name' => 'Endoláser corporal'", "'name' => 'Endoláser corporal actualizado'");
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_SCHEMA_CHANGE_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.structuredData, changedSchema),
+);
+
+const changedEndolaserFaq = structuredData.replace('Respuesta Endoláser.', 'Respuesta Endoláser actualizada.');
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
+  decisionFor(ENDOLASER_PATHS.structuredData, changedEndolaserFaq),
 );
 
 const changedTariff = clone(tariffs);

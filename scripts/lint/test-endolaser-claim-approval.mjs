@@ -2,10 +2,10 @@
 /**
  * Endoláser clinical-content approval gate.
  *
- * This gate protects only Endoláser clinical surfaces. Shared catalogs are
- * compared semantically so unrelated treatment changes do not require an
- * Endoláser approval record. Any inability to read or classify a changed
- * governed surface fails closed.
+ * Protects only Endoláser clinical surfaces. Shared catalogs are compared
+ * semantically so unrelated treatment changes do not require an Endoláser
+ * approval record. Any inability to read or classify a changed governed
+ * surface fails closed.
  */
 import fs from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
@@ -30,12 +30,6 @@ export const ENDOLASER_SCHEMA_ID = 'endolaser_corporal';
 export const ENDOLASER_SEO_ID = 'endolaser';
 export const ENDOLASER_APPROVAL_PATH = 'docs/approvals/endolaser-content-approval.json';
 
-/**
- * Current Endoláser price surface. These keys are deliberately explicit until
- * the approved taxonomy introduces a canonical Endoláser namespace. Keeping
- * the list here makes every protected legacy Endolift price reviewable and
- * regression-testable rather than relying on an ambiguous repository grep.
- */
 export const ENDOLASER_REFERENCED_TARIFF_KEYS = Object.freeze([
   'endolift.abdomen',
   'endolift.flancos',
@@ -72,9 +66,7 @@ function canonicalJson(value) {
 }
 
 function jsonFromSource(source, label) {
-  if (typeof source !== 'string') {
-    throw new Error(`${label}_source_unavailable`);
-  }
+  if (typeof source !== 'string') throw new Error(`${label}_source_unavailable`);
   try {
     return JSON.parse(source);
   } catch {
@@ -136,14 +128,9 @@ function valueAtTariffKey(catalog, key) {
 function tariffProjection(source) {
   const data = jsonFromSource(source, 'tariffs');
   if (!isObject(data)) throw new Error('tariffs_invalid_shape');
-  const projection = {
-    namespaces: {},
-    referenced: {},
-  };
+  const projection = { namespaces: {}, referenced: {} };
   for (const [namespace, value] of Object.entries(data)) {
-    if (namespace === 'endolaser' || namespace.startsWith('endolaser.')) {
-      projection.namespaces[namespace] = value;
-    }
+    if (namespace === 'endolaser' || namespace.startsWith('endolaser.')) projection.namespaces[namespace] = value;
   }
   for (const key of ENDOLASER_REFERENCED_TARIFF_KEYS) {
     projection.referenced[key] = valueAtTariffKey(data, key) ?? null;
@@ -151,210 +138,160 @@ function tariffProjection(source) {
   return canonicalJson(projection);
 }
 
-function stripNonFunctionalPhpLines(source) {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split('\n')
-    .filter((line) => !/^\s*(?:\/\/|#)/.test(line))
-    .join('\n');
-}
-
-function extractPhpFunctionBlocks(source) {
-  const blocks = new Map();
-  const declaration = /function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^\s{]+)?\s*\{/g;
-  for (const match of source.matchAll(declaration)) {
-    const name = match[1];
-    const start = match.index;
-    const opening = start + match[0].lastIndexOf('{');
-    let depth = 0;
-    let quote = '';
-    let escaped = false;
-    let closing = -1;
-    for (let index = opening; index < source.length; index += 1) {
-      const character = source[index];
-      if (quote) {
-        if (escaped) {
-          escaped = false;
-        } else if (character === '\\') {
-          escaped = true;
-        } else if (character === quote) {
-          quote = '';
-        }
-        continue;
-      }
-      if (character === "'" || character === '"') {
-        quote = character;
-      } else if (character === '{') {
-        depth += 1;
-      } else if (character === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          closing = index;
-          break;
-        }
-      }
-    }
-    if (closing < 0) throw new Error(`structured_data_unbalanced_function_${name}`);
-    blocks.set(name, source.slice(start, closing + 1));
+function skipPhpComment(source, index) {
+  if (source[index] === '/' && source[index + 1] === '/') {
+    const end = source.indexOf('\n', index + 2);
+    return end === -1 ? source.length : end;
   }
-  return blocks;
+  if (source[index] === '#') {
+    const end = source.indexOf('\n', index + 1);
+    return end === -1 ? source.length : end;
+  }
+  if (source[index] === '/' && source[index + 1] === '*') {
+    const end = source.indexOf('*/', index + 2);
+    if (end === -1) throw new Error('structured_data_unterminated_comment');
+    return end + 2;
+  }
+  return index;
 }
 
-function scanQuoted(source, index, quote, escaped) {
-  const character = source[index];
-  if (escaped) return { quote, escaped: false };
-  if (character === '\\') return { quote, escaped: true };
-  if (character === quote) return { quote: '', escaped: false };
-  return { quote, escaped: false };
-}
-
-function findBalancedEnd(source, opening, openChar, closeChar) {
+function readBalanced(source, opening, openChar, closeChar, label) {
   let depth = 0;
   let quote = '';
   let escaped = false;
   for (let index = opening; index < source.length; index += 1) {
     const character = source[index];
     if (quote) {
-      ({ quote, escaped } = scanQuoted(source, index, quote, escaped));
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === quote) quote = '';
       continue;
     }
     if (character === "'" || character === '"') {
       quote = character;
+      continue;
+    }
+    const commentEnd = skipPhpComment(source, index);
+    if (commentEnd !== index) {
+      index = commentEnd - 1;
       continue;
     }
     if (character === openChar) depth += 1;
     else if (character === closeChar) {
       depth -= 1;
-      if (depth === 0) return index;
+      if (depth === 0) return { start: opening, end: index + 1 };
     }
   }
-  return -1;
+  throw new Error(`${label}_unbalanced`);
 }
 
-function findStatementEnd(source, start) {
-  let depthParen = 0;
-  let depthBrace = 0;
-  let depthBracket = 0;
+function readPhpSegment(source, start, terminator, label) {
   let quote = '';
   let escaped = false;
+  let paren = 0;
+  let bracket = 0;
+  let brace = 0;
   for (let index = start; index < source.length; index += 1) {
     const character = source[index];
     if (quote) {
-      ({ quote, escaped } = scanQuoted(source, index, quote, escaped));
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === quote) quote = '';
       continue;
     }
     if (character === "'" || character === '"') {
       quote = character;
       continue;
     }
-    if (character === '(') depthParen += 1;
-    else if (character === ')') depthParen -= 1;
-    else if (character === '{') depthBrace += 1;
-    else if (character === '}') depthBrace -= 1;
-    else if (character === '[') depthBracket += 1;
-    else if (character === ']') depthBracket -= 1;
-    else if (character === ';' && depthParen === 0 && depthBrace === 0 && depthBracket === 0) {
-      return index;
+    const commentEnd = skipPhpComment(source, index);
+    if (commentEnd !== index) {
+      index = commentEnd - 1;
+      continue;
+    }
+    if (character === '(') paren += 1;
+    else if (character === ')') paren -= 1;
+    else if (character === '[') bracket += 1;
+    else if (character === ']') bracket -= 1;
+    else if (character === '{') brace += 1;
+    else if (character === '}') brace -= 1;
+    if (paren < 0 || bracket < 0 || brace < 0) throw new Error(`${label}_unbalanced`);
+    if (character === terminator && paren === 0 && bracket === 0 && brace === 0) {
+      return { start, end: index + 1 };
     }
   }
-  return -1;
+  throw new Error(`${label}_unterminated`);
 }
 
-function extractRegexBlocks(source, pattern, kind, closer) {
-  const blocks = [];
-  for (const match of source.matchAll(pattern)) {
-    const text = closer(source, match);
-    if (text === null) throw new Error(`structured_data_endolaser_${kind}_unbalanced`);
-    blocks.push({ kind, text });
-  }
-  return blocks;
+function normalizePhpFragment(source, range) {
+  return source.slice(range.start, range.end).replace(/\s+/g, ' ').trim();
 }
 
-function closeFromOpening(source, match, openChar, closeChar) {
-  const opening = match.index + match[0].lastIndexOf(openChar);
-  if (opening < match.index) return null;
-  const closing = findBalancedEnd(source, opening, openChar, closeChar);
-  if (closing < 0) return null;
-  return source.slice(match.index, closing + 1);
-}
-
-function closeAssignment(source, match) {
-  const end = findStatementEnd(source, match.index);
-  if (end < 0) return null;
-  return source.slice(match.index, end + 1);
-}
-
-function closeArrayEntry(source, match) {
-  const remainder = source.slice(match.index + match[0].length);
-  const first = remainder.search(/\S/);
-  if (first < 0) return null;
-  const valueStart = match.index + match[0].length + first;
-  const value = source.slice(valueStart);
-  if (/^array\s*\(/.test(value)) {
-    const paren = valueStart + value.search(/\(/);
-    const end = findBalancedEnd(source, paren, '(', ')');
-    if (end < 0) return null;
-    return source.slice(match.index, end + 1);
-  }
-  if (value.startsWith('[')) {
-    const end = findBalancedEnd(source, valueStart, '[', ']');
-    if (end < 0) return null;
-    return source.slice(match.index, end + 1);
-  }
-  if (value.startsWith('{')) {
-    const end = findBalancedEnd(source, valueStart, '{', '}');
-    if (end < 0) return null;
-    return source.slice(match.index, end + 1);
-  }
-  const end = findStatementEnd(source, match.index);
-  if (end < 0) return null;
-  return source.slice(match.index, end + 1);
-}
-
-function extractExclusiveEndolaserBlocks(source) {
-  return [
-    ...extractRegexBlocks(
-      source,
-      /if\s*\(\s*(?:['"]endolaser_corporal['"]\s*===\s*\$key|\$key\s*===\s*['"]endolaser_corporal['"])\s*\)\s*\{/g,
-      'key_branch',
-      (text, match) => closeFromOpening(text, match, '{', '}'),
-    ),
-    ...extractRegexBlocks(
-      source,
-      /if\s*\(\s*empty\s*\(\s*\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*\)\s*\)\s*\{/g,
-      'catalog_fallback',
-      (text, match) => closeFromOpening(text, match, '{', '}'),
-    ),
-    ...extractRegexBlocks(
-      source,
-      /\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*=/g,
-      'catalog_assignment',
-      closeAssignment,
-    ),
-    ...extractRegexBlocks(
-      source,
-      /['"]endolaser_corporal['"]\s*=>/g,
-      'array_entry',
-      closeArrayEntry,
-    ),
-  ];
+function rangesForRegex(source, regex, reader) {
+  const ranges = [];
+  for (const match of source.matchAll(regex)) ranges.push(reader(match));
+  return ranges;
 }
 
 function structuredDataProjection(source) {
   if (typeof source !== 'string') throw new Error('structured_data_source_unavailable');
-  const functional = stripNonFunctionalPhpLines(source);
-  extractPhpFunctionBlocks(functional);
-  const exclusive = extractExclusiveEndolaserBlocks(functional);
-  const relevant = exclusive.map((item, index) => [
-    `${item.kind}_${index}`,
-    item.text.replace(/\s+/g, ' ').trim(),
-  ]);
-  const anchors = [ENDOLASER_SCHEMA_ID, 'endolaser-page.json', ENDOLASER_ROUTE];
-  const sourceHasAnchor = anchors.some((anchor) => functional.includes(anchor));
-  if (sourceHasAnchor && relevant.length === 0) {
-    throw new Error('structured_data_endolaser_block_unresolved');
-  }
-  return canonicalJson(relevant.sort(([left], [right]) => left.localeCompare(right)));
+
+  const ranges = [];
+  const add = (label, newRanges) => newRanges.forEach((range, index) => ranges.push({ label: `${label}_${index}`, ...range }));
+
+  add('catalog_assignment', rangesForRegex(
+    source,
+    /\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*=/g,
+    (match) => readPhpSegment(source, match.index, ';', 'structured_data_endolaser_catalog_assignment'),
+  ));
+
+  add('faq_fallback', rangesForRegex(
+    source,
+    /if\s*\(\s*empty\s*\(\s*\$catalog\s*\[\s*['"]endolaser_corporal['"]\s*\]\s*\)\s*\)\s*\{/g,
+    (match) => {
+      const opening = source.indexOf('{', match.index + match[0].lastIndexOf('{'));
+      const block = readBalanced(source, opening, '{', '}', 'structured_data_endolaser_faq_fallback');
+      return { start: match.index, end: block.end };
+    },
+  ));
+
+  add('treatment_branch', rangesForRegex(
+    source,
+    /if\s*\(\s*['"]endolaser_corporal['"]\s*===\s*\$key\s*\)\s*\{/g,
+    (match) => {
+      const opening = source.indexOf('{', match.index + match[0].lastIndexOf('{'));
+      const block = readBalanced(source, opening, '{', '}', 'structured_data_endolaser_treatment_branch');
+      return { start: match.index, end: block.end };
+    },
+  ));
+
+  add('array_entry', rangesForRegex(
+    source,
+    /['"]endolaser_corporal['"]\s*=>/g,
+    (match) => readPhpSegment(source, match.index, ',', 'structured_data_endolaser_array_entry'),
+  ));
+
+  add('label_define', rangesForRegex(
+    source,
+    /define\s*\(\s*['"]NVX_SD_ENDOLASER_CORPORAL['"]\s*,/g,
+    (match) => readPhpSegment(source, match.index, ';', 'structured_data_endolaser_label_define'),
+  ));
+
+  const literalOccurrences = [...source.matchAll(/['"]endolaser_corporal['"]/g)];
+  if (literalOccurrences.length === 0) throw new Error('structured_data_endolaser_anchor_missing');
+  const uncovered = literalOccurrences.filter((match) => !ranges.some((range) => match.index >= range.start && match.index < range.end));
+  if (uncovered.length > 0) throw new Error(`structured_data_endolaser_occurrence_unresolved_${uncovered.length}`);
+
+  const fragments = ranges
+    .map((range) => [range.label, normalizePhpFragment(source, range)])
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  const anchorCounts = {
+    schema_id_literals: literalOccurrences.length,
+    label_constant_uses: [...source.matchAll(/\bNVX_SD_ENDOLASER_CORPORAL\b/g)].length,
+    page_catalog_uses: [...source.matchAll(/endolaser-page\.json/g)].length,
+  };
+
+  return canonicalJson({ anchorCounts, fragments });
 }
 
 function semanticSurfaceChanged({ label, baseSource, headSource, projection }) {
@@ -365,36 +302,23 @@ function semanticSurfaceChanged({ label, baseSource, headSource, projection }) {
   }
 }
 
-/**
- * Determines whether a set of changed paths affects an Endoláser governed
- * surface. A boolean `protected` result always has at least one explicit
- * signal. An `indeterminate` signal is protected by design (fail closed).
- */
 export function evaluateEndolaserChanges({ changedPaths, baseFiles, headFiles }) {
   const changed = new Set(changedPaths);
   const signals = [];
-  const addSignal = (signal) => signals.push(signal);
+  if (changed.has(ENDOLASER_PATHS.content)) signals.push('content');
+  // Fail closed by design: any edit to the dedicated renderer requires approval.
+  if (changed.has(ENDOLASER_PATHS.emitter)) signals.push('emitter');
 
-  if (changed.has(ENDOLASER_PATHS.content)) addSignal('content');
-  if (changed.has(ENDOLASER_PATHS.emitter)) addSignal('emitter');
-
-  const semanticSurfaces = [
+  for (const [label, file, projection] of [
     ['route', ENDOLASER_PATHS.routes, routeProjection],
     ['seo', ENDOLASER_PATHS.seo, seoProjection],
     ['tariff', ENDOLASER_PATHS.tariffs, tariffProjection],
     ['schema', ENDOLASER_PATHS.structuredData, structuredDataProjection],
-  ];
-
-  for (const [label, file, projection] of semanticSurfaces) {
+  ]) {
     if (!changed.has(file)) continue;
-    const result = semanticSurfaceChanged({
-      label,
-      baseSource: baseFiles[file],
-      headSource: headFiles[file],
-      projection,
-    });
-    if (result === true) addSignal(label);
-    if (isObject(result) && result.indeterminate) addSignal(`indeterminate:${result.indeterminate}`);
+    const result = semanticSurfaceChanged({ label, baseSource: baseFiles[file], headSource: headFiles[file], projection });
+    if (result === true) signals.push(label);
+    else if (isObject(result) && result.indeterminate) signals.push(`indeterminate:${result.indeterminate}`);
   }
 
   return { protected: signals.length > 0, signals };
@@ -412,10 +336,7 @@ export function validApproval(value) {
 export function hasCompleteEndolaserApproval(approval) {
   const required = ['equipment', 'technique', 'claims', 'identity', 'tariff', 'taxonomy'];
   const missing = required.filter((key) => !validApproval(approval?.[key]));
-  return {
-    complete: approval?.status === 'APPROVED' && missing.length === 0,
-    missing,
-  };
+  return { complete: approval?.status === 'APPROVED' && missing.length === 0, missing };
 }
 
 function gitRefExists(ref) {
@@ -531,8 +452,6 @@ async function run() {
 }
 
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
-if (invokedPath === fileURLToPath(import.meta.url)) {
-  await run();
-}
+if (invokedPath === fileURLToPath(import.meta.url)) await run();
 
 export { canonicalJson, routeProjection, seoProjection, tariffProjection, structuredDataProjection };

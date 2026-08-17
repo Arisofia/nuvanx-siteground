@@ -1,0 +1,30 @@
+{
+  "schema": "nuvanx-endolaser-content-approval/v1",
+  "status": "PENDING",
+  "instructions": "This file contains references only. Do not store clinical records, patient data, credentials, device serial numbers, or secrets in Git.",
+  "equipment": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "technique": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "claims": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "identity": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "tariff": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  }
+}

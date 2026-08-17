@@ -85,10 +85,10 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 
 	$portal_id = trim( $portal_id );
 	$region    = strtolower( trim( $region ) );
-	if ( 1 !== preg_match( '/^[0-9]{1,20}$/', $portal_id ) ) {
+	if ( 1 !== preg_match( '/^\d{1,20}$/', $portal_id ) ) {
 		$portal_id = '147416356';
 	}
-	if ( 1 !== preg_match( '/^[a-z]{2,4}[0-9]{1,2}$/', $region ) ) {
+	if ( 1 !== preg_match( '/^[a-z]{2,4}\d{1,2}$/', $region ) ) {
 		$region = 'eu1';
 	}
 

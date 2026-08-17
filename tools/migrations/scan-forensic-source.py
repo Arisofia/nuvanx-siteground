@@ -51,13 +51,16 @@ def scan(root: Path) -> dict:
         rel = p.relative_to(root).as_posix()
         files.append(rel)
         for line_no, source_line in enumerate(content.splitlines(), 1):
-            for match in SECRET_LITERAL.finditer(source_line):
+            secret_matches = list(SECRET_LITERAL.finditer(source_line))
+            auth_matches = list(AUTH_LITERAL.finditer(source_line))
+            for match in secret_matches:
                 add(rows, rel, line_no, "SECRET", match.group(0))
-            for match in AUTH_LITERAL.finditer(source_line):
+            for match in auth_matches:
                 add(rows, rel, line_no, "SECRET", match.group(0))
-            # Keyword-only references are configuration signals, not proof of a secret.
+            # Skip keywords already covered by a structured secret/auth literal on this line.
+            secret_spans = [(item.start(), item.end()) for item in (*secret_matches, *auth_matches)]
             for match in POSSIBLE_SECRET.finditer(source_line):
-                if SECRET_LITERAL.search(match.group(0)) or AUTH_LITERAL.search(match.group(0)):
+                if any(start <= match.start() and match.end() <= end for start, end in secret_spans):
                     continue
                 add(rows, rel, line_no, "BUSINESS_CONFIG", match.group(0))
             for category, pattern in (

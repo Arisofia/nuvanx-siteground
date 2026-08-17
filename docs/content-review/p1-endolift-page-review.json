@@ -1,0 +1,81 @@
+{
+  "hero": {
+    "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+    "h1": "@nvx-t:Endolift® facial en Madrid",
+    "byline_author": "@nvx-t:Información editorial en revisión",
+    "byline_title": "@nvx-t:Contenido clínico, técnico y comercial pendiente de validación",
+    "lead": "@nvx-t:Esta página se encuentra en proceso de revisión clínica y editorial.",
+    "description": "@nvx-t:La información específica se publicará tras completar la validación interna correspondiente.",
+    "meta": "@nvx-t:Información pendiente de aprobación · Valoración médica presencial"
+  },
+  "review": {
+    "text": "@nvx-t:La información de esta página está pendiente de revisión y aprobación antes de su publicación.",
+    "link": "@nvx-t:Ver equipo médico"
+  },
+  "what": {
+    "kicker": "@nvx-t:Información en revisión",
+    "title": "@nvx-t:Contenido pendiente de validación",
+    "body": [
+      "@nvx-t:La descripción de la técnica, sus características y sus posibles usos se publicará únicamente tras la revisión clínica y editorial correspondiente."
+    ]
+  },
+  "diagnosis": {
+    "kicker": "@nvx-t:Valoración individual",
+    "title": "@nvx-t:Información de candidatura pendiente de aprobación",
+    "body": [
+      "@nvx-t:La idoneidad de cualquier procedimiento requiere una valoración médica individual.",
+      "@nvx-t:Esta versión no establece criterios de candidatura, contraindicaciones ni resultados."
+    ],
+    "panel_title": "@nvx-t:Estado de esta página",
+    "panel_items": [
+      { "title": "@nvx-t:Contenido clínico", "body": "@nvx-t:Pendiente de evidencia y aprobación." },
+      { "title": "@nvx-t:Técnica", "body": "@nvx-t:Pendiente de confirmación documental." },
+      { "title": "@nvx-t:Tarifas", "body": "@nvx-t:No disponibles hasta la decisión aprobada." }
+    ]
+  },
+  "compare": {
+    "kicker": "@nvx-t:Información comparativa",
+    "title": "@nvx-t:Comparativa pendiente de validación",
+    "col_param": "@nvx-t:Elemento",
+    "col_endo": "@nvx-t:Endolift®",
+    "col_lift": "@nvx-t:Alternativas",
+    "rows": []
+  },
+  "biophysics": {
+    "kicker": "@nvx-t:Información técnica",
+    "title": "@nvx-t:Contenido pendiente de validación",
+    "body1": "@nvx-t:No se publican parámetros, materiales ni descripciones técnicas hasta completar la revisión documental.",
+    "caption": "@nvx-t:Información en revisión.",
+    "body2": "@nvx-t:La información definitiva requerirá validación clínica y editorial."
+  },
+  "process": {
+    "kicker": "@nvx-t:Información del servicio",
+    "title": "@nvx-t:Proceso pendiente de validación",
+    "body": "@nvx-t:No se publican protocolos, plazos ni instrucciones clínicas mientras el contenido permanezca en revisión.",
+    "steps": []
+  },
+  "postop": {
+    "kicker": "@nvx-t:Recuperación",
+    "title": "@nvx-t:Información pendiente de validación",
+    "body": "@nvx-t:No se publican pautas ni tiempos de recuperación hasta completar la revisión clínica.",
+    "items": [],
+    "note": "@nvx-t:La información no sustituye una valoración médica individual."
+  },
+  "investment": {
+    "kicker": "@nvx-t:Información comercial",
+    "title": "@nvx-t:Tarifas pendientes de aprobación",
+    "body": "@nvx-t:No se publican precios, promociones ni referencias comerciales mientras la decisión tarifaria permanezca pendiente.",
+    "items": [],
+    "note": "@nvx-t:La información definitiva se publicará una vez validada."
+  },
+  "faq": {
+    "kicker": "@nvx-t:Información de la página",
+    "title": "@nvx-t:Preguntas frecuentes",
+    "items": [
+      {
+        "q": "@nvx-t:¿Dónde puedo solicitar una valoración?",
+        "a": "@nvx-t:Puedes solicitar una valoración médica presencial. La información específica se facilitará una vez validada para el caso correspondiente."
+      }
+    ]
+  }
+}

@@ -62,7 +62,8 @@ make_remote_manifest() {
 }
 
 paths_from_manifest() {
-  awk '{ $1=""; sub(/^  /, ""); print }' "$1" | sort
+  local manifest="$1"
+  awk '{ $1=""; sub(/^  /, ""); print }' "$manifest" | sort
 }
 
 make_local_manifest

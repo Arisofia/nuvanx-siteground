@@ -20,10 +20,23 @@ SECRET_LITERAL = re.compile(
     r"(?i)(?:password|secret|token|access_token|refresh_token|client_secret|api_key|private_key)"
     r"\s*(?:=>|:|=|,)\s*['\"][^'\"]{8,}['\"]"
 )
-AUTH_LITERAL = re.compile(r"(?i)(?:authorization\s*[:=]\s*['\"]?bearer\s+|bearer\s+)[A-Za-z0-9._~+\-/=]{12,}")
+AUTH_LITERAL = re.compile(
+    r"(?i)(?:authorization\s*[:=]\s*['\"]?bearer\s+|bearer\s+)[A-Za-z0-9._~+/=-]{12,}"
+)
 ENVIRONMENT = re.compile(r"(?:staging2\.nuvanx\.com|nuvanx\.com|/home/customer/|/home/ubuntu/)", re.I)
-STABLE = re.compile(r"(?:\bGTM-[A-Z0-9-]+\b|\bG-[A-Z0-9]{6,}\b|\bAW-[0-9]+(?:/[A-Za-z0-9_-]+)?\b|\bact_[0-9]+\b|\bportal(?:[_-]?id)?\s*[:=>]+\s*['\"]?[0-9]+)", re.I)
-CONTENT = re.compile(r"(?i)(?:\b(?:page|post)[_-]?id\s*(?:=>|:|=)\s*\d+|\bis_page\s*\(\s*\d+|\bget_post\s*\(\s*\d+|\bID\s*(?:=>|:|=)\s*\d+)")
+STABLE_PATTERNS = (
+    re.compile(r"\bGTM-[A-Z0-9-]+\b", re.I),
+    re.compile(r"\bG-[A-Z0-9]{6,}\b", re.I),
+    re.compile(r"\bAW-\d+(?:/[A-Za-z0-9_-]+)?\b", re.I),
+    re.compile(r"\bact_\d+\b", re.I),
+    re.compile(r"\bportal(?:[_-]?id)?\s*[:=>]+\s*['\"]?\d+", re.I),
+)
+CONTENT_PATTERNS = (
+    re.compile(r"(?i)\b(?:page|post)[_-]?id\s*(?:=>|:|=)\s*\d+"),
+    re.compile(r"(?i)\bis_page\s*\(\s*\d+"),
+    re.compile(r"(?i)\bget_post\s*\(\s*\d+"),
+    re.compile(r"(?i)\bID\s*(?:=>|:|=)\s*\d+"),
+)
 BUSINESS = re.compile(r"(?i)(?:hubspot|klaviyo|complianz|joinchat|google\s*(?:ads|analytics|tag|site kit)|meta\s*(?:pixel|event|ads)?|consent)")
 ACCIDENTAL = re.compile(r"(?i)(?:\bTODO\b|\bFIXME\b|\bHACK\b|\bTEMP(?:ORARY)?\b|\bREMOVE\s+ME\b)")
 
@@ -36,6 +49,37 @@ def add(rows: list[dict], path: str, line: int, category: str, value: str) -> No
         "match_length": len(value.encode("utf-8")),
         "sha256_match": hashlib.sha256(value.encode("utf-8")).hexdigest(),
     })
+
+
+def reject_traversal(path: Path) -> Path:
+    if any(part == ".." for part in path.parts):
+        raise SystemExit("PATH_TRAVERSAL_REJECTED")
+    return path.expanduser()
+
+
+def classify_line(rows: list[dict], rel: str, line_no: int, source_line: str) -> None:
+    secret_matches = list(SECRET_LITERAL.finditer(source_line))
+    auth_matches = list(AUTH_LITERAL.finditer(source_line))
+    for match in secret_matches:
+        add(rows, rel, line_no, "SECRET", match.group(0))
+    for match in auth_matches:
+        add(rows, rel, line_no, "SECRET", match.group(0))
+    secret_spans = [(item.start(), item.end()) for item in (*secret_matches, *auth_matches)]
+    for match in POSSIBLE_SECRET.finditer(source_line):
+        if any(start <= match.start() and match.end() <= end for start, end in secret_spans):
+            continue
+        add(rows, rel, line_no, "BUSINESS_CONFIG", match.group(0))
+    grouped = (
+        ("ENVIRONMENT_SPECIFIC", (ENVIRONMENT,)),
+        ("STABLE_PUBLIC_IDENTIFIER", STABLE_PATTERNS),
+        ("CONTENT_IDENTIFIER", CONTENT_PATTERNS),
+        ("BUSINESS_CONFIG", (BUSINESS,)),
+        ("ACCIDENTAL_HARDCODE", (ACCIDENTAL,)),
+    )
+    for category, patterns in grouped:
+        for pattern in patterns:
+            for match in pattern.finditer(source_line):
+                add(rows, rel, line_no, category, match.group(0))
 
 
 def scan(root: Path) -> dict:
@@ -51,27 +95,7 @@ def scan(root: Path) -> dict:
         rel = p.relative_to(root).as_posix()
         files.append(rel)
         for line_no, source_line in enumerate(content.splitlines(), 1):
-            secret_matches = list(SECRET_LITERAL.finditer(source_line))
-            auth_matches = list(AUTH_LITERAL.finditer(source_line))
-            for match in secret_matches:
-                add(rows, rel, line_no, "SECRET", match.group(0))
-            for match in auth_matches:
-                add(rows, rel, line_no, "SECRET", match.group(0))
-            # Skip keywords already covered by a structured secret/auth literal on this line.
-            secret_spans = [(item.start(), item.end()) for item in (*secret_matches, *auth_matches)]
-            for match in POSSIBLE_SECRET.finditer(source_line):
-                if any(start <= match.start() and match.end() <= end for start, end in secret_spans):
-                    continue
-                add(rows, rel, line_no, "BUSINESS_CONFIG", match.group(0))
-            for category, pattern in (
-                ("ENVIRONMENT_SPECIFIC", ENVIRONMENT),
-                ("STABLE_PUBLIC_IDENTIFIER", STABLE),
-                ("CONTENT_IDENTIFIER", CONTENT),
-                ("BUSINESS_CONFIG", BUSINESS),
-                ("ACCIDENTAL_HARDCODE", ACCIDENTAL),
-            ):
-                for match in pattern.finditer(source_line):
-                    add(rows, rel, line_no, category, match.group(0))
+            classify_line(rows, rel, line_no, source_line)
     unique = {(r["file"], r["line"], r["category"], r["sha256_match"]): r for r in rows}
     ordered = sorted(unique.values(), key=lambda r: (r["file"], r["line"], r["category"], r["sha256_match"]))
     return {
@@ -88,9 +112,13 @@ def main() -> int:
     parser.add_argument("source_dir", type=Path)
     parser.add_argument("output_json", type=Path)
     args = parser.parse_args()
-    report = scan(args.source_dir.resolve())
-    args.output_json.parent.mkdir(parents=True, exist_ok=True)
-    args.output_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    source_dir = reject_traversal(args.source_dir).resolve(strict=True)
+    if not source_dir.is_dir():
+        raise SystemExit("SOURCE_DIR_NOT_DIRECTORY")
+    output_json = reject_traversal(args.output_json).resolve(strict=False)
+    report = scan(source_dir)
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    output_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({"files": len(report["files_scanned"]), "category_counts": report["category_counts"]}, ensure_ascii=False))
     return 0
 

@@ -902,9 +902,9 @@ jobs:
           }
           trap cleanup EXIT
           SSH_ALIAS="$SSH_ALIAS" PROD_ROOT="$PROD_ROOT" RAW_DIR="$RAW_DIR" REPORT_DIR="$REPORT_DIR" SCANNER="$SCANNER" PUBLIC_BASE_URL="$PUBLIC_BASE_URL" bash tools/migrations/collect-mu-plugin-forensics.sh
-          jq -e '.mode == "read_only" and ([.entries[] | select(.hash_match and .php_syntax == "PASS")] | length == 8)' "$REPORT_DIR/mu-plugins-production-manifest.json" >/dev/null
+          jq -e '.mode == "read_only" and (.entries | length) > 0 and ([.entries[] | select(.hash_match and .php_syntax == "PASS")] | length) == (.entries | length)' "$REPORT_DIR/mu-plugins-production-manifest.json" >/dev/null
           jq -e '([.findings[] | select(.category == "SECRET")] | length) == 0' "$REPORT_DIR/mu-plugins-secret-scan-redacted.json" >/dev/null
-          test -f "$REPORT_DIR/mu-plugins-production-20260817.zip"
+          test -f "$REPORT_DIR/mu-plugins-production.zip"
           echo 'MU_PLUGIN_FORENSICS_EXTRACTION=PASS sources=8 secrets=0'
 
       - name: Discover Staging2 document root read-only

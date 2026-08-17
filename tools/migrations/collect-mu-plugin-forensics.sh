@@ -12,6 +12,7 @@ set -Eeuo pipefail
 
 umask 077
 mkdir -p "$RAW_DIR/mu-plugins" "$RAW_DIR/backups" "$RAW_DIR/snippets" "$REPORT_DIR"
+REPORT_DIR="$(cd "$REPORT_DIR" && pwd)"
 chmod 700 "$RAW_DIR" "$RAW_DIR/mu-plugins" "$RAW_DIR/backups" "$RAW_DIR/snippets"
 
 mu_files=(
@@ -121,8 +122,6 @@ for raw in open(meta_path, encoding='utf-8'):
             'local_sha256': local_digest, 'hash_match': digest == local_digest,
             'php_syntax': lint.get(name, 'UNKNOWN')
         }
-for name in entries:
-    entries[name]['php_syntax'] = lint.get(name, 'UNKNOWN')
 report = {
     'schema': 'nuvanx-mu-plugin-production-manifest/v1',
     'mode': 'read_only',
@@ -161,9 +160,11 @@ jq -s '{schema:"nuvanx-snippets-forensic-metadata/v1", mode:"read_only", snippet
 rm -f "$REPORT_DIR"/snippet-*-metadata.json
 
 if [[ "$secret_count" -eq 0 ]]; then
-  ( cd "$RAW_DIR/mu-plugins" && zip -q -X "$REPORT_DIR/mu-plugins-production-20260817.zip" "${mu_files[@]}" )
+  stamp="${FORENSIC_STAMP:-$(date -u +%Y%m%d)}"
+  ( cd "$RAW_DIR/mu-plugins" && zip -q -X "$REPORT_DIR/mu-plugins-production-${stamp}.zip" "${mu_files[@]}" )
+  ln -sfn "mu-plugins-production-${stamp}.zip" "$REPORT_DIR/mu-plugins-production.zip"
   ( cd "$RAW_DIR" && zip -q -X "$REPORT_DIR/forensic-source-review-private.zip" backups/nuvanx-google-tag-manager.php.bak snippets/snippet-7.php snippets/snippet-8.php snippets/snippet-11.php )
-  echo 'FORENSIC_SOURCE_PACKAGE=PASS secret_findings=0'
+  echo "FORENSIC_SOURCE_PACKAGE=PASS secret_findings=0 stamp=$stamp"
 else
   echo "FORENSIC_SOURCE_PACKAGE=BLOCKED secret_findings=$secret_count" >&2
   exit 42

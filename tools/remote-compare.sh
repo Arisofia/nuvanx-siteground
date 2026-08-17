@@ -2,6 +2,7 @@
 # Read-only parity audit for the NUVANX theme across repository, staging2 and production.
 # Requires local git checkout plus SSH aliases with read access to SiteGround.
 set -Eeuo pipefail
+export LC_ALL=C
 
 STAGING_ROOT="${STAGING_ROOT:-/home/customer/www/staging2.nuvanx.com/public_html}"
 PROD_ROOT="${PROD_ROOT:-/home/customer/www/nuvanx.com/public_html}"
@@ -22,17 +23,18 @@ LOCAL_MANIFEST="$WORK_DIR/local-theme-sha256.txt"
 STAGING_MANIFEST="$WORK_DIR/staging-theme-sha256.txt"
 PROD_MANIFEST="$WORK_DIR/prod-theme-sha256.txt"
 
-# Single source of truth for files that are deployment/runtime state rather than immutable theme source.
+# Keep find operators and operands as distinct argv entries so local and remote
+# invocations have identical semantics after shell quoting.
 FIND_FILTER=(
-  ! -name '.nvx-deploy-sha'
-  ! -name '.nvx-deploy-stamp.json'
-  ! -name 'php_errorlog'
-  ! -name '*.log'
-  ! -name '*.bak*'
-  ! -path './backups-nuvanx/*'
-  ! -path './quarantine/*'
-  ! -path './_archive*'
-  ! -path './_disabled*'
+  '!' '-name' '.nvx-deploy-sha'
+  '!' '-name' '.nvx-deploy-stamp.json'
+  '!' '-name' 'php_errorlog'
+  '!' '-name' '*.log'
+  '!' '-name' '*.bak*'
+  '!' '-path' './backups-nuvanx/*'
+  '!' '-path' './quarantine/*'
+  '!' '-path' './_archive*'
+  '!' '-path' './_disabled*'
 )
 
 make_local_manifest() {
@@ -52,6 +54,7 @@ make_remote_manifest() {
 
   {
     printf 'set -Eeuo pipefail\n'
+    printf 'export LC_ALL=C\n'
     printf 'cd %q\n' "$remote_theme"
     printf 'find . -type f'
     printf ' %q' "${FIND_FILTER[@]}"
@@ -79,11 +82,14 @@ comm -23 <(paths_from_manifest "$LOCAL_MANIFEST") <(paths_from_manifest "$PROD_M
 echo '== Files only in production vs local =='
 comm -13 <(paths_from_manifest "$LOCAL_MANIFEST") <(paths_from_manifest "$PROD_MANIFEST") || true
 
+parity_rc=0
+
 echo '== Exact local ↔ production checksum diff =='
 if diff -u "$LOCAL_MANIFEST" "$PROD_MANIFEST"; then
   echo 'LOCAL_PROD_THEME_PARITY=PASS'
 else
   echo 'LOCAL_PROD_THEME_PARITY=FAIL'
+  parity_rc=1
 fi
 
 echo '== Exact staging2 ↔ production checksum diff =='
@@ -91,9 +97,12 @@ if diff -u "$STAGING_MANIFEST" "$PROD_MANIFEST"; then
   echo 'STAGING_PROD_THEME_PARITY=PASS'
 else
   echo 'STAGING_PROD_THEME_PARITY=FAIL'
+  parity_rc=1
 fi
 
 echo '== Deploy identity markers =='
 printf 'LOCAL_GIT_SHA='; git -C "$REPO_ROOT" rev-parse HEAD
 printf 'STAGING_DEPLOY_SHA='; ssh "$STAGING_SSH_ALIAS" "tr -d '\\r\\n' < '$STAGING_ROOT/$THEME_REL/.nvx-deploy-sha' 2>/dev/null || true"; echo
 printf 'PROD_DEPLOY_SHA='; ssh "$PROD_SSH_ALIAS" "tr -d '\\r\\n' < '$PROD_ROOT/$THEME_REL/.nvx-deploy-sha' 2>/dev/null || true"; echo
+
+exit "$parity_rc"

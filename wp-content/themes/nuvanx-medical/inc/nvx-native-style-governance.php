@@ -64,7 +64,9 @@ function nvx_theme_inline_critical_style_foundation(): void {
 	wp_enqueue_style( 'nvx-critical-inline' );
 	wp_add_inline_style( 'nvx-critical-inline', $critical_css );
 
-	wp_register_style( 'nvx-fonts', false, array( 'nvx-critical-inline' ), NVX_THEME_VERSION );
+	// Preserve the original Google Fonts dependency while replacing the local
+	// nvx-fonts network request with the inlined critical foundation.
+	wp_register_style( 'nvx-fonts', false, array( 'nvx-google-fonts', 'nvx-critical-inline' ), NVX_THEME_VERSION );
 	wp_register_style( 'nvx-tokens', false, array( 'nvx-fonts' ), NVX_THEME_VERSION );
 	wp_register_style( 'nvx-base', false, array( 'nvx-tokens' ), NVX_THEME_VERSION );
 	wp_enqueue_style( 'nvx-fonts' );

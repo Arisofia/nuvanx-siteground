@@ -58,7 +58,7 @@
   {
     "key": "neuromodulador",
     "name": "Neuromodulador",
-    "path": "/neuromoduladores-botox-madrid/",
+    "path": "/neuromoduladores-faciales-madrid/",
     "types": ["MedicalProcedure", "Service"],
     "procedureType": "https://schema.org/PercutaneousProcedure",
     "description": "Tratamiento con neuromodulador para expresión facial según valoración médica individual. Neuromodulador en Chamberí (CS20144) y Salamanca–Goya (CS20073)."

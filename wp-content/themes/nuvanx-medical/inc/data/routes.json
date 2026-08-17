@@ -116,15 +116,21 @@
     "post_id": 0,
     "schema_type": "Service"
   },
-  "/neuromoduladores-botox-madrid/": {
+  "/neuromoduladores-faciales-madrid/": {
     "seo_id": "neuromodulador",
     "schema_group": "treatments",
     "schema_id": "neuromodulador",
     "post_id": 3508,
     "schema_type": "MedicalProcedure"
   },
+  "/neuromoduladores-madrid/": {
+    "route_alias": "/neuromoduladores-faciales-madrid/"
+  },
+  "/neuromoduladores-botox-madrid/": {
+    "route_alias": "/neuromoduladores-faciales-madrid/"
+  },
   "/neuromodulador-botox-madrid/": {
-    "route_alias": "/neuromoduladores-botox-madrid/"
+    "route_alias": "/neuromoduladores-faciales-madrid/"
   },
   "/acido-hialuronico-relleno-madrid/": {
     "seo_id": "acido_hialuronico",

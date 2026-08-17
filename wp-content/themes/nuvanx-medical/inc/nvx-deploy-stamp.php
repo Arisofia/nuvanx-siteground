@@ -32,22 +32,26 @@ function nvx_get_deploy_stamp(): array {
 		}
 	}
 
-	if ( empty( $stamp['DEPLOY_SHA'] ) ) {
-		$deploy_stamp_file = get_template_directory() . '/.nvx-deploy-stamp.json';
-		if ( is_readable( $deploy_stamp_file ) ) {
-			$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
-			if ( is_array( $deploy_stamp_data ) ) {
-				// Reuse $environment_keys to keep the source of truth for valid keys centralized
-				foreach ( $environment_keys as $key ) {
-					if ( isset( $deploy_stamp_data[ $key ] ) && is_scalar( $deploy_stamp_data[ $key ] ) ) {
-						$stamp[ $key ] = trim( (string) $deploy_stamp_data[ $key ] );
-					}
+	$deploy_stamp_file = get_template_directory() . '/.nvx-deploy-stamp.json';
+	if ( is_readable( $deploy_stamp_file ) ) {
+		$deploy_stamp_data = json_decode( (string) file_get_contents( $deploy_stamp_file ), true );
+		if ( is_array( $deploy_stamp_data ) ) {
+			foreach ( $environment_keys as $key ) {
+				if ( '' === $stamp[ $key ] && isset( $deploy_stamp_data[ $key ] ) && is_scalar( $deploy_stamp_data[ $key ] ) ) {
+					$stamp[ $key ] = trim( (string) $deploy_stamp_data[ $key ] );
 				}
 			}
 		}
 	}
 
-	// Normalize all values to strings once here to simplify rendering
+	// Staging2 intentionally has only the immutable `.nvx-deploy-sha` marker.
+	// Reuse the environment resolver so this module remains the single public
+	// owner of <meta name="nvx-deploy-sha"> in every environment.
+	if ( '' === $stamp['DEPLOY_SHA'] && function_exists( 'nvx_environment_deploy_sha' ) ) {
+		$stamp['DEPLOY_SHA'] = nvx_environment_deploy_sha();
+	}
+
+	// Normalize all values to strings once here to simplify rendering.
 	foreach ( $stamp as $key => $value ) {
 		$stamp[ $key ] = (string) $value;
 	}
@@ -78,7 +82,7 @@ function nvx_render_deploy_stamp_meta(): void {
 		if ( '' === $value ) {
 			continue;
 		}
-		// Convert underscores to hyphens to match the verifier's expected format
+		// Convert underscores to hyphens to match the verifier's expected format.
 		$tag_name = str_replace( '_', '-', strtolower( $key ) );
 		echo '<meta name="nvx-' . esc_attr( $tag_name ) . '" content="' . esc_attr( $value ) . '">' . "\n";
 	}

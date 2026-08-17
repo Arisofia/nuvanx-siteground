@@ -151,6 +151,8 @@ function nvxAdsLegacyRouteFailure( string $route, $config, array $routes, string
                 $failure = 'Restricted term in route_alias target: ' . $route . ' -> ' . $alias;
             } elseif ( ! array_key_exists( $alias, $routes ) ) {
                 $failure = 'Restricted legacy alias points outside canonical route catalog: ' . $route . ' -> ' . $alias;
+            } elseif ( ! is_array( $routes[ $alias ] ) || array_key_exists( 'route_alias', $routes[ $alias ] ) ) {
+                $failure = 'Restricted legacy alias does not point to a canonical route: ' . $route . ' -> ' . $alias;
             }
         }
     }
@@ -219,6 +221,29 @@ function nvxTestGoogleAdsHealthcareCompliance(): void {
 }
 
 nvxTestGoogleAdsHealthcareCompliance();
+
+/** Reject restricted slugs that alias through another alias instead of a canonical route. */
+function nvxAdsAssertLegacyAliasChainRejected(): void {
+    $pattern = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $routes  = array(
+        '/neuromoduladores-botox-madrid/' => array( 'route_alias' => '/legacy-neuromoduladores/' ),
+        '/legacy-neuromoduladores/'       => array( 'route_alias' => '/neuromoduladores-faciales-madrid/' ),
+        '/neuromoduladores-faciales-madrid/' => array( 'seo_id' => 'neuromodulador' ),
+    );
+    $failure = nvxAdsLegacyRouteFailure(
+        '/neuromoduladores-botox-madrid/',
+        $routes['/neuromoduladores-botox-madrid/'],
+        $routes,
+        $pattern
+    );
+    if ( null === $failure ) {
+        fwrite( STDERR, 'GOOGLE_ADS_ALIAS_CHAIN_REGRESSION_TEST=FAIL' . PHP_EOL );
+        exit( 1 );
+    }
+    echo 'GOOGLE_ADS_ALIAS_CHAIN_REGRESSION_TEST=PASS' . PHP_EOL;
+}
+
+nvxAdsAssertLegacyAliasChainRejected();
 
 function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
     unset( $hook_name, $callback, $priority, $accepted_args );

@@ -213,15 +213,15 @@
 		normalizedPath = normalizedPath.slice(0, -1);
 	}
 	var eligiblePath = normalizedPath === '/madrid/valoracion'
-		|| normalizedPath.indexOf('/endolift') === 0
-		|| normalizedPath.indexOf('/endolaser') === 0
-		|| normalizedPath.indexOf('/neuromoduladores') === 0
-		|| normalizedPath.indexOf('/laser-co2') === 0
-		|| normalizedPath.indexOf('/exion') === 0
-		|| normalizedPath.indexOf('/btl-exilite') === 0
-		|| normalizedPath.indexOf('/soluciones-medicas') === 0
-		|| normalizedPath.indexOf('/protocolos-signature') === 0
-		|| normalizedPath.indexOf('/contacto') === 0;
+		|| normalizedPath.startsWith('/endolift')
+		|| normalizedPath.startsWith('/endolaser')
+		|| normalizedPath.startsWith('/neuromoduladores')
+		|| normalizedPath.startsWith('/laser-co2')
+		|| normalizedPath.startsWith('/exion')
+		|| normalizedPath.startsWith('/btl-exilite')
+		|| normalizedPath.startsWith('/soluciones-medicas')
+		|| normalizedPath.startsWith('/protocolos-signature')
+		|| normalizedPath.startsWith('/contacto');
 	var sent = false;
 	var inFlight = false;
 	var auditClaimed = false;

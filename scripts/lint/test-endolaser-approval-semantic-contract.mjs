@@ -9,7 +9,7 @@ import {
   hasCompleteEndolaserApproval,
 } from './test-endolaser-claim-approval.mjs';
 
-const clone = (value) => JSON.parse(JSON.stringify(value));
+const clone = (value) => structuredClone(value);
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
 const routes = {

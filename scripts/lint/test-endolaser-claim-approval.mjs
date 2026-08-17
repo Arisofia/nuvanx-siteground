@@ -9,13 +9,27 @@
  */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const GIT_BINARIES = Object.freeze([
+  '/usr/bin/git',
+  '/bin/git',
+  '/usr/local/bin/git',
+  '/opt/homebrew/bin/git',
+]);
+
+function gitBinary() {
+  return GIT_BINARIES.find((candidate) => existsSync(candidate)) ?? '/usr/bin/git';
+}
+
+function git(args, options = {}) {
+  return execFileSync(gitBinary(), args, { cwd: repoRoot, encoding: 'utf8', ...options });
+}
 
 export const ENDOLASER_PATHS = Object.freeze({
   content: 'wp-content/themes/nuvanx-medical/inc/data/endolaser-page.json',
@@ -60,7 +74,7 @@ function isObject(value) {
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (!isObject(value)) return value;
-  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
+  return Object.fromEntries(Object.keys(value).sort((left, right) => left.localeCompare(right)).map((key) => [key, canonicalize(value[key])]));
 }
 
 function canonicalJson(value) {
@@ -100,7 +114,7 @@ function collectObjects(value, predicate, pathLabel = '$', matches = []) {
 function routeProjection(source) {
   const data = jsonFromSource(source, 'routes');
   const matches = [];
-  if (isObject(data) && Object.prototype.hasOwnProperty.call(data, ENDOLASER_ROUTE)) {
+  if (isObject(data) && Object.hasOwn(data, ENDOLASER_ROUTE)) {
     matches.push({ path: ENDOLASER_ROUTE, value: data[ENDOLASER_ROUTE] });
   }
   collectObjects(data, (record) => (
@@ -119,7 +133,7 @@ function routeProjection(source) {
 function seoProjection(source) {
   const data = jsonFromSource(source, 'seo');
   const matches = [];
-  if (isObject(data) && Object.prototype.hasOwnProperty.call(data, ENDOLASER_SEO_ID)) {
+  if (isObject(data) && Object.hasOwn(data, ENDOLASER_SEO_ID)) {
     matches.push({ path: ENDOLASER_SEO_ID, value: data[ENDOLASER_SEO_ID] });
   }
   collectObjects(data, (record) => record.seo_id === ENDOLASER_SEO_ID).forEach((item) => {
@@ -165,32 +179,57 @@ function skipPhpComment(source, index) {
   return index;
 }
 
+function advanceQuotedOrComment(source, cursor, quote, escaped) {
+  if (quote) {
+    const character = source[cursor];
+    if (escaped) return { cursor: cursor + 1, quote, escaped: false };
+    if (character === '\\') return { cursor: cursor + 1, quote, escaped: true };
+    if (character === quote) return { cursor: cursor + 1, quote: '', escaped: false };
+    return { cursor: cursor + 1, quote, escaped: false };
+  }
+  const character = source[cursor];
+  if (character === "'" || character === '"') return { cursor: cursor + 1, quote: character, escaped: false };
+  const commentEnd = skipPhpComment(source, cursor);
+  if (commentEnd !== cursor) return { cursor: commentEnd, quote: '', escaped: false };
+  return null;
+}
+
+function updateNesting(character, paren, bracket, brace) {
+  if (character === '(') return { paren: paren + 1, bracket, brace };
+  if (character === ')') return { paren: paren - 1, bracket, brace };
+  if (character === '[') return { paren, bracket: bracket + 1, brace };
+  if (character === ']') return { paren, bracket: bracket - 1, brace };
+  if (character === '{') return { paren, bracket, brace: brace + 1 };
+  if (character === '}') return { paren, bracket, brace: brace - 1 };
+  return { paren, bracket, brace };
+}
+
+function nestingUnbalanced(paren, bracket, brace) {
+  return paren < 0 || bracket < 0 || brace < 0;
+}
+
+function nestingClosed(paren, bracket, brace) {
+  return paren === 0 && bracket === 0 && brace === 0;
+}
+
 function readBalanced(source, opening, openChar, closeChar, label) {
   let depth = 0;
   let quote = '';
   let escaped = false;
-  for (let index = opening; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (escaped) escaped = false;
-      else if (character === '\\') escaped = true;
-      else if (character === quote) quote = '';
+  let cursor = opening;
+  while (cursor < source.length) {
+    const quoted = advanceQuotedOrComment(source, cursor, quote, escaped);
+    if (quoted) {
+      ({ cursor, quote, escaped } = quoted);
       continue;
     }
-    if (character === "'" || character === '"') {
-      quote = character;
-      continue;
-    }
-    const commentEnd = skipPhpComment(source, index);
-    if (commentEnd !== index) {
-      index = commentEnd - 1;
-      continue;
-    }
+    const character = source[cursor];
     if (character === openChar) depth += 1;
     else if (character === closeChar) {
       depth -= 1;
-      if (depth === 0) return { start: opening, end: index + 1 };
+      if (depth === 0) return { start: opening, end: cursor + 1 };
     }
+    cursor += 1;
   }
   throw new Error(`${label}_unbalanced`);
 }
@@ -201,33 +240,20 @@ function readPhpSegment(source, start, terminator, label) {
   let paren = 0;
   let bracket = 0;
   let brace = 0;
-  for (let index = start; index < source.length; index += 1) {
-    const character = source[index];
-    if (quote) {
-      if (escaped) escaped = false;
-      else if (character === '\\') escaped = true;
-      else if (character === quote) quote = '';
+  let cursor = start;
+  while (cursor < source.length) {
+    const quoted = advanceQuotedOrComment(source, cursor, quote, escaped);
+    if (quoted) {
+      ({ cursor, quote, escaped } = quoted);
       continue;
     }
-    if (character === "'" || character === '"') {
-      quote = character;
-      continue;
+    const character = source[cursor];
+    ({ paren, bracket, brace } = updateNesting(character, paren, bracket, brace));
+    if (nestingUnbalanced(paren, bracket, brace)) throw new Error(`${label}_unbalanced`);
+    if (character === terminator && nestingClosed(paren, bracket, brace)) {
+      return { start, end: cursor + 1 };
     }
-    const commentEnd = skipPhpComment(source, index);
-    if (commentEnd !== index) {
-      index = commentEnd - 1;
-      continue;
-    }
-    if (character === '(') paren += 1;
-    else if (character === ')') paren -= 1;
-    else if (character === '[') bracket += 1;
-    else if (character === ']') bracket -= 1;
-    else if (character === '{') brace += 1;
-    else if (character === '}') brace -= 1;
-    if (paren < 0 || bracket < 0 || brace < 0) throw new Error(`${label}_unbalanced`);
-    if (character === terminator && paren === 0 && bracket === 0 && brace === 0) {
-      return { start, end: index + 1 };
-    }
+    cursor += 1;
   }
   throw new Error(`${label}_unterminated`);
 }
@@ -244,9 +270,10 @@ function rangesForRegex(source, regex, reader) {
 
 function extractPhpFunctionDefinitions(source) {
   const definitions = new Map();
-  const declaration = /function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^\s{]+)?\s*\{/g;
+  const declaration = /function\s+(\w+)\s*\(/g;
   for (const match of source.matchAll(declaration)) {
-    const opening = match.index + match[0].lastIndexOf('{');
+    const opening = source.indexOf('{', match.index + match[0].length);
+    if (opening < 0) throw new Error(`structured_data_function_${match[1]}`);
     const block = readBalanced(source, opening, '{', '}', `structured_data_function_${match[1]}`);
     definitions.set(match[1], {
       start: match.index,
@@ -259,7 +286,7 @@ function extractPhpFunctionDefinitions(source) {
 
 function functionCalls(fragment, definitions) {
   const calls = new Set();
-  for (const match of fragment.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*\(/g)) {
+  for (const match of fragment.matchAll(/\b(\w+)\s*\(/g)) {
     if (definitions.has(match[1])) calls.add(match[1]);
   }
   return calls;
@@ -290,7 +317,7 @@ function constantUseLines(source, constantName) {
   return [...new Set(lines
     .filter((line) => line.includes(constantName))
     .map((line) => line.replace(/\s+/g, ' ').trim())
-    .filter(Boolean))].sort();
+    .filter(Boolean))].sort((left, right) => left.localeCompare(right));
 }
 
 function structuredDataProjection(source) {
@@ -416,7 +443,7 @@ export function evaluateEndolaserChanges({ changedPaths, baseFiles, headFiles })
     }
   }
 
-  const fingerprint = sha256(canonicalJson({ binding, signals: [...signals].sort() }));
+  const fingerprint = sha256(canonicalJson({ binding, signals: [...signals].sort((left, right) => left.localeCompare(right)) }));
   return { protected: signals.length > 0, signals, binding, fingerprint };
 }
 
@@ -453,7 +480,7 @@ export function hasCompleteEndolaserApproval(approval, expectedBinding = {}) {
 
 function gitRefExists(ref) {
   try {
-    execFileSync('git', ['rev-parse', '--verify', ref], { cwd: repoRoot, stdio: 'ignore' });
+    git(['rev-parse', '--verify', ref], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -462,7 +489,7 @@ function gitRefExists(ref) {
 
 function fullCommitSha(ref) {
   try {
-    return execFileSync('git', ['rev-parse', `${ref}^{commit}`], { cwd: repoRoot, encoding: 'utf8' }).trim();
+    return git(['rev-parse', `${ref}^{commit}`]).trim();
   } catch {
     return '';
   }
@@ -470,7 +497,7 @@ function fullCommitSha(ref) {
 
 function isAncestor(ancestor, descendant) {
   try {
-    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], { cwd: repoRoot, stdio: 'ignore' });
+    git(['merge-base', '--is-ancestor', ancestor, descendant], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -492,36 +519,51 @@ function githubEventBaseSha() {
   }
 }
 
-function resolveApprovalBase() {
-  if (nonEmpty(process.env.ENDOLASER_APPROVAL_BASE)) {
-    const explicit = process.env.ENDOLASER_APPROVAL_BASE.trim();
-    return gitRefExists(explicit) ? explicit : '';
-  }
+function existingRef(ref) {
+  return gitRefExists(ref) ? ref : '';
+}
 
+function explicitApprovalBase() {
+  if (!nonEmpty(process.env.ENDOLASER_APPROVAL_BASE)) return null;
+  return existingRef(process.env.ENDOLASER_APPROVAL_BASE.trim());
+}
+
+function ciApprovalBase() {
   const eventBaseSha = githubEventBaseSha();
-  if (eventBaseSha) return gitRefExists(eventBaseSha) ? eventBaseSha : '';
-
+  if (eventBaseSha) return existingRef(eventBaseSha);
   const eventName = String(process.env.GITHUB_EVENT_NAME || '');
   if (process.env.GITHUB_ACTIONS === 'true' && (eventName === 'pull_request' || eventName === 'push')) {
     return '';
   }
+  return null;
+}
 
+function localApprovalBase() {
   const githubBaseRef = nonEmpty(process.env.GITHUB_BASE_REF) ? process.env.GITHUB_BASE_REF.trim() : '';
   if (githubBaseRef) {
-    if (gitRefExists(`origin/${githubBaseRef}`)) return `origin/${githubBaseRef}`;
-    if (gitRefExists(githubBaseRef)) return githubBaseRef;
+    const remoteRef = existingRef(`origin/${githubBaseRef}`);
+    if (remoteRef) return remoteRef;
+    const localRef = existingRef(githubBaseRef);
+    if (localRef) return localRef;
   }
-
-  // Local/manual lint fallback only. Pull-request and push CI paths above fail closed.
   for (const candidate of ['origin/master', 'origin/main', 'master', 'main']) {
-    if (gitRefExists(candidate)) return candidate;
+    const found = existingRef(candidate);
+    if (found) return found;
   }
   return '';
 }
 
+function resolveApprovalBase() {
+  const explicit = explicitApprovalBase();
+  if (explicit !== null) return explicit;
+  const ci = ciApprovalBase();
+  if (ci !== null) return ci;
+  return localApprovalBase();
+}
+
 function changedFiles(base) {
   try {
-    return execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { cwd: repoRoot, encoding: 'utf8' })
+    return git(['diff', '--name-only', `${base}...HEAD`])
       .split('\n').map((item) => item.trim()).filter(Boolean);
   } catch {
     throw new Error(`base_diff_unavailable base=${base}`);
@@ -530,7 +572,7 @@ function changedFiles(base) {
 
 function fileAtRef(ref, file) {
   try {
-    return execFileSync('git', ['show', `${ref}:${file}`], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return git(['show', `${ref}:${file}`], { stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
     return undefined;
   }

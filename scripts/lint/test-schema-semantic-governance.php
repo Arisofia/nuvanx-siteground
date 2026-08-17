@@ -84,6 +84,30 @@ $graph = array(
 			'name'  => 'SEME',
 		),
 	),
+	array(
+		'@type'                => 'Service',
+		'@id'                  => 'https://example.test/#service',
+		'recognizingAuthority' => array(
+			'@type' => 'Organization',
+			'name'  => 'Ministerio de Sanidad',
+		),
+	),
+	array(
+		'@type'                => 'MedicalProcedure',
+		'@id'                  => 'https://example.test/#procedure-aemps',
+		'recognizingAuthority' => array(
+			'@type' => 'Organization',
+			'name'  => 'AEMPS',
+		),
+	),
+	array(
+		'@type'                => 'BlogPosting',
+		'@id'                  => 'https://example.test/#article-authority',
+		'recognizingAuthority' => array(
+			'@type' => 'Organization',
+			'name'  => 'Any organization outside governed treatment nodes',
+		),
+	),
 );
 
 $result = nvx_schema_semantic_normalize_graph( $graph );
@@ -98,8 +122,11 @@ nvx_test_assert( in_array( 'Medicina estética láser', (array) $result[2]['know
 nvx_test_assert( '€€€' === $result[2]['priceRange'], 'MedicalClinic priceRange must survive' );
 nvx_test_assert( ! isset( $result[3]['priceRange'] ), 'parent Organization priceRange must be removed' );
 nvx_test_assert( isset( $result[4]['performer'] ), 'Event performer must survive' );
-nvx_test_assert( ! isset( $result[5]['recognizingAuthority'] ), 'ungoverned SEME recognizingAuthority must be removed' );
+nvx_test_assert( ! isset( $result[5]['recognizingAuthority'] ), 'SEME recognizingAuthority must be removed from MedicalProcedure' );
 nvx_test_assert( 'https://schema.org/NoninvasiveProcedure' === $result[5]['procedureType'], 'valid noninvasive procedureType must survive' );
+nvx_test_assert( ! isset( $result[6]['recognizingAuthority'] ), 'any recognizingAuthority value must be removed from Service' );
+nvx_test_assert( ! isset( $result[7]['recognizingAuthority'] ), 'AEMPS recognizingAuthority must be removed from MedicalProcedure' );
+nvx_test_assert( isset( $result[8]['recognizingAuthority'] ), 'recognizingAuthority outside governed MedicalProcedure and Service nodes must remain untouched' );
 
 $jsonld_rule = null;
 foreach ( nvx_hygiene_regex_reps() as $rule ) {
@@ -128,4 +155,5 @@ $only_non_schema = preg_replace( $pcre, $jsonld_rule['replacement'], $non_schema
 nvx_test_assert( $non_schema === $only_non_schema, 'non-Schema JSON-LD must be byte-preserved when no Schema block exists' );
 
 echo "JSONLD_CONTENT_HYGIENE_TEST=PASS\n";
+echo "SCHEMA_RECOGNIZING_AUTHORITY_ANY_VALUE=FAIL_EXPECTED\n";
 echo "SCHEMA_SEMANTIC_GOVERNANCE_TEST=PASS\n";

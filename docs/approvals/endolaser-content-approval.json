@@ -1,0 +1,40 @@
+{
+  "schema": "nuvanx-endolaser-content-approval/v2",
+  "status": "PENDING",
+  "instructions": "References only. Do not store clinical records, patient data, credentials, device serial numbers, secrets or private IFU contents in Git. For an APPROVED record, bind revision.base_sha to the PR base commit, revision.head_sha to the reviewed protected-content commit, and revision.protected_fingerprint to the gate output for that protected revision.",
+  "revision": {
+    "base_sha": "",
+    "head_sha": "",
+    "protected_fingerprint": ""
+  },
+  "equipment": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "technique": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "claims": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "identity": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "tariff": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  },
+  "taxonomy": {
+    "approved_by": "",
+    "approved_at": "",
+    "evidence_references": []
+  }
+}

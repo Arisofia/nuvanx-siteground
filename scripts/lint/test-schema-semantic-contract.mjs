@@ -48,7 +48,7 @@ function extractPhpFunctionBody(content, functionName) {
   for (let i = open; i < content.length; i += 1) {
     const ch = content[i];
     const next = content[i + 1] || '';
-    
+
     // Handle comment transitions
     if (!quote && !escaped) {
       if (commentLine) {
@@ -58,7 +58,7 @@ function extractPhpFunctionBody(content, functionName) {
       if (comment) {
         if (ch === '*' && next === '/') {
           comment = false;
-          i += 1; // skip both characters
+          i += 1;
           continue;
         }
         continue;
@@ -74,10 +74,9 @@ function extractPhpFunctionBody(content, functionName) {
         continue;
       }
     }
-    
-    // Skip content inside comments
+
     if (comment || commentLine) continue;
-    
+
     if (quote) {
       if (escaped) {
         escaped = false;
@@ -105,7 +104,6 @@ function validatePhpProcedureTypes(file, content) {
   const regex = /['"`]procedureType['"`]\s*=>\s*['"`]([^'"`]+)['"`]/g;
   for (const match of content.matchAll(regex)) {
     const value = match[1];
-    // Normalize: if not a full URL, prepend https://schema.org/
     const normalized = value.startsWith('https://') ? value : `https://schema.org/${value}`;
     if (!ALLOWED_PROCEDURE_TYPES.has(normalized)) {
       addViolation(file, 'procedureType', `Invalid procedureType value: ${value}`);
@@ -135,7 +133,6 @@ function validatePhpMedicalSpecialties(file, content) {
     }
   }
 
-  // Support PHP short array syntax: medicalSpecialty => ['https://schema.org/Dermatology']
   const shortArrays = /['"`]medicalSpecialty['"`]\s*=>\s*\[([^\]]*)\]/g;
   for (const match of content.matchAll(shortArrays)) {
     const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
@@ -175,10 +172,7 @@ for (const file of phpFiles) {
     validatePhpProcedureTypes(file, content);
     validatePhpMedicalSpecialties(file, content);
 
-    // Scan for clinic-specific Doctoralia URLs in Organization context only
-    // Allow Doctoralia URLs in MedicalClinic nodes, prohibit in corporate Organization
     const doctoraliaPatterns = [
-      // Look for Doctoralia clinic URLs in Organization enrichment function
       { pattern: /function\s+nvx_schema_enrich_organization[\s\S]{0,2000}?sameAs[\s\S]{0,500}?doctoralia\.es\/clinicas\//gi, context: 'Organization enrichment contains clinic Doctoralia URL' },
     ];
     for (const { pattern, context } of doctoraliaPatterns) {
@@ -187,9 +181,11 @@ for (const file of phpFiles) {
       }
     }
 
-    const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética)/gi) || [];
-    if (recognizingAuthorityClaims.length > 0) {
-      addViolation(file, 'recognizingAuthority', 'Ungoverned SEME recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
+    const recognizingAuthorityProperties = content.match(
+      /(?:['"`]recognizingAuthority['"`]\s*=>|\[\s*['"`]recognizingAuthority['"`]\s*\]\s*=)/g,
+    ) || [];
+    if (recognizingAuthorityProperties.length > 0) {
+      addViolation(file, 'recognizingAuthority', 'recognizingAuthority is forbidden in governed MedicalProcedure/Service source emitters regardless of value', recognizingAuthorityProperties.length);
     }
 
     const wrongPapadaMatches = content.match(/nvx_endolift_papada_price_eur/g) || [];
@@ -260,8 +256,8 @@ for (const file of jsonFiles) {
             }
           }
         }
-        if (key === 'recognizingAuthority' && /SEME|Sociedad Española de Medicina Estética/i.test(JSON.stringify(value))) {
-          addViolation(file, 'recognizingAuthority', `Ungoverned SEME recognizingAuthority claim at ${currentPath}`);
+        if (key === 'recognizingAuthority') {
+          addViolation(file, 'recognizingAuthority', `recognizingAuthority is forbidden in governed schema catalog at ${currentPath}`);
         }
         if (file === 'inc/data/treatment-hub-schema.json' && key === 'additionalFields') {
           addViolation(file, 'hubArchitecture', `Treatment hub is reference-only; additionalFields is dead/duplicated metadata at ${currentPath}`);
@@ -305,15 +301,16 @@ if (!bootstrap.includes("require_once get_template_directory() . '/inc/nvx-schem
 if (!/add_filter\(\s*['"]wpseo_schema_graph['"]\s*,\s*['"]nvx_schema_semantic_normalize_graph['"]\s*,\s*PHP_INT_MAX\s*-\s*2\s*,\s*1\s*\)/.test(semanticGovernance)) {
   addViolation('inc/nvx-schema-semantic-governance.php', 'semanticGovernance', 'Final graph normalizer must run at PHP_INT_MAX - 2');
 }
+if (!/array_key_exists\(\s*'recognizingAuthority'\s*,\s*\$node\s*\)[\s\S]{0,300}array_intersect\([\s\S]{0,120}'MedicalProcedure'[\s\S]{0,120}'Service'/.test(semanticGovernance)) {
+  addViolation('inc/nvx-schema-semantic-governance.php', 'recognizingAuthority', 'Governance must remove recognizingAuthority by property for MedicalProcedure and Service regardless of authority value');
+}
 
 const semanticPhpTest = spawnSync(
   'php',
   [path.join(repoPath, 'scripts/lint/test-schema-semantic-governance.php')],
   {
     encoding: 'utf8',
-    // This is a synchronous gate; if the PHP process hangs it will block the lint run.
-    // The timeout helps avoid indefinitely stuck CI jobs.
-    timeout: 30_000, // 30 seconds
+    timeout: 30_000,
   }
 );
 
@@ -352,7 +349,6 @@ if (semanticPhpTest.error) {
       process.stdout.write(stdout);
     }
     if (stderr.trim()) {
-      // Surface warnings emitted on stderr even when the test exits successfully.
       addViolation(
         'scripts/lint/test-schema-semantic-governance.php',
         'semanticGovernanceRuntimeStderr',
@@ -378,4 +374,4 @@ console.log('✓ procedure/service emitters have no reviewedBy or performer');
 console.log('✓ treatment source IDs use canonical #medical-procedure');
 console.log('✓ treatment hub uses the canonical runtime predicate');
 console.log('✓ final semantic normalizer is loaded, ordered and unit-tested');
-console.log('✓ treatment hub has no dead additionalFields or ungoverned SEME recognizingAuthority claims');
+console.log('✓ treatment hub has no dead additionalFields or recognizingAuthority in governed sources');

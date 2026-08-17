@@ -23,6 +23,89 @@ function nvx_theme_owns_complete_page_markup(): bool {
 	return is_front_page() || nvx_theme_is_treatments_hub_page();
 }
 
+/**
+ * Inline the small, universally required CSS foundation.
+ *
+ * The source files remain canonical and independently linted in the repository;
+ * only delivery changes. This removes three blocking HTTP requests while keeping
+ * the structural layer available even when JavaScript is disabled or fails.
+ */
+function nvx_theme_inline_critical_style_foundation(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	$relative_files = array(
+		'assets/css/nvx-fonts.css',
+		'assets/css/nvx-tokens.css',
+		'assets/css/nvx-base.css',
+	);
+	$critical_css   = '';
+
+	foreach ( $relative_files as $relative_file ) {
+		$absolute_file = get_template_directory() . '/' . $relative_file;
+		if ( ! is_readable( $absolute_file ) ) {
+			// Fail open: keep the original enqueued files if the complete inline
+			// foundation cannot be assembled from the accepted theme payload.
+			return;
+		}
+
+		$contents = file_get_contents( $absolute_file );
+		if ( false === $contents || '' === trim( $contents ) ) {
+			return;
+		}
+		$critical_css .= "\n/* " . basename( $relative_file ) . " */\n" . $contents;
+	}
+
+	foreach ( array( 'nvx-fonts', 'nvx-tokens', 'nvx-base' ) as $handle ) {
+		wp_dequeue_style( $handle );
+		wp_deregister_style( $handle );
+	}
+
+	wp_register_style( 'nvx-critical-inline', false, array(), NVX_THEME_VERSION );
+	wp_enqueue_style( 'nvx-critical-inline' );
+	wp_add_inline_style( 'nvx-critical-inline', $critical_css );
+
+	// Preserve the canonical dependency graph for styles already registered by
+	// functions.php, without creating network requests for these three handles.
+	wp_register_style( 'nvx-fonts', false, array( 'nvx-critical-inline' ), NVX_THEME_VERSION );
+	wp_register_style( 'nvx-tokens', false, array( 'nvx-fonts' ), NVX_THEME_VERSION );
+	wp_register_style( 'nvx-base', false, array( 'nvx-tokens' ), NVX_THEME_VERSION );
+	wp_enqueue_style( 'nvx-fonts' );
+	wp_enqueue_style( 'nvx-tokens' );
+	wp_enqueue_style( 'nvx-base' );
+}
+add_action( 'wp_enqueue_scripts', 'nvx_theme_inline_critical_style_foundation', 20 );
+
+/**
+ * Keep Google Fonts discoverable early without blocking first render.
+ *
+ * `display=swap` remains part of the canonical Google Fonts request. The preload
+ * starts the CSS fetch immediately; the print-media stylesheet becomes active
+ * when loaded, and noscript preserves branded typography when JS is disabled.
+ * Structural CSS never uses this path, so a blocked onload cannot collapse UI.
+ *
+ * @param string $html   Generated stylesheet tag.
+ * @param string $handle Registered stylesheet handle.
+ * @param string $href   Stylesheet URL.
+ * @param string $media  Original media attribute.
+ * @return string
+ */
+function nvx_theme_nonblocking_google_fonts( string $html, string $handle, string $href, string $media ): string {
+	unset( $media );
+	if ( 'nvx-google-fonts' !== $handle || '' === $href ) {
+		return $html;
+	}
+
+	$safe_href = esc_url( $href );
+	$id        = esc_attr( $handle . '-css' );
+
+	return '<link rel="preload" as="style" href="' . $safe_href . '" />' . "\n"
+		. '<link rel="stylesheet" id="' . $id . '" href="' . $safe_href . '" media="print" onload="this.onload=null;this.media=\'all\'" />' . "\n"
+		. '<noscript><link rel="stylesheet" id="' . esc_attr( $handle . '-css-noscript' ) . '" href="' . $safe_href . '" /></noscript>' . "\n";
+}
+add_filter( 'style_loader_tag', 'nvx_theme_nonblocking_google_fonts', 20, 4 );
+
 /** Dequeue block styles only when the rendered page contains no block markup. */
 function nvx_theme_dequeue_native_block_styles(): void {
 	if ( is_admin() || ! nvx_theme_owns_complete_page_markup() ) {

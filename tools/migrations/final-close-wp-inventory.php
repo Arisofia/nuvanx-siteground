@@ -135,6 +135,7 @@ $report['options'] = array(
     'large_autoload' => array(),
     'transients'     => array(),
     'signals'        => array(),
+    'required_states' => array(),
 );
 
 $largeOptions = $wpdb->get_results(
@@ -172,7 +173,7 @@ foreach ( $transients ?: array() as $row ) {
 $signalOptions = $wpdb->get_results(
     "SELECT option_name, autoload, option_value
      FROM {$optionsTable}
-     WHERE option_name REGEXP 'hubspot|klaviyo|google|gtm|ga4|ads|meta|complianz|joinchat|token|secret|cron|snippet'
+     WHERE option_name REGEXP 'hubspot|klaviyo|google|gtm|ga4|ads|meta|complianz|joinchat|token|secret|cron|snippet|privacy|policy|nvx|nuvanx'
      ORDER BY option_name ASC
      LIMIT 500",
     ARRAY_A
@@ -182,6 +183,25 @@ foreach ( $signalOptions ?: array() as $row ) {
         'name'       => (string) $row['option_name'],
         'autoload'   => (string) $row['autoload'],
         'value_meta' => nvx_final_close_value_meta( $row['option_value'] ),
+    );
+}
+
+// Explicit one-time states are reported even when absent, so a final-close
+// audit can distinguish a missing migration seal from a collector blind spot.
+$requiredStateNames = array( 'nvx_privacy_policy_reconciled_20260808' );
+foreach ( $requiredStateNames as $optionName ) {
+    $row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT option_name, autoload, option_value FROM {$optionsTable} WHERE option_name = %s LIMIT 1",
+            $optionName
+        ),
+        ARRAY_A
+    );
+    $report['options']['required_states'][] = array(
+        'name'   => $optionName,
+        'exists' => is_array( $row ),
+        'autoload' => is_array( $row ) ? (string) $row['autoload'] : null,
+        'value_meta' => is_array( $row ) ? nvx_final_close_value_meta( $row['option_value'] ) : null,
     );
 }
 

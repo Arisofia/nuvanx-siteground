@@ -25,7 +25,7 @@ function runTrustedWpCliInventory(alias, stagingRoot) {
     child.stdout.on('data', (chunk) => { stdout += chunk; });
     child.stderr.on('data', (chunk) => { stderr += chunk; });
     child.once('error', reject);
-    child.once('exit', (code, signal) => {
+    child.once('close', (code, signal) => {
       if (signal) {
         reject(new Error(`trusted WP-CLI inventory SSH terminated by signal ${signal}`));
         return;
@@ -64,6 +64,9 @@ export async function ensureTrustedPagesFile() {
     return null;
   }
   if (!ALLOWED_STAGING_ALIASES.has(alias)) {
+    // An explicitly configured but untrusted alias is a control-plane error,
+    // not a signal to fall back to public REST. Fail closed so a typo or
+    // unexpected target cannot silently weaken the trusted inventory contract.
     throw new Error(`Refusing unsupported Staging origin alias for page inventory: ${alias}`);
   }
 
@@ -77,7 +80,8 @@ export async function ensureTrustedPagesFile() {
   try {
     pages = JSON.parse(jsonText);
   } catch (error) {
-    throw new Error(`Trusted WP-CLI page inventory returned invalid JSON: ${error.message}`);
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`Trusted WP-CLI page inventory returned invalid JSON: ${reason}`);
   }
   if (!Array.isArray(pages) || pages.length === 0) {
     throw new Error('Trusted WP-CLI page inventory must be a non-empty array');

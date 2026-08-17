@@ -122,6 +122,62 @@ check_for_superseding_staging_run() {
   fi
 }
 
+# A PR preview may spend minutes waiting behind an older mutation. Rebuild the
+# synthetic master+PR tree only after the FIFO turn is clear so the SHA deployed
+# to Staging2 always incorporates the latest master visible at mutation time.
+rebuild_pr_preview_after_fifo() {
+  if [[ "$ROLE" != 'pr-preview' ]]; then
+    return 0
+  fi
+
+  : "${PR_NUMBER:?Missing PR_NUMBER for pr-preview}"
+  : "${PR_SHA:?Missing PR_SHA for pr-preview}"
+  : "${CANDIDATE_ROOT:?Missing CANDIDATE_ROOT for pr-preview}"
+  : "${GITHUB_ENV:?Missing GITHUB_ENV for pr-preview}"
+  [[ "$PR_NUMBER" =~ ^[0-9]+$ && "$PR_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+  git fetch --no-tags origin master
+  git fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/nvx-pr-preview"
+  resolved_pr_sha="$(git rev-parse refs/remotes/origin/nvx-pr-preview)"
+  [[ "$resolved_pr_sha" == "$PR_SHA" ]] || {
+    echo "MUTATION_FIFO=FAIL reason=pr_head_mismatch expected=$PR_SHA actual=$resolved_pr_sha" >&2
+    exit 1
+  }
+
+  if git worktree list --porcelain | grep -Fqx "worktree $CANDIDATE_ROOT"; then
+    git worktree remove --force "$CANDIDATE_ROOT"
+  elif [[ -e "$CANDIDATE_ROOT" ]]; then
+    echo "MUTATION_FIFO=FAIL reason=candidate_root_not_managed path=$CANDIDATE_ROOT" >&2
+    exit 1
+  fi
+
+  git worktree add --detach "$CANDIDATE_ROOT" origin/master
+  set +e
+  git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' merge --no-commit --no-ff "$PR_SHA"
+  merge_rc=$?
+  set -e
+  if (( merge_rc != 0 )); then
+    git -C "$CANDIDATE_ROOT" merge --abort || true
+    echo 'MUTATION_FIFO=FAIL reason=pr_preview_merge_conflict action=resolve_or_rebase' >&2
+    exit 1
+  fi
+
+  if git -C "$CANDIDATE_ROOT" rev-parse -q --verify MERGE_HEAD >/dev/null; then
+    git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' commit --no-gpg-sign -m "ci: preview merge PR #${PR_NUMBER} into master"
+  fi
+
+  PR_PREVIEW_SHA="$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)"
+  [[ "$PR_PREVIEW_SHA" =~ ^[0-9a-f]{40}$ ]]
+  git -C "$CANDIDATE_ROOT" diff --check origin/master "$PR_PREVIEW_SHA"
+  ! git -C "$CANDIDATE_ROOT" ls-tree -r "$PR_PREVIEW_SHA" wp-content/themes/nuvanx-medical/ | awk '$1 == "120000" { found=1 } END { exit(found ? 0 : 1) }'
+  find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
+  find "$CANDIDATE_ROOT/wp-content/themes/nuvanx-medical" -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null
+
+  echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
+  echo "PR_PREVIEW_SHA=$PR_PREVIEW_SHA" >> "$GITHUB_ENV"
+  echo "PR_PREVIEW_REBUILT_AFTER_FIFO=PASS pr_sha=$PR_SHA preview_sha=$PR_PREVIEW_SHA master_sha=$(git rev-parse origin/master)"
+}
+
 check_for_superseding_staging_run
 
 started_epoch="$(date +%s)"
@@ -168,6 +224,7 @@ while :; do
     clear_scans=$((clear_scans + 1))
     if (( clear_scans >= 2 )); then
       check_for_superseding_staging_run
+      rebuild_pr_preview_after_fifo
       waited=$(( $(date +%s) - started_epoch ))
       echo "MUTATION_FIFO=PASS role=$ROLE run_id=$CURRENT_RUN_ID attempt=$CURRENT_RUN_ATTEMPT waited_seconds=$waited stable_scans=$clear_scans"
       exit 0

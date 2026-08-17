@@ -21,13 +21,13 @@ SECRET_LITERAL = re.compile(
     r"\s*(?:=>|:|=|,)\s*['\"][^'\"]{8,}['\"]"
 )
 AUTH_LITERAL = re.compile(
-    r"(?i)(?:authorization\s*[:=]\s*['\"]?bearer\s+|bearer\s+)[A-Za-z0-9._~+/=-]{12,}"
+    r"(?i)(?:authorization\s*[:=]\s*['\"]?bearer\s+|bearer\s+)[A-Z0-9._~+/=-]{12,}"
 )
 ENVIRONMENT = re.compile(r"(?:staging2\.nuvanx\.com|nuvanx\.com|/home/customer/|/home/ubuntu/)", re.I)
 STABLE_PATTERNS = (
     re.compile(r"\bGTM-[A-Z0-9-]+\b", re.I),
     re.compile(r"\bG-[A-Z0-9]{6,}\b", re.I),
-    re.compile(r"\bAW-\d+(?:/[A-Za-z0-9_-]+)?\b", re.I),
+    re.compile(r"\bAW-\d+(?:/[A-Z0-9_-]+)?\b", re.I),
     re.compile(r"\bact_\d+\b", re.I),
     re.compile(r"\bportal(?:[_-]?id)?\s*[:=>]+\s*['\"]?\d+", re.I),
 )
@@ -37,7 +37,15 @@ CONTENT_PATTERNS = (
     re.compile(r"(?i)\bget_post\s*\(\s*\d+"),
     re.compile(r"(?i)\bID\s*(?:=>|:|=)\s*\d+"),
 )
-BUSINESS = re.compile(r"(?i)(?:hubspot|klaviyo|complianz|joinchat|google\s*(?:ads|analytics|tag|site kit)|meta\s*(?:pixel|event|ads)?|consent)")
+BUSINESS_PATTERNS = (
+    re.compile(r"(?i)hubspot"),
+    re.compile(r"(?i)klaviyo"),
+    re.compile(r"(?i)complianz"),
+    re.compile(r"(?i)joinchat"),
+    re.compile(r"(?i)google\s*(?:ads|analytics|tag|site kit)"),
+    re.compile(r"(?i)meta\s*(?:pixel|event|ads)?"),
+    re.compile(r"(?i)consent"),
+)
 ACCIDENTAL = re.compile(r"(?i)(?:\bTODO\b|\bFIXME\b|\bHACK\b|\bTEMP(?:ORARY)?\b|\bREMOVE\s+ME\b)")
 
 
@@ -73,7 +81,7 @@ def classify_line(rows: list[dict], rel: str, line_no: int, source_line: str) ->
         ("ENVIRONMENT_SPECIFIC", (ENVIRONMENT,)),
         ("STABLE_PUBLIC_IDENTIFIER", STABLE_PATTERNS),
         ("CONTENT_IDENTIFIER", CONTENT_PATTERNS),
-        ("BUSINESS_CONFIG", (BUSINESS,)),
+        ("BUSINESS_CONFIG", BUSINESS_PATTERNS),
         ("ACCIDENTAL_HARDCODE", (ACCIDENTAL,)),
     )
     for category, patterns in grouped:

@@ -105,6 +105,69 @@ foreach ( nvxPublicationPublishedIds() as $postId ) {
     );
 }
 
+/*
+ * A normal release may intentionally rename an already-published route before
+ * Production itself has received the new theme. Staging acceptance must remain
+ * possible without weakening publication identity: permit a pre-release route
+ * transition only when the same stable post ID is present in Production and the
+ * old route is surplus to the new manifest. The projected snapshot keeps all
+ * Production content/meta/terms, but adopts the manifest's canonical route and
+ * slug so Staging can exercise the exact post-release topology.
+ *
+ * New/deleted IDs, post-type changes, status changes and ambiguous route moves
+ * continue to fail closed below.
+ */
+$routeTransitions = array();
+$actualById = array();
+foreach ( $actual as $actualRoute => $source ) {
+    $sourceId = (int) ( $source['ID'] ?? 0 );
+    if ( $sourceId > 0 && ! isset( $actualById[ $sourceId ] ) ) {
+        $actualById[ $sourceId ] = (string) $actualRoute;
+    }
+}
+
+foreach ( $manifest['routes'] as $expectedRoute => $expected ) {
+    if ( isset( $actual[ $expectedRoute ] ) || ! is_array( $expected ) ) {
+        continue;
+    }
+
+    $expectedId = (int) ( $expected['post_id'] ?? 0 );
+    $expectedSlug = (string) ( $expected['slug'] ?? '' );
+    $expectedType = (string) ( $expected['post_type'] ?? '' );
+    $sourceRoute = $actualById[ $expectedId ] ?? '';
+
+    if (
+        $expectedId <= 0
+        || '' === $expectedSlug
+        || '' === $sourceRoute
+        || $sourceRoute === $expectedRoute
+        || isset( $manifest['routes'][ $sourceRoute ] )
+        || ! isset( $actual[ $sourceRoute ] )
+    ) {
+        continue;
+    }
+
+    $source = $actual[ $sourceRoute ];
+    if (
+        (int) ( $source['ID'] ?? 0 ) !== $expectedId
+        || (string) ( $source['post_type'] ?? '' ) !== $expectedType
+        || 'publish' !== (string) ( $source['post_status'] ?? '' )
+    ) {
+        continue;
+    }
+
+    $source['post_name'] = $expectedSlug;
+    $source['permalink'] = home_url( $expectedRoute );
+    unset( $actual[ $sourceRoute ] );
+    $actual[ $expectedRoute ] = $source;
+    $actualById[ $expectedId ] = (string) $expectedRoute;
+    $routeTransitions[] = array(
+        'post_id' => $expectedId,
+        'from'    => (string) $sourceRoute,
+        'to'      => (string) $expectedRoute,
+    );
+}
+
 $expectedRoutes = nvxPublicationExpectedRoutes( $manifest );
 $actualRoutes = array_keys( $actual );
 sort( $actualRoutes, SORT_STRING );
@@ -140,23 +203,32 @@ if ( ! empty( $missing ) || ! empty( $surplus ) || ! empty( $changed ) ) {
     fwrite(
         STDERR,
         sprintf(
-            "PRODUCTION_PUBLICATION_EXPORT=FAIL reason=manifest_drift missing=%d surplus=%d changed=%d\n",
+            "PRODUCTION_PUBLICATION_EXPORT=FAIL reason=manifest_drift missing=%d surplus=%d changed=%d transitions=%d\n",
             count( $missing ),
             count( $surplus ),
-            count( $changed )
+            count( $changed ),
+            count( $routeTransitions )
         )
     );
     exit( 1 );
 }
 
 $snapshot = array(
-    'schema'           => 'nuvanx-production-publication-snapshot',
-    'manifest_version' => (string) $manifest['version'],
-    'exported_at'      => gmdate( 'c' ),
-    'source'           => home_url( '/' ),
-    'route_count'      => count( $actual ),
-    'routes'           => $actual,
+    'schema'            => 'nuvanx-production-publication-snapshot',
+    'manifest_version'  => (string) $manifest['version'],
+    'exported_at'       => gmdate( 'c' ),
+    'source'            => home_url( '/' ),
+    'route_count'       => count( $actual ),
+    'route_transitions' => array_values( $routeTransitions ),
+    'routes'            => $actual,
 );
 
 echo wp_json_encode( $snapshot );
-fwrite( STDERR, sprintf( "PRODUCTION_PUBLICATION_EXPORT=PASS routes=%d\n", count( $actual ) ) );
+fwrite(
+    STDERR,
+    sprintf(
+        "PRODUCTION_PUBLICATION_EXPORT=PASS routes=%d transitions=%d\n",
+        count( $actual ),
+        count( $routeTransitions )
+    )
+);

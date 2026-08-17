@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { assertCanonicalPublishedPaths, loadPublishedPagesManifest, VIEWPORTS } from './published-pages-contract.mjs';
+import { ensureTrustedPagesFile } from './trusted-pages-origin.mjs';
 import {
   SITEGROUND_CAPTCHA_PATH,
   SITEGROUND_TRANSIENT_HTTP_STATUSES,
@@ -298,6 +299,13 @@ async function disarmRollbackAfterTransientExhaustion(reason = 'transient-only-e
       console.warn(`Failed to write GITHUB_STEP_SUMMARY: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+}
+
+try {
+  await ensureTrustedPagesFile();
+} catch (error) {
+  console.error(`BLOCK_C_INVENTORY_BOOTSTRAP=FAIL reason=${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
 }
 
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {

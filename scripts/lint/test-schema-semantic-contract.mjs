@@ -187,9 +187,9 @@ for (const file of phpFiles) {
       }
     }
 
-    const recognizingAuthorityClaims = content.match(/['"`]recognizingAuthority['"`][\s\S]{0,500}(?:SEME|Sociedad Española de Medicina Estética|AEMPS|Agencia Española de Medicamentos y Productos Sanitarios)/gi) || [];
-    if (recognizingAuthorityClaims.length > 0) {
-      addViolation(file, 'recognizingAuthority', 'Ungoverned SEME or AEMPS recognizingAuthority claim is forbidden', recognizingAuthorityClaims.length);
+    const recognizingAuthorityProperties = content.match(/['"`]recognizingAuthority['"`]\s*=>/g) || [];
+    if (recognizingAuthorityProperties.length > 0) {
+      addViolation(file, 'recognizingAuthority', 'recognizingAuthority is forbidden in governed MedicalProcedure/Service source emitters regardless of value', recognizingAuthorityProperties.length);
     }
 
     const wrongPapadaMatches = content.match(/nvx_endolift_papada_price_eur/g) || [];
@@ -260,8 +260,8 @@ for (const file of jsonFiles) {
             }
           }
         }
-        if (key === 'recognizingAuthority' && /SEME|Sociedad Española de Medicina Estética|AEMPS|Agencia Española de Medicamentos y Productos Sanitarios/i.test(JSON.stringify(value))) {
-          addViolation(file, 'recognizingAuthority', `Ungoverned SEME or AEMPS recognizingAuthority claim at ${currentPath}`);
+        if (key === 'recognizingAuthority') {
+          addViolation(file, 'recognizingAuthority', `recognizingAuthority is forbidden in governed schema catalog at ${currentPath}`);
         }
         if (file === 'inc/data/treatment-hub-schema.json' && key === 'additionalFields') {
           addViolation(file, 'hubArchitecture', `Treatment hub is reference-only; additionalFields is dead/duplicated metadata at ${currentPath}`);
@@ -304,6 +304,9 @@ if (!bootstrap.includes("require_once get_template_directory() . '/inc/nvx-schem
 }
 if (!/add_filter\(\s*['"]wpseo_schema_graph['"]\s*,\s*['"]nvx_schema_semantic_normalize_graph['"]\s*,\s*PHP_INT_MAX\s*-\s*2\s*,\s*1\s*\)/.test(semanticGovernance)) {
   addViolation('inc/nvx-schema-semantic-governance.php', 'semanticGovernance', 'Final graph normalizer must run at PHP_INT_MAX - 2');
+}
+if (!/array_key_exists\(\s*'recognizingAuthority'\s*,\s*\$node\s*\)[\s\S]{0,300}array_intersect\([\s\S]{0,120}'MedicalProcedure'[\s\S]{0,120}'Service'/.test(semanticGovernance)) {
+  addViolation('inc/nvx-schema-semantic-governance.php', 'recognizingAuthority', 'Governance must remove recognizingAuthority by property for MedicalProcedure and Service regardless of authority value');
 }
 
 const semanticPhpTest = spawnSync(
@@ -378,4 +381,4 @@ console.log('✓ procedure/service emitters have no reviewedBy or performer');
 console.log('✓ treatment source IDs use canonical #medical-procedure');
 console.log('✓ treatment hub uses the canonical runtime predicate');
 console.log('✓ final semantic normalizer is loaded, ordered and unit-tested');
-console.log('✓ treatment hub has no dead additionalFields or ungoverned SEME recognizingAuthority claims');
+console.log('✓ treatment hub has no dead additionalFields or recognizingAuthority in governed sources');

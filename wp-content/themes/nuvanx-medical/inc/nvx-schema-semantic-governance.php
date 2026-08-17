@@ -229,11 +229,11 @@ function nvx_schema_semantic_sanitize_object( array $node ): array {
 		}
 	}
 
-	if ( isset( $node['recognizingAuthority'] ) ) {
-		$serialized = wp_json_encode( $node['recognizingAuthority'] );
-		if ( is_string( $serialized ) && preg_match( '/SEME|Sociedad Española de Medicina Estética|seme\.org/i', $serialized ) ) {
-			unset( $node['recognizingAuthority'] );
-		}
+	// Internal NUVANX policy: MedicalProcedure and Service emitters must never
+	// assert a recognizingAuthority. The restriction is intentionally based on
+	// the property, not on a growing blacklist of authority names or values.
+	if ( array_key_exists( 'recognizingAuthority', $node ) && array_intersect( $types, array( 'MedicalProcedure', 'Service' ) ) ) {
+		unset( $node['recognizingAuthority'] );
 	}
 
 	foreach ( $node as $key => $value ) {

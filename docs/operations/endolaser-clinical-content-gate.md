@@ -19,7 +19,7 @@
 
 ## 2. Evidencia y aprobaciones requeridas
 
-Antes de abrir una PR de contenido deben quedar registrados los cinco bloques siguientes en el anexo de aprobación asociado al ticket/PR. La evidencia sensible, como IFU o documentos de proveedor, no se copia a Git si no es pública; se referencia por identificador y almacenamiento de acceso restringido.
+Antes de abrir una PR de contenido deben quedar registrados los seis bloques siguientes en el anexo de aprobación asociado al ticket/PR. La evidencia sensible, como IFU o documentos de proveedor, no se copia a Git si no es pública; se referencia por identificador y almacenamiento de acceso restringido.
 
 | Bloque | Dato mínimo verificable | Aprobador | Afecta a |
 |---|---|---|---|
@@ -46,16 +46,18 @@ Los siguientes contenidos existentes se consideran `RECONCILIATION_REQUIRED`: no
 
 ## 4. Regla de aprobación de PR
 
-Una PR que modifique cualquiera de estos archivos requiere adjuntar una tabla de cambios con evidencia y aprobador, además de las validaciones técnicas habituales:
+Una PR requiere un registro de aprobación completo solo cuando cambia una superficie Endoláser protegida. El gate compara los catálogos compartidos semánticamente para evitar que cambios de otros tratamientos queden bloqueados por error. Si no puede leer o clasificar de forma segura una superficie gobernada modificada, falla de forma cerrada.
 
-```text
-inc/data/endolaser-page.json
-inc/nvx-endolaser-page.php
-inc/nvx-structured-data.php
-inc/data/seo-metadata.json
-inc/data/tariff-catalog.json
-inc/data/routes.json
-```
+| Archivo o superficie | Cuándo queda protegida |
+|---|---|
+| `inc/data/endolaser-page.json` | Cualquier cambio. |
+| `inc/nvx-endolaser-page.php` | Cualquier cambio funcional; los cambios exclusivos de comentarios no activan el gate. |
+| `inc/data/routes.json` | Cambia la entrada de `/endolaser-corporal-grasa-localizada/` o una entrada asociada por `seo_id=endolaser`, `schema_id=endolaser_corporal`, canonical/ruta o `post_id`. |
+| `inc/data/seo-metadata.json` | Cambia el registro `endolaser` o un registro cuyo `seo_id` sea `endolaser`. |
+| `inc/data/tariff-catalog.json` | Cambia cualquier namespace `endolaser.*` o una clave corporal Endolift/Endolift combo declarada explícitamente en el contrato del gate. Los cambios de EXION, CO₂ u otros catálogos no relacionados no se bloquean. |
+| `inc/nvx-structured-data.php` | Cambia el bloque condicional que construye `endolaser_corporal`, su FAQ o cualquier bloque de construcción específicamente anclado a Endoláser. Un cambio exclusivo de otro tratamiento no se bloquea. |
+
+La lista de claves tarifarias corporales protegidas se declara y se prueba en `scripts/lint/test-endolaser-claim-approval.mjs`; no se infiere mediante búsquedas globales ambiguas.
 
 | Control | Criterio de aceptación |
 |---|---|

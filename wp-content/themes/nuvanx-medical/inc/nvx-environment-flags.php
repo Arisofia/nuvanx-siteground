@@ -3,8 +3,8 @@
  * Environment-specific presentation and deployment flags.
  *
  * Deploy workflows stamp the exact checked-out commit into `.nvx-deploy-sha`.
- * The public marker is intentionally non-secret and allows staging/production
- * verification to prove which immutable revision is actually rendered.
+ * The public deployment identity is rendered centrally by nvx-deploy-stamp.php;
+ * this module only resolves the environment and immutable SHA source.
  *
  * @package nuvanx-medical
  */
@@ -36,7 +36,8 @@ function nvx_environment_is_staging2(): bool {
  * Resolve the exact deployed Git commit SHA.
  *
  * Resolution order supports controlled host configuration while keeping the
- * workflow-generated marker as the normal source of truth.
+ * workflow-generated marker as the normal source of truth. Rendering is owned
+ * exclusively by nvx_render_deploy_stamp_meta().
  */
 function nvx_environment_deploy_sha(): string {
 	static $resolved = null;
@@ -74,20 +75,3 @@ function nvx_environment_deploy_sha(): string {
 	$resolved = '';
 	return $resolved;
 }
-
-/**
- * Emit the immutable deployment marker in the rendered document head.
- */
-function nvx_environment_render_deploy_sha(): void {
-	if ( is_admin() ) {
-		return;
-	}
-
-	$sha = nvx_environment_deploy_sha();
-	if ( '' === $sha ) {
-		return;
-	}
-
-	printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
-}
-add_action( 'wp_head', 'nvx_environment_render_deploy_sha', 1 );

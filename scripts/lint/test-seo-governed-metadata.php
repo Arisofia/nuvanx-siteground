@@ -125,7 +125,17 @@ function nvxAdsMetadataFailures( string $dataDir, string $pattern ): array {
             $failures[] = 'Unreadable compliance source: ' . $filename;
             continue;
         }
-        if ( nvxAdsRestrictedTerm( $raw, $pattern ) ) {
+        $decoded = json_decode( $raw, true );
+        if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $decoded ) ) {
+            $failures[] = 'Unable to decode compliance source: ' . $filename;
+            continue;
+        }
+        $normalized = json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+        if ( false === $normalized ) {
+            $failures[] = 'Unable to normalize compliance source: ' . $filename;
+            continue;
+        }
+        if ( nvxAdsRestrictedTerm( $normalized, $pattern ) ) {
             $failures[] = 'Restricted prescription-drug term in public governed metadata: ' . $filename;
         }
     }
@@ -221,6 +231,22 @@ function nvxTestGoogleAdsHealthcareCompliance(): void {
 }
 
 nvxTestGoogleAdsHealthcareCompliance();
+
+/** Reject restricted terms hidden in valid JSON through Unicode escaping. */
+function nvxAdsAssertUnicodeEscapedTermBlocked(): void {
+    $pattern    = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $raw        = '{"title":"b\\u00f3tox"}';
+    $decoded    = json_decode( $raw, true );
+    $normalized = json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+    if ( false === $normalized || ! nvxAdsRestrictedTerm( $normalized, $pattern ) ) {
+        fwrite( STDERR, 'GOOGLE_ADS_UNICODE_ESCAPE_REGRESSION_TEST=FAIL' . PHP_EOL );
+        exit( 1 );
+    }
+    echo 'GOOGLE_ADS_UNICODE_ESCAPE_REGRESSION_TEST=PASS' . PHP_EOL;
+}
+
+nvxAdsAssertUnicodeEscapedTermBlocked();
 
 /** Reject restricted slugs that alias through another alias instead of a canonical route. */
 function nvxAdsAssertLegacyAliasChainRejected(): void {

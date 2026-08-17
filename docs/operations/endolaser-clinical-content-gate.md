@@ -19,7 +19,7 @@
 
 ## 2. Evidencia y aprobaciones requeridas
 
-Antes de abrir una PR de contenido deben quedar registrados los seis bloques siguientes en el anexo de aprobación asociado al ticket/PR. La evidencia sensible, como IFU o documentos de proveedor, no se copia a Git si no es pública; se referencia por identificador y almacenamiento de acceso restringido.
+Antes de aprobar una PR de contenido deben quedar registrados los seis bloques siguientes. La evidencia sensible, como IFU o documentos de proveedor, no se copia a Git si no es pública; se referencia por identificador y almacenamiento de acceso restringido.
 
 | Bloque | Dato mínimo verificable | Aprobador | Afecta a |
 |---|---|---|---|
@@ -46,7 +46,7 @@ Los siguientes contenidos existentes se consideran `RECONCILIATION_REQUIRED`: no
 
 ## 4. Regla de aprobación de PR
 
-Una PR requiere un registro de aprobación completo solo cuando cambia una superficie Endoláser protegida. Un registro `APPROVED` debe vincular `approved_change.base`, `approved_change.head` y la huella de las proyecciones protegidas al cambio evaluado; no se puede reutilizar una aprobación previa con un retoque irrelevante del JSON. El gate compara los catálogos compartidos semánticamente para evitar que cambios de otros tratamientos queden bloqueados por error. Si no puede leer o clasificar de forma segura una superficie gobernada modificada, falla de forma cerrada.
+Una PR requiere un registro de aprobación completo solo cuando cambia una superficie Endoláser protegida. El gate compara los catálogos compartidos semánticamente para evitar que cambios de otros tratamientos queden bloqueados por error. Si no puede leer o clasificar de forma segura una superficie gobernada modificada, falla de forma cerrada y una aprobación no puede desbloquear un resultado `indeterminate`.
 
 | Archivo o superficie | Cuándo queda protegida |
 |---|---|
@@ -55,27 +55,41 @@ Una PR requiere un registro de aprobación completo solo cuando cambia una super
 | `inc/data/routes.json` | Cambia la entrada de `/endolaser-corporal-grasa-localizada/` o una entrada asociada por `seo_id=endolaser`, `schema_id=endolaser_corporal`, canonical/ruta o `post_id`. |
 | `inc/data/seo-metadata.json` | Cambia el registro `endolaser` o un registro cuyo `seo_id` sea `endolaser`. |
 | `inc/data/tariff-catalog.json` | Cambia cualquier namespace `endolaser.*` o una clave corporal Endolift/Endolift combo declarada explícitamente en el contrato del gate. Los cambios de EXION, CO₂ u otros catálogos no relacionados no se bloquean. |
-| `inc/nvx-structured-data.php` | Cambia la asignación o fallback FAQ de `endolaser_corporal`, el branch `MedicalProcedure/Service` de Endoláser, su entrada de ofertas/etiqueta u otro anclaje Endoláser reconocido. Los cambios exclusivos de FAQ/schema de otros tratamientos no se bloquean; un anclaje Endoláser nuevo no clasificable falla cerrado. |
+| `inc/nvx-structured-data.php` | Cambia una asignación/fallback FAQ, branch, oferta, etiqueta o constante Endoláser; también se proyectan transitivamente las funciones auxiliares definidas en el mismo emisor que sean llamadas por esos bloques. Un helper no alcanzable desde Endoláser no se bloquea. |
 
-La lista de claves tarifarias corporales protegidas se declara y se prueba en `scripts/lint/test-endolaser-claim-approval.mjs`; no se infiere mediante búsquedas globales ambiguas. El contrato semántico reproduce la estructura compartida de `nvx_schema_faq_catalog()` para demostrar que una modificación exclusiva de otra FAQ no activa el gate, mientras que una modificación de la FAQ Endoláser sí lo activa.
+La lista de claves tarifarias corporales protegidas se declara y se prueba en `scripts/lint/test-endolaser-claim-approval.mjs`; no se infiere mediante búsquedas globales ambiguas. El contrato semántico reproduce la estructura compartida de `nvx_schema_faq_catalog()` y prueba dependencias auxiliares para demostrar que una modificación exclusiva de otra FAQ/helper no activa el gate, mientras que un cambio que puede modificar la salida Endoláser sí lo activa.
+
+## 5. Vinculación obligatoria de la aprobación a la revisión
+
+Un registro `APPROVED` no es reutilizable de forma genérica. La versión `nuvanx-endolaser-content-approval/v2` obliga a vincularlo a la revisión evaluada:
+
+- `revision.base_sha`: SHA completo de la base contra la que se revisó el cambio.
+- `revision.head_sha`: SHA completo del commit de contenido protegido que fue revisado por dirección médica/operaciones. Debe seguir siendo ancestro del HEAD final del PR.
+- `revision.protected_fingerprint`: SHA-256 generado por el gate a partir de las proyecciones Endoláser protegidas base/head.
+
+El flujo recomendado es de dos pasos: primero se prepara el commit de contenido protegido (el gate queda rojo por falta de aprobación); después, una vez revisado ese commit, se añade un commit de aprobación que referencia su SHA y el fingerprint emitido por el gate. Un cambio posterior en una superficie protegida cambia el fingerprint e invalida automáticamente la aprobación anterior. Cambios posteriores no protegidos pueden convivir mientras el commit aprobado siga siendo ancestro y el fingerprint protegido no cambie.
 
 | Control | Criterio de aceptación |
 |---|---|
 | Evidencia | Cada claim nuevo o más específico se enlaza a un documento con propietario y fecha de revisión. |
 | Aprobación | Dirección médica y operación/compliance confirman por escrito la versión final. |
+| Revisión | `schema`, `base_sha`, `head_sha` y `protected_fingerprint` coinciden con el contrato de la revisión actual. |
 | Identidad | El nombre editorial no contradice la identidad estructurada/colegiación verificable. |
 | Tarifas | Cada precio proviene de una clave de catálogo existente y aprobada. |
 | Taxonomía | La nomenclatura de servicio, técnica y marca coincide con la decisión regulatoria/editorial aprobada. |
 | Schema | No se crean emisores paralelos; los datos visibles, FAQ y JSON-LD se mantienen coherentes. |
-| Pruebas | Lint SEO/schema, validación de tarifas, prueba de FAQ visible/schema y Staging2 completos. |
+| Pruebas | Lint SEO/schema, validación de tarifas, FAQ visible/schema, regresiones semánticas y Staging2 completos. |
 
-## 5. Anexo de aprobación requerido por PR
+## 6. Anexo de aprobación requerido por PR
 
 ```md
 ### Endoláser — registro de evidencia y aprobación
 
 | Campo | Valor / referencia privada | Revisado por | Fecha |
 |---|---|---|---|
+| Base SHA revisado |  |  |  |
+| Commit de contenido protegido revisado |  |  |  |
+| Fingerprint protegido emitido por CI |  |  |  |
 | Fabricante, modelo e IFU del equipo |  |  |  |
 | Técnica aplicada en NUVANX |  |  |  |
 | Claims clínicos aprobados y soporte |  |  |  |

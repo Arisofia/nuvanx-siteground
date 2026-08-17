@@ -48,7 +48,7 @@ function extractPhpFunctionBody(content, functionName) {
   for (let i = open; i < content.length; i += 1) {
     const ch = content[i];
     const next = content[i + 1] || '';
-    
+
     // Handle comment transitions
     if (!quote && !escaped) {
       if (commentLine) {
@@ -58,7 +58,7 @@ function extractPhpFunctionBody(content, functionName) {
       if (comment) {
         if (ch === '*' && next === '/') {
           comment = false;
-          i += 1; // skip both characters
+          i += 1;
           continue;
         }
         continue;
@@ -74,10 +74,9 @@ function extractPhpFunctionBody(content, functionName) {
         continue;
       }
     }
-    
-    // Skip content inside comments
+
     if (comment || commentLine) continue;
-    
+
     if (quote) {
       if (escaped) {
         escaped = false;
@@ -105,7 +104,6 @@ function validatePhpProcedureTypes(file, content) {
   const regex = /['"`]procedureType['"`]\s*=>\s*['"`]([^'"`]+)['"`]/g;
   for (const match of content.matchAll(regex)) {
     const value = match[1];
-    // Normalize: if not a full URL, prepend https://schema.org/
     const normalized = value.startsWith('https://') ? value : `https://schema.org/${value}`;
     if (!ALLOWED_PROCEDURE_TYPES.has(normalized)) {
       addViolation(file, 'procedureType', `Invalid procedureType value: ${value}`);
@@ -135,7 +133,6 @@ function validatePhpMedicalSpecialties(file, content) {
     }
   }
 
-  // Support PHP short array syntax: medicalSpecialty => ['https://schema.org/Dermatology']
   const shortArrays = /['"`]medicalSpecialty['"`]\s*=>\s*\[([^\]]*)\]/g;
   for (const match of content.matchAll(shortArrays)) {
     const values = [...match[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((item) => item[1]);
@@ -175,10 +172,7 @@ for (const file of phpFiles) {
     validatePhpProcedureTypes(file, content);
     validatePhpMedicalSpecialties(file, content);
 
-    // Scan for clinic-specific Doctoralia URLs in Organization context only
-    // Allow Doctoralia URLs in MedicalClinic nodes, prohibit in corporate Organization
     const doctoraliaPatterns = [
-      // Look for Doctoralia clinic URLs in Organization enrichment function
       { pattern: /function\s+nvx_schema_enrich_organization[\s\S]{0,2000}?sameAs[\s\S]{0,500}?doctoralia\.es\/clinicas\//gi, context: 'Organization enrichment contains clinic Doctoralia URL' },
     ];
     for (const { pattern, context } of doctoraliaPatterns) {
@@ -316,9 +310,7 @@ const semanticPhpTest = spawnSync(
   [path.join(repoPath, 'scripts/lint/test-schema-semantic-governance.php')],
   {
     encoding: 'utf8',
-    // This is a synchronous gate; if the PHP process hangs it will block the lint run.
-    // The timeout helps avoid indefinitely stuck CI jobs.
-    timeout: 30_000, // 30 seconds
+    timeout: 30_000,
   }
 );
 
@@ -357,7 +349,6 @@ if (semanticPhpTest.error) {
       process.stdout.write(stdout);
     }
     if (stderr.trim()) {
-      // Surface warnings emitted on stderr even when the test exits successfully.
       addViolation(
         'scripts/lint/test-schema-semantic-governance.php',
         'semanticGovernanceRuntimeStderr',

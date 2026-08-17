@@ -5,7 +5,6 @@ import {
   ENDOLASER_APPROVAL_SCHEMA,
   ENDOLASER_PATHS,
   ENDOLASER_REFERENCED_TARIFF_KEYS,
-  approvalMatchesEvaluatedChange,
   evaluateEndolaserChanges,
   hasCompleteEndolaserApproval,
 } from './test-endolaser-claim-approval.mjs';
@@ -44,6 +43,22 @@ if ( ! defined( 'NVX_SD_ID_MEDICAL_PROCEDURE' ) ) {
   define( 'NVX_SD_ENDOLASER_CORPORAL', 'Endoláser corporal' );
 }
 
+function nvx_schema_faq_load_single_page( $file ) {
+  return nvx_schema_catalog_read( $file );
+}
+
+function nvx_schema_catalog_read( $file ) {
+  return array( 'source' => $file, 'version' => 'shared-v1' );
+}
+
+function nvx_schema_unrelated_helper() {
+  return array( 'value' => 'unrelated-v1' );
+}
+
+function nvx_schema_endolaser_shared_fields() {
+  return array( 'description' => 'shared-endolaser-v1' );
+}
+
 function nvx_schema_faq_catalog() {
   $catalog = array();
   $catalog['endolift_facial'] = nvx_schema_faq_load_single_page( 'endolift-page.json' );
@@ -70,13 +85,12 @@ function nvx_schema_faq_catalog() {
   return $catalog;
 }
 
-function nvx_endolaser_procedure_name() {
-  return 'Endoláser corporal';
-}
-
 function nvx_schema_treatment_node_laser( $key ) {
   if ( 'endolaser_corporal' === $key ) {
-    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => nvx_endolaser_procedure_name() );
+    return array_merge(
+      array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endoláser corporal' ),
+      nvx_schema_endolaser_shared_fields()
+    );
   }
   if ( 'laser_co2' === $key ) {
     return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'CO₂ fraccionado' );
@@ -155,6 +169,9 @@ assertPass('ENDOLASER_APPROVAL_UNRELATED_FAQ', decisionFor(ENDOLASER_PATHS.struc
 const unrelatedEndoliftFaq = structuredData.replace('Respuesta Endolift vigente.', 'Respuesta Endolift actualizada.');
 assertPass('ENDOLASER_APPROVAL_UNRELATED_ENDOLIFT_FAQ', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedEndoliftFaq));
 
+const unrelatedHelper = structuredData.replace('unrelated-v1', 'unrelated-v2');
+assertPass('ENDOLASER_APPROVAL_UNRELATED_SCHEMA_HELPER', decisionFor(ENDOLASER_PATHS.structuredData, unrelatedHelper));
+
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_CONTENT_CHANGE_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.content, '{"page":"endolaser","changed":true}\n'),
@@ -172,21 +189,37 @@ assertExpectedFailure(
   decisionFor(ENDOLASER_PATHS.routes, json(changedRoute)),
 );
 
-const changedSchema = structuredData.replace("return 'Endoláser corporal';", "return 'Endoláser corporal actualizado';");
+const changedSchema = structuredData.replace("'name' => 'Endoláser corporal'", "'name' => 'Endoláser corporal actualizado'");
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_SCHEMA_CHANGE_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.structuredData, changedSchema),
 );
 
+const changedSharedDependency = structuredData.replace('shared-endolaser-v1', 'shared-endolaser-v2');
 assertExpectedFailure(
-  'ENDOLASER_APPROVAL_SHARED_HELPER_WITHOUT_APPROVAL',
-  decisionFor(ENDOLASER_PATHS.structuredData, structuredData.replace("return 'Endoláser corporal';", "return 'Endoláser corporal vía helper';")),
+  'ENDOLASER_APPROVAL_SHARED_SCHEMA_DEPENDENCY_WITHOUT_APPROVAL',
+  decisionFor(ENDOLASER_PATHS.structuredData, changedSharedDependency),
+);
+
+const changedCatalogDependency = structuredData.replace('shared-v1', 'shared-v2');
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_SHARED_FAQ_LOADER_DEPENDENCY_WITHOUT_APPROVAL',
+  decisionFor(ENDOLASER_PATHS.structuredData, changedCatalogDependency),
 );
 
 const changedEndolaserFaq = structuredData.replace('Respuesta Endoláser.', 'Respuesta Endoláser actualizada.');
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_ENDOLASER_FAQ_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.structuredData, changedEndolaserFaq),
+);
+
+const unclassifiedAnchor = structuredData.replace(
+  'return $catalog_defs;',
+  "$unexpected['endolaser_corporal'] = 'unclassified';\n  return $catalog_defs;",
+);
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_UNCLASSIFIED_SCHEMA_ANCHOR_FAIL_CLOSED',
+  decisionFor(ENDOLASER_PATHS.structuredData, unclassifiedAnchor),
 );
 
 const changedTariff = clone(tariffs);
@@ -207,7 +240,9 @@ assert.equal(ENDOLASER_REFERENCED_TARIFF_KEYS.includes('endolift.abdomen'), true
 assert.equal(ENDOLASER_REFERENCED_TARIFF_KEYS.includes('endolift_combo.abdomen_flancos'), true, 'The explicit Endoláser tariff contract must include the consumed combination price.');
 
 const pendingApproval = {
+  schema: ENDOLASER_APPROVAL_SCHEMA,
   status: 'PENDING',
+  revision: { base_sha: '', head_sha: '', protected_fingerprint: '' },
   equipment: {}, technique: {}, claims: {}, identity: {}, tariff: {}, taxonomy: {},
 };
 assert.equal(hasCompleteEndolaserApproval(pendingApproval).complete, false, 'PENDING approval cannot unlock a protected change.');
@@ -217,10 +252,18 @@ const approvedBlock = {
   approved_at: '2026-08-17',
   evidence_references: ['private-evidence-reference'],
 };
+const expectedBinding = {
+  baseSha: 'a'.repeat(40),
+  protectedFingerprint: 'b'.repeat(64),
+};
 const completeApproval = {
   schema: ENDOLASER_APPROVAL_SCHEMA,
   status: 'APPROVED',
-  approved_change: { base: 'base-sha', head: 'head-sha', fingerprint: 'protected-fingerprint' },
+  revision: {
+    base_sha: expectedBinding.baseSha,
+    head_sha: 'c'.repeat(40),
+    protected_fingerprint: expectedBinding.protectedFingerprint,
+  },
   equipment: approvedBlock,
   technique: approvedBlock,
   claims: approvedBlock,
@@ -228,20 +271,38 @@ const completeApproval = {
   tariff: approvedBlock,
   taxonomy: approvedBlock,
 };
-assert.equal(hasCompleteEndolaserApproval(completeApproval).complete, true, 'All six required approval domains must unlock a protected change.');
 assert.equal(
-  hasCompleteEndolaserApproval({ ...completeApproval, approved_change: { base: '', head: '', fingerprint: '' } }).complete,
-  false,
-  'An APPROVED record without a bound change cannot unlock a protected edit.',
-);
-assert.equal(
-  approvalMatchesEvaluatedChange(completeApproval, { base: 'base-sha', head: 'head-sha', fingerprint: 'protected-fingerprint' }),
+  hasCompleteEndolaserApproval(completeApproval, expectedBinding).complete,
   true,
+  'All six required approval domains plus revision binding must unlock a protected change.',
 );
+console.log('ENDOLASER_APPROVAL_PROTECTED_CHANGE_WITH_BOUND_COMPLETE_APPROVAL=PASS');
+
+const staleFingerprint = clone(completeApproval);
+staleFingerprint.revision.protected_fingerprint = 'd'.repeat(64);
 assert.equal(
-  approvalMatchesEvaluatedChange(completeApproval, { base: 'base-sha', head: 'other-head', fingerprint: 'protected-fingerprint' }),
+  hasCompleteEndolaserApproval(staleFingerprint, expectedBinding).complete,
   false,
-  'A reused approval must not bind a different head.',
+  'A stale protected fingerprint must never unlock a later clinical change.',
 );
-console.log('ENDOLASER_APPROVAL_PROTECTED_CHANGE_WITH_COMPLETE_APPROVAL=PASS');
+console.log('ENDOLASER_APPROVAL_STALE_FINGERPRINT=FAIL_EXPECTED');
+
+const staleBase = clone(completeApproval);
+staleBase.revision.base_sha = 'e'.repeat(40);
+assert.equal(
+  hasCompleteEndolaserApproval(staleBase, expectedBinding).complete,
+  false,
+  'An approval bound to another base revision must not unlock the current change.',
+);
+console.log('ENDOLASER_APPROVAL_STALE_BASE=FAIL_EXPECTED');
+
+const wrongSchema = clone(completeApproval);
+wrongSchema.schema = 'nuvanx-endolaser-content-approval/v1';
+assert.equal(
+  hasCompleteEndolaserApproval(wrongSchema, expectedBinding).complete,
+  false,
+  'An obsolete approval schema must not unlock a protected change.',
+);
+console.log('ENDOLASER_APPROVAL_OBSOLETE_SCHEMA=FAIL_EXPECTED');
+
 console.log('ENDOLASER_APPROVAL_SEMANTIC_CONTRACT=PASS');

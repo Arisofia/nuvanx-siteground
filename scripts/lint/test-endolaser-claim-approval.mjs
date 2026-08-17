@@ -5,11 +5,13 @@
  * in the approved private clinical/compliance repository.
  */
 import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(import.meta.dirname, '../..');
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const protectedPaths = new Set([
   'wp-content/themes/nuvanx-medical/inc/data/endolaser-page.json',
   'wp-content/themes/nuvanx-medical/inc/nvx-endolaser-page.php',
@@ -20,19 +22,75 @@ const protectedPaths = new Set([
 ]);
 const approvalPath = 'docs/approvals/endolaser-content-approval.json';
 
-function changedFiles() {
-  const base = process.env.ENDOLASER_APPROVAL_BASE || 'origin/master';
+function nonEmpty(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function gitRefExists(ref) {
   try {
-    return execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { cwd: repoRoot, encoding: 'utf8' })
-      .split('\n').map((item) => item.trim()).filter(Boolean);
-  } catch (error) {
-    console.error(`ENDOLASER_APPROVAL=FAIL reason=base_diff_unavailable base=${base}`);
-    process.exit(1);
+    execFileSync('git', ['rev-parse', '--verify', ref], { cwd: repoRoot, stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
   }
 }
 
-function nonEmpty(value) {
-  return typeof value === 'string' && value.trim().length > 0;
+function githubPullRequestBaseSha() {
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  if (!nonEmpty(eventPath)) {
+    return '';
+  }
+  try {
+    const event = JSON.parse(readFileSync(eventPath, 'utf8'));
+    return typeof event?.pull_request?.base?.sha === 'string' ? event.pull_request.base.sha.trim() : '';
+  } catch {
+    return '';
+  }
+}
+
+function resolveApprovalBase() {
+  if (nonEmpty(process.env.ENDOLASER_APPROVAL_BASE)) {
+    return process.env.ENDOLASER_APPROVAL_BASE.trim();
+  }
+
+  const eventBaseSha = githubPullRequestBaseSha();
+  if (eventBaseSha && gitRefExists(eventBaseSha)) {
+    return eventBaseSha;
+  }
+
+  const githubBaseRef = nonEmpty(process.env.GITHUB_BASE_REF) ? process.env.GITHUB_BASE_REF.trim() : '';
+  if (githubBaseRef) {
+    const remoteRef = `origin/${githubBaseRef}`;
+    if (gitRefExists(remoteRef)) {
+      return remoteRef;
+    }
+    if (gitRefExists(githubBaseRef)) {
+      return githubBaseRef;
+    }
+  }
+
+  for (const candidate of ['origin/master', 'origin/main', 'master', 'main']) {
+    if (gitRefExists(candidate)) {
+      return candidate;
+    }
+  }
+
+  return '';
+}
+
+function changedFiles() {
+  const base = resolveApprovalBase();
+  if (!nonEmpty(base)) {
+    console.error('ENDOLASER_APPROVAL=FAIL reason=base_diff_unavailable base=unresolved');
+    process.exit(1);
+  }
+  try {
+    return execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { cwd: repoRoot, encoding: 'utf8' })
+      .split('\n').map((item) => item.trim()).filter(Boolean);
+  } catch {
+    console.error(`ENDOLASER_APPROVAL=FAIL reason=base_diff_unavailable base=${base}`);
+    process.exit(1);
+  }
 }
 
 function validApproval(value) {

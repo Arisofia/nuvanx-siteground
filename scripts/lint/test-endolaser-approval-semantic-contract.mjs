@@ -2,8 +2,10 @@
 /** Regression contract for the Endoláser approval gate. */
 import assert from 'node:assert/strict';
 import {
+  ENDOLASER_APPROVAL_SCHEMA,
   ENDOLASER_PATHS,
   ENDOLASER_REFERENCED_TARIFF_KEYS,
+  approvalMatchesEvaluatedChange,
   evaluateEndolaserChanges,
   hasCompleteEndolaserApproval,
 } from './test-endolaser-claim-approval.mjs';
@@ -68,9 +70,13 @@ function nvx_schema_faq_catalog() {
   return $catalog;
 }
 
+function nvx_endolaser_procedure_name() {
+  return 'Endoláser corporal';
+}
+
 function nvx_schema_treatment_node_laser( $key ) {
   if ( 'endolaser_corporal' === $key ) {
-    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'Endoláser corporal' );
+    return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => nvx_endolaser_procedure_name() );
   }
   if ( 'laser_co2' === $key ) {
     return array( '@type' => array( 'MedicalProcedure', 'Service' ), 'name' => 'CO₂ fraccionado' );
@@ -166,10 +172,15 @@ assertExpectedFailure(
   decisionFor(ENDOLASER_PATHS.routes, json(changedRoute)),
 );
 
-const changedSchema = structuredData.replace("'name' => 'Endoláser corporal'", "'name' => 'Endoláser corporal actualizado'");
+const changedSchema = structuredData.replace("return 'Endoláser corporal';", "return 'Endoláser corporal actualizado';");
 assertExpectedFailure(
   'ENDOLASER_APPROVAL_SCHEMA_CHANGE_WITHOUT_APPROVAL',
   decisionFor(ENDOLASER_PATHS.structuredData, changedSchema),
+);
+
+assertExpectedFailure(
+  'ENDOLASER_APPROVAL_SHARED_HELPER_WITHOUT_APPROVAL',
+  decisionFor(ENDOLASER_PATHS.structuredData, structuredData.replace("return 'Endoláser corporal';", "return 'Endoláser corporal vía helper';")),
 );
 
 const changedEndolaserFaq = structuredData.replace('Respuesta Endoláser.', 'Respuesta Endoláser actualizada.');
@@ -207,7 +218,9 @@ const approvedBlock = {
   evidence_references: ['private-evidence-reference'],
 };
 const completeApproval = {
+  schema: ENDOLASER_APPROVAL_SCHEMA,
   status: 'APPROVED',
+  approved_change: { base: 'base-sha', head: 'head-sha', fingerprint: 'protected-fingerprint' },
   equipment: approvedBlock,
   technique: approvedBlock,
   claims: approvedBlock,
@@ -216,5 +229,19 @@ const completeApproval = {
   taxonomy: approvedBlock,
 };
 assert.equal(hasCompleteEndolaserApproval(completeApproval).complete, true, 'All six required approval domains must unlock a protected change.');
+assert.equal(
+  hasCompleteEndolaserApproval({ ...completeApproval, approved_change: { base: '', head: '', fingerprint: '' } }).complete,
+  false,
+  'An APPROVED record without a bound change cannot unlock a protected edit.',
+);
+assert.equal(
+  approvalMatchesEvaluatedChange(completeApproval, { base: 'base-sha', head: 'head-sha', fingerprint: 'protected-fingerprint' }),
+  true,
+);
+assert.equal(
+  approvalMatchesEvaluatedChange(completeApproval, { base: 'base-sha', head: 'other-head', fingerprint: 'protected-fingerprint' }),
+  false,
+  'A reused approval must not bind a different head.',
+);
 console.log('ENDOLASER_APPROVAL_PROTECTED_CHANGE_WITH_COMPLETE_APPROVAL=PASS');
 console.log('ENDOLASER_APPROVAL_SEMANTIC_CONTRACT=PASS');

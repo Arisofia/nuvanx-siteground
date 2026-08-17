@@ -10,9 +10,20 @@
 import fs from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+
+const GIT_SEARCH_PATH = '/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin';
+const ZERO_GIT_SHA = /^0+$/;
+export const ENDOLASER_APPROVAL_SCHEMA = 'nuvanx-endolaser-content-approval/v1';
+const PHP_CALL_IGNORE = new Set([
+  'if', 'elseif', 'else', 'for', 'foreach', 'while', 'switch', 'function',
+  'return', 'echo', 'print', 'isset', 'empty', 'unset', 'array', 'list',
+  'die', 'exit', 'eval', 'include', 'require', 'include_once', 'require_once',
+  'defined', 'define',
+]);
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -58,7 +69,7 @@ function isObject(value) {
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (!isObject(value)) return value;
-  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
+  return Object.fromEntries(Object.keys(value).sort((left, right) => left.localeCompare(right)).map((key) => [key, canonicalize(value[key])]));
 }
 
 function canonicalJson(value) {
@@ -90,7 +101,7 @@ function collectObjects(value, predicate, pathLabel = '$', matches = []) {
 function routeProjection(source) {
   const data = jsonFromSource(source, 'routes');
   const matches = [];
-  if (isObject(data) && Object.prototype.hasOwnProperty.call(data, ENDOLASER_ROUTE)) {
+  if (isObject(data) && Object.hasOwn(data, ENDOLASER_ROUTE)) {
     matches.push({ path: ENDOLASER_ROUTE, value: data[ENDOLASER_ROUTE] });
   }
   collectObjects(data, (record) => (
@@ -109,7 +120,7 @@ function routeProjection(source) {
 function seoProjection(source) {
   const data = jsonFromSource(source, 'seo');
   const matches = [];
-  if (isObject(data) && Object.prototype.hasOwnProperty.call(data, ENDOLASER_SEO_ID)) {
+  if (isObject(data) && Object.hasOwn(data, ENDOLASER_SEO_ID)) {
     matches.push({ path: ENDOLASER_SEO_ID, value: data[ENDOLASER_SEO_ID] });
   }
   collectObjects(data, (record) => record.seo_id === ENDOLASER_SEO_ID).forEach((item) => {
@@ -285,20 +296,46 @@ function structuredDataProjection(source) {
     .map((range) => [range.label, normalizePhpFragment(source, range)])
     .sort(([left], [right]) => left.localeCompare(right));
 
+  const functions = extractPhpFunctionMap(source);
+  const helperBodies = {};
+  for (const name of [...collectPhpCalls(fragments.map(([, text]) => text).join('\n'))].sort((left, right) => left.localeCompare(right))) {
+    if (functions.has(name)) helperBodies[name] = functions.get(name).replace(/\s+/g, ' ').trim();
+  }
+
   const anchorCounts = {
     schema_id_literals: literalOccurrences.length,
     label_constant_uses: [...source.matchAll(/\bNVX_SD_ENDOLASER_CORPORAL\b/g)].length,
     page_catalog_uses: [...source.matchAll(/endolaser-page\.json/g)].length,
   };
 
-  return canonicalJson({ anchorCounts, fragments });
+  return canonicalJson({ anchorCounts, fragments, helperBodies });
+}
+
+function extractPhpFunctionMap(source) {
+  const functions = new Map();
+  const declaration = /function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+  for (const match of source.matchAll(declaration)) {
+    const brace = source.indexOf('{', match.index + match[0].length);
+    if (brace < 0) throw new Error(`structured_data_unbalanced_function_${match[1]}`);
+    const block = readBalanced(source, brace, '{', '}', `structured_data_unbalanced_function_${match[1]}`);
+    functions.set(match[1], source.slice(match.index, block.end));
+  }
+  return functions;
+}
+
+function collectPhpCalls(fragment) {
+  const names = new Set();
+  for (const match of fragment.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*\(/g)) {
+    if (!PHP_CALL_IGNORE.has(match[1].toLowerCase())) names.add(match[1]);
+  }
+  return names;
 }
 
 function semanticSurfaceChanged({ label, baseSource, headSource, projection }) {
   try {
-    return projection(baseSource) !== projection(headSource);
+    return { changed: projection(baseSource) !== projection(headSource), reason: '' };
   } catch (error) {
-    return { indeterminate: `${label}:${error.message}` };
+    return { changed: true, reason: `${label}:${error.message}` };
   }
 }
 
@@ -317,8 +354,7 @@ export function evaluateEndolaserChanges({ changedPaths, baseFiles, headFiles })
   ]) {
     if (!changed.has(file)) continue;
     const result = semanticSurfaceChanged({ label, baseSource: baseFiles[file], headSource: headFiles[file], projection });
-    if (result === true) signals.push(label);
-    else if (isObject(result) && result.indeterminate) signals.push(`indeterminate:${result.indeterminate}`);
+    if (result.changed) signals.push(result.reason ? `indeterminate:${result.reason}` : label);
   }
 
   return { protected: signals.length > 0, signals };
@@ -336,12 +372,61 @@ export function validApproval(value) {
 export function hasCompleteEndolaserApproval(approval) {
   const required = ['equipment', 'technique', 'claims', 'identity', 'tariff', 'taxonomy'];
   const missing = required.filter((key) => !validApproval(approval?.[key]));
+  if (approval?.schema !== ENDOLASER_APPROVAL_SCHEMA) missing.push('schema');
+  const change = approval?.approved_change;
+  if (!isObject(change) || !nonEmpty(change.base) || !nonEmpty(change.head) || !nonEmpty(change.fingerprint)) {
+    missing.push('approved_change');
+  }
   return { complete: approval?.status === 'APPROVED' && missing.length === 0, missing };
+}
+
+export function approvalMatchesEvaluatedChange(approval, evaluated) {
+  const change = approval?.approved_change;
+  return isObject(change)
+    && change.base === evaluated.base
+    && change.head === evaluated.head
+    && change.fingerprint === evaluated.fingerprint;
+}
+
+export function protectedChangeFingerprint({ signals, baseFiles, headFiles }) {
+  const payload = {
+    signals: [...signals].sort((left, right) => left.localeCompare(right)),
+    content: headFiles[ENDOLASER_PATHS.content] ?? null,
+    emitter: headFiles[ENDOLASER_PATHS.emitter] ?? null,
+    schema: null,
+    routes: null,
+    seo: null,
+    tariffs: null,
+  };
+  const surfaces = [
+    ['schema', ENDOLASER_PATHS.structuredData, structuredDataProjection],
+    ['routes', ENDOLASER_PATHS.routes, routeProjection],
+    ['seo', ENDOLASER_PATHS.seo, seoProjection],
+    ['tariffs', ENDOLASER_PATHS.tariffs, tariffProjection],
+  ];
+  for (const [key, file, projection] of surfaces) {
+    if (headFiles[file] === undefined) continue;
+    try {
+      payload[key] = projection(headFiles[file]);
+    } catch {
+      payload[key] = 'indeterminate';
+    }
+  }
+  return createHash('sha256').update(canonicalJson(payload)).digest('hex');
+}
+
+function git(args, options = {}) {
+  return execFileSync('git', args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    env: { ...process.env, PATH: GIT_SEARCH_PATH },
+    ...options,
+  });
 }
 
 function gitRefExists(ref) {
   try {
-    execFileSync('git', ['rev-parse', '--verify', ref], { cwd: repoRoot, stdio: 'ignore' });
+    git(['rev-parse', '--verify', ref], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -359,10 +444,19 @@ function githubPullRequestBaseSha() {
   }
 }
 
+function isUsableGitRef(ref) {
+  if (!nonEmpty(ref) || ZERO_GIT_SHA.test(ref.trim())) return false;
+  return gitRefExists(ref.trim());
+}
+
 function resolveApprovalBase() {
-  if (nonEmpty(process.env.ENDOLASER_APPROVAL_BASE)) return process.env.ENDOLASER_APPROVAL_BASE.trim();
+  const explicit = process.env.ENDOLASER_APPROVAL_BASE;
+  if (nonEmpty(explicit)) {
+    if (isUsableGitRef(explicit)) return explicit.trim();
+    if (process.env.GITHUB_EVENT_NAME === 'push') return '';
+  }
   const eventBaseSha = githubPullRequestBaseSha();
-  if (eventBaseSha && gitRefExists(eventBaseSha)) return eventBaseSha;
+  if (eventBaseSha && isUsableGitRef(eventBaseSha)) return eventBaseSha;
   const githubBaseRef = nonEmpty(process.env.GITHUB_BASE_REF) ? process.env.GITHUB_BASE_REF.trim() : '';
   if (githubBaseRef) {
     if (gitRefExists(`origin/${githubBaseRef}`)) return `origin/${githubBaseRef}`;
@@ -376,7 +470,7 @@ function resolveApprovalBase() {
 
 function changedFiles(base) {
   try {
-    return execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { cwd: repoRoot, encoding: 'utf8' })
+    return git(['diff', '--name-only', `${base}...HEAD`])
       .split('\n').map((item) => item.trim()).filter(Boolean);
   } catch {
     throw new Error(`base_diff_unavailable base=${base}`);
@@ -385,7 +479,7 @@ function changedFiles(base) {
 
 function fileAtRef(ref, file) {
   try {
-    return execFileSync('git', ['show', `${ref}:${file}`], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return git(['show', `${ref}:${file}`], { stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
     return undefined;
   }
@@ -448,6 +542,13 @@ async function run() {
     process.exit(1);
   }
 
+  const headSha = git(['rev-parse', 'HEAD']).trim();
+  const fingerprint = protectedChangeFingerprint({ signals: decision.signals, baseFiles, headFiles });
+  if (!approvalMatchesEvaluatedChange(approval, { base, head: headSha, fingerprint })) {
+    console.error(`ENDOLASER_APPROVAL=FAIL reason=approval_does_not_bind_evaluated_change protected=${decision.signals.join(',')}`);
+    process.exit(1);
+  }
+
   console.log(`ENDOLASER_APPROVAL=PASS protected_change_with_approved_record protected=${decision.signals.join(',')}`);
 }
 
@@ -465,4 +566,4 @@ if (invokedPath === fileURLToPath(import.meta.url)) {
   await run();
 }
 
-export { canonicalJson, routeProjection, seoProjection, tariffProjection, structuredDataProjection };
+export { canonicalJson, routeProjection, seoProjection, tariffProjection, structuredDataProjection, resolveApprovalBase };

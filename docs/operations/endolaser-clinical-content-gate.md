@@ -46,7 +46,7 @@ Los siguientes contenidos existentes se consideran `RECONCILIATION_REQUIRED`: no
 
 ## 4. Regla de aprobación de PR
 
-Una PR requiere un registro de aprobación completo solo cuando cambia una superficie Endoláser protegida. El gate compara los catálogos compartidos semánticamente para evitar que cambios de otros tratamientos queden bloqueados por error. Si no puede leer o clasificar de forma segura una superficie gobernada modificada, falla de forma cerrada.
+Una PR requiere un registro de aprobación completo solo cuando cambia una superficie Endoláser protegida. Un registro `APPROVED` debe vincular `approved_change.base`, `approved_change.head` y la huella de las proyecciones protegidas al cambio evaluado; no se puede reutilizar una aprobación previa con un retoque irrelevante del JSON. El gate compara los catálogos compartidos semánticamente para evitar que cambios de otros tratamientos queden bloqueados por error. Si no puede leer o clasificar de forma segura una superficie gobernada modificada, falla de forma cerrada.
 
 | Archivo o superficie | Cuándo queda protegida |
 |---|---|

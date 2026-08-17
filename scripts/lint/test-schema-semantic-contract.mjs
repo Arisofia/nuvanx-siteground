@@ -187,7 +187,9 @@ for (const file of phpFiles) {
       }
     }
 
-    const recognizingAuthorityProperties = content.match(/['"`]recognizingAuthority['"`]\s*=>/g) || [];
+    const recognizingAuthorityProperties = content.match(
+      /(?:['"`]recognizingAuthority['"`]\s*=>|\[\s*['"`]recognizingAuthority['"`]\s*\]\s*=)/g,
+    ) || [];
     if (recognizingAuthorityProperties.length > 0) {
       addViolation(file, 'recognizingAuthority', 'recognizingAuthority is forbidden in governed MedicalProcedure/Service source emitters regardless of value', recognizingAuthorityProperties.length);
     }

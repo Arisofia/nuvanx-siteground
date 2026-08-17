@@ -104,6 +104,9 @@
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
+  /* Home video stage. Must stay in tokens (inlined) so first paint reserves
+     the same box that the loaded page uses. Do not override this in deferred CSS. */
+  --nvx-home-hero-h: clamp(520px, 72svh, 680px);
 
   /* Component dimensions */
   --nvx-header-height: 80px;

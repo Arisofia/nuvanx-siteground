@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: NUVANX Third-party Scripts Manager
- * Description: Prevents rogue third-party tracking scripts (Facebook, HubSpot) from being added to initial server-rendered HTML and provides a client-side loader.
+ * Description: Prevents rogue third-party tracking scripts (Facebook, HubSpot tracking, Klaviyo.js) from being added to initial server-rendered HTML and provides a client-side loader.
  * Version: 1.1.0
  * Author: NUVANX
  */
@@ -19,6 +19,8 @@ class Nvx_Third_Party_Scripts_Manager {
 		'connect.facebook.net',
 		'js.hs-scripts.com',
 		'hs-analytics.net',
+		'static.klaviyo.com',
+		'static-tracking.klaviyo.com',
 	);
 
 	/**

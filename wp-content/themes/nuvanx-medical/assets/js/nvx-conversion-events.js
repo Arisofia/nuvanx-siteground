@@ -69,6 +69,21 @@
 			nvx_event_name: normalizedName,
 		}, params));
 
+		if (normalizedName === 'generate_lead') {
+			var sendTo908 = 'AW-18182220789/86RgCI2dht4cEPXX-t1D';
+			var sendTo820 = 'AW-18236597403/-1UOCISYlOAcEJvJ8fdD';
+
+			if (typeof window.gtag === 'function') {
+				window.gtag('config', 'AW-18236597403');
+				window.gtag('event', 'conversion', { send_to: sendTo908 });
+				window.gtag('event', 'conversion', { send_to: sendTo820 });
+			} else {
+				window.dataLayer.push(['config', 'AW-18236597403']);
+				window.dataLayer.push(['event', 'conversion', { send_to: sendTo908 }]);
+				window.dataLayer.push(['event', 'conversion', { send_to: sendTo820 }]);
+			}
+		}
+
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));

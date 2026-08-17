@@ -324,7 +324,9 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   color: var(--nvx-light);
 }
 
-.nvx-brand-microcopy--dark {
+.nvx-brand-microcopy--dark,
+.nvx-brand-hero .nvx-brand-microcopy,
+.nvx-brand-hero .nvx-brand-microcopy--dark {
   color: var(--nvx-text-on-dark-82);
 }
 

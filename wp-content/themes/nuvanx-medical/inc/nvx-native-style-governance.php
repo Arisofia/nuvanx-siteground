@@ -134,6 +134,15 @@ function nvx_theme_inline_critical_style_foundation(): void {
 		$critical_css .= "\n/* " . basename( $relative_file ) . " */\n" . $contents;
 	}
 
+	if ( is_front_page() ) {
+		$critical_css .= "\n/* home-hero geometry reservation */\n"
+			. 'body.home .nvx-home-hero{height:var(--nvx-home-hero-h);min-height:var(--nvx-home-hero-h);display:flex;align-items:center;overflow:hidden;}' . "\n";
+	}
+
+	$critical_css .= "\n/* interior-hero first paint */\n"
+		. '.nvx-brand-hero{background:var(--nvx-ink);color:var(--nvx-light);}'
+		. '.nvx-brand-hero .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-microcopy--dark{color:var(--nvx-text-on-dark-82);}' . "\n";
+
 	foreach ( nvx_theme_local_style_handles() as $handle ) {
 		$inline_css = nvx_theme_style_after_data( $styles, $handle );
 		if ( '' !== $inline_css ) {
@@ -195,6 +204,26 @@ function nvx_theme_nonblocking_google_fonts( string $html, string $handle, strin
 		. '<noscript><link rel="stylesheet" id="' . esc_attr( $handle . '-css-noscript' ) . '" href="' . $safe_href . '" /></noscript>' . "\n";
 }
 add_filter( 'style_loader_tag', 'nvx_theme_nonblocking_google_fonts', 20, 4 );
+
+/**
+ * Drop leftover file <link> tags for CSS already in the inline bundle.
+ *
+ * @param string $html   Generated stylesheet tag.
+ * @param string $handle Registered stylesheet handle.
+ * @param string $href   Stylesheet URL.
+ */
+function nvx_theme_drop_inlined_file_links( string $html, string $handle, string $href = '' ): string {
+	if ( is_admin() || '' === $href ) {
+		return $html;
+	}
+
+	if ( in_array( $handle, nvx_theme_local_style_handles(), true ) ) {
+		return '';
+	}
+
+	return $html;
+}
+add_filter( 'style_loader_tag', 'nvx_theme_drop_inlined_file_links', 5, 3 );
 
 /** Dequeue block styles only when the rendered page contains no block markup. */
 function nvx_theme_dequeue_native_block_styles(): void {

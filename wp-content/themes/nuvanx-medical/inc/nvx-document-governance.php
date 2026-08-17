@@ -485,7 +485,10 @@ function nvx_document_governance_enqueue_assets(): void {
 		function_exists( 'nvx_asset_version' )
 			? nvx_asset_version( 'assets/js/nvx-runtime-governance.js' )
 			: NVX_THEME_VERSION,
-		true
+		array(
+			'in_footer' => true,
+			'strategy'  => 'defer',
+		)
 	);
 
 	// Eager HubSpot strip is owned solely by nvx-integrations.php

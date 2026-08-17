@@ -482,7 +482,7 @@ function nvx_dequeue_public_klaviyo_onsite(): void {
 		return;
 	}
 
-	foreach ( array( 'klaviyo', 'klaviyo-js', 'kl-identify-browser', 'klaviyo_identify' ) as $handle ) {
+	foreach ( array( 'klaviyojs', 'klaviyo', 'klaviyo-js', 'klaviyo-onsite', 'kl-identify-browser', 'klaviyo_identify', 'wck_anon_backfill' ) as $handle ) {
 		wp_dequeue_script( $handle );
 		wp_deregister_script( $handle );
 	}

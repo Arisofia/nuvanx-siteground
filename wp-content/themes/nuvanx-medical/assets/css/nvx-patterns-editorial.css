@@ -33,13 +33,9 @@ section.nvx-hero {
   color: var(--nvx-light);
 }
 
-/* Home: video hero especial con altura completa */
-body.home .nvx-home-hero {
-  --nvx-hero-h: clamp(520px, 72svh, 680px);
-  min-height: var(--nvx-hero-h);
-  height: var(--nvx-hero-h);
-  padding: 0;
-}
+/* Home video-stage geometry lives in tokens + nvx-home-v3.css (render-blocking).
+   This file is print-deferred — do not change .nvx-home-hero height here or the
+   centered copy will shift after first paint (CLS). */
 
 /* nvx-brand-hero full-bleed width/margin handled by nvx-site-layout.css */
 
@@ -197,14 +193,8 @@ body:not(.home) .nvx-hero__copy .nvx-title {
   line-height: 1.1;
 }
 
-/* Títulos en home mantienen su estilo original */
-body.home .nvx-home-hero__title {
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-display);
-  line-height: 1.1;
-  font-weight: 300;
-}
+/* Home title metrics live in nvx-home-v3.css so deferred pattern CSS cannot
+   restyle the H1 after first paint. */
 
 .nvx-brand-hero__copy .nvx-brand-hero__lead,
 .nvx-brand-hero__copy .nvx-brand-hero__description,

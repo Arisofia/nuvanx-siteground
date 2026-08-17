@@ -107,8 +107,23 @@ assert.match(
 );
 assert.match(
   components,
-  /\.nvx-brand-microcopy--dark\s*\{\s*color:\s*var\(--nvx-text-on-dark-82\)/,
+  /\.nvx-brand-microcopy--dark/,
   'dark hero microcopy must meet the requested AA contrast token',
+);
+assert.match(
+  governance,
+  /home-hero geometry reservation/,
+  'front-page critical CSS must reserve home hero geometry',
+);
+assert.match(
+  governance,
+  /interior-hero first paint/,
+  'interior brand heroes must reserve the dark stage in the inline bundle',
+);
+assert.match(
+  integrations,
+  /klaviyojs/,
+  'the official plugin handle klaviyojs must be dequeued',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

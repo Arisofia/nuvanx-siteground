@@ -341,8 +341,37 @@ add_filter(
 					$buffer = $cleaned;
 				}
 
-				// Implement Delay Script Execution for GTM and analytics scripts to improve TBT on Home
-				$has_delayed = false;
+					// Enforce the public third-party policy even when an optimizer injects
+					// tags directly into the final document instead of using WP queues.
+					$cleaned = preg_replace_callback(
+						'/<script\\b[^>]*>.*?<\\/script>/is',
+						static function ( array $matches ): string {
+							$tag = $matches[0];
+							if ( nvx_theme_is_klaviyo_asset( '', '', $tag ) ) {
+								return '';
+							}
+							return nvx_theme_defer_auxiliary_script_tags( $tag, '', $tag );
+						},
+						$buffer
+					);
+					if ( is_string( $cleaned ) ) {
+						$buffer = $cleaned;
+					}
+
+					$cleaned = preg_replace_callback(
+						'/<link\\b[^>]*>/i',
+						static function ( array $matches ): string {
+							$tag = $matches[0];
+							return nvx_theme_defer_auxiliary_style_tags( $tag, '', $tag, '' );
+						},
+						$buffer
+					);
+					if ( is_string( $cleaned ) ) {
+						$buffer = $cleaned;
+					}
+
+					// Implement Delay Script Execution for GTM and analytics scripts to improve TBT on Home
+					$has_delayed = false;
 				$buffer      = preg_replace_callback(
 					'/<script([^>]*)>(.*?)<\/script>/is',
 					function ( $matches ) use ( &$has_delayed ) {

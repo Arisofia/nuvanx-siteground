@@ -239,5 +239,9 @@
   "/casos-de-pacientes/": {},
   "/tratamientos/": {
     "seo_id": "tratamientos"
+  },
+  "/precio-neuromoduladores-madrid/": {},
+  "/botox-madrid-precio-neuromoduladores/": {
+    "route_alias": "/precio-neuromoduladores-madrid/"
   }
 }

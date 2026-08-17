@@ -8,7 +8,7 @@
     "/aviso-legal/": {"post_id":20,"post_type":"page","slug":"aviso-legal","status":"publish","robots":{"index":true,"follow":true}},
     "/bioestimuladores-colageno-madrid/": {"post_id":3321,"post_type":"page","slug":"bioestimuladores-colageno-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/blog/": {"post_id":16,"post_type":"page","slug":"blog","status":"publish","robots":{"index":true,"follow":true}},
-    "/botox-madrid-precio-neuromoduladores/": {"post_id":3510,"post_type":"post","slug":"botox-madrid-precio-neuromoduladores","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
+    "/precio-neuromoduladores-madrid/": {"post_id":3510,"post_type":"post","slug":"precio-neuromoduladores-madrid","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/btl-exilite-ipl-madrid/": {"post_id":3055,"post_type":"page","slug":"btl-exilite-ipl-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/calidad-piel-firmeza-luminosidad-madrid/": {"post_id":3373,"post_type":"page","slug":"calidad-piel-firmeza-luminosidad-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/casos-de-pacientes/": {"post_id":2645,"post_type":"page","slug":"casos-de-pacientes","status":"publish","robots":{"index":true,"follow":true}},

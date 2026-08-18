@@ -365,6 +365,11 @@ assert.doesNotMatch(
 );
 assert.match(
   helpers,
+  /function nvx_sanitize_invalid_list_roles/,
+  'invalid article listitem roles must be stripped from rendered content',
+);
+assert.match(
+  helpers,
   /function nvx_rewrite_eager_maps_iframes/,
   'CMS and leftover Maps iframes must be rewritten to click-to-load',
 );

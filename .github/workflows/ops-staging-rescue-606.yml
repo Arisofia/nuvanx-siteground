@@ -28,18 +28,50 @@ jobs:
           token: ${{ github.token }}
           persist-credentials: true
 
-      - name: Restore exact canonical success patch from PR 596
+      - name: Reconcile canonical success contract from PR 596
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          git cat-file -e "${PR596_MERGE}^{commit}"
-          pr596_base="$(git rev-parse "${PR596_MERGE}^1")"
-          patch="$RUNNER_TEMP/pr596-direct-form.patch"
-          git diff "$pr596_base" "$PR596_MERGE" -- "$DIRECT_FORM" > "$patch"
-          test -s "$patch"
-          grep -F 'nvx_success' "$patch" >/dev/null
-          git apply --3way "$patch"
+          canonical="$RUNNER_TEMP/pr596-direct-form.php"
+          git show "${PR596_MERGE}:${DIRECT_FORM}" > "$canonical"
+          test -s "$canonical"
+
+          python3 - "$DIRECT_FORM" "$canonical" <<'PY'
+          import sys
+          from pathlib import Path
+
+          target_path = Path(sys.argv[1])
+          canonical_path = Path(sys.argv[2])
+          current = target_path.read_text()
+          canonical = canonical_path.read_text()
+
+          start_marker = "\t$result = nvx_valoracion_forward_to_hubspot( $fields, $context );"
+          end_marker = "\n\tnvx_valoracion_log_outcome( 'FAILURE', $result['reason'], $result['status'] );"
+          tail_marker = "/**\n * Validate and consume a single-use canonical success token before rendering."
+
+          if current.count(start_marker) != 1 or canonical.count(start_marker) != 1:
+              raise SystemExit('SUCCESS_REPAIR_REFUSED ambiguous submit marker')
+          if current.count(end_marker) != 1 or canonical.count(end_marker) != 1:
+              raise SystemExit('SUCCESS_REPAIR_REFUSED ambiguous failure marker')
+
+          cs = current.index(start_marker)
+          ce = current.index(end_marker, cs)
+          ks = canonical.index(start_marker)
+          ke = canonical.index(end_marker, ks)
+          canonical_success = canonical[ks:ke]
+          if "add_query_arg( 'nvx_success', $token" not in canonical_success:
+              raise SystemExit('SUCCESS_REPAIR_REFUSED canonical token block missing')
+          current = current[:cs] + canonical_success + current[ce:]
+
+          if tail_marker not in canonical:
+              raise SystemExit('SUCCESS_REPAIR_REFUSED canonical success functions missing')
+          canonical_tail = canonical[canonical.index(tail_marker):].rstrip() + "\n"
+          if 'function nvx_valoracion_prepare_canonical_success()' not in current:
+              current = current.rstrip() + "\n\n" + canonical_tail
+
+          target_path.write_text(current)
+          PY
 
           changed="$(git diff --name-only)"
           test "$changed" = "$DIRECT_FORM"
@@ -54,4 +86,4 @@ jobs:
           git add "$DIRECT_FORM"
           git commit -m 'fix(valoracion): restore canonical first-party success token'
           git push origin "HEAD:${TARGET_BRANCH}"
-          echo 'CANONICAL_SUCCESS_REPAIR=PASS source=pr596 exact_file_scope=1 token=single_use nocache=1 signal=first_party'
+          echo 'CANONICAL_SUCCESS_REPAIR=PASS source=pr596 semantic_hunks=2 exact_file_scope=1 token=single_use nocache=1 signal=first_party'

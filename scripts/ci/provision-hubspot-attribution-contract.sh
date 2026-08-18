@@ -254,11 +254,11 @@ if (( ${#missing_form_fields[@]} > 0 )); then
   else
     cp "$form" "$work/form-working.json"
     for property in "${missing_form_fields[@]}"; do
-      field_type='text'
+      form_field_type='single_line_text'
       if [[ "$property" == 'nvx_is_test_lead' ]]; then
-        field_type='booleancheckbox'
+        form_field_type='single_checkbox'
       fi
-      jq --arg name "$property" --arg fieldType "$field_type" '
+      jq --arg name "$property" --arg fieldType "$form_field_type" '
         .fieldGroups += [{
           groupType: "default_group",
           fields: [{

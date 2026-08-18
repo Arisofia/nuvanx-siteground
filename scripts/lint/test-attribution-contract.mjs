@@ -319,7 +319,32 @@ if (!fs.existsSync(runtimePath)) {
   assert.equal(noConsent.localStorage.getItem('nvx_first_touch'), null);
   assert.equal(noConsent.localStorage.getItem('nvx_conversion_touch'), null);
 
-  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0');
+  // Transition: no-consent visit followed by consented visit with the same UTMs.
+  // First/conversion touch must only be initialized on the consented visit, with
+  // no state carried over from the pre-consent visit.
+  const consentAfterNoConsent = executeRuntime(runtime, {
+    consent: true,
+    href: 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE',
+    referrer: 'https://www.google.com/',
+  });
+  const postConsentContract = consentAfterNoConsent.window.NUVANXAttributionContract;
+  const postConsentFirstTouch = postConsentContract.getFirstTouch();
+  const postConsentConversionTouch = postConsentContract.getConversionTouch();
+  // First/conversion touch should be initialized on the consented visit only.
+  assert.ok(postConsentFirstTouch, 'first touch must be initialized after consent');
+  assert.ok(postConsentConversionTouch, 'conversion touch must be initialized after consent');
+  // Ensure no pre-consent state is used: attribution must reflect the consented visit UTMs.
+  assert.equal(postConsentFirstTouch.channel, 'paid_search', 'first touch channel must come from consented visit');
+  assert.equal(postConsentFirstTouch.gclid, 'NOPE', 'first touch click id must come from consented visit');
+  assert.equal(postConsentFirstTouch.landing_url, 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE', 'first touch landing url must come from consented visit');
+  assert.equal(postConsentConversionTouch.channel, 'paid_search', 'conversion touch channel must come from consented visit');
+  assert.equal(postConsentConversionTouch.gclid, 'NOPE', 'conversion touch click id must come from consented visit');
+  assert.equal(postConsentConversionTouch.landing_url, 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE', 'conversion touch landing url must come from consented visit');
+  // Storage must only be populated on the consented visit.
+  assert.notEqual(consentAfterNoConsent.localStorage.getItem('nvx_first_touch'), null, 'first touch must be stored after consent');
+  assert.notEqual(consentAfterNoConsent.localStorage.getItem('nvx_conversion_touch'), null, 'conversion touch must be stored after consent');
+
+  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0 consent_boundary=1');
   console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
   console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1 staging_qa_allowlist=1');
   console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1');

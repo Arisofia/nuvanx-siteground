@@ -368,6 +368,64 @@ function nvx_responsive_candidates_for_url( string $url ): array {
 }
 
 /**
+ * Intrinsic pixel size of known clinic/home originals (before any -WIDTHxHEIGHT crop).
+ *
+ * @return array<string,array{0:int,1:int}>
+ */
+function nvx_known_image_intrinsics(): array {
+	return array(
+		'Sala-Nuvanx'                                    => array( 1086, 1448 ),
+		'nuvanx-medicina-2'                              => array( 1220, 960 ),
+		'Endolift-ISO9001-Laser'                         => array( 850, 470 ),
+		'SmartLipo-for-Laserlipolysis-DEKA-1'            => array( 447, 800 ),
+		'consulta-medica-personalizada-nuvanx-madrid'    => array( 1672, 941 ),
+	);
+}
+
+/**
+ * Resolve width/height for a content image URL without a network fetch.
+ *
+ * @return array{0:int,1:int}
+ */
+function nvx_image_dimensions_for_url( string $url ): array {
+	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+	$file = pathinfo( $path, PATHINFO_FILENAME );
+
+	if ( preg_match( '/-(\d+)x(\d+)$/', $file, $match ) ) {
+		return array( (int) $match[1], (int) $match[2] );
+	}
+
+	$intrinsics = nvx_known_image_intrinsics();
+	if ( preg_match( '/-(\d+)$/', $file, $width_match ) ) {
+		$stem = (string) preg_replace( '/-\d+$/', '', $file );
+		if ( isset( $intrinsics[ $stem ] ) && $intrinsics[ $stem ][0] > 0 ) {
+			$width  = (int) $width_match[1];
+			$height = (int) round( $intrinsics[ $stem ][1] * $width / $intrinsics[ $stem ][0] );
+			return array( $width, max( 1, $height ) );
+		}
+	}
+
+	$stem = nvx_image_stem_from_url( $url );
+	if ( isset( $intrinsics[ $stem ] ) ) {
+		return $intrinsics[ $stem ];
+	}
+
+	$local = nvx_local_upload_file_from_url( $url );
+	if ( '' === $local ) {
+		$theme_file = get_template_directory() . '/assets/images/responsive/' . basename( $path );
+		$local      = is_readable( $theme_file ) ? $theme_file : '';
+	}
+	if ( '' !== $local ) {
+		$size = @getimagesize( $local );
+		if ( is_array( $size ) && isset( $size[0], $size[1] ) && (int) $size[0] > 0 && (int) $size[1] > 0 ) {
+			return array( (int) $size[0], (int) $size[1] );
+		}
+	}
+
+	return array( 0, 0 );
+}
+
+/**
  * Add srcset, sizes, dimensions and a modern src to a body/content img.
  */
 function nvx_content_enhance_img_tag_attrs( string $attrs ): string {
@@ -376,52 +434,45 @@ function nvx_content_enhance_img_tag_attrs( string $attrs ): string {
 	}
 
 	$src = nvx_html_attrs_get( $attrs, 'src' );
-	if ( '' === $src || false !== strpos( $src, '/assets/images/responsive/' ) ) {
+	if ( '' === $src ) {
 		return $attrs;
 	}
 
-	$candidates = nvx_responsive_candidates_for_url( $src );
-	if ( array() === $candidates ) {
-		return $attrs;
-	}
-
-	ksort( $candidates, SORT_NUMERIC );
-	$parts = array();
-	foreach ( $candidates as $width => $candidate_url ) {
-		$parts[] = $candidate_url . ' ' . $width . 'w';
-	}
-
-	$default_width = 0;
-	foreach ( array_keys( $candidates ) as $width ) {
-		if ( $width >= 480 ) {
-			$default_width = $width;
-			break;
-		}
-	}
-	if ( 0 === $default_width ) {
-		$default_width = (int) array_key_first( $candidates );
-	}
-
-	$default_src = $candidates[ $default_width ];
-	$attrs       = nvx_html_attrs_set( $attrs, 'src', $default_src );
-	$attrs       = nvx_html_attrs_set( $attrs, 'srcset', implode( ', ', $parts ) );
-	if ( '' === nvx_html_attrs_get( $attrs, 'sizes' ) ) {
-		$attrs = nvx_html_attrs_set( $attrs, 'sizes', '(max-width: 680px) calc(100vw - 48px), 680px' );
-	}
-
-	if ( '' === nvx_html_attrs_get( $attrs, 'width' ) ) {
-		$attrs = nvx_html_attrs_set( $attrs, 'width', (string) $default_width );
-		$local = nvx_local_upload_file_from_url( $default_src );
-		if ( '' === $local ) {
-			$theme_file = get_template_directory() . '/assets/images/responsive/' . basename( (string) wp_parse_url( $default_src, PHP_URL_PATH ) );
-			$local      = is_readable( $theme_file ) ? $theme_file : '';
-		}
-		if ( '' !== $local ) {
-			$size = @getimagesize( $local );
-			if ( is_array( $size ) && isset( $size[0], $size[1] ) ) {
-				$attrs = nvx_html_attrs_set( $attrs, 'width', (string) (int) $size[0] );
-				$attrs = nvx_html_attrs_set( $attrs, 'height', (string) (int) $size[1] );
+	$already_theme = false !== strpos( $src, '/assets/images/responsive/' );
+	if ( ! $already_theme ) {
+		$candidates = nvx_responsive_candidates_for_url( $src );
+		if ( array() !== $candidates ) {
+			ksort( $candidates, SORT_NUMERIC );
+			$parts = array();
+			foreach ( $candidates as $width => $candidate_url ) {
+				$parts[] = $candidate_url . ' ' . $width . 'w';
 			}
+
+			$default_width = 0;
+			foreach ( array_keys( $candidates ) as $width ) {
+				if ( $width >= 480 ) {
+					$default_width = $width;
+					break;
+				}
+			}
+			if ( 0 === $default_width ) {
+				$default_width = (int) array_key_first( $candidates );
+			}
+
+			$attrs = nvx_html_attrs_set( $attrs, 'src', $candidates[ $default_width ] );
+			$attrs = nvx_html_attrs_set( $attrs, 'srcset', implode( ', ', $parts ) );
+			if ( '' === nvx_html_attrs_get( $attrs, 'sizes' ) ) {
+				$attrs = nvx_html_attrs_set( $attrs, 'sizes', '(max-width: 680px) calc(100vw - 48px), 680px' );
+			}
+		}
+	}
+
+	$src = nvx_html_attrs_get( $attrs, 'src' );
+	if ( '' === nvx_html_attrs_get( $attrs, 'width' ) || '' === nvx_html_attrs_get( $attrs, 'height' ) ) {
+		$size = nvx_image_dimensions_for_url( $src );
+		if ( $size[0] > 0 && $size[1] > 0 ) {
+			$attrs = nvx_html_attrs_set( $attrs, 'width', (string) $size[0] );
+			$attrs = nvx_html_attrs_set( $attrs, 'height', (string) $size[1] );
 		}
 	}
 
@@ -482,6 +533,80 @@ function nvx_lazy_map_embed_markup( string $embed_src, string $title, string $mo
 		. '<button type="button" class="nvx-map-embed__button">' . esc_html__( 'Cargar mapa de Google', 'nuvanx-medical' ) . '</button>'
 		. '</div>';
 }
+
+/** Whether a URL is a Google Maps embed (iframe payload), not a search/link. */
+function nvx_is_google_maps_embed_url( string $url ): bool {
+	$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+	$query = (string) wp_parse_url( $url, PHP_URL_QUERY );
+
+	if ( '' === $host ) {
+		return false;
+	}
+
+	$is_maps_host = str_ends_with( $host, 'google.com' ) || str_ends_with( $host, 'googleapis.com' ) || str_ends_with( $host, 'gstatic.com' );
+	if ( ! $is_maps_host ) {
+		return false;
+	}
+
+	return str_contains( $host, 'maps' )
+		|| str_contains( $path, '/maps' )
+		|| str_contains( $query, 'output=embed' );
+}
+
+/**
+ * Replace eager Google Maps iframes with the click-to-load control.
+ *
+ * `loading="lazy"` is not enough: Lighthouse still downloads places.js / main.js
+ * (~227 KiB unused) once the iframe src is in the document.
+ */
+function nvx_rewrite_eager_maps_iframes( string $html ): string {
+	if ( '' === $html || false === stripos( $html, '<iframe' ) ) {
+		return $html;
+	}
+
+	$rewritten = preg_replace_callback(
+		'/<iframe\b[^>]*>\s*<\/iframe>/iu',
+		static function ( array $matches ): string {
+			$tag = $matches[0];
+			if ( ! preg_match( '/\bsrc\s*=\s*(["\'])(.*?)\1/iu', $tag, $src_match ) ) {
+				return $tag;
+			}
+
+			$src = html_entity_decode( (string) $src_match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			if ( ! nvx_is_google_maps_embed_url( $src ) ) {
+				return $tag;
+			}
+
+			$title = 'Google Maps';
+			if ( preg_match( '/\btitle\s*=\s*(["\'])(.*?)\1/iu', $tag, $title_match ) ) {
+				$decoded = html_entity_decode( (string) $title_match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+				if ( '' !== trim( $decoded ) ) {
+					$title = $decoded;
+				}
+			}
+
+			return nvx_lazy_map_embed_markup( $src, $title );
+		},
+		$html
+	);
+
+	return is_string( $rewritten ) ? $rewritten : $html;
+}
+add_filter( 'the_content', 'nvx_rewrite_eager_maps_iframes', 201 );
+add_filter( 'widget_text', 'nvx_rewrite_eager_maps_iframes', 20 );
+add_filter( 'widget_block_content', 'nvx_rewrite_eager_maps_iframes', 20 );
+add_filter( 'embed_oembed_html', 'nvx_rewrite_eager_maps_iframes', 20 );
+
+/**
+ * Catch Maps iframes emitted by Gutenberg embeds or custom HTML blocks.
+ *
+ * @param string $block_content Rendered block HTML.
+ */
+function nvx_rewrite_eager_maps_iframes_in_block( string $block_content ): string {
+	return nvx_rewrite_eager_maps_iframes( $block_content );
+}
+add_filter( 'render_block', 'nvx_rewrite_eager_maps_iframes_in_block', 20 );
 
 /**
  * Render canonical FAQ accordion section markup.

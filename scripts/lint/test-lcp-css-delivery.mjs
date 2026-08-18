@@ -257,6 +257,31 @@ assert.match(
 );
 assert.match(
   helpers,
+  /function nvx_image_dimensions_for_url/,
+  'content images must resolve explicit width and height without a network fetch',
+);
+assert.match(
+  helpers,
+  /'Sala-Nuvanx'\s*=>\s*array\(\s*1086,\s*1448\s*\)/,
+  'Chamberí waiting-room intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'nuvanx-medicina-2'\s*=>\s*array\(\s*1220,\s*960\s*\)/,
+  'Chamberí façade intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'Endolift-ISO9001-Laser'\s*=>\s*array\(\s*850,\s*470\s*\)/,
+  'Endolift device intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'SmartLipo-for-Laserlipolysis-DEKA-1'\s*=>\s*array\(\s*447,\s*800\s*\)/,
+  'SmartLipo PNG intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
   /function nvx_theme_responsive_candidates/,
   'theme-hosted WebP derivatives must be discoverable by stem',
 );
@@ -264,6 +289,21 @@ assert.match(
   helpers,
   /function nvx_lazy_map_embed_markup/,
   'Google Maps must not load until the user asks',
+);
+assert.match(
+  helpers,
+  /function nvx_rewrite_eager_maps_iframes/,
+  'CMS and leftover Maps iframes must be rewritten to click-to-load',
+);
+assert.doesNotMatch(
+  fs.readFileSync('wp-content/themes/nuvanx-medical/templates/page-sede.php', 'utf8'),
+  /<iframe[^>]+maps\.google/,
+  'the sede template must not emit an eager Maps iframe',
+);
+assert.doesNotMatch(
+  fs.readFileSync('wp-content/themes/nuvanx-medical/front-page.php', 'utf8'),
+  /<iframe[^>]+maps\.google/,
+  'the home template must not emit an eager Maps iframe',
 );
 assert.match(
   presentation,

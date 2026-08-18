@@ -99,7 +99,20 @@ function nvx_valoracion_direct_form_markup(): string {
  * multi-byte surname such as Ñ or 李 as if it met the two-character minimum.
  */
 function nvx_valoracion_name_length( string $value ): int {
-	return function_exists( 'mb_strlen' ) ? (int) mb_strlen( $value, 'UTF-8' ) : strlen( $value );
+	if ( function_exists( 'mb_strlen' ) ) {
+		return (int) mb_strlen( $value, 'UTF-8' );
+	}
+
+	if ( function_exists( 'iconv_strlen' ) ) {
+		$iconv_length = @iconv_strlen( $value, 'UTF-8' );
+		if ( false !== $iconv_length ) {
+			return (int) $iconv_length;
+		}
+	}
+
+	$utf8_count = preg_match_all( '/./us', $value );
+	// Invalid UTF-8 must fail closed. strlen() would count Ñ as 2 and pass the minimum.
+	return false === $utf8_count ? 0 : (int) $utf8_count;
 }
 
 /**

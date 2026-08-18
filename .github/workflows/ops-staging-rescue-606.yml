@@ -1,51 +1,128 @@
-name: Staging Queue Rescue One-Shot
+name: Runtime Candidate Repair One-Shot
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 permissions:
-  actions: write
-  contents: read
+  contents: write
 
 jobs:
-  rescue:
+  repair:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'ops/staging-rescue-606-20260818'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      TARGET_BRANCH: fix/attribution-runtime-v2-rebased-20260818
+      EXPECTED_HEAD: c89021de0640003a5a0616ab98d58ed9ac60dd19
     steps:
-      - name: Cancel obsolete queued master run
+      - name: Check out exact runtime candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          token: ${{ github.token }}
+          persist-credentials: true
+
+      - name: Restore #596 canonical first-party success contract
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          STALE_RUN_ID: '32176457283'
         run: |
           set -euo pipefail
-          status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')"
-          head_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.head_sha')"
-          event="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.event')"
-          branch="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.head_branch')"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          python3 - <<'PY'
+          from pathlib import Path
 
-          [[ "$event" == 'push' ]]
-          [[ "$branch" == 'master' ]]
-          [[ "$head_sha" == '6932154162b00a83d7de519fe2ff3a0b9e471336' ]]
+          path = Path('wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php')
+          text = path.read_text()
+          old = """\t$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
+\tif ( $result['ok'] ) {
+\t\tnvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
+\t\twp_safe_redirect( home_url( '/gracias/' ) );
+\t\texit;
+\t}
+"""
+          new = """\t$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
+\tif ( $result['ok'] ) {
+\t\tnvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
+\t\ttry {
+\t\t\t$token = bin2hex( random_bytes( 32 ) );
+\t\t\t$hash  = hash( 'sha256', $token );
+\t\t\tset_transient( 'nvx_success_' . $hash, 1, 10 * MINUTE_IN_SECONDS );
+\t\t\twp_safe_redirect( add_query_arg( 'nvx_success', $token, home_url( '/gracias/' ) ) );
+\t\t} catch ( Exception $e ) {
+\t\t\twp_safe_redirect( home_url( '/gracias/' ) );
+\t\t}
+\t\texit;
+\t}
+"""
+          if old not in text:
+              raise SystemExit('CANONICAL_SUCCESS_REPAIR_REFUSED success block drifted')
+          text = text.replace(old, new, 1)
 
-          current_master="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
-          [[ "$current_master" != "$head_sha" ]] || { echo 'STALE_RUN_ABORT reason=run_is_current_master' >&2; exit 1; }
+          if 'function nvx_valoracion_prepare_canonical_success()' not in text:
+              text += r'''
 
-          if [[ "$status" != 'completed' ]]; then
-            gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}/cancel" >/dev/null
-            echo "STALE_MASTER_CANCEL_REQUESTED run_id=${STALE_RUN_ID}"
-          fi
+/**
+ * Validate and consume a single-use canonical success token before rendering.
+ * Requests carrying the token are explicitly non-cacheable, including invalid
+ * or already-consumed tokens, so cached HTML can never replay the conversion.
+ */
+function nvx_valoracion_prepare_canonical_success(): void {
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
 
-          for attempt in {1..30}; do
-            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')"
-            [[ "$status" == 'completed' ]] && break
-            sleep 2
-          done
+	if ( ! function_exists( 'nvx_theme_thank_you_page_slugs' ) || ! is_page( nvx_theme_thank_you_page_slugs() ) ) {
+		return;
+	}
+	if ( ! isset( $_GET['nvx_success'] ) ) {
+		return;
+	}
 
-          conclusion="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.conclusion // "none"')"
-          [[ "$status" == 'completed' ]] || { echo "STALE_MASTER_CANCEL_TIMEOUT run_id=${STALE_RUN_ID}" >&2; exit 1; }
-          echo "STALE_MASTER_CLOSED run_id=${STALE_RUN_ID} conclusion=${conclusion} current_master=${current_master}"
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	nocache_headers();
+
+	$token = sanitize_text_field( wp_unslash( (string) $_GET['nvx_success'] ) );
+	if ( 1 !== preg_match( '/^[a-f0-9]{64}$/D', $token ) ) {
+		return;
+	}
+
+	$hash = hash( 'sha256', $token );
+	$key  = 'nvx_success_' . $hash;
+	if ( ! get_transient( $key ) ) {
+		return;
+	}
+
+	delete_transient( $key );
+	$GLOBALS['nvx_valoracion_success_ready'] = true;
+}
+add_action( 'template_redirect', 'nvx_valoracion_prepare_canonical_success', 1 );
+
+/** Emit the already-consumed canonical success signal during render. */
+function nvx_valoracion_emit_canonical_success(): void {
+	if ( empty( $GLOBALS['nvx_valoracion_success_ready'] ) ) {
+		return;
+	}
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
+	$script = "window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});";
+	wp_print_inline_script_tag( $script );
+}
+add_action( 'wp_head', 'nvx_valoracion_emit_canonical_success', 5 );
+'''
+          path.write_text(text)
+          PY
+
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
+          grep -F "add_query_arg( 'nvx_success', \$token, home_url( '/gracias/' ) )" wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
+          grep -F 'function nvx_valoracion_prepare_canonical_success()' wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
+          grep -F "event:'nvx_valoracion_success'" wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
+          git diff --check
+
+          git config user.name 'NUVANX CI'
+          git config user.email 'ci@nuvanx.invalid'
+          git add wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
+          git commit -m 'fix(valoracion): restore canonical first-party success token'
+          git push origin "HEAD:${TARGET_BRANCH}"
+          echo 'CANONICAL_SUCCESS_REPAIR=PASS token=single_use nocache=1 signal=first_party'

@@ -17,112 +17,41 @@ jobs:
     env:
       TARGET_BRANCH: fix/attribution-runtime-v2-rebased-20260818
       EXPECTED_HEAD: c89021de0640003a5a0616ab98d58ed9ac60dd19
+      PR596_MERGE: 93fd9f7c28319984233506ea25bfdd09ac2002ed
+      DIRECT_FORM: wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
     steps:
       - name: Check out exact runtime candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ env.TARGET_BRANCH }}
+          ref: fix/attribution-runtime-v2-rebased-20260818
           fetch-depth: 0
           token: ${{ github.token }}
           persist-credentials: true
 
-      - name: Restore #596 canonical first-party success contract
+      - name: Restore exact canonical success patch from PR 596
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-          python3 - <<'PY'
-          from pathlib import Path
+          git cat-file -e "${PR596_MERGE}^{commit}"
+          pr596_base="$(git rev-parse "${PR596_MERGE}^1")"
+          patch="$RUNNER_TEMP/pr596-direct-form.patch"
+          git diff "$pr596_base" "$PR596_MERGE" -- "$DIRECT_FORM" > "$patch"
+          test -s "$patch"
+          grep -F 'nvx_success' "$patch" >/dev/null
+          git apply --3way "$patch"
 
-          path = Path('wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php')
-          text = path.read_text()
-          old = """\t$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
-\tif ( $result['ok'] ) {
-\t\tnvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
-\t\twp_safe_redirect( home_url( '/gracias/' ) );
-\t\texit;
-\t}
-"""
-          new = """\t$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
-\tif ( $result['ok'] ) {
-\t\tnvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
-\t\ttry {
-\t\t\t$token = bin2hex( random_bytes( 32 ) );
-\t\t\t$hash  = hash( 'sha256', $token );
-\t\t\tset_transient( 'nvx_success_' . $hash, 1, 10 * MINUTE_IN_SECONDS );
-\t\t\twp_safe_redirect( add_query_arg( 'nvx_success', $token, home_url( '/gracias/' ) ) );
-\t\t} catch ( Exception $e ) {
-\t\t\twp_safe_redirect( home_url( '/gracias/' ) );
-\t\t}
-\t\texit;
-\t}
-"""
-          if old not in text:
-              raise SystemExit('CANONICAL_SUCCESS_REPAIR_REFUSED success block drifted')
-          text = text.replace(old, new, 1)
-
-          if 'function nvx_valoracion_prepare_canonical_success()' not in text:
-              text += r'''
-
-/**
- * Validate and consume a single-use canonical success token before rendering.
- * Requests carrying the token are explicitly non-cacheable, including invalid
- * or already-consumed tokens, so cached HTML can never replay the conversion.
- */
-function nvx_valoracion_prepare_canonical_success(): void {
-	$GLOBALS['nvx_valoracion_success_ready'] = false;
-
-	if ( ! function_exists( 'nvx_theme_thank_you_page_slugs' ) || ! is_page( nvx_theme_thank_you_page_slugs() ) ) {
-		return;
-	}
-	if ( ! isset( $_GET['nvx_success'] ) ) {
-		return;
-	}
-
-	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-		define( 'DONOTCACHEPAGE', true );
-	}
-	nocache_headers();
-
-	$token = sanitize_text_field( wp_unslash( (string) $_GET['nvx_success'] ) );
-	if ( 1 !== preg_match( '/^[a-f0-9]{64}$/D', $token ) ) {
-		return;
-	}
-
-	$hash = hash( 'sha256', $token );
-	$key  = 'nvx_success_' . $hash;
-	if ( ! get_transient( $key ) ) {
-		return;
-	}
-
-	delete_transient( $key );
-	$GLOBALS['nvx_valoracion_success_ready'] = true;
-}
-add_action( 'template_redirect', 'nvx_valoracion_prepare_canonical_success', 1 );
-
-/** Emit the already-consumed canonical success signal during render. */
-function nvx_valoracion_emit_canonical_success(): void {
-	if ( empty( $GLOBALS['nvx_valoracion_success_ready'] ) ) {
-		return;
-	}
-	$GLOBALS['nvx_valoracion_success_ready'] = false;
-	$script = "window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});";
-	wp_print_inline_script_tag( $script );
-}
-add_action( 'wp_head', 'nvx_valoracion_emit_canonical_success', 5 );
-'''
-          path.write_text(text)
-          PY
-
-          php -l wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
-          grep -F "add_query_arg( 'nvx_success', \$token, home_url( '/gracias/' ) )" wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
-          grep -F 'function nvx_valoracion_prepare_canonical_success()' wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
-          grep -F "event:'nvx_valoracion_success'" wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php >/dev/null
+          changed="$(git diff --name-only)"
+          test "$changed" = "$DIRECT_FORM"
+          php -l "$DIRECT_FORM" >/dev/null
+          grep -F "add_query_arg( 'nvx_success', \$token, home_url( '/gracias/' ) )" "$DIRECT_FORM" >/dev/null
+          grep -F 'function nvx_valoracion_prepare_canonical_success()' "$DIRECT_FORM" >/dev/null
+          grep -F "event:'nvx_valoracion_success'" "$DIRECT_FORM" >/dev/null
           git diff --check
 
           git config user.name 'NUVANX CI'
           git config user.email 'ci@nuvanx.invalid'
-          git add wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
+          git add "$DIRECT_FORM"
           git commit -m 'fix(valoracion): restore canonical first-party success token'
           git push origin "HEAD:${TARGET_BRANCH}"
-          echo 'CANONICAL_SUCCESS_REPAIR=PASS token=single_use nocache=1 signal=first_party'
+          echo 'CANONICAL_SUCCESS_REPAIR=PASS source=pr596 exact_file_scope=1 token=single_use nocache=1 signal=first_party'

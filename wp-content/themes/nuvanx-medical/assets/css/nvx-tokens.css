@@ -210,11 +210,12 @@
   --nvx-surface-dark-editorial: #111111;
 
   --nvx-on-dark:       #f7f7f5;
-  /* Aliases — prefer --nvx-text-on-dark-88 / --nvx-text-on-dark-72 for new code */
+  /* Aliases — prefer --nvx-text-on-dark-88 / --nvx-text-on-dark-82 for new code */
   --nvx-on-dark-88:    rgba(247, 247, 245, 0.88);
-  --nvx-on-dark-72:    rgba(247, 247, 245, 0.72);
-  --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
-  --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
+  --nvx-on-dark-82:    rgba(247, 247, 245, 0.82);
+  --nvx-on-dark-72:    rgba(247, 247, 245, 0.82);
+  --nvx-on-dark-50:    rgba(247, 247, 245, 0.78);
+  --nvx-accent-line-dark: rgba(247, 247, 245, 0.15);
 
 
 /* Additional design tokens added during migration */

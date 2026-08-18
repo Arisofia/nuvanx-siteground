@@ -425,6 +425,11 @@ assert.match(
   /'Espalda-novias'\s*=>\s*array\(\s*941,\s*1672\s*\)/,
   'bridal back intrinsic size must be catalogued',
 );
+assert.match(
+  helpers,
+  /'Protocolo-Endolift-Thermage-Morpheus8-ultherapy'\s*=>\s*array\(\s*383,\s*558\s*\)/,
+  'bridal mood-collage intrinsic size must be catalogued',
+);
 for (const file of [
   'Box-Clinica-Novias-480.webp',
   'Box-Clinica-Novias-768.webp',
@@ -439,6 +444,8 @@ for (const file of [
   'Espalda-novias-480.webp',
   'Espalda-novias-768.webp',
   'Espalda-novias-941.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-280.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-383.webp',
 ]) {
   assert.ok(
     fs.existsSync(`wp-content/themes/nuvanx-medical/assets/images/responsive/${file}`),
@@ -479,6 +486,11 @@ assert.match(
   /Espalda-novias\.png/,
   'bridal gallery must use the back upload stem',
 );
+assert.match(
+  bridalPhp,
+  /Protocolo-Endolift-Thermage-Morpheus8-ultherapy\.png/,
+  'bridal studio must use the mood-collage upload stem',
+);
 assert.doesNotMatch(
   bridalPhp,
   /\.png(?!["'])/,
@@ -486,8 +498,13 @@ assert.doesNotMatch(
 );
 assert.match(
   components,
-  /\.nvx-bridal-gallery__zones/,
-  'bridal zone gallery layout must live in the inline component CSS',
+  /\.nvx-bridal-studio__mood/,
+  'bridal studio must use an editorial mood plate, not a boxed grid',
+);
+assert.match(
+  components,
+  /\.nvx-bridal-studio__pair/,
+  'bridal portraits must sit in a staggered pair, not equal tiles',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

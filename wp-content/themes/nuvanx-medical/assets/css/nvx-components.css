@@ -2413,81 +2413,169 @@ figure.nvx-equipo-portrait{
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-bridal-gallery__feature {
-  width: 100%;
-  max-width: none;
-  margin: var(--nvx-space-5) 0 var(--nvx-space-6);
+.nvx-bridal-studio {
+  overflow: hidden;
 }
 
-.nvx-bridal-gallery img.nvx-media--body,
-.nvx-bridal-gallery__feature img,
-.nvx-bridal-gallery__zones img {
-  max-height: none;
+.nvx-bridal-studio__intro {
+  padding-bottom: var(--nvx-space-6);
 }
 
-.nvx-bridal-gallery__feature img {
-  aspect-ratio: 16 / 10;
-  max-height: 32rem;
-  object-fit: cover;
-  object-position: center 55%;
-}
-
-.nvx-brand-section .nvx-bridal-gallery__zones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--nvx-space-4);
-  width: 100%;
-  max-width: none;
+.nvx-bridal-studio__plate {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  background: transparent;
 }
 
-.nvx-brand-section .nvx-bridal-gallery__item {
-  margin: 0;
+.nvx-bridal-studio__plate figcaption {
+  margin-top: var(--nvx-space-2);
+  padding-inline: 0;
+  font-size: var(--nvx-type-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
 }
 
-.nvx-bridal-gallery__item--wide {
-  grid-column: 1 / -1;
-}
-
-.nvx-bridal-gallery__zones figure {
-  margin: 0;
-}
-
-.nvx-bridal-gallery__zones img {
+.nvx-bridal-studio img.nvx-bridal-studio__img,
+.nvx-bridal-studio img.nvx-media--body {
+  display: block;
   width: 100%;
   height: auto;
+  max-height: none;
   object-fit: cover;
-  border-radius: var(--nvx-radius-image);
+  border-radius: 0;
 }
 
-.nvx-bridal-gallery__item--wide img {
+.nvx-bridal-studio__mood {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: center;
+  padding-bottom: var(--nvx-space-10);
+}
+
+.nvx-bridal-studio__plate--mood {
+  justify-self: center;
+  width: min(100%, 22rem);
+  transform: rotate(-1.6deg);
+}
+
+.nvx-bridal-studio__plate--mood img {
+  height: auto;
+  object-fit: contain;
+  border-radius: 1.25rem;
+  box-shadow: var(--nvx-shadow-soft);
+}
+
+.nvx-bridal-studio__mood-copy {
+  max-width: 34rem;
+}
+
+.nvx-bridal-studio__consult {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  gap: 0;
+  align-items: stretch;
+  margin-inline: calc(50% - 50vw);
+  width: 100vw;
+  max-width: 100vw;
+  background: var(--nvx-surface-soft);
+}
+
+.nvx-bridal-studio__consult-media {
+  min-height: clamp(22rem, 58vw, 40rem);
+}
+
+.nvx-bridal-studio__plate--consult,
+.nvx-bridal-studio__consult-media figure {
+  height: 100%;
+}
+
+.nvx-bridal-studio__plate--consult img {
+  height: 100%;
+  min-height: clamp(22rem, 58vw, 40rem);
+  object-fit: cover;
+  object-position: center 58%;
+}
+
+.nvx-bridal-studio__consult-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(2rem, 6vw, 5rem) var(--nvx-gutter-inner);
+}
+
+.nvx-bridal-studio__plate--papada {
+  margin-block: var(--nvx-space-10);
+  padding-inline: var(--nvx-gutter-inner);
+}
+
+.nvx-bridal-studio__plate--papada img {
+  width: 100%;
+  height: auto;
   aspect-ratio: 3 / 2;
+  object-fit: cover;
   object-position: center;
 }
 
-.nvx-bridal-gallery__item:not(.nvx-bridal-gallery__item--wide) img {
+.nvx-bridal-studio__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.82fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
+  padding-bottom: var(--nvx-space-8);
+}
+
+.nvx-bridal-studio__plate--brazos {
+  margin-top: 0;
+}
+
+.nvx-bridal-studio__plate--espalda {
+  margin-top: clamp(2.5rem, 8vw, 7rem);
+}
+
+.nvx-bridal-studio__plate--brazos img,
+.nvx-bridal-studio__plate--espalda img {
   aspect-ratio: 3 / 4;
 }
 
-.nvx-bridal-gallery__item:nth-child(2) img {
-  object-position: center 15%;
+.nvx-bridal-studio__plate--brazos img {
+  object-position: center 14%;
 }
 
-.nvx-bridal-gallery__item:nth-child(3) img {
-  object-position: center 30%;
+.nvx-bridal-studio__plate--espalda img {
+  object-position: center 28%;
 }
 
-@media (max-width: 48rem) {
-  .nvx-brand-section .nvx-bridal-gallery__zones {
+@media (max-width: 56rem) {
+  .nvx-bridal-studio__mood,
+  .nvx-bridal-studio__consult,
+  .nvx-bridal-studio__pair {
     grid-template-columns: 1fr;
   }
 
-  .nvx-bridal-gallery__feature img {
-    aspect-ratio: 3 / 4;
-    max-height: 32rem;
-    object-position: center 50%;
+  .nvx-bridal-studio__plate--mood {
+    transform: rotate(-0.8deg);
+    width: min(100%, 20rem);
+  }
+
+  .nvx-bridal-studio__consult {
+    margin-inline: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .nvx-bridal-studio__consult-media,
+  .nvx-bridal-studio__plate--consult img {
+    min-height: 22rem;
+  }
+
+  .nvx-bridal-studio__plate--espalda {
+    margin-top: 0;
+  }
+
+  .nvx-bridal-studio__plate--papada {
+    margin-block: var(--nvx-space-6);
+    padding-inline: var(--nvx-gutter-inner);
   }
 }
 

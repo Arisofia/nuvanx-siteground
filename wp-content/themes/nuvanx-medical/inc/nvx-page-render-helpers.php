@@ -387,6 +387,7 @@ function nvx_known_image_intrinsics(): array {
 		'Brazos-novias'                                  => array( 941, 1672 ),
 		'Espalda-novias'                                 => array( 941, 1672 ),
 		'Papada-novias'                                  => array( 1536, 1024 ),
+		'Protocolo-Endolift-Thermage-Morpheus8-ultherapy' => array( 383, 558 ),
 	);
 }
 

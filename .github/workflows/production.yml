@@ -391,7 +391,7 @@ jobs:
       - name: Check out exact candidate audit tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -605,8 +605,10 @@ jobs:
     steps:
       - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           persist-credentials: false
 
       - name: Configure verification-only production SSH
@@ -628,7 +630,9 @@ jobs:
 
       - name: Verify production is exact requested SHA
         shell: bash
-        run: ORIGIN_SSH_ALIAS=nvx-prod-audit PROD_DB_NAME="$PROD_DB_NAME" BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="${{ inputs.candidate_sha }}" node scripts/production/verify-production-boundary.mjs
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: ORIGIN_SSH_ALIAS=nvx-prod-audit PROD_DB_NAME="$PROD_DB_NAME" BASE_URL="$BASE_URL" EXPECTED_HOST="$EXPECTED_HOST" EXPECTED_SHA="$CANDIDATE_SHA" node scripts/production/verify-production-boundary.mjs
 
       - name: Run Lighthouse production matrix
         shell: bash
@@ -707,8 +711,10 @@ jobs:
     steps:
       - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           persist-credentials: false
 
       - name: Setup Node.js
@@ -771,8 +777,10 @@ jobs:
     steps:
       - name: Check out exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           persist-credentials: false
 
       - name: Validate read-only collector
@@ -848,8 +856,10 @@ jobs:
     steps:
       - name: Check out exact candidate tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
           persist-credentials: false
 
       - name: Validate read-only forensic tooling

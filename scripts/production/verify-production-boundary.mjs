@@ -165,16 +165,30 @@ for route in \
 do
   headers="$(mktemp)"
   body="$(mktemp)"
-  result="$(curl -sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
+  # Hit the local origin, not the public edge. Five public curls trip SiteGround
+  # captcha and the sixth route fails with a silent non-200.
+  result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve "$EXPECTED_HOST:443:127.0.0.1" -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
   code="$(printf '%s' "$result" | cut -d'|' -f1)"
   effective="$(printf '%s' "$result" | cut -d'|' -f2-)"
-  test "$code" = '200'
+  if [[ "$code" != '200' ]]; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=http_code code=$code" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
   case "$effective" in
     https://nuvanx.com/*|https://nuvanx.com) ;;
     *) echo "PRODUCTION_ORIGIN_FAIL route=$route final=$effective" >&2; rm -f "$headers" "$body"; exit 1 ;;
   esac
-  ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"
-  ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"
+  if grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=captcha_path_in_body" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+  if grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=sg_captcha_challenge" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
 
   assert_meta_equals "$body" 'nvx-deploy-sha' "$stamp_sha"
   assert_meta_equals "$body" 'nvx-deploy-run-id' "$stamp_run_id"
@@ -189,26 +203,42 @@ do
     rm -f "$headers" "$body"
     exit 1
   fi
-  printf '%s' "$combined" | grep -Eiq 'index'
-  printf '%s' "$combined" | grep -Eiq 'follow'
+  if ! printf '%s' "$combined" | grep -Eiq 'index'; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_index robots=$combined" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+  if ! printf '%s' "$combined" | grep -Eiq 'follow'; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_follow robots=$combined" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+
+  require_body() {
+    grep -Fq "$1" "$body" || {
+      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string" >&2
+      rm -f "$headers" "$body"
+      exit 1
+    }
+  }
 
   case "$route" in
     '/protocolos-signature/')
-      grep -Fq 'nvx-brand-page nvx-brand-page--signature' "$body"
-      grep -Fq 'Una ruta de decisión, no un paquete cerrado' "$body"
-      grep -Fq 'Arquitecturas clínicas' "$body"
+      require_body 'nvx-brand-page nvx-brand-page--signature'
+      require_body 'Una ruta de decisión, no un paquete cerrado'
+      require_body 'Arquitecturas clínicas'
       ;;
     '/remodelacion-corporal-laser-madrid/')
-      grep -Fq 'nvx-brand-page nvx-brand-page--signature' "$body"
-      grep -Fq 'Cómo se decide el plan corporal' "$body"
-      grep -Fq 'Zonas de valoración' "$body"
-      grep -Fq 'Tu primera valoración clínica' "$body"
+      require_body 'nvx-brand-page nvx-brand-page--signature'
+      require_body 'Cómo se decide el plan corporal'
+      require_body 'Zonas de valoración'
+      require_body 'Tu primera valoración clínica'
       ;;
     '/tratamiento-postparto-abdomen-contorno-corporal-madrid/')
-      grep -Fq 'nvx-brand-page nvx-brand-page--signature' "$body"
-      grep -Fq 'Qué se valora en postparto' "$body"
-      grep -Fq 'Rutas relacionadas' "$body"
-      grep -Fq 'Tu primera valoración clínica' "$body"
+      require_body 'nvx-brand-page nvx-brand-page--signature'
+      require_body 'Qué se valora en postparto'
+      require_body 'Rutas relacionadas'
+      require_body 'Tu primera valoración clínica'
       ;;
   esac
 

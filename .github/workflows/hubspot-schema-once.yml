@@ -11,33 +11,33 @@ permissions:
 
 jobs:
   diagnose:
-    name: Identify PR 599 preview run
+    name: Identify PR 599 FIFO blockers
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      TARGET_RUN_ID: '32156937386'
     steps:
-      - name: Query recent pull_request_target runs only
+      - name: Query older canonical mutation runs only
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TARGET_BRANCH: feat/attribution-contract-v2-secure-20260818
         run: |
           set -Eeuo pipefail
-          tmp="$(mktemp)"
-          gh api "/repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request_target&per_page=50" > "$tmp"
-          jq -r --arg branch "$TARGET_BRANCH" '
-            .workflow_runs[]
-            | select(.created_at >= "2026-08-18T15:45:00Z")
-            | [
-                "RUN_ID=" + (.id|tostring),
-                "status=" + (.status // ""),
-                "conclusion=" + (.conclusion // ""),
-                "head_branch=" + (.head_branch // ""),
-                "head_sha=" + (.head_sha // ""),
-                "event=" + (.event // ""),
-                "title=" + ((.display_title // "") | gsub("[\r\n\t]"; " "))
-              ] | join(" ")
-          ' "$tmp" | head -n 20
-          matches="$(jq --arg branch "$TARGET_BRANCH" '[.workflow_runs[] | select(.created_at >= "2026-08-18T15:45:00Z") | select(.head_branch == $branch or (.display_title // "" | contains("secure runtime contract v2")))] | length' "$tmp")"
-          echo "PR599_PREVIEW_RUN_CANDIDATES=$matches"
-          echo 'ACTIONS_RUN_READ=PASS mutation=0 secrets=0'
+          out="$(mktemp)"
+          : > "$out"
+          for status in queued in_progress waiting requested pending; do
+            gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100" \
+              --jq '.workflow_runs[] | [(.id|tostring),(.status // ""),(.event // ""),(.path // ""),(.head_sha // ""),(.head_branch // "")] | @tsv' \
+              >> "$out"
+          done
+          awk -F '\t' -v current="$TARGET_RUN_ID" '
+            $1 ~ /^[0-9]+$/ && $1+0 < current+0 &&
+            ($3 == "push" || $3 == "workflow_dispatch" || $3 == "pull_request_target") &&
+            ($4 == ".github/workflows/staging.yml" || $4 == ".github/workflows/production.yml") {
+              print "FIFO_BLOCKER run_id=" $1 " status=" $2 " event=" $3 " path=" $4 " head_sha=" $5 " branch=" $6
+            }
+          ' "$out" | sort -u
+          count="$(awk -F '\t' -v current="$TARGET_RUN_ID" '$1 ~ /^[0-9]+$/ && $1+0 < current+0 && ($3 == "push" || $3 == "workflow_dispatch" || $3 == "pull_request_target") && ($4 == ".github/workflows/staging.yml" || $4 == ".github/workflows/production.yml") { seen[$1]=1 } END { print length(seen) }' "$out")"
+          echo "PR599_FIFO_BLOCKERS=$count"
+          echo 'FIFO_READ=PASS mutation=0 secrets=0'

@@ -106,20 +106,25 @@ set_string_spec nvx_conversion_landing_url 'NUVANX Conversion Landing URL' 'URL 
 set_string_spec nvx_conversion_timestamp 'NUVANX Conversion Timestamp' 'Timestamp ISO 8601 del snapshot de conversión.'
 
 check_property() {
-  local name="$1" expected_type="$2" expected_field_type="$3" out="$work/property-${name}.json"
+  local name="$1" expected_type="$2" expected_field_type="$3"
+  local out="$work/property-${name}.json"
   local status
   status="$(request GET "$API_BASE/crm/v3/properties/contacts/$name" "$out")"
   if [[ "$status" == '200' ]]; then
-    local name_ok type field_type hidden form_field
+    local name_ok type field_type hidden form_field options_ok
     name_ok="$(jq -r --arg name "$name" 'if .name == $name then "1" else "0" end' "$out" 2>/dev/null || echo 0)"
     type="$(jq -r '.type // empty' "$out" 2>/dev/null || true)"
     field_type="$(jq -r '.fieldType // empty' "$out" 2>/dev/null || true)"
     hidden="$(jq -r '(.hidden // false) | tostring' "$out" 2>/dev/null || echo unknown)"
     form_field="$(jq -r '(.formField // false) | tostring' "$out" 2>/dev/null || echo unknown)"
-    if [[ "$name_ok" == '1' && "$type" == "$expected_type" && "$field_type" == "$expected_field_type" && "$hidden" == 'false' && "$form_field" == 'true' ]]; then
+    options_ok='1'
+    if [[ "$expected_type" == 'bool' ]]; then
+      options_ok="$(jq -r 'if ([.options[]?.value] | sort) == ["false","true"] then "1" else "0" end' "$out" 2>/dev/null || echo 0)"
+    fi
+    if [[ "$name_ok" == '1' && "$type" == "$expected_type" && "$field_type" == "$expected_field_type" && "$hidden" == 'false' && "$form_field" == 'true' && "$options_ok" == '1' ]]; then
       return 0
     fi
-    echo "HUBSPOT_PROPERTY_CONTRACT=FAIL property=$name name_match=$name_ok type=${type:-missing} field_type=${field_type:-missing} hidden=$hidden form_field=$form_field expected_type=$expected_type expected_field_type=$expected_field_type" >&2
+    echo "HUBSPOT_PROPERTY_CONTRACT=FAIL property=$name name_match=$name_ok type=${type:-missing} field_type=${field_type:-missing} hidden=$hidden form_field=$form_field options_ok=$options_ok expected_type=$expected_type expected_field_type=$expected_field_type" >&2
     exit 1
   fi
   if [[ "$status" == '404' ]]; then
@@ -131,7 +136,8 @@ check_property() {
 }
 
 check_existing_string_property() {
-  local name="$1" out="$work/property-${name}.json"
+  local name="$1"
+  local out="$work/property-${name}.json"
   local status
   status="$(request GET "$API_BASE/crm/v3/properties/contacts/$name" "$out")"
   if [[ "$status" == '200' ]]; then
@@ -175,6 +181,14 @@ create_managed_property() {
       hasUniqueValue: false,
       hidden: false
     }' > "$body"
+
+  if [[ "${property_type[$name]}" == 'bool' ]]; then
+    jq '.options = [
+      {label:"Sí",value:"true",displayOrder:0,hidden:false},
+      {label:"No",value:"false",displayOrder:1,hidden:false}
+    ]' "$body" > "$work/create-${name}-with-options.json"
+    mv "$work/create-${name}-with-options.json" "$body"
+  fi
 
   local status
   status="$(request POST "$API_BASE/crm/v3/properties/contacts" "$work/create-${name}-response.json" "$body")"

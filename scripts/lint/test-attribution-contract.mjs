@@ -42,6 +42,21 @@ if (fs.existsSync(provisionerPath)) {
     'QA gate must be a native HubSpot boolean property');
   assert.match(provisioner, /property_field_type\[nvx_is_test_lead\]='booleancheckbox'/,
     'QA gate must use HubSpot booleancheckbox form semantics');
+  assert.match(provisioner, /value:\s*"true"/,
+    'HubSpot boolean property creation must declare the required true option');
+  assert.match(provisioner, /value:\s*"false"/,
+    'HubSpot boolean property creation must declare the required false option');
+  assert.match(provisioner, /options_ok/,
+    'Schema verification must validate boolean options instead of type alone');
+  assert.doesNotMatch(
+    provisioner,
+    /local name="\$1"[^\n]*out="\$work\/property-\$\{name\}\.json"/,
+    'set -u safe functions must not expand a local variable in the same declaration that assigns it',
+  );
+  assert.match(provisioner, /local name="\$1" expected_type="\$2" expected_field_type="\$3"\n\s*local out="\$work\/property-\$\{name\}\.json"/,
+    'check_property must assign name before deriving the response path');
+  assert.match(provisioner, /check_existing_string_property\(\) \{\n\s*local name="\$1"\n\s*local out="\$work\/property-\$\{name\}\.json"/,
+    'existing-property check must assign name before deriving the response path');
   assert.match(provisioner, /NUVANX_CONFIRM:-.*yes/,
     'HubSpot mutation must continue requiring explicit NUVANX_CONFIRM=yes');
   assert.match(provisioner, /HUBSPOT_MANAGED_PROPERTY_CONTRACT=FAIL missing=/,
@@ -54,7 +69,7 @@ if (fs.existsSync(provisionerPath)) {
   for (const name of managedV2) {
     assert.match(provisioner, new RegExp(`\\b${name}\\b`), `Schema v2 provisioner must own ${name}`);
   }
-  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length}`);
+  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1`);
 }
 
 if (!fs.existsSync(runtimePath)) {

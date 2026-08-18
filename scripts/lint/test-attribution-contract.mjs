@@ -63,6 +63,20 @@ if (fs.existsSync(provisionerPath)) {
     'Forms v3 boolean fields must use the single_checkbox field type id');
   assert.match(provisioner, /--arg fieldType "\$form_field_type"/,
     'Form patch must use the Forms v3 field type mapping, not CRM property fieldType values');
+  assert.match(provisioner, /FORM_MAX_FIELDS_PER_GROUP=3/,
+    'Forms v3 writer must codify the live maximum of three fields per field group');
+  assert.match(provisioner, /normalize_form_groups_for_write\(\)/,
+    'Provisioner must normalize legacy oversized field groups before writing Forms v3');
+  assert.match(provisioner, /\(\$group \+ \{fields: \[\$field\]\}\)/,
+    'Oversized legacy groups must preserve each existing field object verbatim while splitting layout');
+  assert.match(provisioner, /verify_visible_form_baseline\(\)/,
+    'Form normalization must protect the four visible required identity fields');
+  assert.match(provisioner, /range\(0; \(\$fields \| length\); \$max\)/,
+    'New hidden fields must be chunked into write-valid groups instead of one oversized default group');
+  assert.match(provisioner, /HUBSPOT_FORM_GROUP_CONTRACT=FAIL/,
+    '--check must fail closed on a legacy group that Forms v3 would refuse to write');
+  assert.match(provisioner, /HUBSPOT_FORM_GROUP_CONTRACT=PASS/,
+    'Post-apply verification must prove the canonical form is write-valid');
   assert.match(provisioner, /NUVANX_CONFIRM:-.*yes/,
     'HubSpot mutation must continue requiring explicit NUVANX_CONFIRM=yes');
   assert.match(provisioner, /HUBSPOT_MANAGED_PROPERTY_CONTRACT=FAIL missing=/,
@@ -75,7 +89,7 @@ if (fs.existsSync(provisionerPath)) {
   for (const name of managedV2) {
     assert.match(provisioner, new RegExp(`\\b${name}\\b`), `Schema v2 provisioner must own ${name}`);
   }
-  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_v3_types=1`);
+  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_v3_types=1 form_group_normalization=1`);
 }
 
 if (!fs.existsSync(runtimePath)) {

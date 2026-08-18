@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const runtimePath = 'wp-content/themes/nuvanx-medical/assets/js/nvx-attribution-contract.js';
 const directPath = 'wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php';
 const gtmPath = 'wp-content/themes/nuvanx-medical/inc/nvx-gtm-integration.php';
+const bridgePath = 'wp-content/themes/nuvanx-medical/inc/nvx-hubspot-secure-attribution.php';
 const provisionerPath = 'scripts/ci/provision-hubspot-attribution-contract.sh';
 
 const managedV2 = [
@@ -92,12 +94,58 @@ if (fs.existsSync(provisionerPath)) {
   console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_v3_types=1 form_group_normalization=1`);
 }
 
+function memoryStorage() {
+  const values = new Map();
+  return {
+    getItem: (key) => values.has(String(key)) ? values.get(String(key)) : null,
+    setItem: (key, value) => values.set(String(key), String(value)),
+    removeItem: (key) => values.delete(String(key)),
+  };
+}
+
+function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test_lead: false, test_run_id: '' } }) {
+  const localStorage = memoryStorage();
+  const sessionStorage = memoryStorage();
+  const location = new URL(href);
+  const window = {
+    nvxConversionEvents: {
+      forms: { valoracion: '5042522a-0bc5-4381-ac3e-5aee8649b69c' },
+      qa,
+    },
+    location: {
+      href: location.href,
+      hostname: location.hostname,
+      search: location.search,
+    },
+    localStorage,
+    sessionStorage,
+    wp_has_consent: () => consent,
+    crypto: { randomUUID: () => '11111111-1111-4111-8111-111111111111' },
+    addEventListener: () => {},
+  };
+  const document = {
+    referrer,
+    readyState: 'complete',
+    querySelector: () => null,
+    createElement: () => ({ type: '', name: '', value: '' }),
+    addEventListener: () => {},
+  };
+  const context = vm.createContext({
+    window, document, URL, URLSearchParams, Date, Uint8Array, Array, Object, Set,
+    Boolean, String, Number, JSON, RegExp, Math, console,
+  });
+  vm.runInContext(runtimeSource, context, { filename: runtimePath });
+  return { window, document, localStorage, sessionStorage };
+}
+
 if (!fs.existsSync(runtimePath)) {
   console.log('ATTRIBUTION_CONTRACT=SKIP runtime_absent=1');
 } else {
+  assert.equal(fs.existsSync(bridgePath), true, 'Authenticated HubSpot attribution bridge must exist with Runtime Contract v2');
   const runtime = fs.readFileSync(runtimePath, 'utf8');
   const direct = fs.readFileSync(directPath, 'utf8');
   const gtm = fs.readFileSync(gtmPath, 'utf8');
+  const bridge = fs.readFileSync(bridgePath, 'utf8');
 
   const utmPairs = [
     ['utm_source', 'nvx_utm_source'],
@@ -129,64 +177,130 @@ if (!fs.existsSync(runtimePath)) {
     'Consented attribution storage must retain the documented 90-day TTL');
   assert.match(runtime, /CLICK_KEYS = \['gclid', 'gbraid', 'wbraid', 'gclsrc'\]/,
     'Runtime must own the canonical Google click-id set');
+  assert.match(runtime, /nvx_is_test_lead: qa\.is_test_lead === true/,
+    'Embed QA marker must originate from server-provided context');
+  assert.match(runtime, /key === 'nvx_is_test_lead' \? Boolean\(rawValue\)/,
+    'HubSpot V4 single checkbox must receive a boolean, not a string');
+  assert.match(runtime, /if \(!available\.has\(fieldName\)\) return/,
+    'V4 embed must only set properties that are already present on the form instance');
 
   for (const [utm, property] of utmPairs) {
     assert.match(runtime, new RegExp(`${utm}: '${property}'`), `Embed runtime must map ${utm} to ${property}`);
-    assert.match(direct, new RegExp(`'${utm}'\\s*=>\\s*array\\( '${property}' \\)`),
-      `First-party server bridge must map ${utm} to ${property}`);
+    assert.match(bridge, new RegExp(`'${utm}'\\s*=>\\s*'${property}'`),
+      `Secure first-party bridge must map ${utm} to ${property}`);
   }
   for (const [click, property] of clickPairs) {
     assert.match(runtime, new RegExp(`${click}: '${property}'`), `Embed runtime must map ${click} to ${property}`);
-    assert.match(direct, new RegExp(`'${click}'\\s*=>\\s*array\\( '${property}' \\)`),
-      `First-party server bridge must map ${click} to ${property}`);
+    assert.match(bridge, new RegExp(`'${click}'\\s*=>\\s*'${property}'`),
+      `Secure first-party bridge must map ${click} to ${property}`);
   }
 
-  for (const name of [
-    'nvx_first_channel',
-    'nvx_first_source',
-    'nvx_first_medium',
-    'nvx_first_campaign_id',
-    'nvx_first_referrer_domain',
-    'nvx_first_landing_url',
-    'nvx_first_timestamp',
-    'nvx_conversion_channel',
-    'nvx_conversion_source',
-    'nvx_conversion_medium',
-    'nvx_conversion_campaign_id',
-    'nvx_conversion_landing_url',
-    'nvx_conversion_timestamp',
-  ]) {
+  for (const name of managedV2.slice(3)) {
     assert.match(runtime, new RegExp(`\\b${name}\\b`), `Runtime must populate ${name}`);
-    assert.match(direct, new RegExp(`'${name}'`), `Direct form contract must carry ${name}`);
+    assert.match(bridge, new RegExp(`'${name}'`), `Secure server bridge must carry ${name}`);
   }
 
   assert.match(runtime, /function classifyChannel\(/,
     'Runtime must classify paid, organic, referral and direct traffic explicitly');
-  assert.match(runtime, /organic_search/,
-    'First-touch classifier must represent organic search without requiring UTMs');
-  assert.match(runtime, /organic_social/,
-    'First-touch classifier must represent organic social without requiring UTMs');
-  assert.match(runtime, /referral/,
-    'First-touch classifier must represent external referral traffic');
-  assert.match(runtime, /direct/,
-    'First-touch classifier must represent direct traffic');
-  assert.match(runtime, /nvx_first_touch/,
+  for (const channel of ['organic_search', 'organic_social', 'referral', 'direct', 'paid_search', 'paid_social']) {
+    assert.match(runtime, new RegExp(`['"]${channel}['"]`), `Channel classifier must represent ${channel}`);
+  }
+  assert.match(runtime, /FIRST_TOUCH_KEY = 'nvx_first_touch'/,
     'Runtime must persist a distinct first-touch snapshot');
-  assert.match(runtime, /nvx_conversion_touch/,
-    'Runtime must maintain a distinct conversion/last-touch snapshot');
+  assert.match(runtime, /CONVERSION_TOUCH_KEY = 'nvx_conversion_touch'/,
+    'Runtime must persist a distinct conversion-touch snapshot');
 
-  assert.match(direct, /'1' !== nvx_valoracion_attribution_value\( 'nvx_marketing_consent', 1 \)/,
-    'Server bridge must refuse marketing attribution without the consent marker');
-  assert.doesNotMatch(direct, /\bhs_google_click_id\b/,
-    'First-party submission must not depend on a native HubSpot system field');
-  assert.match(direct, /nvx_valoracion_append_field\( \$fields, 'nvx_lead_id', nvx_valoracion_lead_id\(\) \)/,
-    'Lead lineage ID must be appended independently from marketing attribution');
-  assert.doesNotMatch(direct, /new URLSearchParams\(/,
-    'PHP markup must not bypass consent by copying marketing query params inline');
+  assert.match(gtm, /function nvx_attribution_qa_context\(\): array/,
+    'WordPress must own deterministic QA identity server-side');
+  assert.match(gtm, /nvx_environment_is_staging2\(\)/,
+    'Staging2 must be the only automatic test-lead environment');
+  assert.match(gtm, /window\.nvxConversionEvents\.qa=Object\.assign/,
+    'Server QA context must be exposed to the browser runtime');
   assert.match(gtm, /'nvx-attribution-contract'/,
     'WordPress must enqueue the attribution contract');
   assert.match(gtm, /add_action\( 'wp_enqueue_scripts', 'nvx_gtm_enqueue_attribution_contract', 9 \)/,
     'Attribution contract must enqueue before the conversion relay');
+  assert.match(gtm, /require_once __DIR__ \. '\/nvx-hubspot-secure-attribution\.php'/,
+    'Authenticated HubSpot bridge must be loaded from the analytics integration owner');
 
-  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1');
+  assert.match(direct, /submissions\/v3\/integration\/submit\//,
+    'Existing direct-form transport must remain the proven single-call public transport before interception');
+  assert.match(bridge, /submissions\/v3\/integration\/secure\/submit\//,
+    'Secure bridge must use HubSpot authenticated form submission endpoint');
+  assert.match(bridge, /'Authorization'\]\s*=\s*'Bearer '\s*\.\s*\$token/,
+    'Secure bridge must authenticate server-side with Bearer auth');
+  assert.match(bridge, /defined\( 'NVX_HUBSPOT_ACCESS_TOKEN' \)/,
+    'Secure bridge credential must come from a server runtime constant');
+  assert.doesNotMatch(bridge, /pat-eu1-[A-Za-z0-9-]{20,}/,
+    'No HubSpot credential may be hardcoded into source');
+  assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_pre_http_request', 10, 3 \)/,
+    'Secure bridge must preempt only the canonical existing transport');
+  assert.match(bridge, /nvx_hubspot_secure_original_url\(\) !== \$url/,
+    'Secure bridge must be scoped to the canonical original form endpoint');
+  assert.match(bridge, /nvx_hubspot_secure_strip_reserved_fields\( \$fields \)/,
+    'Client-provided reserved attribution fields must be removed before secure submit');
+  assert.match(bridge, /'nvx_is_test_lead'/,
+    'Reserved field list must include QA identity');
+  assert.match(bridge, /'nvx_google_click_id'/,
+    'Reserved field list must include legacy Google click attribution');
+  assert.match(bridge, /nvx_hubspot_secure_append_qa\( \$fields \)/,
+    'QA identity must be rebuilt from the server environment');
+  assert.doesNotMatch(bridge, /nvx_hubspot_secure_post_value\( 'nvx_is_test_lead'/,
+    'Browser POST data must never be able to enable test-lead mode');
+  assert.match(bridge, /'1' !== nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
+    'Secure bridge must refuse marketing attribution without explicit consent marker');
+  assert.doesNotMatch(bridge, /skipValidation/,
+    'Deprecated Forms API skipValidation must not be used');
+
+  const securePostCalls = bridge.match(/wp_remote_post\(/g) || [];
+  assert.equal(securePostCalls.length, 1,
+    'Secure bridge must perform exactly one authenticated HubSpot network POST');
+
+  const organic = executeRuntime(runtime, {
+    consent: true,
+    href: 'https://nuvanx.com/endolift/?foo=bar',
+    referrer: 'https://www.google.com/search?q=endolift',
+  });
+  const contract = organic.window.NUVANXAttributionContract;
+  const first = contract.getFirstTouch();
+  assert.equal(first.channel, 'organic_search');
+  assert.equal(first.source, 'google');
+  assert.equal(first.medium, 'organic');
+  assert.equal(first.landing_url, 'https://nuvanx.com/endolift/');
+  assert.equal(first.referrer_domain, 'www.google.com');
+
+  organic.window.location.href = 'https://nuvanx.com/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=brand&gclid=GCLID123';
+  organic.window.location.hostname = 'nuvanx.com';
+  organic.window.location.search = '?utm_source=google&utm_medium=cpc&utm_campaign=brand&gclid=GCLID123';
+  organic.document.referrer = 'https://www.google.com/';
+  const paidConversion = contract.getConversionTouch();
+  assert.equal(contract.getFirstTouch().channel, 'organic_search', 'paid return must not overwrite first touch');
+  assert.equal(paidConversion.channel, 'paid_search');
+  assert.equal(paidConversion.source, 'google');
+  assert.equal(paidConversion.gclid, 'GCLID123');
+  assert.equal(paidConversion.campaign_id, 'brand');
+
+  organic.window.location.href = 'https://nuvanx.com/madrid/valoracion/';
+  organic.window.location.hostname = 'nuvanx.com';
+  organic.window.location.search = '';
+  organic.document.referrer = 'https://www.nuvanx.com/endolift/';
+  const internalConversion = contract.getConversionTouch();
+  assert.equal(internalConversion.channel, 'paid_search', 'internal navigation must preserve last acquisition touch');
+  assert.equal(internalConversion.gclid, 'GCLID123', 'internal navigation must preserve conversion click id');
+  assert.equal(internalConversion.landing_url, 'https://nuvanx.com/madrid/valoracion/');
+
+  const noConsent = executeRuntime(runtime, {
+    consent: false,
+    href: 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE',
+    referrer: 'https://www.google.com/',
+  });
+  assert.equal(noConsent.window.NUVANXAttributionContract.getFirstTouch(), null);
+  assert.equal(noConsent.window.NUVANXAttributionContract.getConversionTouch(), null);
+  assert.equal(noConsent.localStorage.getItem('nvx_first_touch'), null);
+  assert.equal(noConsent.localStorage.getItem('nvx_conversion_touch'), null);
+
+  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0');
+  console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
+  console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1');
+  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1');
 }

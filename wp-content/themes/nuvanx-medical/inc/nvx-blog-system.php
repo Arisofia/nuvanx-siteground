@@ -55,6 +55,10 @@ function nvx_theme_enqueue_blog_styles(): void {
 		return;
 	}
 
+	if ( function_exists( 'nvx_theme_public_delivers_inline_styles' ) && nvx_theme_public_delivers_inline_styles() ) {
+		return;
+	}
+
 	wp_enqueue_style(
 		'nvx-posts',
 		get_template_directory_uri() . '/assets/css/nvx-posts.css',

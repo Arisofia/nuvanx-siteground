@@ -475,14 +475,16 @@ add_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
 function nvx_document_governance_enqueue_assets(): void {
 	$uri = get_template_directory_uri();
 
-	wp_enqueue_style(
-		'nvx-accessibility-governance',
-		$uri . '/assets/css/nvx-accessibility-governance.css',
-		array( 'nvx-header', 'nvx-footer' ),
-		function_exists( 'nvx_asset_version' )
-			? nvx_asset_version( 'assets/css/nvx-accessibility-governance.css' )
-			: NVX_THEME_VERSION
-	);
+	if ( ! function_exists( 'nvx_theme_public_delivers_inline_styles' ) || ! nvx_theme_public_delivers_inline_styles() ) {
+		wp_enqueue_style(
+			'nvx-accessibility-governance',
+			$uri . '/assets/css/nvx-accessibility-governance.css',
+			array( 'nvx-header', 'nvx-footer' ),
+			function_exists( 'nvx_asset_version' )
+				? nvx_asset_version( 'assets/css/nvx-accessibility-governance.css' )
+				: NVX_THEME_VERSION
+		);
+	}
 
 	wp_enqueue_script(
 		'nvx-runtime-governance',

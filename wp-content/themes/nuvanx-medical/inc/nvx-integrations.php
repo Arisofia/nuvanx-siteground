@@ -525,6 +525,24 @@ function nvx_theme_defer_auxiliary_script_tags( string $tag, string $handle, str
 }
 add_filter( 'script_loader_tag', 'nvx_theme_defer_auxiliary_script_tags', 11, 3 );
 
+/** Force Joinchat/Complianz styles to print media so they cannot stay render-blocking. */
+function nvx_theme_demote_auxiliary_styles(): void {
+	if ( is_admin() || ! function_exists( 'nvx_theme_is_deferred_auxiliary_asset' ) ) {
+		return;
+	}
+
+	$styles = wp_styles();
+	foreach ( (array) $styles->registered as $handle => $obj ) {
+		$src = is_object( $obj ) ? (string) $obj->src : '';
+		if ( ! nvx_theme_is_deferred_auxiliary_asset( (string) $handle, $src ) ) {
+			continue;
+		}
+		wp_style_add_data( (string) $handle, 'media', 'print' );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'nvx_theme_demote_auxiliary_styles', PHP_INT_MAX );
+add_action( 'wp_print_styles', 'nvx_theme_demote_auxiliary_styles', 0 );
+
 /** Defer non-critical Complianz and Joinchat stylesheets while retaining a no-JS fallback. */
 function nvx_theme_defer_auxiliary_style_tags( string $html, string $handle, string $href, string $media ): string {
 	unset( $media );
@@ -532,12 +550,19 @@ function nvx_theme_defer_auxiliary_style_tags( string $html, string $handle, str
 		return $html;
 	}
 
-	$deferred = str_replace(
-		array( "rel='stylesheet'", 'rel="stylesheet"' ),
-		array( "rel='stylesheet' media='print' onload=\"this.media='all'\"", 'rel="stylesheet" media="print" onload="this.media=\'all\'"' ),
-		$html
+	$original = $html;
+	$html     = (string) preg_replace( '/\smedia=([\'"]).*?\1/i', '', $html );
+	$deferred = (string) preg_replace(
+		'/rel=([\'"])stylesheet\1/i',
+		'rel=$1stylesheet$1 media="print" onload="this.onload=null;this.media=\'all\'"',
+		$html,
+		1
 	);
 
-	return $deferred === $html ? $html : $deferred . '<noscript>' . $html . '</noscript>';
+	if ( $deferred === $html ) {
+		return $original;
+	}
+
+	return $deferred . '<noscript>' . $original . '</noscript>';
 }
 add_filter( 'style_loader_tag', 'nvx_theme_defer_auxiliary_style_tags', 30, 4 );

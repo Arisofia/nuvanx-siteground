@@ -131,6 +131,10 @@ function nvx_enqueue_solutions_page_assets(): void {
 		? nvx_asset_version( $css_relative )
 		: ( (string) filemtime( $css_path ) );
 
+	if ( function_exists( 'nvx_theme_public_delivers_inline_styles' ) && nvx_theme_public_delivers_inline_styles() ) {
+		return;
+	}
+
 	wp_enqueue_style(
 		'nvx-soluciones-medicas',
 		get_template_directory_uri() . $css_relative,

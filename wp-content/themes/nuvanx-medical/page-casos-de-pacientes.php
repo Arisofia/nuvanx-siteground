@@ -28,12 +28,14 @@ if ( is_readable( $css_path ) ) {
 		? nvx_asset_version( $css_relative )
 		: (string) filemtime( $css_path );
 
-	wp_enqueue_style(
-		'nvx-cases-holding',
-		get_template_directory_uri() . $css_relative,
-		array( 'nvx-components', 'nvx-patterns' ),
-		$version
-	);
+	if ( ! function_exists( 'nvx_theme_public_delivers_inline_styles' ) || ! nvx_theme_public_delivers_inline_styles() ) {
+		wp_enqueue_style(
+			'nvx-cases-holding',
+			get_template_directory_uri() . $css_relative,
+			array( 'nvx-components', 'nvx-patterns' ),
+			$version
+		);
+	}
 }
 
 get_header();

@@ -26,7 +26,7 @@ assert.match(
 );
 assert.match(
   functionsPhp,
-  /consolidates the complete local\s+\/\/ theme stack into one inline critical bundle/,
+  /Public pages inline the local stack/,
   'theme stylesheet registration must document the public inline delivery',
 );
 assert.match(

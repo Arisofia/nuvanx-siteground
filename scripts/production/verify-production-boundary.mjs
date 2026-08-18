@@ -99,10 +99,26 @@ test "$(wp option get blog_public)" = '1'
 test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
 test -f 'wp-content/themes/nuvanx-medical/.nvx-deploy-stamp.json'
 
-stamp_sha="$(wp eval 'if ( ! function_exists("nvx_get_deploy_stamp_value") ) { require get_template_directory() . "/inc/nvx-deploy-stamp.php"; } echo nvx_get_deploy_stamp_value("DEPLOY_SHA");' --allow-root)"
-stamp_run_id="$(wp eval 'if ( ! function_exists("nvx_get_deploy_stamp_value") ) { require get_template_directory() . "/inc/nvx-deploy-stamp.php"; } echo nvx_get_deploy_stamp_value("DEPLOY_RUN_ID");' --allow-root)"
-stamp_timestamp="$(wp eval 'if ( ! function_exists("nvx_get_deploy_stamp_value") ) { require get_template_directory() . "/inc/nvx-deploy-stamp.php"; } echo nvx_get_deploy_stamp_value("DEPLOY_TIMESTAMP");' --allow-root)"
-stamp_release="$(wp eval 'if ( ! function_exists("nvx_get_deploy_stamp_value") ) { require get_template_directory() . "/inc/nvx-deploy-stamp.php"; } echo nvx_get_deploy_stamp_value("RELEASE_ID");' --allow-root)"
+# Read the immutable stamp file directly. A full wp-cli theme bootstrap after
+# cutover can fail or pollute stdout (plugin notices) and hide the real error.
+read_stamp() {
+  php -r '
+    $path = $argv[1] ?? "";
+    $key = $argv[2] ?? "";
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || $raw === "") { fwrite(STDERR, "stamp_unreadable path=".$path."\n"); exit(1); }
+    $json = json_decode($raw, true);
+    if (!is_array($json)) { fwrite(STDERR, "stamp_invalid_json\n"); exit(1); }
+    $value = isset($json[$key]) ? trim((string) $json[$key]) : "";
+    if ($value === "") { fwrite(STDERR, "stamp_empty_key=".$key."\n"); exit(1); }
+    echo $value;
+  ' -- wp-content/themes/nuvanx-medical/.nvx-deploy-stamp.json "$1"
+}
+
+stamp_sha="$(read_stamp DEPLOY_SHA)"
+stamp_run_id="$(read_stamp DEPLOY_RUN_ID)"
+stamp_timestamp="$(read_stamp DEPLOY_TIMESTAMP)"
+stamp_release="$(read_stamp RELEASE_ID)"
 
 test "$stamp_sha" = "$EXPECTED_SHA"
 [[ "$stamp_run_id" =~ ^[0-9]+$ ]]
@@ -203,20 +219,29 @@ done
 echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=8 identity_fields=4"
 `;
 
-  const output = execFileSync(
-    '/usr/bin/ssh',
-    [
-      originSshAlias,
-      `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
-    ],
-    {
-      input: remoteScript,
-      encoding: 'utf8',
-      timeout: 180000,
-      maxBuffer: 1024 * 1024,
-    },
-  );
-  return output.trim();
+  try {
+    const output = execFileSync(
+      '/usr/bin/ssh',
+      [
+        originSshAlias,
+        `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
+      ],
+      {
+        input: remoteScript,
+        encoding: 'utf8',
+        timeout: 180000,
+        maxBuffer: 1024 * 1024,
+      },
+    );
+    return output.trim();
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    const stderr = typeof err.stderr === 'string' ? err.stderr.trim() : '';
+    const stdout = typeof err.stdout === 'string' ? err.stdout.trim() : '';
+    throw new Error(
+      [err.message, stdout && `stdout: ${stdout}`, stderr && `stderr: ${stderr}`].filter(Boolean).join('\n'),
+    );
+  }
 }
 
 async function fetchSameHost(url, maxRedirects = 5) {

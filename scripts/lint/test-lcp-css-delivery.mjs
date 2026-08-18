@@ -76,6 +76,26 @@ assert.match(
 );
 assert.match(
   governance,
+  /function nvx_theme_public_delivers_inline_styles/,
+  'public requests must skip the local CSS file chain',
+);
+assert.match(
+  governance,
+  /themes\/nuvanx-medical\/assets\/css/,
+  'leftover theme CSS file links must be dropped even if a plugin re-enqueues them',
+);
+assert.match(
+  governance,
+  /function nvx_theme_defer_local_script_tags/,
+  'theme JS must stay deferred on the public document',
+);
+assert.match(
+  functionsPhp,
+  /nvx_theme_public_delivers_inline_styles/,
+  'the public stylesheet enqueue must skip file URLs when the inline bundle is active',
+);
+assert.match(
+  governance,
   /function nvx_theme_inline_critical_style_foundation/,
   'the stylesheet bundle must be emitted inline',
 );
@@ -111,6 +131,15 @@ assert.match(
 );
 assert.match(
   integrations,
+  /function nvx_theme_demote_auxiliary_styles/,
+  'Joinchat CSS must be forced to print media before it is printed',
+);
+assert.ok(
+  integrations.includes("preg_replace( '/\\smedia="),
+  'Joinchat tag rewrite must strip a leftover media=all attribute',
+);
+assert.match(
+  integrations,
   /preg_replace\( '\/\^<script\\b\/i', '<script defer', \$tag, 1 \)/,
   'script deferral must only alter the opening tag, not inline JavaScript content',
 );
@@ -133,6 +162,64 @@ assert.match(
   governance,
   /interior-hero first paint/,
   'interior brand heroes must reserve the dark stage in the inline bundle',
+);
+assert.match(
+  governance,
+  /\.nvx-brand-hero__copy\{[^}]*padding-block:var\(--nvx-space-8\)/,
+  'interior hero copy padding must be reserved in the inline first-paint snippet',
+);
+assert.match(
+  governance,
+  /\.nvx-header\{min-height:var\(--nvx-header-height-mobile\)/,
+  'header height must be reserved in the inline first-paint snippet',
+);
+
+const baseCss = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/css/nvx-base.css',
+  'utf8',
+);
+const layoutCss = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css',
+  'utf8',
+);
+const fontsCss = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/css/nvx-fonts.css',
+  'utf8',
+);
+assert.match(
+  baseCss,
+  /\.nvx-brand-hero__copy\s*\{[\s\S]*padding-block:\s*var\(--nvx-space-8\)/,
+  'base CSS must reserve interior hero padding before deferred stylesheets',
+);
+assert.match(
+  baseCss,
+  /\.nvx-brand-page > \.nvx-brand-section/,
+  'base CSS must reserve brand-section padding on first paint',
+);
+assert.match(
+  baseCss,
+  /\.nvx-logo__img/,
+  'base CSS must reserve logo geometry on first paint',
+);
+assert.doesNotMatch(
+  layoutCss,
+  /transition:\s*padding-block/,
+  'section padding must not animate after first paint',
+);
+assert.doesNotMatch(
+  layoutCss,
+  /transition:\s*padding-inline/,
+  'shell padding must not animate after first paint',
+);
+assert.match(
+  fontsCss,
+  /Playfair Display Fallback/,
+  'Playfair must have a metric-matched fallback to limit font-swap CLS',
+);
+assert.match(
+  fontsCss,
+  /Manrope Fallback/,
+  'Manrope must have a metric-matched fallback to limit font-swap CLS',
 );
 assert.match(
   integrations,

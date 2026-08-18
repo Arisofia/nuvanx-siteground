@@ -18,6 +18,28 @@ function nvx_theme_is_treatments_hub_page(): bool {
 	return is_page() && 'tratamientos' === get_post_field( 'post_name', get_queried_object_id() );
 }
 
+/** Public HTML gets one inline bundle — never a chain of theme CSS files. */
+function nvx_theme_public_delivers_inline_styles(): bool {
+	return ! is_admin();
+}
+
+/**
+ * Register local handles without file URLs so wp_add_inline_style() still works
+ * after public file enqueues are skipped.
+ */
+function nvx_theme_register_inline_style_handles(): void {
+	if ( ! nvx_theme_public_delivers_inline_styles() ) {
+		return;
+	}
+
+	foreach ( nvx_theme_local_style_handles() as $handle ) {
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, false, array(), NVX_THEME_VERSION );
+		}
+	}
+}
+add_action( 'wp_enqueue_scripts', 'nvx_theme_register_inline_style_handles', 0 );
+
 /** Whether the theme owns the complete body markup for the current page. */
 function nvx_theme_owns_complete_page_markup(): bool {
 	return is_front_page() || nvx_theme_is_treatments_hub_page();
@@ -185,7 +207,13 @@ function nvx_theme_inline_critical_style_foundation(): void {
 
 	$critical_css .= "\n/* interior-hero first paint */\n"
 		. '.nvx-brand-hero{background:var(--nvx-ink);color:var(--nvx-light);}'
-		. '.nvx-brand-hero .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-microcopy--dark{color:var(--nvx-text-on-dark-82);}' . "\n";
+		. '.nvx-brand-hero .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-microcopy--dark{color:var(--nvx-text-on-dark-82);}'
+		. '.nvx-brand-hero__copy{box-sizing:border-box;width:var(--nvx-shell);max-width:100%;margin-inline:auto;padding-block:var(--nvx-space-8);padding-inline:var(--nvx-gutter-inner);}'
+		. '.nvx-header{min-height:var(--nvx-header-height-mobile);padding-block:var(--nvx-space-3);}'
+		. '.nvx-logo__img,.custom-logo{display:block;width:auto;height:var(--nvx-logo-height-mobile);max-width:var(--nvx-logo-width-mobile);object-fit:contain;}'
+		. '.nvx-brand-page>.nvx-brand-section,.nvx-page__content>.nvx-brand-section{box-sizing:border-box;padding-block:var(--nvx-pad-section);}'
+		. '.nvx-icon{display:inline-block;width:var(--nvx-icon-sm);height:var(--nvx-icon-sm);}'
+		. "\n";
 
 	foreach ( nvx_theme_local_style_handles() as $handle ) {
 		$inline_css = nvx_theme_style_after_data( $styles, $handle );
@@ -265,9 +293,41 @@ function nvx_theme_drop_inlined_file_links( string $html, string $handle, string
 		return '';
 	}
 
+	if ( str_contains( $href, '/themes/nuvanx-medical/assets/css/' ) ) {
+		return '';
+	}
+
 	return $html;
 }
 add_filter( 'style_loader_tag', 'nvx_theme_drop_inlined_file_links', 5, 3 );
+
+/**
+ * Keep theme JS off the LCP critical path even if a plugin strips strategy=defer.
+ *
+ * @param string $tag    Generated script tag.
+ * @param string $handle Registered script handle.
+ * @param string $src    Script URL.
+ */
+function nvx_theme_defer_local_script_tags( string $tag, string $handle, string $src = '' ): string {
+	if ( is_admin() || ! str_contains( $tag, '<script' ) ) {
+		return $tag;
+	}
+
+	$handles = array( 'nvx-main', 'nvx-conversion-events', 'nvx-runtime-governance', 'nvx-home-video', 'nvx-attribution-contract' );
+	$is_local = in_array( $handle, $handles, true )
+		|| ( '' !== $src && str_contains( $src, '/themes/nuvanx-medical/assets/js/' ) );
+	if ( ! $is_local ) {
+		return $tag;
+	}
+
+	if ( preg_match( '/\sdefer(=|>|\s)/i', $tag ) ) {
+		return $tag;
+	}
+
+	$tag = (string) preg_replace( '/\s(?:async)(?:=(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?/i', '', $tag );
+	return (string) preg_replace( '/^<script\b/i', '<script defer', $tag, 1 );
+}
+add_filter( 'script_loader_tag', 'nvx_theme_defer_local_script_tags', 20, 3 );
 
 /** Dequeue block styles only when the rendered page contains no block markup. */
 function nvx_theme_dequeue_native_block_styles(): void {

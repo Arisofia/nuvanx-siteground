@@ -115,7 +115,7 @@ ob_start();
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Dirección', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-body">
-							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
 							<?php echo esc_html( $clinic_address ); ?>
 						</p>
 					</div>
@@ -123,7 +123,7 @@ ob_start();
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Teléfono', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-body">
-							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
 							<?php if ( ! empty( $phone_display ) ) : ?>
 								<a href="<?php echo esc_url( 'tel:' . $clinic_phone ); ?>"><?php echo esc_html( $phone_display ); ?></a>
 							<?php endif; ?>
@@ -133,7 +133,7 @@ ob_start();
 					<div class="nvx-brand-card">
 						<h3 class="nvx-brand-subtitle"><?php esc_html_e( 'Horario', 'nuvanx-medical' ); ?></h3>
 						<p class="nvx-body">
-							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+							<svg class="nvx-icon" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
 							<?php echo esc_html( $clinic_hours ); ?>
 						</p>
 					</div>

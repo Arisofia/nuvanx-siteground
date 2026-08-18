@@ -150,8 +150,8 @@
   );
 
   /* ========== TIPOGRAFÍA OFICIAL ÚNICA ========== */
-  --nvx-serif: "Playfair Display", Georgia, "Times New Roman", serif;
-  --nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --nvx-serif: "Playfair Display", "Playfair Display Fallback", Georgia, "Times New Roman", serif;
+  --nvx-sans: "Manrope", "Manrope Fallback", "Helvetica Neue", Arial, sans-serif;
 
   /* Escala tipográfica validada */
   --nvx-type-display: clamp(2.8rem, 5vw, 4.2rem);

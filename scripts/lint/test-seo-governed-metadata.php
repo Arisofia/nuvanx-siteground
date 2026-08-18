@@ -86,8 +86,9 @@ function nvx_test_merge_conflict_integrity(): void {
             continue;
         }
 
-        // Check for merge conflict markers
-        if ( preg_match( '/^<<<<<<<|^=======|^>>>>>>>|^>>>>>>>/m', $raw ) ) {
+        // Match only actual Git conflict markers. Long Markdown separators such
+        // as "================" are legitimate document content and must pass.
+        if ( preg_match( '/^(?:<{7}(?: .*)?|={7}|>{7}(?: .*)?)\h*$/m', $raw ) ) {
             $rel_path = str_replace( $repo_root . '/', '', $path );
             $failures[] = 'Merge conflict markers found: ' . $rel_path;
         }

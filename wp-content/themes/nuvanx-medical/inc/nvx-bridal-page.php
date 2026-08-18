@@ -31,15 +31,12 @@ function nvx_is_bridal_protocol_page( string $content = '' ): bool {
 /**
  * Figure markup for a bridal upload, rewritten to theme WebP srcset.
  */
-function nvx_bridal_figure( string $filename, string $alt, string $caption, string $extra_class = '' ): string {
-	$src = content_url( 'uploads/2026/08/' . ltrim( $filename, '/' ) );
-	$img = function_exists( 'nvx_responsive_img_markup' )
-		? nvx_responsive_img_markup(
-			$src,
-			$alt,
-			'class="nvx-media nvx-media--body" loading="lazy" decoding="async"'
-		)
-		: '<img src="' . esc_url( $src ) . '" alt="' . esc_attr( $alt ) . '" class="nvx-media nvx-media--body" loading="lazy" decoding="async">';
+function nvx_bridal_figure( string $filename, string $alt, string $caption, string $extra_class = '', string $sizes = '(max-width: 1100px) calc(100vw - 48px), 1100px' ): string {
+	$src  = content_url( 'uploads/2026/08/' . ltrim( $filename, '/' ) );
+	$attrs = 'class="nvx-media nvx-media--body" loading="lazy" decoding="async" sizes="' . esc_attr( $sizes ) . '"';
+	$img   = function_exists( 'nvx_responsive_img_markup' )
+		? nvx_responsive_img_markup( $src, $alt, $attrs )
+		: '<img src="' . esc_url( $src ) . '" alt="' . esc_attr( $alt ) . '" ' . $attrs . '>';
 
 	$class = trim( 'nvx-content-figure ' . $extra_class );
 
@@ -76,14 +73,18 @@ function nvx_bridal_gallery_markup(): string {
 	$html .= nvx_bridal_figure(
 		'Brazos-novias.png',
 		__( 'Novia de frente con vestido de manga corta, zona de brazos', 'nuvanx-medical' ),
-		__( 'Brazos', 'nuvanx-medical' )
+		__( 'Brazos', 'nuvanx-medical' ),
+		'',
+		'(max-width: 680px) calc(100vw - 48px), 480px'
 	);
 	$html .= '</li>';
 	$html .= '<li class="nvx-bridal-gallery__item">';
 	$html .= nvx_bridal_figure(
 		'Espalda-novias.png',
 		__( 'Espalda y escote de un vestido de novia sin tirantes', 'nuvanx-medical' ),
-		__( 'Espalda', 'nuvanx-medical' )
+		__( 'Espalda', 'nuvanx-medical' ),
+		'',
+		'(max-width: 680px) calc(100vw - 48px), 480px'
 	);
 	$html .= '</li>';
 	$html .= '</ul>';

@@ -2408,25 +2408,36 @@ figure.nvx-equipo-portrait{
 }
 
 .nvx-bridal-gallery__feature {
+  width: 100%;
+  max-width: none;
   margin: var(--nvx-space-5) 0 var(--nvx-space-6);
 }
 
+.nvx-bridal-gallery img.nvx-media--body,
+.nvx-bridal-gallery__feature img,
+.nvx-bridal-gallery__zones img {
+  max-height: none;
+}
+
 .nvx-bridal-gallery__feature img {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
+  max-height: 32rem;
   object-fit: cover;
   object-position: center 55%;
 }
 
-.nvx-bridal-gallery__zones {
+.nvx-brand-section .nvx-bridal-gallery__zones {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--nvx-space-4);
+  width: 100%;
+  max-width: none;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.nvx-bridal-gallery__item {
+.nvx-brand-section .nvx-bridal-gallery__item {
   margin: 0;
 }
 
@@ -2463,12 +2474,13 @@ figure.nvx-equipo-portrait{
 }
 
 @media (max-width: 48rem) {
-  .nvx-bridal-gallery__zones {
+  .nvx-brand-section .nvx-bridal-gallery__zones {
     grid-template-columns: 1fr;
   }
 
   .nvx-bridal-gallery__feature img {
     aspect-ratio: 3 / 4;
+    max-height: 32rem;
     object-position: center 50%;
   }
 }

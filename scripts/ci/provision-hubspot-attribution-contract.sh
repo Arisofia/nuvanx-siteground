@@ -5,6 +5,7 @@ MODE="${1:---check}"
 FORM_ID="${HUBSPOT_FORM_ID:-5042522a-0bc5-4381-ac3e-5aee8649b69c}"
 PORTAL_ID="${HUBSPOT_PORTAL:-147416356}"
 API_BASE="https://api.hubapi.com"
+FORM_MAX_FIELDS_PER_GROUP=3
 
 case "$MODE" in
   --check|--apply) ;;
@@ -200,6 +201,46 @@ create_managed_property() {
   echo "HUBSPOT_PROPERTY_CREATE=PASS property=$name"
 }
 
+form_max_group_fields() {
+  local file="$1"
+  jq -r '[.fieldGroups[]? | ((.fields // []) | length)] | max // 0' "$file"
+}
+
+# HubSpot can still return legacy forms whose historical default_group contains
+# more fields than the current Forms v3 write contract accepts. Preserve every
+# field object verbatim, but split only oversized legacy groups into one-field
+# groups. This is deliberately conservative for visible fields: it avoids turning
+# a previously stacked form into a new multi-column layout during schema work.
+normalize_form_groups_for_write() {
+  local input="$1" output="$2"
+  jq --argjson max "$FORM_MAX_FIELDS_PER_GROUP" '
+    .fieldGroups = [
+      .fieldGroups[]? as $group |
+      (($group.fields // []) | length) as $count |
+      if $count <= $max then
+        $group
+      else
+        $group.fields[]? as $field |
+        ($group + {fields: [$field]})
+      end
+    ]
+  ' "$input" > "$output"
+}
+
+verify_visible_form_baseline() {
+  local file="$1"
+  jq -e '
+    def matches($name): [.fieldGroups[]?.fields[]? | select(.name == $name)];
+    (matches("firstname") | length == 1 and .[0].fieldType == "single_line_text" and (.[0].hidden // false) == false and (.[0].required // false) == true) and
+    (matches("lastname")  | length == 1 and .[0].fieldType == "single_line_text" and (.[0].hidden // false) == false and (.[0].required // false) == true) and
+    (matches("email")     | length == 1 and .[0].fieldType == "email"            and (.[0].hidden // false) == false and (.[0].required // false) == true) and
+    (matches("phone")     | length == 1 and .[0].fieldType == "phone"            and (.[0].hidden // false) == false and (.[0].required // false) == true)
+  ' "$file" >/dev/null || {
+    echo 'HUBSPOT_FORM_VISIBLE_BASELINE=FAIL expected=firstname,lastname,email,phone visible_required_once' >&2
+    exit 1
+  }
+}
+
 for property in "${required_existing_properties[@]}"; do
   check_existing_string_property "$property"
 done
@@ -240,6 +281,7 @@ if ! jq -e --arg portal "$PORTAL_ID" '((.portalId // "") == "" or (.portalId|tos
   exit 1
 fi
 
+verify_visible_form_baseline "$form"
 mapfile -t existing_form_fields < <(jq -r '.fieldGroups[]?.fields[]?.name // empty' "$form" | sort -u)
 missing_form_fields=()
 for property in "${required_form_fields[@]}"; do
@@ -248,31 +290,68 @@ for property in "${required_form_fields[@]}"; do
   fi
 done
 
-if (( ${#missing_form_fields[@]} > 0 )); then
-  if [[ "$MODE" == '--check' ]]; then
-    printf 'HUBSPOT_FORM_FIELD_CONTRACT=FAIL missing=%s\n' "${missing_form_fields[*]}" >&2
-  else
-    cp "$form" "$work/form-working.json"
+current_max_group_fields="$(form_max_group_fields "$form")"
+[[ "$current_max_group_fields" =~ ^[0-9]+$ ]] || { echo "HUBSPOT_FORM_GROUP_CONTRACT=FAIL invalid_max=$current_max_group_fields" >&2; exit 1; }
+needs_group_normalization=0
+if (( current_max_group_fields > FORM_MAX_FIELDS_PER_GROUP )); then
+  needs_group_normalization=1
+fi
+
+if [[ "$MODE" == '--check' && "$needs_group_normalization" == '1' ]]; then
+  echo "HUBSPOT_FORM_GROUP_CONTRACT=FAIL max_fields=$current_max_group_fields allowed=$FORM_MAX_FIELDS_PER_GROUP" >&2
+fi
+if [[ "$MODE" == '--check' && ${#missing_form_fields[@]} -gt 0 ]]; then
+  printf 'HUBSPOT_FORM_FIELD_CONTRACT=FAIL missing=%s\n' "${missing_form_fields[*]}" >&2
+fi
+
+if (( ${#missing_form_fields[@]} > 0 || needs_group_normalization == 1 )); then
+  if [[ "$MODE" == '--apply' ]]; then
+    normalize_form_groups_for_write "$form" "$work/form-working.json"
+
+    normalized_max="$(form_max_group_fields "$work/form-working.json")"
+    [[ "$normalized_max" =~ ^[0-9]+$ && "$normalized_max" -le "$FORM_MAX_FIELDS_PER_GROUP" ]] || {
+      echo "HUBSPOT_FORM_NORMALIZE=FAIL max_fields=${normalized_max:-invalid}" >&2
+      exit 1
+    }
+    verify_visible_form_baseline "$work/form-working.json"
+
+    printf '[]\n' > "$work/new-fields.json"
     for property in "${missing_form_fields[@]}"; do
       form_field_type='single_line_text'
       if [[ "$property" == 'nvx_is_test_lead' ]]; then
         form_field_type='single_checkbox'
       fi
-      jq --arg name "$property" --arg fieldType "$form_field_type" '
-        .fieldGroups += [{
-          groupType: "default_group",
-          fields: [{
-            objectTypeId: "0-1",
-            name: $name,
-            label: $name,
-            fieldType: $fieldType,
-            hidden: true,
-            required: false
-          }]
-        }]
-      ' "$work/form-working.json" > "$work/form-next.json"
-      mv "$work/form-next.json" "$work/form-working.json"
+      jq --arg name "$property" --arg fieldType "$form_field_type" '. += [{
+        objectTypeId: "0-1",
+        name: $name,
+        label: $name,
+        fieldType: $fieldType,
+        hidden: true,
+        required: false
+      }]' "$work/new-fields.json" > "$work/new-fields-next.json"
+      mv "$work/new-fields-next.json" "$work/new-fields.json"
     done
+
+    jq --slurpfile new "$work/new-fields.json" --argjson max "$FORM_MAX_FIELDS_PER_GROUP" '
+      .fieldGroups += [
+        ($new[0]) as $fields |
+        range(0; ($fields | length); $max) as $i |
+        {
+          groupType: "default_group",
+          richTextType: "text",
+          fields: $fields[$i:($i + $max)]
+        }
+      ]
+    ' "$work/form-working.json" > "$work/form-next.json"
+    mv "$work/form-next.json" "$work/form-working.json"
+
+    patch_max="$(form_max_group_fields "$work/form-working.json")"
+    [[ "$patch_max" =~ ^[0-9]+$ && "$patch_max" -le "$FORM_MAX_FIELDS_PER_GROUP" ]] || {
+      echo "HUBSPOT_FORM_PATCH_CONTRACT=FAIL max_fields=${patch_max:-invalid}" >&2
+      exit 1
+    }
+    verify_visible_form_baseline "$work/form-working.json"
+
     jq '{fieldGroups}' "$work/form-working.json" > "$work/form-patch.json"
     patch_status="$(request PATCH "$API_BASE/marketing/v3/forms/$FORM_ID" "$work/form-patch-response.json" "$work/form-patch.json")"
     [[ "$patch_status" == '200' ]] || {
@@ -280,17 +359,32 @@ if (( ${#missing_form_fields[@]} > 0 )); then
       jq '{status,category,message,correlationId}' "$work/form-patch-response.json" 2>/dev/null || true
       exit 1
     }
-    echo "HUBSPOT_FORM_PATCH=PASS added=${missing_form_fields[*]}"
+    echo "HUBSPOT_FORM_PATCH=PASS added=${#missing_form_fields[@]} normalized_legacy_groups=$needs_group_normalization max_fields_per_group=$FORM_MAX_FIELDS_PER_GROUP"
   fi
 fi
 
-if [[ "$MODE" == '--check' && ( ${#missing_managed[@]} -gt 0 || ${#missing_form_fields[@]} -gt 0 ) ]]; then
+if [[ "$MODE" == '--check' && ( ${#missing_managed[@]} -gt 0 || ${#missing_form_fields[@]} -gt 0 || "$needs_group_normalization" == '1' ) ]]; then
   exit 1
 fi
 
 verify="$work/form-verify.json"
 verify_status="$(request GET "$API_BASE/marketing/v3/forms/$FORM_ID" "$verify")"
 [[ "$verify_status" == '200' ]] || { echo "HUBSPOT_FORM_VERIFY=FAIL status=$verify_status" >&2; exit 1; }
+
+verify_max="$(form_max_group_fields "$verify")"
+[[ "$verify_max" =~ ^[0-9]+$ && "$verify_max" -le "$FORM_MAX_FIELDS_PER_GROUP" ]] || {
+  echo "HUBSPOT_FORM_VERIFY=FAIL max_fields=${verify_max:-invalid} allowed=$FORM_MAX_FIELDS_PER_GROUP" >&2
+  exit 1
+}
+verify_visible_form_baseline "$verify"
+
+for original_field in "${existing_form_fields[@]}"; do
+  jq -e --arg name "$original_field" '[.fieldGroups[]?.fields[]? | select(.name == $name)] | length >= 1' "$verify" >/dev/null || {
+    echo "HUBSPOT_FORM_VERIFY=FAIL lost_existing_field=$original_field" >&2
+    exit 1
+  }
+done
+
 for property in "${required_form_fields[@]}"; do
   jq -e --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name and (.hidden // false) == true)] | length >= 1' "$verify" >/dev/null || {
     echo "HUBSPOT_FORM_VERIFY=FAIL missing_hidden_field=$property" >&2
@@ -305,4 +399,5 @@ for property in "${managed_properties[@]}"; do
   }
 done
 
+echo "HUBSPOT_FORM_GROUP_CONTRACT=PASS max_fields=$verify_max allowed=$FORM_MAX_FIELDS_PER_GROUP"
 echo "HUBSPOT_ATTRIBUTION_CONTRACT=PASS mode=${MODE#--} form_id=$FORM_ID managed=${#managed_properties[@]} existing=${#required_existing_properties[@]} fields=${#required_form_fields[@]} schema=v2"

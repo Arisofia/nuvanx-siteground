@@ -12,6 +12,14 @@
 
 'use strict';
 
+const PRIMARY_CATEGORY = 'Clínica de medicina estética';
+const SECONDARY_CATEGORIES = ['Médico', 'Centro de láser'];
+const REVIEW_POLICY = {
+  delayDays: 7,
+  incentivesForbidden: true,
+  starCoachingForbidden: true
+};
+
 const CLINICS = {
   chamberi: {
     name: 'Centro Clínico NUVANX Chamberí',
@@ -25,7 +33,11 @@ const CLINICS = {
     days: 'Martes y jueves',
     latitude: 40.431204,
     longitude: -3.693425,
-    targetPage: 'https://nuvanx.com/medicina-estetica-chamberi/'
+    targetPage: 'https://nuvanx.com/medicina-estetica-chamberi/',
+    primaryCategory: PRIMARY_CATEGORY,
+    secondaryCategories: SECONDARY_CATEGORIES,
+    description: 'Clínica de medicina estética en Chamberí, Madrid. Centro sanitario autorizado CS20144 en Calle de Fernández de la Hoz, 4. Medicina estética láser — Endolift®, Endoláser, CO₂ e IPL — con valoración médica presencial. Coordinación con la sede de Salamanca–Goya. Dirección médica del Dr. Javier Rivera Tejeda.',
+    reviewUrl: 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20Calle%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid'
   },
   goya: {
     name: 'Centro Clínico NUVANX Salamanca–Goya',
@@ -39,11 +51,15 @@ const CLINICS = {
     days: 'Miércoles',
     latitude: 40.423912,
     longitude: -3.675648,
-    targetPage: 'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/'
+    targetPage: 'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+    primaryCategory: PRIMARY_CATEGORY,
+    secondaryCategories: SECONDARY_CATEGORIES,
+    description: 'Clínica de medicina estética en Goya, Barrio de Salamanca, Madrid. Centro sanitario autorizado CS20073 en Calle de Fernán González, 26. Medicina estética láser y well-aging con valoración médica. Sede Salamanca–Goya, coordinada con Chamberí. Dirección médica del Dr. Javier Rivera Tejeda.',
+    reviewUrl: 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20Calle%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid'
   }
 };
 
-const NEXT_CHECK = 'Compare GBP name, primary/secondary categories, address, phone, hours, website URL, appointment URL, services and review profile against this reference.';
+const NEXT_CHECK = 'Compare live GBP primary category, description keywords, photo count (>=10) and review-link against this contract. Category must be “Clínica de medicina estética”, not generic “Clínica”.';
 
 function buildReference() {
   return {
@@ -52,6 +68,9 @@ function buildReference() {
     gbpLiveStatus: 'UNKNOWN',
     staticNapReference: 'PRINTED',
     liveGbpAuditRequired: true,
+    primaryCategory: PRIMARY_CATEGORY,
+    secondaryCategories: SECONDARY_CATEGORIES,
+    reviewPolicy: REVIEW_POLICY,
     clinics: CLINICS,
     nextCheck: NEXT_CHECK
   };
@@ -75,7 +94,10 @@ function printHumanReference() {
     console.log(`   Coordenadas web:   Lat ${clinic.latitude}, Lng ${clinic.longitude}`);
     console.log(`   Landing canónica:  ${clinic.targetPage}`);
     console.log(`   Horario de referencia: ${clinic.hours}`);
-    console.log(`   Días de consulta médica: ${clinic.days}\n`);
+    console.log(`   Días de consulta médica: ${clinic.days}`);
+    console.log(`   Categoría principal: ${clinic.primaryCategory}`);
+    console.log(`   Descripción: ${clinic.description}`);
+    console.log(`   Reseña: ${clinic.reviewUrl}\n`);
   }
 
   console.log(`STATIC_NAP_REFERENCE=PRINTED clinics=${Object.keys(CLINICS).length}`);

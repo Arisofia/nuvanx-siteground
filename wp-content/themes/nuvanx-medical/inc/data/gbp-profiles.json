@@ -1,0 +1,29 @@
+{
+  "primary_category": "Clínica de medicina estética",
+  "secondary_categories": ["Médico", "Centro de láser"],
+  "review_policy": {
+    "delay_days": 7,
+    "incentives_forbidden": true,
+    "star_coaching_forbidden": true
+  },
+  "clinics": {
+    "chamberi": {
+      "name": "Centro Clínico NUVANX Chamberí",
+      "reg": "CS20144",
+      "neighborhood_keywords": ["Chamberí", "Madrid"],
+      "place_id": "",
+      "maps_query": "NUVANX Medicina Estética Láser Calle de Fernández de la Hoz 4 28010 Madrid",
+      "description": "Clínica de medicina estética en Chamberí, Madrid. Centro sanitario autorizado CS20144 en Calle de Fernández de la Hoz, 4. Medicina estética láser — Endolift®, Endoláser, CO₂ e IPL — con valoración médica presencial. Coordinación con la sede de Salamanca–Goya. Dirección médica del Dr. Javier Rivera Tejeda.",
+      "missing_photo_capture": ["fachada Chamberí", "placa sanitaria CS20144", "equipo EXION® en sede", "equipo CO₂ en sede"]
+    },
+    "goya": {
+      "name": "Centro Clínico NUVANX Salamanca–Goya",
+      "reg": "CS20073",
+      "neighborhood_keywords": ["Salamanca", "Goya", "Madrid"],
+      "place_id": "",
+      "maps_query": "NUVANX Medicina Estética Láser Calle de Fernán González 26 28009 Madrid",
+      "description": "Clínica de medicina estética en Goya, Barrio de Salamanca, Madrid. Centro sanitario autorizado CS20073 en Calle de Fernán González, 26. Medicina estética láser y well-aging con valoración médica. Sede Salamanca–Goya, coordinada con Chamberí. Dirección médica del Dr. Javier Rivera Tejeda.",
+      "missing_photo_capture": ["placa sanitaria CS20073", "equipo EXION® en sede", "equipo CO₂ en sede"]
+    }
+  }
+}

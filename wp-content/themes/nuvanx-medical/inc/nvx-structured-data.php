@@ -514,9 +514,9 @@ function nvx_schema_clinics() {
 			'url'                       => home_url( $registry['clinics']['chamberi']['path'] ),
 			'telephone'                 => $ch['phone_href'] ?? '+34669319836',
 			'email'                     => NVX_CONTACT_EMAIL,
-			'image'                     => function_exists( 'nvx_chamberi_schema_image_url' ) && '' !== nvx_chamberi_schema_image_url()
-				? nvx_chamberi_schema_image_url()
-				: trailingslashit( get_template_directory_uri() ) . 'assets/images/clinics/chamberi-interior.jpg',
+			'image'                     => function_exists( 'nvx_clinic_schema_image_urls' )
+				? nvx_clinic_schema_image_urls( 'chamberi' )
+				: array( trailingslashit( get_template_directory_uri() ) . 'assets/images/clinics/chamberi/01-interior.jpg' ),
 			'address'                   => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $ch['address'] ?? 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
@@ -566,7 +566,9 @@ function nvx_schema_clinics() {
 			'url'                       => home_url( $registry['clinics']['goya']['path'] ),
 			'telephone'                 => $go['phone_href'] ?? '+34647505107',
 			'email'                     => NVX_CONTACT_EMAIL,
-			'image'                     => 'https://nuvanx.com/wp-content/uploads/2024/08/nuvanx-goya-clinic.jpg',
+			'image'                     => function_exists( 'nvx_clinic_schema_image_urls' )
+				? nvx_clinic_schema_image_urls( 'goya' )
+				: array( trailingslashit( get_template_directory_uri() ) . 'assets/images/clinics/goya/01-fachada.jpg' ),
 			'address'                   => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $go['address'] ?? 'Calle de Fernán González, 26',

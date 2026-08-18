@@ -61,6 +61,11 @@ ob_start();
 					}
 					?>
 				</h1>
+				<?php
+				if ( function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
+					echo nvx_clinical_authority_byline_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+				}
+				?>
 				<p class="nvx-brand-hero__lead">
 					<?php
 					if ( 'chamberi' === $clinic_key ) {
@@ -148,15 +153,15 @@ ob_start();
 		</section>
 
 		<?php
-		$clinic_photos = ( 'chamberi' === $clinic_key && function_exists( 'nvx_chamberi_landing_photos' ) )
-			? nvx_chamberi_landing_photos()
+		$clinic_photos = function_exists( 'nvx_clinic_landing_photos' )
+			? nvx_clinic_landing_photos( $clinic_key )
 			: array();
 		if ( ! empty( $clinic_photos ) ) :
 			?>
 		<section class="nvx-brand-section nvx-clinic-gallery" aria-labelledby="nvx-clinic-gallery-title">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'La sede', 'nuvanx-medical' ); ?></p>
-				<h2 id="nvx-clinic-gallery-title" class="nvx-brand-title"><?php esc_html_e( 'Interior, sala de tratamiento y equipo', 'nuvanx-medical' ); ?></h2>
+				<h2 id="nvx-clinic-gallery-title" class="nvx-brand-title"><?php esc_html_e( 'Fachada, salas, equipos y equipo médico', 'nuvanx-medical' ); ?></h2>
 				<div class="nvx-clinic-gallery__grid">
 					<?php foreach ( $clinic_photos as $photo ) : ?>
 						<?php
@@ -171,6 +176,16 @@ ob_start();
 						</figure>
 					<?php endforeach; ?>
 				</div>
+				<?php
+				$gbp_review = function_exists( 'nvx_gbp_review_url' ) ? nvx_gbp_review_url( $clinic_key ) : '';
+				if ( '' !== $gbp_review ) :
+					?>
+					<p class="nvx-body nvx-body--measure">
+						<a class="nvx-brand-inline-link" href="<?php echo esc_url( $gbp_review ); ?>" rel="noopener noreferrer" target="_blank">
+							<?php esc_html_e( 'Ver o dejar una opinión en Google', 'nuvanx-medical' ); ?>
+						</a>
+					</p>
+				<?php endif; ?>
 			</div>
 		</section>
 			<?php

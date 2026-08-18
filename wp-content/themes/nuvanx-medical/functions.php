@@ -265,6 +265,7 @@ require_once get_template_directory() . '/inc/nvx-gtm-integration.php';
 
 // 2. Data & SEO Governance
 require_once get_template_directory() . '/inc/nvx-catalog-json.php';
+require_once get_template_directory() . '/inc/nvx-gbp-local.php';
 require_once get_template_directory() . '/inc/nvx-tariff-shortcode.php';
 require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
@@ -289,6 +290,7 @@ require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php';
 require_once get_template_directory() . '/inc/nvx-blog-system.php';
+require_once get_template_directory() . '/inc/nvx-journal-laserlipolisis-vs-lipo.php';
 require_once get_template_directory() . '/inc/nvx-medical-review.php';
 require_once get_template_directory() . '/inc/nvx-btl-clinical-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';

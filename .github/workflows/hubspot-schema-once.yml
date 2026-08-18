@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   diagnose:
-    name: Diagnose Staging2 secure HubSpot transport
+    name: Inventory Staging2 HTTP guard callbacks
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -53,37 +53,10 @@ jobs:
             ConnectionAttempts 1
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v php >/dev/null && command -v wp >/dev/null"
+          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v wp >/dev/null"
           echo 'STAGING_SSH=PASS'
 
-      - name: Read only bounded valoración markers
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          cd "$STAGING_ROOT"
-          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
-          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
-          configured_log="$(php -r 'echo (string) ini_get("error_log");' 2>/dev/null || true)"
-          candidates=("$configured_log" "$STAGING_ROOT/php_errorlog" "$STAGING_ROOT/wp-content/debug.log")
-          found=0
-          for file in "${candidates[@]}"; do
-            [[ -n "$file" && -r "$file" ]] || continue
-            markers="$(grep -E 'NVX_VALORACION_(FAILURE|SUCCESS)( |$)' "$file" | tail -n 5 || true)"
-            if [[ -n "$markers" ]]; then
-              printf '%s\n' "$markers"
-              found=1
-            fi
-          done
-          if (( found == 0 )); then
-            echo 'NVX_VALORACION_MARKER=NOT_FOUND'
-            exit 1
-          fi
-          echo 'NVX_VALORACION_MARKER_READ=PASS pii=0 payload=0 token=0'
-          REMOTE
-
-      - name: Probe runtime token validation and secure endpoint transport
+      - name: Inventory pre_http_request callbacks only
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -93,33 +66,40 @@ jobs:
           test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
           test "$(wp option get home)" = 'https://staging2.nuvanx.com'
           wp eval '
-          if (!function_exists("nvx_hubspot_secure_access_token") || !function_exists("nvx_hubspot_secure_submit_url")) {
-              echo "HUBSPOT_SECURE_BRIDGE_LOADED=0\n";
+          global $wp_filter;
+          $hook = $wp_filter["pre_http_request"] ?? null;
+          if (!$hook || empty($hook->callbacks)) {
+              echo "PRE_HTTP_REQUEST_CALLBACKS=0\n";
           } else {
-              $token = nvx_hubspot_secure_access_token();
-              echo "HUBSPOT_SECURE_BRIDGE_LOADED=1\n";
-              echo "HUBSPOT_RUNTIME_TOKEN_VALID=" . ($token !== "" ? "1" : "0") . " token_length=" . strlen($token) . "\n";
-              if ($token !== "") {
-                  $response = wp_remote_post(
-                      nvx_hubspot_secure_submit_url(),
-                      array(
-                          "timeout" => 12,
-                          "headers" => array(
-                              "Content-Type" => "application/json",
-                              "Authorization" => "Bearer " . $token,
-                          ),
-                          "body" => "{}",
-                      )
-                  );
-                  if (is_wp_error($response)) {
-                      echo "HUBSPOT_SECURE_TRANSPORT=WP_ERROR code=" . sanitize_key((string) $response->get_error_code()) . "\n";
-                  } else {
-                      echo "HUBSPOT_SECURE_TRANSPORT=HTTP status=" . (int) wp_remote_retrieve_response_code($response) . "\n";
+              $count = 0;
+              foreach ($hook->callbacks as $priority => $callbacks) {
+                  foreach ($callbacks as $callback) {
+                      $fn = $callback["function"] ?? null;
+                      $name = "unknown";
+                      $file = "unknown";
+                      try {
+                          if (is_string($fn)) {
+                              $name = $fn;
+                              $ref = new ReflectionFunction($fn);
+                              $file = (string) $ref->getFileName();
+                          } elseif (is_array($fn) && count($fn) === 2) {
+                              $class = is_object($fn[0]) ? get_class($fn[0]) : (string) $fn[0];
+                              $name = $class . "::" . (string) $fn[1];
+                              $ref = new ReflectionMethod($fn[0], $fn[1]);
+                              $file = (string) $ref->getFileName();
+                          } elseif ($fn instanceof Closure) {
+                              $name = "closure";
+                              $ref = new ReflectionFunction($fn);
+                              $file = (string) $ref->getFileName();
+                          }
+                      } catch (Throwable $e) {
+                          $file = "reflection_error";
+                      }
+                      echo "PRE_HTTP_REQUEST_CALLBACK priority=" . (int) $priority . " name=" . sanitize_key(str_replace(array("::", "\\"), "_", $name)) . " file=" . $file . "\n";
+                      $count++;
                   }
-              } else {
-                  echo "HUBSPOT_SECURE_TRANSPORT=SKIP token_invalid=1\n";
               }
+              echo "PRE_HTTP_REQUEST_CALLBACKS=" . $count . "\n";
           }
           '
-          echo 'HUBSPOT_SECURE_PROBE=PASS pii=0 payload_fields=0 token_exposed=0'
           REMOTE

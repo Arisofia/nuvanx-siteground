@@ -501,8 +501,8 @@
         "path": "/btl-exilite-ipl-madrid/",
         "key": "exilite",
         "kicker": "@nvx-t:BTL EXILITE™ IPL · NUVANX Madrid",
-        "h1": "@nvx-t:BTL EXILITE™ IPL en Madrid: fotorejuvenecimiento",
-        "lead": "@nvx-t:Sistema de luz pulsada intensa (IPL) para indicaciones pigmentarias, vasculares y calidad cutánea según diagnóstico, fototipo y valoración médica.",
+        "h1": "@nvx-t:BTL EXILITE™ IPL en Madrid — manchas y rojeces",
+        "lead": "@nvx-t:IPL médica en Madrid para manchas, rojeces y fotodaño, con precio visible, candidatura y reserva tras valoración. La indicación depende del fototipo y del tipo de lesión.",
         "meta": "@nvx-t:Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación tras valoración",
         "aria": "@nvx-t:BTL EXILITE IPL NUVANX",
         "marker": "nvx-exilite",
@@ -591,6 +591,10 @@
             {
                 "url": "@nvx-url:/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/",
                 "label": "@nvx-t:Tone Correction™ (protocolo de decisión para manchas y rojeces)"
+            },
+            {
+                "url": "@nvx-url:/ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento/",
+                "label": "@nvx-t:Guía educativa: qué es la IPL médica"
             }
         ],
         "faqs": [

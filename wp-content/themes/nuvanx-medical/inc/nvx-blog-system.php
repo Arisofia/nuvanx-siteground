@@ -111,6 +111,12 @@ function nvx_theme_inject_priority_treatment_links( string $content ): string {
 			'intro'  => __( 'Conoce en detalle el', 'nuvanx-medical' ),
 			'suffix' => __( ': zonas tratadas, candidatura, recuperación y precios.', 'nuvanx-medical' ),
 		),
+		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
+			'url'    => home_url( '/btl-exilite-ipl-madrid/' ),
+			'anchor' => __( 'tratamiento IPL médico en Madrid', 'nuvanx-medical' ),
+			'intro'  => __( 'Si buscas indicación, precio o reserva, consulta el', 'nuvanx-medical' ),
+			'suffix' => __( ': candidatura, proceso y tarifas de BTL EXILITE™.', 'nuvanx-medical' ),
+		),
 	);
 
 	if ( ! isset( $map[ $slug ] ) ) {
@@ -118,7 +124,7 @@ function nvx_theme_inject_priority_treatment_links( string $content ): string {
 	}
 
 	$item = $map[ $slug ];
-	if ( false !== strpos( $content, (string) $item['url'] ) || false !== strpos( $content, wp_parse_url( (string) $item['url'], PHP_URL_PATH ) ?: '///' ) ) {
+	if ( false !== strpos( $content, (string) $item['anchor'] ) ) {
 		return $content;
 	}
 

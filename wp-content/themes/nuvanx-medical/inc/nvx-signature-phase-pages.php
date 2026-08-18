@@ -503,7 +503,7 @@ function nvx_signature_hub_contour_cards(): array {
  */
 function nvx_signature_hub_shell_open( array $hub ): string {
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
-	$html       = '<article class="nvx-brand-page nvx-brand-page--signature"><div class="entry-content nvx-page__content nvx-prose">';
+	$html       = '<article class="nvx-brand-page nvx-brand-page--signature"><div class="entry-content nvx-page__content">';
 	$html      .= '<section class="nvx-brand-hero" aria-labelledby="nvx-signature-hub-h1"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	$html      .= '<p class="nvx-brand-kicker">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
 	$html      .= '<h1 id="nvx-signature-hub-h1" class="nvx-brand-hero__title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
@@ -724,6 +724,21 @@ function nvx_signature_phase_inject_markup( string $content ): string {
 
 	return $content;
 }
+add_filter(
+	'nvx_page_owner',
+	static function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		if ( null !== nvx_signature_phase_current_key() ) {
+			return 'nvx_signature_phase_pages';
+		}
+		if ( null !== nvx_signature_hub_current_key() ) {
+			return 'nvx_signature_phase_pages';
+		}
+		return $owner;
+	}
+);
 add_filter( 'the_content', 'nvx_signature_phase_inject_markup', 20 );
 
 /**

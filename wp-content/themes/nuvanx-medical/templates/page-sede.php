@@ -199,7 +199,7 @@ ob_start();
 			</div>
 		</section>
 
-	<div class="entry-content nvx-page__content nvx-prose">
+	<div class="entry-content nvx-page__content">
 		<?php the_content(); ?>
 	</div>
 

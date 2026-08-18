@@ -2056,7 +2056,7 @@ figure.nvx-equipo-portrait{
 
 .nvx-endolift-compare-table {
   width: 100%;
-  min-width: 32rem;
+  min-width: 0;
   border-collapse: collapse;
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body-sm);

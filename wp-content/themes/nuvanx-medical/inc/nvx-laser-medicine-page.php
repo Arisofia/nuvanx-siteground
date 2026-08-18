@@ -266,7 +266,7 @@ function nvx_laser_editorial_body_markup(): string {
  */
 function nvx_laser_hub_page_markup(): string {
 	// Use standard wrapper like soluciones-medicas for consistent margins
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	$standard_wrapper = '<div class="entry-content nvx-page__content">';
 	return $standard_wrapper
 		. nvx_laser_hero_markup()
 		. nvx_laser_editorial_body_markup()

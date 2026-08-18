@@ -198,12 +198,16 @@ async function runGovernedBlogHeadContract() {
         });
 
         const expectedTitle = String(catalog[post.slug].title || '').trim();
+        const catalogCanonical = String(catalog[post.slug].canonical_path || '').trim();
+        const expectedCanonical = catalogCanonical.startsWith('/')
+          ? `${base}${catalogCanonical.endsWith('/') ? catalogCanonical : `${catalogCanonical}/`}`
+          : expected;
 
         const issues = [];
         if (response?.status() !== 200) issues.push(`http=${response?.status() || 0}`);
         if (norm(finalUrl) !== norm(expected)) issues.push(`final_url=${finalUrl || 'missing'}`);
         if (headData.title !== expectedTitle) issues.push(`title=${headData.title}`);
-        if (headData.canonical.length !== 1 || norm(headData.canonical[0] || '') !== norm(expected)) {
+        if (headData.canonical.length !== 1 || norm(headData.canonical[0] || '') !== norm(expectedCanonical)) {
           issues.push(`canonical=${headData.canonical.join(',')}`);
         }
         if (headData.og.length !== 1 || norm(headData.og[0] || '') !== norm(`${prod}/${post.slug}/`)) {

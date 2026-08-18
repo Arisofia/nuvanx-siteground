@@ -132,6 +132,29 @@ function nvx_governed_blog_runtime_context(): ?array {
 }
 
 /**
+ * HTML canonical for a governed Journal article.
+ *
+ * Defaults to the article path. A catalog `canonical_path` consolidates ranking
+ * onto a transactional treatment page when both URLs compete for the same query.
+ *
+ * @param array{slug?:string,path?:string,metadata?:array<string,mixed>} $context
+ */
+function nvx_governed_blog_html_canonical_url( array $context ): string {
+	$override = trim( (string) ( $context['metadata']['canonical_path'] ?? '' ) );
+	if ( '' !== $override && '/' === $override[0] && false === strpos( $override, '//' ) ) {
+		return home_url( '/' . trim( $override, '/' ) . '/' );
+	}
+
+	$path = (string) ( $context['path'] ?? '' );
+	if ( '' === $path ) {
+		$slug = trim( (string) ( $context['slug'] ?? '' ), '/' );
+		$path = '' !== $slug ? '/' . $slug . '/' : '/';
+	}
+
+	return home_url( $path );
+}
+
+/**
  * Pin the main query to the authoritative governed post before SQL executes.
  *
  * Production proved that repairing only on `wp` can be too late: the initial
@@ -279,7 +302,7 @@ function nvx_governed_blog_runtime_canonical( $canonical ) {
 	if ( null === $context ) {
 		return $canonical;
 	}
-	return home_url( $context['path'] );
+	return nvx_governed_blog_html_canonical_url( $context );
 }
 
 /**
@@ -317,8 +340,8 @@ function nvx_governed_blog_runtime_yoast_presentation( $presentation, $context )
 
 	$title       = trim( (string) ( $runtime['metadata']['title'] ?? '' ) );
 	$description = trim( (string) ( $runtime['metadata']['description'] ?? '' ) );
-	$canonical   = home_url( $runtime['path'] );
-	$og_url      = nvx_governed_blog_runtime_opengraph_url( $canonical );
+	$canonical   = nvx_governed_blog_html_canonical_url( $runtime );
+	$og_url      = nvx_governed_blog_runtime_opengraph_url( home_url( $runtime['path'] ) );
 
 	if ( '' !== $title ) {
 		$presentation->title            = $title;
@@ -347,7 +370,7 @@ function nvx_governed_blog_runtime_print_canonical(): void {
 		return;
 	}
 
-	echo '<link rel="canonical" href="' . esc_url( home_url( $context['path'] ) ) . '" />' . "\n";
+	echo '<link rel="canonical" href="' . esc_url( nvx_governed_blog_html_canonical_url( $context ) ) . '" />' . "\n";
 }
 
 /** Keep document/runtime sentinels and legacy fallback for non-governed routes. */

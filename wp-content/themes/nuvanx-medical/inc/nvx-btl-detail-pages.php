@@ -363,6 +363,61 @@ function nvx_btl_detail_process_markup( array $c ): string {
 }
 
 /**
+ * Explicit candidacy from indications + contraindications.
+ *
+ * @param array<string,mixed> $c Registry entry.
+ */
+function nvx_btl_detail_candidacy_markup( array $c ): string {
+	$yes = array();
+	foreach ( (array) ( $c['indications'] ?? array() ) as $item ) {
+		if ( is_array( $item ) ) {
+			$title = trim( (string) ( $item['title'] ?? '' ) );
+			if ( '' !== $title ) {
+				$yes[] = $title;
+			}
+		}
+	}
+	$no = array();
+	foreach ( (array) ( $c['clinical_data']['contraindications'] ?? array() ) as $item ) {
+		$item = trim( (string) $item );
+		if ( '' !== $item ) {
+			$no[] = $item;
+		}
+	}
+	if ( array() === $yes && array() === $no ) {
+		return '';
+	}
+
+	$id    = (string) ( $c['marker'] ?? 'nvx-btl' );
+	$html  = nvx_page_brand_section_open_markup( '', $id . '-cand' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Candidatura', 'nuvanx-medical' ), $id . '-cand', esc_html__( 'Quién es candidato y quién no', 'nuvanx-medical' ) );
+	if ( function_exists( 'nvx_candidacy_markup' ) ) {
+		$html .= nvx_candidacy_markup( $yes, $no );
+	}
+	$html .= '</div></section>';
+	return $html;
+}
+
+/**
+ * Visible reservation block so the treatment page can convert without the footer.
+ *
+ * @param array<string,mixed> $c Registry entry.
+ */
+function nvx_btl_detail_reservation_markup( array $c ): string {
+	$id    = (string) ( $c['marker'] ?? 'nvx-btl' );
+	$html  = nvx_page_brand_section_open_markup( '', $id . '-reserva' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Reserva', 'nuvanx-medical' ), $id . '-reserva', esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) );
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'La indicación, el número de sesiones y el presupuesto se confirman en consulta presencial. Puedes reservar valoración en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
+	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
+		$html .= nvx_cta_pair_markup();
+	} else {
+		$html .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	}
+	$html .= '</div></section>';
+	return $html;
+}
+
+/**
  * FAQ section for a BTL detail page.
  *
  * @param array<string,mixed> $c Registry entry.
@@ -443,16 +498,18 @@ function nvx_btl_detail_page_markup( string $key ): string {
 		return '';
 	}
 	$c = $reg[ $key ];
+	$c = nvx_btl_detail_hydrate_tariffs( $key, $c );
 
 	$hero  = nvx_btl_detail_hero_markup( $c );
 	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-brand-editorial nvx-btl-detail-editorial">';
 	$body .= nvx_btl_detail_mechanism_markup( $c );
 	$body .= nvx_btl_detail_indications_markup( $c );
+	$body .= nvx_btl_detail_candidacy_markup( $c );
 	$body .= nvx_btl_detail_clinical_data_markup( $c );
 	$body .= nvx_btl_detail_compare_markup( $c );
 	$body .= nvx_btl_detail_process_markup( $c );
+	$body .= nvx_btl_detail_reservation_markup( $c );
 	$body .= nvx_btl_detail_faq_markup( $c );
-	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 	$body .= '</div>';
 
 	return $hero . $body;
@@ -533,9 +590,61 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		}
 	}
 
-	// Use standard wrapper like soluciones-medicas for consistent margins
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
-	return $standard_wrapper . $built . '</div>';
+	return '<div class="entry-content nvx-page__content">' . $built . '</div>';
+}
+
+/**
+ * Replace hardcoded EXILITE prices with tariff-catalog.json labels.
+ *
+ * @param array<string,mixed> $c Registry entry.
+ * @return array<string,mixed>
+ */
+function nvx_btl_detail_hydrate_tariffs( string $key, array $c ): array {
+	if ( 'exilite' !== $key || ! function_exists( 'nvx_tariff_price_label' ) ) {
+		return $c;
+	}
+
+	$face  = nvx_tariff_price_label( 'btl_exilite', 'cara_completa' );
+	$chest = nvx_tariff_price_label( 'btl_exilite', 'escote' );
+	$hands = nvx_tariff_price_label( 'btl_exilite', 'manos' );
+	if ( '' === $face || '' === $chest || '' === $hands ) {
+		return $c;
+	}
+
+	if ( ! isset( $c['clinical_data'] ) || ! is_array( $c['clinical_data'] ) ) {
+		$c['clinical_data'] = array();
+	}
+	$c['clinical_data']['price_range'] = sprintf(
+		/* translators: 1: face price, 2: décolletage price, 3: hands price */
+		__( 'Cara completa desde %1$s · Escote desde %2$s · Manos desde %3$s', 'nuvanx-medical' ),
+		$face,
+		$chest,
+		$hands
+	);
+
+	if ( empty( $c['faqs'] ) || ! is_array( $c['faqs'] ) ) {
+		return $c;
+	}
+
+	foreach ( $c['faqs'] as &$faq ) {
+		if ( ! is_array( $faq ) ) {
+			continue;
+		}
+		$q = (string) ( $faq['q'] ?? '' );
+		if ( false === stripos( $q, 'cuesta' ) && false === stripos( $q, 'precio' ) ) {
+			continue;
+		}
+		$faq['a'] = sprintf(
+			/* translators: 1: face price, 2: décolletage price, 3: hands price */
+			__( 'El precio en NUVANX parte de %1$s por sesión de cara completa, %2$s para escote y %3$s para manos. El número de sesiones depende del diagnóstico y se confirma en valoración médica.', 'nuvanx-medical' ),
+			$face,
+			$chest,
+			$hands
+		);
+	}
+	unset( $faq );
+
+	return $c;
 }
 add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_BTL_DETAIL );
 

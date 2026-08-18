@@ -188,7 +188,7 @@ function nvx_content_restructure_exion_page( string $content ): string {
 
 	$body = nvx_exion_editorial_body_markup();
 
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	$standard_wrapper = '<div class="entry-content nvx-page__content">';
 	return $standard_wrapper . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_exion_page', 21 );

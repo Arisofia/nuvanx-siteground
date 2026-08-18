@@ -358,7 +358,7 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 	$body = nvx_nosotros_editorial_body_markup();
 
 	// Use standard wrapper like soluciones-medicas for consistent margins
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	$standard_wrapper = '<div class="entry-content nvx-page__content">';
 	return $standard_wrapper . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_NOSOTROS );

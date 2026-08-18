@@ -15,7 +15,7 @@ $valuation_url = home_url( '/madrid/valoracion/' );
 $contour_arch  = "Contour Architecture\u{2122}";
 
 // Start standard content wrapper
-echo '<div class="entry-content nvx-page__content nvx-prose">';
+echo '<div class="entry-content nvx-page__content">';
 
 $solution_groups = array();
 $decoded         = function_exists( 'nvx_theme_load_json_catalog' )

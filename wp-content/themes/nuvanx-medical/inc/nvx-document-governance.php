@@ -423,6 +423,12 @@ add_filter( 'wpseo_opengraph_url', 'nvx_document_governance_nonproduction_opengr
 function nvx_document_governance_canonical_url(): string {
 	$request = nvx_document_governance_governed_blog_request();
 	if ( null !== $request ) {
+		if ( function_exists( 'nvx_governed_blog_runtime_context' ) && function_exists( 'nvx_governed_blog_html_canonical_url' ) ) {
+			$context = nvx_governed_blog_runtime_context();
+			if ( is_array( $context ) ) {
+				return nvx_governed_blog_html_canonical_url( $context );
+			}
+		}
 		return home_url( $request['path'] );
 	}
 

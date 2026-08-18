@@ -31,8 +31,9 @@ function nvx_theme_owns_complete_page_markup(): bool {
  * outer nvx-prose class makes descendant long-form rules override the spacing
  * owned by hero/section components, especially on narrow viewports.
  *
- * Only managed pages with both a brand hero and brand sections are normalized;
- * posts, legal documents and ordinary CMS prose remain unchanged.
+ * Only managed pages with a brand hero and component sections
+ * (nvx-brand-section or nvx-aes-section) are normalized; posts, legal
+ * documents and ordinary CMS prose remain unchanged.
  *
  * @param string $content Rendered post content.
  * @return string
@@ -46,9 +47,12 @@ function nvx_theme_normalize_managed_component_prose_wrapper( string $content ):
 		return $content;
 	}
 
+	$has_component_sections = false !== strpos( $content, 'nvx-brand-section' )
+		|| false !== strpos( $content, 'nvx-aes-section' );
+
 	if ( false === strpos( $content, 'entry-content nvx-page__content nvx-prose' )
 		|| false === strpos( $content, 'nvx-brand-hero' )
-		|| false === strpos( $content, 'nvx-brand-section' ) ) {
+		|| ! $has_component_sections ) {
 		return $content;
 	}
 

@@ -58,23 +58,40 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
  * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.
  */
 function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
-	$is_hub = false;
-
-	if ( false === strpos( $content, 'nvx-aesthetic-editorial' )
-		&& nvx_aesthetic_is_singular_context()
-		&& ! preg_match(
-			'/nvx-laser-hub-page|nvx-brand-page--laser-hub|nvx-laser-editorial|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero/iu',
-			$content
-		)
-	) {
-		// Stable structural markers for /medicina-estetica/.
-		$is_hub = (bool) preg_match(
-			'/class=["\'][^"\']*nvx-brand-page--medicina-estetica|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
-			$content
-		);
+	if ( ! nvx_aesthetic_is_singular_context() || is_front_page() || is_home() ) {
+		return false;
 	}
 
-	return $is_hub;
+	$path = function_exists( 'nvx_schema_current_path' )
+		? nvx_schema_current_path( (int) get_queried_object_id() )
+		: '';
+
+	if ( is_string( $path ) && (
+		false !== strpos( $path, 'medicina-estetica-laser' )
+		|| false !== strpos( $path, 'medicina-estetica-chamberi' )
+		|| false !== strpos( $path, 'medicina-estetica-goya' )
+	) ) {
+		return false;
+	}
+
+	if (
+		( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, '/medicina-estetica/' ) )
+		|| 'medicina-estetica' === (string) get_post_field( 'post_name', get_queried_object_id() )
+	) {
+		return true;
+	}
+
+	if ( preg_match(
+		'/nvx-laser-hub-page|nvx-brand-page--laser-hub|nvx-laser-editorial|id=["\']nvx-laser-h1["\']/iu',
+		$content
+	) ) {
+		return false;
+	}
+
+	return (bool) preg_match(
+		'/class=["\'][^"\']*nvx-brand-page--medicina-estetica|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
+		$content
+	);
 }
 
 /**
@@ -376,8 +393,6 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 	$body = nvx_aesthetic_editorial_body_markup();
 	$out  = $hero . $body;
 
-	// Use standard wrapper like soluciones-medicas for consistent margins
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
-	return $standard_wrapper . $out . '</div>';
+	return '<div class="entry-content nvx-page__content">' . $out . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_AESTHETIC_MEDICINE );

@@ -985,7 +985,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	// Director → Dra. Ivon → Dr. Fabio → Dra. Cristina → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
-	$body  = '<div class="entry-content nvx-page__content nvx-prose">';
+	$body  = '<div class="entry-content nvx-page__content">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );

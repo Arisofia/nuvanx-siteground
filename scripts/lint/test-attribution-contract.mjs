@@ -41,7 +41,7 @@ if (fs.existsSync(provisionerPath)) {
   assert.match(provisioner, /property_type\[nvx_is_test_lead\]='bool'/,
     'QA gate must be a native HubSpot boolean property');
   assert.match(provisioner, /property_field_type\[nvx_is_test_lead\]='booleancheckbox'/,
-    'QA gate must use HubSpot booleancheckbox form semantics');
+    'QA gate property schema must use HubSpot booleancheckbox semantics');
   assert.match(provisioner, /value:\s*"true"/,
     'HubSpot boolean property creation must declare the required true option');
   assert.match(provisioner, /value:\s*"false"/,
@@ -57,6 +57,12 @@ if (fs.existsSync(provisionerPath)) {
     'check_property must assign name before deriving the response path');
   assert.match(provisioner, /check_existing_string_property\(\) \{\n\s*local name="\$1"\n\s*local out="\$work\/property-\$\{name\}\.json"/,
     'existing-property check must assign name before deriving the response path');
+  assert.match(provisioner, /form_field_type='single_line_text'/,
+    'Forms v3 text fields must use the single_line_text field type id');
+  assert.match(provisioner, /form_field_type='single_checkbox'/,
+    'Forms v3 boolean fields must use the single_checkbox field type id');
+  assert.match(provisioner, /--arg fieldType "\$form_field_type"/,
+    'Form patch must use the Forms v3 field type mapping, not CRM property fieldType values');
   assert.match(provisioner, /NUVANX_CONFIRM:-.*yes/,
     'HubSpot mutation must continue requiring explicit NUVANX_CONFIRM=yes');
   assert.match(provisioner, /HUBSPOT_MANAGED_PROPERTY_CONTRACT=FAIL missing=/,
@@ -69,7 +75,7 @@ if (fs.existsSync(provisionerPath)) {
   for (const name of managedV2) {
     assert.match(provisioner, new RegExp(`\\b${name}\\b`), `Schema v2 provisioner must own ${name}`);
   }
-  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1`);
+  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_v3_types=1`);
 }
 
 if (!fs.existsSync(runtimePath)) {

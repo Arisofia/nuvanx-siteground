@@ -57,16 +57,24 @@ if (fs.existsSync(provisionerPath)) {
     'check_property must assign name before deriving the response path');
   assert.match(provisioner, /check_existing_string_property\(\) \{\n\s*local name="\$1"\n\s*local out="\$work\/property-\$\{name\}\.json"/,
     'existing-property check must assign name before deriving the response path');
+  assert.match(provisioner, /FORMS_API_BASE="\$\{HUBSPOT_FORMS_API_BASE:-https:\/\/api\.hubapi\.com\/marketing\/forms\/2026-09-beta\}"/,
+    'Canonical form reads and writes must use the versioned Forms API endpoint that supports the live HubSpot V4 form');
+  assert.doesNotMatch(provisioner, /marketing\/v3\/forms/,
+    'Legacy marketing/v3/forms must not re-enter the canonical provisioner for this V4 form');
+  assert.match(provisioner, /request GET "\$FORMS_API_BASE\/\$FORM_ID"/,
+    'Canonical form read must use the versioned Forms API base');
+  assert.match(provisioner, /request PATCH "\$FORMS_API_BASE\/\$FORM_ID"/,
+    'Canonical form patch must use the versioned Forms API base');
   assert.match(provisioner, /form_field_type='single_line_text'/,
-    'Forms v3 text fields must use the single_line_text field type id');
+    'Versioned Forms API text fields must use the single_line_text field type id');
   assert.match(provisioner, /form_field_type='single_checkbox'/,
-    'Forms v3 boolean fields must use the single_checkbox field type id');
+    'Versioned Forms API boolean fields must use the single_checkbox field type id');
   assert.match(provisioner, /--arg fieldType "\$form_field_type"/,
-    'Form patch must use the Forms v3 field type mapping, not CRM property fieldType values');
+    'Form patch must use the Forms field type mapping, not CRM property fieldType values');
   assert.match(provisioner, /FORM_MAX_FIELDS_PER_GROUP=3/,
-    'Forms v3 writer must codify the live maximum of three fields per field group');
+    'Forms writer must codify the live maximum of three fields per field group');
   assert.match(provisioner, /normalize_form_groups_for_write\(\)/,
-    'Provisioner must normalize legacy oversized field groups before writing Forms v3');
+    'Provisioner must normalize legacy oversized field groups before writing the form');
   assert.match(provisioner, /\(\$group \+ \{fields: \[\$field\]\}\)/,
     'Oversized legacy groups must preserve each existing field object verbatim while splitting layout');
   assert.match(provisioner, /verify_visible_form_baseline\(\)/,
@@ -74,7 +82,7 @@ if (fs.existsSync(provisionerPath)) {
   assert.match(provisioner, /range\(0; \(\$fields \| length\); \$max\)/,
     'New hidden fields must be chunked into write-valid groups instead of one oversized default group');
   assert.match(provisioner, /HUBSPOT_FORM_GROUP_CONTRACT=FAIL/,
-    '--check must fail closed on a legacy group that Forms v3 would refuse to write');
+    '--check must fail closed on a legacy group that the current Forms API would refuse to write');
   assert.match(provisioner, /HUBSPOT_FORM_GROUP_CONTRACT=PASS/,
     'Post-apply verification must prove the canonical form is write-valid');
   assert.match(provisioner, /NUVANX_CONFIRM:-.*yes/,
@@ -89,7 +97,7 @@ if (fs.existsSync(provisionerPath)) {
   for (const name of managedV2) {
     assert.match(provisioner, new RegExp(`\\b${name}\\b`), `Schema v2 provisioner must own ${name}`);
   }
-  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_v3_types=1 form_group_normalization=1`);
+  console.log(`HUBSPOT_ATTRIBUTION_PROVISIONER_SYNTAX=PASS schema=v2 managed=${managedV2.length} bool_options=1 nounset_safe=1 forms_versioned_api=1 forms_field_types=1 form_group_normalization=1`);
 }
 
 if (!fs.existsSync(runtimePath)) {

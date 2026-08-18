@@ -1,5 +1,4 @@
-name: Staging Rescue 606 One-Shot
-# runner retry 2: SiteGround SSH transport only
+name: Staging Queue Rescue One-Shot
 
 on:
   pull_request:
@@ -15,114 +14,38 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'ops/staging-rescue-606-20260818'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
-      ROLLBACK_DIR: /home/customer/www/staging2.nuvanx.com/.nvx-rollback/pr-606-32168023441-1-3db7ff76fc974c825fff5bf059e8ffd4ca268045
+    timeout-minutes: 5
     steps:
-      - name: Cancel obsolete PR preview runs
+      - name: Cancel obsolete queued master run
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          STALE_RUN_ID: '32176457283'
         run: |
           set -euo pipefail
-          stale_runs=(32168023441 32168990926)
-          for run_id in "${stale_runs[@]}"; do
-            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" --jq '.status')"
-            if [[ "$status" != 'completed' ]]; then
-              gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/cancel" >/dev/null
-              echo "STALE_RUN_CANCEL_REQUESTED run_id=${run_id}"
-            else
-              echo "STALE_RUN_ALREADY_COMPLETED run_id=${run_id}"
-            fi
-          done
+          status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')"
+          head_sha="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.head_sha')"
+          event="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.event')"
+          branch="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.head_branch')"
 
-          for attempt in {1..90}; do
-            pending=0
-            for run_id in "${stale_runs[@]}"; do
-              status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" --jq '.status')"
-              [[ "$status" == 'completed' ]] || pending=1
-            done
-            (( pending == 0 )) && break
-            sleep 5
-          done
+          [[ "$event" == 'push' ]]
+          [[ "$branch" == 'master' ]]
+          [[ "$head_sha" == '6932154162b00a83d7de519fe2ff3a0b9e471336' ]]
 
-          for run_id in "${stale_runs[@]}"; do
-            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" --jq '.status')"
-            conclusion="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" --jq '.conclusion // "none"')"
-            [[ "$status" == 'completed' ]] || { echo "STALE_RUN_CANCEL_TIMEOUT run_id=${run_id}" >&2; exit 1; }
-            echo "STALE_RUN_CLOSED run_id=${run_id} conclusion=${conclusion}"
-          done
+          current_master="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          [[ "$current_master" != "$head_sha" ]] || { echo 'STALE_RUN_ABORT reason=run_is_current_master' >&2; exit 1; }
 
-      - name: Configure strict Staging2 SSH
-        shell: bash
-        env:
-          HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          USER: ${{ secrets.STAGING2_SSH_USER }}
-          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
-          SSH_PORT="${PORT:-18765}"; [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_rescue_key"; chmod 600 "$HOME/.ssh/staging_rescue_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging2-rescue
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging_rescue_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-          ssh nvx-staging2-rescue 'echo STAGING_RESCUE_SSH=PASS'
-
-      - name: Restore stale preview snapshot when present
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-staging2-rescue "STAGING_ROOT='$STAGING_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          [[ "$STAGING_ROOT" == '/home/customer/www/staging2.nuvanx.com/public_html' ]]
-          [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
-
-          if [[ -f "$ROLLBACK_DIR/theme.tgz" && -f "$ROLLBACK_DIR/staging-db.sql" ]]; then
-            rm -rf "$STAGING_ROOT/wp-content/themes/nuvanx-medical"
-            tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$STAGING_ROOT"
-            if [[ -f "$ROLLBACK_DIR/mu-plugins.tgz" ]]; then
-              rm -rf "$STAGING_ROOT/wp-content/mu-plugins"
-              tar -xzf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$STAGING_ROOT"
-            fi
-            cd "$STAGING_ROOT"
-            wp db import "$ROLLBACK_DIR/staging-db.sql"
-            wp cache flush
-            if wp plugin is-installed sg-cachepress; then
-              wp plugin activate sg-cachepress --quiet || true
-              wp sg purge || true
-              wp plugin deactivate sg-cachepress --quiet || true
-            fi
-            echo 'STAGING_RESCUE_ROLLBACK=PASS source=stale_preview_snapshot'
-          else
-            echo 'STAGING_RESCUE_ROLLBACK=SKIP reason=snapshot_already_cleaned'
+          if [[ "$status" != 'completed' ]]; then
+            gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}/cancel" >/dev/null
+            echo "STALE_MASTER_CANCEL_REQUESTED run_id=${STALE_RUN_ID}"
           fi
 
-          cd "$STAGING_ROOT"
-          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
-          test -f wp-content/themes/nuvanx-medical/functions.php
-          php -l wp-content/themes/nuvanx-medical/functions.php >/dev/null
-          echo 'STAGING_RESCUE_IDENTITY=PASS'
-          REMOTE
+          for attempt in {1..30}; do
+            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')"
+            [[ "$status" == 'completed' ]] && break
+            sleep 2
+          done
 
-      - name: Cleanup SSH material
-        if: always()
-        shell: bash
-        run: |
-          rm -f "$HOME/.ssh/staging_rescue_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+          conclusion="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.conclusion // "none"')"
+          [[ "$status" == 'completed' ]] || { echo "STALE_MASTER_CANCEL_TIMEOUT run_id=${STALE_RUN_ID}" >&2; exit 1; }
+          echo "STALE_MASTER_CLOSED run_id=${STALE_RUN_ID} conclusion=${conclusion} current_master=${current_master}"

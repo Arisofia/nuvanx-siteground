@@ -1,4 +1,5 @@
 name: Staging Rescue 606 One-Shot
+# runner retry 2: SiteGround SSH transport only
 
 on:
   pull_request:

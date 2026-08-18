@@ -323,24 +323,48 @@ function nvx_valoracion_forward_to_hubspot( array $fields, array $context ): arr
 }
 
 /**
- * Handle Canonical Success Token Consumption
+ * Validate and consume a single-use canonical success token before rendering.
+ * Requests carrying the token are explicitly non-cacheable, including invalid
+ * or already-consumed tokens, so cached HTML can never replay the conversion.
  */
-function nvx_valoracion_consume_canonical_success(): void {
+function nvx_valoracion_prepare_canonical_success(): void {
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
+
 	if ( ! function_exists( 'nvx_theme_thank_you_page_slugs' ) || ! is_page( nvx_theme_thank_you_page_slugs() ) ) {
 		return;
 	}
 	if ( ! isset( $_GET['nvx_success'] ) ) {
 		return;
 	}
-	$token = sanitize_text_field( wp_unslash( $_GET['nvx_success'] ) );
-	if ( empty( $token ) ) {
+
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	nocache_headers();
+
+	$token = sanitize_text_field( wp_unslash( (string) $_GET['nvx_success'] ) );
+	if ( 1 !== preg_match( '/^[a-f0-9]{64}$/D', $token ) ) {
 		return;
 	}
+
 	$hash = hash( 'sha256', $token );
 	$key  = 'nvx_success_' . $hash;
-	if ( get_transient( $key ) ) {
-		delete_transient( $key );
-		echo "<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});</script>\n";
+	if ( ! get_transient( $key ) ) {
+		return;
 	}
+
+	delete_transient( $key );
+	$GLOBALS['nvx_valoracion_success_ready'] = true;
 }
-add_action( 'wp_head', 'nvx_valoracion_consume_canonical_success', 5 );
+add_action( 'template_redirect', 'nvx_valoracion_prepare_canonical_success', 1 );
+
+/** Emit the already-consumed canonical success signal during render. */
+function nvx_valoracion_emit_canonical_success(): void {
+	if ( empty( $GLOBALS['nvx_valoracion_success_ready'] ) ) {
+		return;
+	}
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
+	$script = "window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});";
+	wp_print_inline_script_tag( $script );
+}
+add_action( 'wp_head', 'nvx_valoracion_emit_canonical_success', 5 );

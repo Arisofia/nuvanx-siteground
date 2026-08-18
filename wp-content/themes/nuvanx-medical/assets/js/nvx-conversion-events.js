@@ -5,6 +5,9 @@
 	var signalName = 'nvx_conversion_signal';
 	var submissionWindowMs = 8000;
 	var recentSubmissions = new Map();
+	var recentFallbackConversionIds = new Map();
+	var configuredCanonicalForm = String((config.forms || {}).valoracion || '').toLowerCase();
+	var canonicalForm = configuredCanonicalForm || '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 
 	/**
 	 * Normalizes a value for use as a tracking token.
@@ -57,11 +60,7 @@
 		return output;
 	}
 
-
-
 	var adsClickSendTo = 'AW-18236597403/qut3CLWflOAcEJvJ8fdD';
-	var adsLeadSendToPrimary = 'AW-18182220789/86RgCI2dht4cEPXX-t1D';
-	var adsLeadSendToSecondary = 'AW-18236597403/-1UOCISYlOAcEJvJ8fdD';
 
 	function pushAdsConversion(sendTo, extra) {
 		var payload = Object.assign({ send_to: sendTo }, extra || {});
@@ -131,17 +130,10 @@
 			nvx_event_name: normalizedName,
 		}, params));
 
-		if (normalizedName === 'generate_lead') {
-			if (typeof window.gtag === 'function') {
-				window.gtag('config', 'AW-18236597403');
-			}
-		}
-
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
 	}
-
 
 	function trackClick(event) {
 		var target = event.target && typeof event.target.closest === 'function'
@@ -209,14 +201,34 @@
 		return cleanToken(formId, 'unknown_form') + '|' + pagePath();
 	}
 
+	/**
+	 * Track one confirmed HubSpot submission across V4 and legacy postMessage channels.
+	 * A fallback form+path key always bridges callbacks where one channel lacks a
+	 * conversion ID. Distinct known conversion IDs remain independent conversions.
+	 */
 	function trackSuccessfulSubmission(formId, eventSource, conversionId) {
-		var key = conversionId ? 'cid_' + String(conversionId) : submissionKey(formId);
 		var now = Date.now();
-		var previous = recentSubmissions.get(key) || 0;
-		// If we have a unique conversionId, deduplicate it aggressively (1 hour instead of 8s window)
-		var windowMs = conversionId ? 3600000 : submissionWindowMs;
-		if (now - previous < windowMs) return;
-		recentSubmissions.set(key, now);
+		var normalizedConversionId = String(conversionId || '');
+		var fallbackKey = submissionKey(formId);
+		var conversionKey = normalizedConversionId ? 'cid_' + normalizedConversionId : '';
+		var fallbackPrevious = recentSubmissions.get(fallbackKey) || 0;
+		var fallbackPreviousId = recentFallbackConversionIds.get(fallbackKey) || '';
+
+		if (conversionKey) {
+			var conversionPrevious = recentSubmissions.get(conversionKey) || 0;
+			if (now - conversionPrevious < 3600000) return;
+		}
+
+		if (now - fallbackPrevious < submissionWindowMs) {
+			var distinctKnownConversions = Boolean(
+				normalizedConversionId && fallbackPreviousId && normalizedConversionId !== fallbackPreviousId
+			);
+			if (!distinctKnownConversions) return;
+		}
+
+		recentSubmissions.set(fallbackKey, now);
+		recentFallbackConversionIds.set(fallbackKey, normalizedConversionId);
+		if (conversionKey) recentSubmissions.set(conversionKey, now);
 
 		emit('generate_lead', {
 			form_id: formId || 'unknown_form',
@@ -225,7 +237,6 @@
 			form_event_source: eventSource,
 		});
 
-		var canonicalForm = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 		if (String(formId || '').toLowerCase() === canonicalForm) {
 			window.dataLayer = window.dataLayer || [];
 			window.dataLayer.push({
@@ -256,7 +267,15 @@
 				window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId);
 			} catch (_error) {}
 		}
-		var convId = detail.conversionId || (typeof detail.getConversionId === 'function' ? detail.getConversionId() : '');
+		var convId = '';
+		if (window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getFormFromEvent === 'function') {
+			try {
+				var successfulForm = window.HubSpotFormsV4.getFormFromEvent(event);
+				if (successfulForm && typeof successfulForm.getConversionId === 'function') {
+					convId = successfulForm.getConversionId() || '';
+				}
+			} catch (_error) {}
+		}
 		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);
 		// Invoke legacy onFormSubmitted hook for compatibility
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormSubmitted === 'function') {
@@ -278,7 +297,7 @@
 		}
 		if (typeof data !== 'object') data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
-		var convIdMessage = (data.data && data.data.conversionId) ? data.data.conversionId : '';
+		var convIdMessage = data.data?.conversionId || '';
 		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message', convIdMessage);
 	});
 

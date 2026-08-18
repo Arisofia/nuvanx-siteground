@@ -24,6 +24,46 @@ function nvx_theme_owns_complete_page_markup(): bool {
 }
 
 /**
+ * Remove long-form prose semantics from managed component documents.
+ *
+ * Several canonical page renderers intentionally emit a full-bleed hero plus
+ * component sections inside the standard entry-content wrapper. Keeping the
+ * outer nvx-prose class makes descendant long-form rules override the spacing
+ * owned by hero/section components, especially on narrow viewports.
+ *
+ * Only managed pages with both a brand hero and brand sections are normalized;
+ * posts, legal documents and ordinary CMS prose remain unchanged.
+ *
+ * @param string $content Rendered post content.
+ * @return string
+ */
+function nvx_theme_normalize_managed_component_prose_wrapper( string $content ): string {
+	if ( is_admin() || '' === $content ) {
+		return $content;
+	}
+
+	if ( ! function_exists( 'nvx_get_page_owner' ) || empty( nvx_get_page_owner() ) ) {
+		return $content;
+	}
+
+	if ( false === strpos( $content, 'entry-content nvx-page__content nvx-prose' )
+		|| false === strpos( $content, 'nvx-brand-hero' )
+		|| false === strpos( $content, 'nvx-brand-section' ) ) {
+		return $content;
+	}
+
+	$normalized = preg_replace(
+		'/\bentry-content\s+nvx-page__content\s+nvx-prose\b/',
+		'entry-content nvx-page__content',
+		$content,
+		1
+	);
+
+	return is_string( $normalized ) ? $normalized : $content;
+}
+add_filter( 'the_content', 'nvx_theme_normalize_managed_component_prose_wrapper', PHP_INT_MAX );
+
+/**
  * Return the ordered local stylesheets required by the current public route.
  *
  * The order mirrors the original dependency graph. Route-local styles are

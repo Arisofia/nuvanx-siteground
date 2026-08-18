@@ -4,7 +4,8 @@ set -Eeuo pipefail
 MODE="${1:---check}"
 FORM_ID="${HUBSPOT_FORM_ID:-5042522a-0bc5-4381-ac3e-5aee8649b69c}"
 PORTAL_ID="${HUBSPOT_PORTAL:-147416356}"
-API_BASE="https://api.hubapi.com"
+CRM_API_BASE="https://api.hubapi.com"
+FORMS_API_BASE="${HUBSPOT_FORMS_API_BASE:-https://api.hubapi.com/marketing/forms/2026-09-beta}"
 FORM_MAX_FIELDS_PER_GROUP=3
 
 case "$MODE" in
@@ -110,7 +111,7 @@ check_property() {
   local name="$1" expected_type="$2" expected_field_type="$3"
   local out="$work/property-${name}.json"
   local status
-  status="$(request GET "$API_BASE/crm/v3/properties/contacts/$name" "$out")"
+  status="$(request GET "$CRM_API_BASE/crm/v3/properties/contacts/$name" "$out")"
   if [[ "$status" == '200' ]]; then
     local name_ok type field_type hidden form_field options_ok
     name_ok="$(jq -r --arg name "$name" 'if .name == $name then "1" else "0" end' "$out" 2>/dev/null || echo 0)"
@@ -140,7 +141,7 @@ check_existing_string_property() {
   local name="$1"
   local out="$work/property-${name}.json"
   local status
-  status="$(request GET "$API_BASE/crm/v3/properties/contacts/$name" "$out")"
+  status="$(request GET "$CRM_API_BASE/crm/v3/properties/contacts/$name" "$out")"
   if [[ "$status" == '200' ]]; then
     local name_ok type hidden
     name_ok="$(jq -r --arg name "$name" 'if .name == $name then "1" else "0" end' "$out" 2>/dev/null || echo 0)"
@@ -192,7 +193,7 @@ create_managed_property() {
   fi
 
   local status
-  status="$(request POST "$API_BASE/crm/v3/properties/contacts" "$work/create-${name}-response.json" "$body")"
+  status="$(request POST "$CRM_API_BASE/crm/v3/properties/contacts" "$work/create-${name}-response.json" "$body")"
   [[ "$status" == '201' || "$status" == '200' ]] || {
     echo "HUBSPOT_PROPERTY_CREATE=FAIL property=$name status=$status" >&2
     jq '{status,category,message,correlationId}' "$work/create-${name}-response.json" 2>/dev/null || true
@@ -207,7 +208,7 @@ form_max_group_fields() {
 }
 
 # HubSpot can still return legacy forms whose historical default_group contains
-# more fields than the current Forms v3 write contract accepts. Preserve every
+# more fields than the current versioned Forms API write contract accepts. Preserve every
 # field object verbatim, but split only oversized legacy groups into one-field
 # groups. This is deliberately conservative for visible fields: it avoids turning
 # a previously stacked form into a new multi-column layout during schema work.
@@ -269,14 +270,14 @@ fi
 required_form_fields=("${required_existing_properties[@]}" "${managed_properties[@]}")
 
 form="$work/form.json"
-status="$(request GET "$API_BASE/marketing/v3/forms/$FORM_ID" "$form")"
+status="$(request GET "$FORMS_API_BASE/$FORM_ID" "$form")"
 [[ "$status" == '200' ]] || {
-  echo "HUBSPOT_FORM_CONTRACT=FAIL status=$status form_id=$FORM_ID" >&2
+  echo "HUBSPOT_FORM_CONTRACT=FAIL status=$status form_id=$FORM_ID endpoint=$FORMS_API_BASE" >&2
   jq '{status,category,message,correlationId}' "$form" 2>/dev/null || true
   exit 1
 }
 
-if ! jq -e --arg portal "$PORTAL_ID" '((.portalId // "") == "" or (.portalId|tostring) == $portal) and (.archived // false) == false' "$form" >/dev/null; then
+if ! jq -e --arg portal "$PORTAL_ID" '((.portalId // "") == "" or (.portalId|tostring) == $portal) and (.archived // false) == false and .formType == "hubspot"' "$form" >/dev/null; then
   echo "HUBSPOT_FORM_IDENTITY=FAIL form_id=$FORM_ID portal=$PORTAL_ID" >&2
   exit 1
 fi
@@ -353,13 +354,13 @@ if (( ${#missing_form_fields[@]} > 0 || needs_group_normalization == 1 )); then
     verify_visible_form_baseline "$work/form-working.json"
 
     jq '{fieldGroups}' "$work/form-working.json" > "$work/form-patch.json"
-    patch_status="$(request PATCH "$API_BASE/marketing/v3/forms/$FORM_ID" "$work/form-patch-response.json" "$work/form-patch.json")"
+    patch_status="$(request PATCH "$FORMS_API_BASE/$FORM_ID" "$work/form-patch-response.json" "$work/form-patch.json")"
     [[ "$patch_status" == '200' ]] || {
-      echo "HUBSPOT_FORM_PATCH=FAIL status=$patch_status form_id=$FORM_ID" >&2
+      echo "HUBSPOT_FORM_PATCH=FAIL status=$patch_status form_id=$FORM_ID endpoint=$FORMS_API_BASE" >&2
       jq '{status,category,message,correlationId}' "$work/form-patch-response.json" 2>/dev/null || true
       exit 1
     }
-    echo "HUBSPOT_FORM_PATCH=PASS added=${#missing_form_fields[@]} normalized_legacy_groups=$needs_group_normalization max_fields_per_group=$FORM_MAX_FIELDS_PER_GROUP"
+    echo "HUBSPOT_FORM_PATCH=PASS added=${#missing_form_fields[@]} normalized_legacy_groups=$needs_group_normalization max_fields_per_group=$FORM_MAX_FIELDS_PER_GROUP endpoint=2026-09-beta"
   fi
 fi
 
@@ -368,8 +369,8 @@ if [[ "$MODE" == '--check' && ( ${#missing_managed[@]} -gt 0 || ${#missing_form_
 fi
 
 verify="$work/form-verify.json"
-verify_status="$(request GET "$API_BASE/marketing/v3/forms/$FORM_ID" "$verify")"
-[[ "$verify_status" == '200' ]] || { echo "HUBSPOT_FORM_VERIFY=FAIL status=$verify_status" >&2; exit 1; }
+verify_status="$(request GET "$FORMS_API_BASE/$FORM_ID" "$verify")"
+[[ "$verify_status" == '200' ]] || { echo "HUBSPOT_FORM_VERIFY=FAIL status=$verify_status endpoint=$FORMS_API_BASE" >&2; exit 1; }
 
 verify_max="$(form_max_group_fields "$verify")"
 [[ "$verify_max" =~ ^[0-9]+$ && "$verify_max" -le "$FORM_MAX_FIELDS_PER_GROUP" ]] || {
@@ -400,4 +401,4 @@ for property in "${managed_properties[@]}"; do
 done
 
 echo "HUBSPOT_FORM_GROUP_CONTRACT=PASS max_fields=$verify_max allowed=$FORM_MAX_FIELDS_PER_GROUP"
-echo "HUBSPOT_ATTRIBUTION_CONTRACT=PASS mode=${MODE#--} form_id=$FORM_ID managed=${#managed_properties[@]} existing=${#required_existing_properties[@]} fields=${#required_form_fields[@]} schema=v2"
+echo "HUBSPOT_ATTRIBUTION_CONTRACT=PASS mode=${MODE#--} form_id=$FORM_ID managed=${#managed_properties[@]} existing=${#required_existing_properties[@]} fields=${#required_form_fields[@]} schema=v2 forms_api=2026-09-beta"

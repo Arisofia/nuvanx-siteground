@@ -613,6 +613,32 @@ function nvx_rewrite_eager_maps_iframes_in_block( string $block_content ): strin
 add_filter( 'render_block', 'nvx_rewrite_eager_maps_iframes_in_block', 20 );
 
 /**
+ * article cannot host role="listitem". Strip leftover invalid list ARIA so
+ * cached or CMS Signature cards do not fail the agent accessibility tree.
+ */
+function nvx_sanitize_invalid_list_roles( string $html ): string {
+	if ( '' === $html || false === stripos( $html, 'role=' ) ) {
+		return $html;
+	}
+
+	// Remove role="listitem" from article elements (invalid ARIA)
+	$updated = preg_replace( '/(<article\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $html );
+	$updated = is_string( $updated ) ? $updated : $html;
+	
+	// Remove role="list" from div elements (invalid ARIA)
+	$updated = preg_replace( '/(<div\b[^>]*\bnvx-brand-grid\b[^>]*?)\srole=(["\'])list\2/iu', '$1', $updated );
+	$updated = is_string( $updated ) ? $updated : $html;
+	
+	// Remove role="listitem" from any nvx-brand-card article (aggressive catch-all)
+	$updated = preg_replace( '/(<article\b[^>]*\bnvx-brand-card\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $updated );
+	$updated = is_string( $updated ) ? $updated : $html;
+
+	return is_string( $updated ) ? $updated : $html;
+}
+add_filter( 'the_content', 'nvx_sanitize_invalid_list_roles', 202 );
+add_filter( 'render_block', 'nvx_sanitize_invalid_list_roles', 202 );
+
+/**
  * Render canonical FAQ accordion section markup.
  *
  * @param array{kicker?:string,title?:string,items?:array<int,array{q:string,a:string}>} $faq FAQ data array.

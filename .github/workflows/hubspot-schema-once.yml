@@ -12,34 +12,26 @@ permissions:
   contents: read
 
 jobs:
-  apply_schema:
-    name: Apply canonical HubSpot attribution schema v2
+  probe_forms_api:
+    name: Probe versioned HubSpot Forms API
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Check out canonical provisioner
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: f960d81c5b8979f978e3d0bb8515403cc2add31c
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Apply Schema Contract v2
+      - name: Probe 2026-09-beta form endpoint read-only
         shell: bash
         env:
           HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
-          NUVANX_CONFIRM: yes
+          FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
         run: |
           set -Eeuo pipefail
-          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
-          bash scripts/ci/provision-hubspot-attribution-contract.sh --apply
-
-      - name: Require clean idempotent post-check
-        shell: bash
-        env:
-          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
-        run: |
-          set -Eeuo pipefail
-          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
-          echo 'HUBSPOT_SCHEMA_ONE_SHOT=PASS schema=v2 canonical_provisioner=1'
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
+          out="$RUNNER_TEMP/form-beta.json"
+          status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 --output "$out" --write-out '%{http_code}' --header "Authorization: Bearer ${HUBSPOT_ACCESS_TOKEN}" "https://api.hubapi.com/marketing/forms/2026-09-beta/${FORM_ID}")"
+          if [[ "$status" != '200' ]]; then
+            echo "HUBSPOT_FORMS_VERSIONED_READ=FAIL status=$status" >&2
+            jq '{status,category,message,correlationId}' "$out" 2>/dev/null || true
+            exit 1
+          fi
+          jq -e --arg id "$FORM_ID" '.id == $id and (.archived // false) == false and .formType == "hubspot"' "$out" >/dev/null
+          jq -r '[.fieldGroups[]?.fields[]?] | length | "HUBSPOT_FORMS_VERSIONED_READ=PASS form_fields=\(.)"' "$out"

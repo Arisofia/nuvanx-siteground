@@ -240,7 +240,14 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
 	if ( $result['ok'] ) {
 		nvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
-		wp_safe_redirect( home_url( '/gracias/' ) );
+		try {
+			$token = bin2hex( random_bytes( 32 ) );
+			$hash  = hash( 'sha256', $token );
+			set_transient( 'nvx_success_' . $hash, 1, 10 * MINUTE_IN_SECONDS );
+			wp_safe_redirect( add_query_arg( 'nvx_success', $token, home_url( '/gracias/' ) ) );
+		} catch ( Exception $e ) {
+			wp_safe_redirect( home_url( '/gracias/' ) );
+		}
 		exit;
 	}
 
@@ -314,3 +321,26 @@ function nvx_valoracion_forward_to_hubspot( array $fields, array $context ): arr
 
 	return $failed( 'hubspot_http', $code );
 }
+
+/**
+ * Handle Canonical Success Token Consumption
+ */
+function nvx_valoracion_consume_canonical_success(): void {
+	if ( ! function_exists( 'nvx_theme_thank_you_page_slugs' ) || ! is_page( nvx_theme_thank_you_page_slugs() ) ) {
+		return;
+	}
+	if ( ! isset( $_GET['nvx_success'] ) ) {
+		return;
+	}
+	$token = sanitize_text_field( wp_unslash( $_GET['nvx_success'] ) );
+	if ( empty( $token ) ) {
+		return;
+	}
+	$hash = hash( 'sha256', $token );
+	$key  = 'nvx_success_' . $hash;
+	if ( get_transient( $key ) ) {
+		delete_transient( $key );
+		echo "<script>window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});</script>\n";
+	}
+}
+add_action( 'wp_head', 'nvx_valoracion_consume_canonical_success', 5 );

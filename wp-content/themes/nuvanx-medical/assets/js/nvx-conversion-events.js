@@ -135,8 +135,6 @@
 			if (typeof window.gtag === 'function') {
 				window.gtag('config', 'AW-18236597403');
 			}
-			pushAdsConversion(adsLeadSendToPrimary);
-			pushAdsConversion(adsLeadSendToSecondary);
 		}
 
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
@@ -211,11 +209,13 @@
 		return cleanToken(formId, 'unknown_form') + '|' + pagePath();
 	}
 
-	function trackSuccessfulSubmission(formId, eventSource) {
-		var key = submissionKey(formId);
+	function trackSuccessfulSubmission(formId, eventSource, conversionId) {
+		var key = conversionId ? 'cid_' + String(conversionId) : submissionKey(formId);
 		var now = Date.now();
 		var previous = recentSubmissions.get(key) || 0;
-		if (now - previous < submissionWindowMs) return;
+		// If we have a unique conversionId, deduplicate it aggressively (1 hour instead of 8s window)
+		var windowMs = conversionId ? 3600000 : submissionWindowMs;
+		if (now - previous < windowMs) return;
 		recentSubmissions.set(key, now);
 
 		emit('generate_lead', {
@@ -224,6 +224,16 @@
 			lead_source: 'hubspot_form',
 			form_event_source: eventSource,
 		});
+
+		var canonicalForm = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+		if (String(formId || '').toLowerCase() === canonicalForm) {
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push({
+				event: 'nvx_valoracion_success',
+				form: 'valoracion',
+				source: 'hubspot_native'
+			});
+		}
 	}
 
 	function isAllowedHubSpotOrigin(origin) {
@@ -246,7 +256,8 @@
 				window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId);
 			} catch (_error) {}
 		}
-		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event');
+		var convId = detail.conversionId || (typeof detail.getConversionId === 'function' ? detail.getConversionId() : '');
+		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);
 		// Invoke legacy onFormSubmitted hook for compatibility
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormSubmitted === 'function') {
 			try {
@@ -267,7 +278,8 @@
 		}
 		if (typeof data !== 'object') data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
-		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message');
+		var convIdMessage = (data.data && data.data.conversionId) ? data.data.conversionId : '';
+		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message', convIdMessage);
 	});
 
 	window.NUVANXConversionEvents = Object.freeze({

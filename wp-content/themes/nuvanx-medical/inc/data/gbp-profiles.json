@@ -2,6 +2,12 @@
   "primary_category": "Clínica de medicina estética",
   "primary_category_status": "proposed_pending_gbp_admin_inspection",
   "secondary_categories": ["Médico", "Centro de láser"],
+  "phones": {
+    "chamberi_nap": "669 319 836",
+    "goya_nap": "647 50 51 07",
+    "goya_discarded": "649 232 267",
+    "valoracion_central": "689 31 73 99"
+  },
   "review_policy": {
     "delay_days": 7,
     "incentives_forbidden": true,

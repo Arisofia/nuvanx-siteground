@@ -1,6 +1,21 @@
 {
   "schema": "nuvanx-clinic-asset-registry/v1",
   "status": "INVENTORY_ONLY",
+  "business_confirmations": {
+    "confirmed_at": "2026-08-18",
+    "source": "operator_go_defaults",
+    "goya_nap": "647 50 51 07",
+    "goya_nap_discarded": "649 232 267",
+    "chamberi_nap": "669 319 836",
+    "valoracion_central": "689 31 73 99",
+    "sala_waiting": "chamberi-sala.jpg is Chamberí waiting room; same hash must not be used as Goya proof",
+    "equipment_prep_only": {
+      "chamberi": ["DEKA/SmartLipo", "Endolift/LaseMAR"],
+      "goya": ["EXION", "Endolift/LaseMAR"]
+    },
+    "gbp_live_upload": false,
+    "wp_live_blocks_chamberi_goya": "keep"
+  },
   "notes": [
     "No ZIP/WebP from the local-SEO pack is loaded here. Theme JPEGs only.",
     "Hashes show most Goya files are copies of Chamberí/PMAX assets. Not location-verified.",
@@ -51,10 +66,10 @@
       "sha256": "aa15be6fdd5de476",
       "dimensions": "1200x628",
       "rights_status": "theme_copy_from_ads_pmax",
-      "location_verified": false,
+      "location_verified": true,
       "approved_for_landing": false,
       "approved_for_gbp": false,
-      "note": "Same hash as goya/02-sala.jpg and chamberi-sala.jpg. Cannot be the unique facade of either sede. User must confirm if this is Chamberí Sala-Nuvanx.",
+      "note": "Confirmed Chamberí waiting room (chamberi-sala.jpg / Sala-Nuvanx equivalent). goya/02-sala.jpg is the same file: do not use as Goya local proof.",
       "aliases": ["chamberi-sala.jpg", "goya/02-sala.jpg"]
     },
     {

@@ -28,45 +28,58 @@ mu_files=(
 
 remote_meta="$RAW_DIR/remote-mu-meta.tsv"
 : > "$remote_meta"
+echo 'FORENSIC_REMOTE_LIST=START' >&2
+ssh -n "$SSH_ALIAS" "ls -1 '$PROD_ROOT/wp-content/mu-plugins'" >&2 || true
+echo 'FORENSIC_REMOTE_LIST=END' >&2
+found_mu_files=()
 for file in "${mu_files[@]}"; do
   remote_path="$PROD_ROOT/wp-content/mu-plugins/$file"
-  ssh -n "$SSH_ALIAS" "REMOTE_PATH='$remote_path' bash -se" <<'REMOTE' >> "$remote_meta"
+  if ! ssh -n "$SSH_ALIAS" "test -f '$remote_path'"; then
+    echo "FORENSIC_MU_PLUGIN=MISSING file=$file" >&2
+    continue
+  fi
+  ssh "$SSH_ALIAS" "REMOTE_PATH='$remote_path' bash -s" <<'REMOTE' >> "$remote_meta"
 set -Eeuo pipefail
 p="$REMOTE_PATH"
-test -f "\$p"
+test -f "$p"
 printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-  "\$p" "\$(stat -c '%s' "\$p")" "\$(stat -c '%a' "\$p")" \
-  "\$(stat -c '%U' "\$p")" "\$(stat -c '%G' "\$p")" "\$(stat -c '%y' "\$p")" "\$(sha256sum "\$p" | awk '{print \$1}')"
-if php -l "\$p" >/dev/null 2>&1; then printf 'PHP_LINT\t%s\tPASS\n' "\$p"; else printf 'PHP_LINT\t%s\tFAIL\n' "\$p"; fi
+  "$p" "$(stat -c '%s' "$p")" "$(stat -c '%a' "$p")" \
+  "$(stat -c '%U' "$p")" "$(stat -c '%G' "$p")" "$(stat -c '%y' "$p")" "$(sha256sum "$p" | awk '{print $1}')"
+if php -l "$p" >/dev/null 2>&1; then printf 'PHP_LINT\t%s\tPASS\n' "$p"; else printf 'PHP_LINT\t%s\tFAIL\n' "$p"; fi
 REMOTE
   scp -q "$SSH_ALIAS:$remote_path" "$RAW_DIR/mu-plugins/$file"
+  found_mu_files+=("$file")
 done
+if (( ${#found_mu_files[@]} == 0 )); then
+  echo 'FORENSIC_MU_PLUGIN=FAIL no expected production MU plugins found' >&2
+  exit 1
+fi
 
 # The historical GTM file is copied only for the requested logic review; wp-config is never copied.
 gtm_backup="$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-tag-manager.php.bak"
-ssh -n "$SSH_ALIAS" "ACTIVE_CONFIG='$PROD_ROOT/wp-config.php' CONFIG_BACKUP='$PROD_ROOT/wp-config.php.bak' GTM_BACKUP='$gtm_backup' bash -se" <<'REMOTE' > "$RAW_DIR/remote-backup-meta.tsv"
+ssh "$SSH_ALIAS" "ACTIVE_CONFIG='$PROD_ROOT/wp-config.php' CONFIG_BACKUP='$PROD_ROOT/wp-config.php.bak' GTM_BACKUP='$gtm_backup' bash -s" <<'REMOTE' > "$RAW_DIR/remote-backup-meta.tsv"
 set -Eeuo pipefail
 active="$ACTIVE_CONFIG"
 backup="$CONFIG_BACKUP"
 gtm="$GTM_BACKUP"
 for label in ACTIVE_CONFIG CONFIG_BACKUP GTM_BACKUP; do
-  case "\$label" in
-    ACTIVE_CONFIG) p="\$active" ;;
-    CONFIG_BACKUP) p="\$backup" ;;
-    GTM_BACKUP) p="\$gtm" ;;
+  case "$label" in
+    ACTIVE_CONFIG) p="$active" ;;
+    CONFIG_BACKUP) p="$backup" ;;
+    GTM_BACKUP) p="$gtm" ;;
   esac
-  if test -f "\$p"; then
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "\$label" "\$p" "\$(stat -c '%s' "\$p")" "\$(stat -c '%a' "\$p")" "\$(stat -c '%U' "\$p")" "\$(stat -c '%G' "\$p")" "\$(stat -c '%y' "\$p")"
-    printf 'SHA256\t%s\t%s\n' "\$p" "\$(sha256sum "\$p" | awk '{print \$1}')"
+  if test -f "$p"; then
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$label" "$p" "$(stat -c '%s' "$p")" "$(stat -c '%a' "$p")" "$(stat -c '%U' "$p")" "$(stat -c '%G' "$p")" "$(stat -c '%y' "$p")"
+    printf 'SHA256\t%s\t%s\n' "$p" "$(sha256sum "$p" | awk '{print $1}')"
   else
-    printf '%s\t%s\tMISSING\tMISSING\tMISSING\tMISSING\tMISSING\n' "\$label" "\$p"
+    printf '%s\t%s\tMISSING\tMISSING\tMISSING\tMISSING\tMISSING\n' "$label" "$p"
   fi
 done
-if test -f "\$active" && test -f "\$backup"; then
-  if cmp -s "\$active" "\$backup"; then echo 'CONFIG_IDENTICAL\ttrue'; else echo 'CONFIG_IDENTICAL\tfalse'; fi
+if test -f "$active" && test -f "$backup"; then
+  if cmp -s "$active" "$backup"; then echo 'CONFIG_IDENTICAL	true'; else echo 'CONFIG_IDENTICAL	false'; fi
 fi
-if test -f "\$gtm"; then
-  if php -l "\$gtm" >/dev/null 2>&1; then echo "PHP_LINT\t\$gtm\tPASS"; else echo "PHP_LINT\t\$gtm\tFAIL"; fi
+if test -f "$gtm"; then
+  if php -l "$gtm" >/dev/null 2>&1; then echo "PHP_LINT	$gtm	PASS"; else echo "PHP_LINT	$gtm	FAIL"; fi
 fi
 REMOTE
 
@@ -77,7 +90,7 @@ fi
 # Extract the three requested Code Snippets through wp-cli without invoking plugin code.
 for id in 7 8 11; do
   snippet_json="$RAW_DIR/snippet-$id.json"
-  ssh -n "$SSH_ALIAS" "PROD_ROOT='$PROD_ROOT' SNIPPET_ID='$id' bash -se" <<'REMOTE' > "$snippet_json"
+  ssh "$SSH_ALIAS" "PROD_ROOT='$PROD_ROOT' SNIPPET_ID='$id' bash -s" <<'REMOTE' > "$snippet_json"
 set -Eeuo pipefail
 cd "$PROD_ROOT"
 wp eval '
@@ -161,7 +174,7 @@ rm -f "$REPORT_DIR"/snippet-*-metadata.json
 
 if [[ "$secret_count" -eq 0 ]]; then
   stamp="${FORENSIC_STAMP:-$(date -u +%Y%m%d)}"
-  ( cd "$RAW_DIR/mu-plugins" && zip -q -X "$REPORT_DIR/mu-plugins-production-${stamp}.zip" "${mu_files[@]}" )
+  ( cd "$RAW_DIR/mu-plugins" && zip -q -X "$REPORT_DIR/mu-plugins-production-${stamp}.zip" "${found_mu_files[@]}" )
   ln -sfn "mu-plugins-production-${stamp}.zip" "$REPORT_DIR/mu-plugins-production.zip"
   ( cd "$RAW_DIR" && zip -q -X "$REPORT_DIR/forensic-source-review-private.zip" backups/nuvanx-google-tag-manager.php.bak snippets/snippet-7.php snippets/snippet-8.php snippets/snippet-11.php )
   echo "FORENSIC_SOURCE_PACKAGE=PASS secret_findings=0 stamp=$stamp"

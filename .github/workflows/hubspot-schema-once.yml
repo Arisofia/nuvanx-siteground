@@ -1,0 +1,116 @@
+name: HubSpot Staging Runtime Secret
+
+on:
+  push:
+    branches:
+      - ops/hubspot-schema-once-20260818
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  provision_staging_runtime_secret:
+    name: Provision HubSpot runtime secret on Staging2
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    steps:
+      - name: Configure strict Staging2 SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"
+          chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v wp >/dev/null"
+
+      - name: Provision secret after guarded wp-config backup
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
+          [[ "$HUBSPOT_ACCESS_TOKEN" == pat-* ]]
+          [[ ${#HUBSPOT_ACCESS_TOKEN} -ge 24 ]]
+          umask 077
+          local_secret="$RUNNER_TEMP/hubspot-runtime-token"
+          printf '%s' "$HUBSPOT_ACCESS_TOKEN" > "$local_secret"
+          remote_secret="$STAGING_ROOT/wp-content/.nvx-hubspot-runtime-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          scp -q "$local_secret" "nvx-staging2:$remote_secret"
+          rm -f "$local_secret"
+
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' REMOTE_SECRET='$remote_secret' RUN_ID='$GITHUB_RUN_ID' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test -s "$REMOTE_SECRET"
+
+          backup_dir="$STAGING_ROOT/wp-content/backups-nuvanx/pre-hubspot-runtime-secret-$RUN_ID"
+          umask 077
+          mkdir -p "$backup_dir"
+          cp -p wp-config.php "$backup_dir/wp-config.php"
+          test -s "$backup_dir/wp-config.php"
+
+          restore() {
+            rc=$?
+            trap - ERR
+            cp -p "$backup_dir/wp-config.php" wp-config.php
+            rm -f "$REMOTE_SECRET"
+            php -l wp-config.php >/dev/null || true
+            exit "$rc"
+          }
+          trap restore ERR
+
+          token="$(cat "$REMOTE_SECRET")"
+          rm -f "$REMOTE_SECRET"
+          [[ "$token" == pat-* ]]
+          [[ ${#token} -ge 24 ]]
+          wp config set NVX_HUBSPOT_ACCESS_TOKEN "$token" --type=constant --quiet
+          unset token
+          php -l wp-config.php >/dev/null
+          wp eval 'exit(defined("NVX_HUBSPOT_ACCESS_TOKEN") && is_string(NVX_HUBSPOT_ACCESS_TOKEN) && strlen(NVX_HUBSPOT_ACCESS_TOKEN) >= 24 ? 0 : 1);'
+          trap - ERR
+          echo 'HUBSPOT_RUNTIME_SECRET=PASS staging2=1 backup=1 value_exposed=0'
+          REMOTE
+
+      - name: Cleanup local SSH material
+        if: always()
+        shell: bash
+        run: rm -rf "$HOME/.ssh/staging_key" "$HOME/.ssh/config"

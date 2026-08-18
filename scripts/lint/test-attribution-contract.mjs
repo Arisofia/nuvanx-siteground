@@ -252,6 +252,26 @@ if (!fs.existsSync(runtimePath)) {
   assert.doesNotMatch(bridge, /skipValidation/,
     'Deprecated Forms API skipValidation must not be used');
 
+  assert.match(bridge, /function nvx_hubspot_secure_is_staging_isolation_error\(/,
+    'Runtime v2 must identify the staging outbound isolation error explicitly');
+  assert.match(bridge, /'nvx_staging_outbound_blocked' === \(string\) \$preempt->get_error_code\(\)/,
+    'Only the canonical staging-isolation WP_Error may enter the QA exception path');
+  assert.match(bridge, /function nvx_hubspot_secure_payload_is_staging_qa\(/,
+    'Staging outbound release must validate a server-owned QA payload');
+  assert.match(bridge, /0 === strpos\( \$test_run_id, 'staging2-' \)/,
+    'Staging QA release must require a deterministic staging2 test-run id');
+  assert.match(bridge, /'staging2\.nuvanx\.com' === \$host/,
+    'Staging QA release must require the canonical staging page host');
+  assert.match(bridge, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
+    'Staging QA release must be scoped to the exact authenticated HubSpot submit URL');
+  assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_allow_staging_qa_outbound', PHP_INT_MAX, 3 \)/,
+    'QA allowlist must run only after the global Staging2 isolation guard');
+  assert.match(
+    bridge,
+    /function nvx_hubspot_secure_allow_staging_qa_outbound[\s\S]*?nvx_hubspot_secure_is_staging_isolation_error\( \$preempt \)[\s\S]*?nvx_hubspot_secure_submit_url\(\) !== \$url[\s\S]*?nvx_hubspot_secure_payload_is_staging_qa\( \$payload \)[\s\S]*?return false;/,
+    'Outbound release must fail closed unless error, endpoint and server-owned QA payload all match',
+  );
+
   const securePostCalls = bridge.match(/wp_remote_post\(/g) || [];
   assert.equal(securePostCalls.length, 1,
     'Secure bridge must perform exactly one authenticated HubSpot network POST');
@@ -301,6 +321,6 @@ if (!fs.existsSync(runtimePath)) {
 
   console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0');
   console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
-  console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1');
-  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1');
+  console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1 staging_qa_allowlist=1');
+  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1');
 }

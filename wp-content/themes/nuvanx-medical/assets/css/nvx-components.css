@@ -15,6 +15,12 @@
 }
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
+/* Global h2/h3 ink would vanish on near-black stages. Invert there. */
+.nvx-solutions-group--dark :is(h2, h3),
+.nvx-solutions-closure :is(h2, h3),
+.nvx-brand-section--dark :is(h2, h3) {
+  color: var(--nvx-light);
+}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
 /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
 .nvx-copy,.nvx-brand-body,.nvx-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
@@ -2554,16 +2560,16 @@ figure.nvx-equipo-portrait{
 .nvx-brand-section--dark h2,
 .nvx-brand-section--dark .nvx-brand-subtitle,
 .nvx-brand-section--dark h3 {
-  color: var(--nvx-on-dark);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-kicker,
 .nvx-brand-section--dark .nvx-eyebrow {
-  color: var(--nvx-on-dark-72);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-body,
 .nvx-brand-section--dark .nvx-copy,
 .nvx-brand-section--dark p {
-  color: var(--nvx-on-dark-88);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-color-line {
   background: var(--nvx-accent-line-dark);

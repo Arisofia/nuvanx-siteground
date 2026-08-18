@@ -135,4 +135,28 @@ const btnCR = contrastRatio(btnBgLum, btnTextLum);
 console.log(`\n  Primary CTA Button Contrast: ${btnCR.toFixed(2)}:1 (Text #1A1A1A on #F7F7F5)`);
 assert.ok(btnCR >= 4.5, `CTA button contrast (${btnCR.toFixed(2)}:1) must be >= 4.5:1`);
 
+const componentsCss = await fs.readFile(
+  path.join(__dirname, '../../wp-content/themes/nuvanx-medical/assets/css/nvx-components.css'),
+  'utf8',
+);
+const solutionsCss = await fs.readFile(
+  path.join(__dirname, '../../wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css'),
+  'utf8',
+);
+assert.match(
+  componentsCss,
+  /\.nvx-solutions-group--dark :is\(h2, h3\),[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'Playfair h2/h3 on the dark Contorno corporal band must use solid light, not --nvx-ink',
+);
+assert.match(
+  solutionsCss,
+  /\.nvx-solutions-group--dark :is\(h2, h3\),[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'soluciones-medicas dark group headings must invert to --nvx-light',
+);
+assert.match(
+  solutionsCss,
+  /\.nvx-solutions-closure :is\(h2, \.nvx-solutions-eyebrow\)[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'soluciones closure headings must stay readable on the black band',
+);
+
 console.log('\nHERO_WCAG_CONTRAST_TEST=PASS');

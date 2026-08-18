@@ -57,7 +57,7 @@ run_check "PHP Syntax (all files)" "find wp-content/themes/nuvanx-medical -name 
 # === 2. PHPCS ===
 echo ""
 echo "=== PHPCS ==="
-if [ -f "phpcs.xml" ] || [ -f "phpcs.xml.dist" ]; then
+if [[ -f "phpcs.xml" ]] || [[ -f "phpcs.xml.dist" ]]; then
   run_check "PHPCS Code Style" "phpcs wp-content/themes/nuvanx-medical"
 else
   echo -e "${YELLOW}⊘${NC} PHPCS: SKIP (no phpcs.xml found)"
@@ -66,7 +66,7 @@ fi
 # === 3. PHPStan ===
 echo ""
 echo "=== PHPSTAN ==="
-if [ -f "phpstan.neon" ] || [ -f "phpstan.neon.dist" ]; then
+if [[ -f "phpstan.neon" ]] || [[ -f "phpstan.neon.dist" ]]; then
   run_check "PHPStan Static Analysis" "phpstan analyse wp-content/themes/nuvanx-medical"
 else
   echo -e "${YELLOW}⊘${NC} PHPStan: SKIP (no phpstan.neon found)"
@@ -81,7 +81,7 @@ run_check "No hardcoded credentials" "! git grep -E '(AKIA|sk-|token)' -- '*.php
 # === 5. Theme Hygiene ===
 echo ""
 echo "=== THEME HYGIENE ==="
-if [ -f "tools/migrations/diagnose-jsonld-storage.php" ]; then
+if [[ -f "tools/migrations/diagnose-jsonld-storage.php" ]]; then
   run_check "Theme Hygiene" "wp eval 'require \"${PROJECT_ROOT}/tools/migrations/diagnose-jsonld-storage.php\";' --allow-root"
 else
   echo -e "${YELLOW}⊘${NC} Theme Hygiene: SKIP (diagnose script not found)"
@@ -96,7 +96,7 @@ run_check "SEO Metadata validation" "cat wp-content/themes/nuvanx-medical/inc/da
 # === 7. Publication Topology ===
 echo ""
 echo "=== PUBLICATION TOPOLOGY ==="
-if [ -f "tools/migrations/generate-publication-manifest.php" ]; then
+if [[ -f "tools/migrations/generate-publication-manifest.php" ]]; then
   run_check "Publication Manifest" "wp eval 'require \"${PROJECT_ROOT}/tools/migrations/generate-publication-manifest.php\";' --allow-root"
 else
   echo -e "${YELLOW}⊘${NC} Publication Manifest: SKIP (generation script not found)"
@@ -111,7 +111,7 @@ run_check "Aesthetic treatment schema" "cat wp-content/themes/nuvanx-medical/inc
 # === 9. Block C ===
 echo ""
 echo "=== BLOCK C ==="
-if [ -f "scripts/staging2/block-c-origin-browser-fallback.mjs" ]; then
+if [[ -f "scripts/staging2/block-c-origin-browser-fallback.mjs" ]]; then
   run_check "Block C contract" "node scripts/staging2/block-c-origin-browser-fallback.mjs"
 else
   echo -e "${YELLOW}⊘${NC} Block C: SKIP (contract not found)"
@@ -120,7 +120,7 @@ fi
 # === 10. HubSpot ===
 echo ""
 echo "=== HUBSPOT ==="
-if [ -f "scripts/staging2/test-hubspot-specific-gate.mjs" ]; then
+if [[ -f "scripts/staging2/test-hubspot-specific-gate.mjs" ]]; then
   # Only run if agent-browser is available
   if command -v agent-browser &> /dev/null; then
     run_check "HubSpot specific gate" "node scripts/staging2/test-hubspot-specific-gate.mjs"
@@ -134,7 +134,7 @@ fi
 # === 11. Visual States ===
 echo ""
 echo "=== VISUAL STATES ==="
-if [ -f "scripts/staging2/visual-qa-by-state.mjs" ]; then
+if [[ -f "scripts/staging2/visual-qa-by-state.mjs" ]]; then
   if command -v agent-browser &> /dev/null; then
     run_check "Visual QA by state" "node scripts/staging2/visual-qa-by-state.mjs"
   else
@@ -147,8 +147,8 @@ fi
 # === 12. Production Parity (only for promotion) ===
 echo ""
 echo "=== PRODUCTION PARITY ==="
-if [ "${ENVIRONMENT}" = "promotion" ]; then
-  if [ -f "scripts/production/verify-production-identity.mjs" ]; then
+if [[ "${ENVIRONMENT}" = "promotion" ]]; then
+  if [[ -f "scripts/production/verify-production-identity.mjs" ]]; then
     run_check "Production identity verification" "node scripts/production/verify-production-identity.mjs"
   else
     echo -e "${YELLOW}⊘${NC} Production Parity: SKIP (verification script not found)"
@@ -164,7 +164,7 @@ echo "Checks passed: ${CHECKS_PASSED}"
 echo "Checks failed: ${CHECKS_FAILED}"
 echo ""
 
-if [ ${OVERALL_STATUS} -eq 0 ]; then
+if [[ ${OVERALL_STATUS} -eq 0 ]]; then
   echo -e "${GREEN}✓${NC} ALL CHECKS PASSED"
   echo "Pre-merge/promotion protection: PASSED"
   exit 0

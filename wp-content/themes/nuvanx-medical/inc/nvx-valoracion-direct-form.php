@@ -167,7 +167,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	}
 
 	$ip       = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) ) : '0';
-	$rate_key = 'nvx_val_rl_' . md5( $ip );
+	$rate_key = 'nvx_val_rl_' . hash( 'sha256', $ip );
 	$hits     = (int) get_transient( $rate_key );
 	if ( $hits >= 5 ) {
 		nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit' );

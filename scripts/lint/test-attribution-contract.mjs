@@ -134,6 +134,17 @@ function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test
     window, document, URL, URLSearchParams, Date, Uint8Array, Array, Object, Set,
     Boolean, String, Number, JSON, RegExp, Math, console,
   });
+  
+  // Security: Validate runtime source before execution
+  if (!runtimeSource || typeof runtimeSource !== 'string') {
+    throw new Error('Invalid runtime source: must be a non-empty string');
+  }
+  
+  // Basic length check to prevent excessively large inputs
+  if (runtimeSource.length > 1000000) { // 1MB limit
+    throw new Error('Runtime source too large for safe execution');
+  }
+  
   vm.runInContext(runtimeSource, context, { filename: runtimePath });
   return { window, document, localStorage, sessionStorage };
 }

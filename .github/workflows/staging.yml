@@ -85,6 +85,7 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || (github.event_name == 'workflow_dispatch' && inputs.sha != '' && inputs.sha || github.sha) }}
           fetch-depth: 0
           persist-credentials: false
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
 
       - name: Enforce repository hygiene
         shell: bash
@@ -245,7 +246,7 @@ jobs:
           fi
 
       - name: Check out master history
-        if: ${{ steps.prior_completion.outputs.complete != 'true' }}
+        if: ${{ steps.prior_completion.outputs.complete != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: master

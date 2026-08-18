@@ -56,7 +56,7 @@ write_identity() {
   chmod 600 "$key_path"
   printf '%s\n' "$known_hosts" > "$known_hosts_path"
   chmod 600 "$known_hosts_path"
-  test -s "$known_hosts_path" || { echo "SITEGROUND_SSH=FAIL mode=$mode reason=EMPTY_KNOWN_HOSTS" >&2; return 1; }
+  [[ -s "$known_hosts_path" ]] || { echo "SITEGROUND_SSH=FAIL mode=$mode reason=EMPTY_KNOWN_HOSTS" >&2; return 1; }
   cat > "$config_path" <<EOF
 Host $NVX_SSH_ALIAS
   HostName $host

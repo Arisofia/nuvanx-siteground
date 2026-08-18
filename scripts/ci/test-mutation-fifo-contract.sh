@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SUBJECT="$ROOT/scripts/ci/wait-for-environment-mutation-turn.sh"
-test -s "$SUBJECT"
+[[ -s "$SUBJECT" ]]
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

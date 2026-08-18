@@ -764,6 +764,19 @@
     });
     window.addEventListener('hs-form-event:on-ready', markHubSpotReady);
     window.addEventListener('message', function (event) {
+      // Security: Verify message origin to prevent potential XSS attacks
+      // Only accept messages from HubSpot's domains or same origin
+      const allowedOrigins = [
+        'https://js.hsforms.net',
+        'https://js.hs-scripts.com',
+        'https://forms.hsforms.com',
+        window.location.origin
+      ];
+      
+      if (!event.origin || !allowedOrigins.includes(event.origin)) {
+        return; // Reject messages from untrusted origins
+      }
+      
       if (isHubSpotFormMessage(event && event.data)) markHubSpotReady();
     });
 

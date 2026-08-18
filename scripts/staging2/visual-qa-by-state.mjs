@@ -15,6 +15,34 @@ import path from 'node:path';
 
 const AGENT_BROWSER = 'agent-browser';
 
+// Security: Validate and sanitize directory paths to prevent path traversal
+function validateOutputDir(outputDir) {
+  if (!outputDir || typeof outputDir !== 'string') {
+    throw new Error('Invalid output directory: must be a non-empty string');
+  }
+  
+  // Resolve to absolute path
+  const resolvedPath = path.resolve(outputDir);
+  
+  // Define allowed base directories
+  const allowedBases = [
+    path.resolve('scripts/staging2'),
+    path.resolve('scripts/staging2/visual-qa-artifacts'),
+    path.resolve('scripts/staging2/visual-qa-by-state-artifacts'),
+  ];
+  
+  // Check if the resolved path is within allowed base directories
+  const isAllowed = allowedBases.some(base => 
+    resolvedPath === base || resolvedPath.startsWith(base + path.sep)
+  );
+  
+  if (!isAllowed) {
+    throw new Error(`Invalid output directory: ${outputDir} is not within allowed directories`);
+  }
+  
+  return resolvedPath;
+}
+
 // Viewport configurations
 const VIEWPORTS = {
   desktop: { width: 1920, height: 1080 },
@@ -31,6 +59,10 @@ function runAgentBrowser(args) {
 }
 
 async function testViewportState(url, viewportName, viewport, stateName, outputDir) {
+  // Safety check: ensure outputDir is still valid (defense in depth)
+  if (!outputDir || typeof outputDir !== 'string') {
+    throw new Error('Invalid output directory in testViewportState');
+  }
   const screenshotPath = path.join(outputDir, `${viewportName}_${stateName}.png`);
   
   try {
@@ -87,6 +119,8 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
 }
 
 async function runVisualQA(url, outputDir) {
+  const validatedOutputDir = validateOutputDir(outputDir);
+  
   const results = {
     schema: 'visual-qa-by-state',
     testedAt: new Date().toISOString(),
@@ -94,7 +128,7 @@ async function runVisualQA(url, outputDir) {
     viewports: [],
   };
 
-  await fs.mkdir(outputDir, { recursive: true });
+  await fs.mkdir(validatedOutputDir, { recursive: true });
 
   for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
     const viewportResults = {
@@ -108,7 +142,7 @@ async function runVisualQA(url, outputDir) {
     
     for (const stateName of states) {
       console.log(`Testing ${viewportName} - ${stateName}...`);
-      const result = await testViewportState(url, viewportName, viewport, stateName, outputDir);
+      const result = await testViewportState(url, viewportName, viewport, stateName, validatedOutputDir);
       
       viewportResults.states.push({
         name: stateName,
@@ -122,7 +156,7 @@ async function runVisualQA(url, outputDir) {
   }
 
   // Save results
-  const resultsPath = path.join(outputDir, 'visual-qa-results.json');
+  const resultsPath = path.join(validatedOutputDir, 'visual-qa-results.json');
   await fs.writeFile(resultsPath, JSON.stringify(results, null, 2));
 
   console.log(`Visual QA completed. Results saved to ${resultsPath}`);

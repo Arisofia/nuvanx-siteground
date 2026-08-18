@@ -149,6 +149,30 @@
     });
   }
 
+  /* --- Google Maps: load iframe only after an explicit click --- */
+  function bindLazyMaps(root) {
+    var nodes = (root || document).querySelectorAll('[data-nvx-map-src]');
+    nodes.forEach(function (el) {
+      if (el.getAttribute('data-nvx-map-bound') === '1') return;
+      el.setAttribute('data-nvx-map-bound', '1');
+      var button = el.querySelector('.nvx-map-embed__button');
+      if (!button) return;
+      button.addEventListener('click', function () {
+        var src = el.getAttribute('data-nvx-map-src') || '';
+        var title = el.getAttribute('data-nvx-map-title') || 'Google Maps';
+        if (!src) return;
+        var iframe = document.createElement('iframe');
+        iframe.src = src;
+        iframe.title = title;
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+        el.replaceChildren(iframe);
+      });
+    });
+  }
+  bindLazyMaps(document);
+
   /* --- Complianz Accessible Name Sanitizer (WCAG 2.4.4 / 4.1.2) --- */
   function sanitizeComplianzAccessibleNames() {
     var banners = document.querySelectorAll(

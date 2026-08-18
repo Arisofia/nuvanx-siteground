@@ -238,4 +238,54 @@ assert.match(
   'Joinchat widget clicks must count as WhatsApp conversions',
 );
 
+const helpers = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php',
+  'utf8',
+);
+const presentation = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php',
+  'utf8',
+);
+const mainJs = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/assets/js/nvx-main.js',
+  'utf8',
+);
+assert.match(
+  helpers,
+  /function nvx_content_enhance_img_tag_attrs/,
+  'content images must receive srcset/sizes from theme or upload derivatives',
+);
+assert.match(
+  helpers,
+  /function nvx_theme_responsive_candidates/,
+  'theme-hosted WebP derivatives must be discoverable by stem',
+);
+assert.match(
+  helpers,
+  /function nvx_lazy_map_embed_markup/,
+  'Google Maps must not load until the user asks',
+);
+assert.match(
+  presentation,
+  /nvx_content_enhance_img_tag_attrs/,
+  'body image normalization must attach responsive attributes',
+);
+assert.match(
+  mainJs,
+  /data-nvx-map-src/,
+  'nvx-main must bind click-to-load maps',
+);
+assert.ok(
+  fs.existsSync(
+    'wp-content/themes/nuvanx-medical/assets/images/responsive/SmartLipo-for-Laserlipolysis-DEKA-1-447.webp',
+  ),
+  'SmartLipo must ship as WebP instead of the 329 KiB PNG',
+);
+assert.ok(
+  fs.existsSync(
+    'wp-content/themes/nuvanx-medical/assets/images/responsive/Sala-Nuvanx-480.webp',
+  ),
+  'Chamberí waiting-room photo must have a 480w WebP',
+);
+
 console.log('LCP_CSS_DELIVERY=PASS');

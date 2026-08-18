@@ -961,6 +961,9 @@ function nvx_content_normalize_doctor_img_tag( array $im ): string {
 	$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
 	$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
 	$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
+	if ( function_exists( 'nvx_content_enhance_img_tag_attrs' ) ) {
+		$a = nvx_content_enhance_img_tag_attrs( $a );
+	}
 	return '<img' . $a . '>';
 }
 
@@ -980,6 +983,9 @@ function nvx_content_normalize_body_img_tag( array $m ): string {
 	$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
 	$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
 	$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
+	if ( function_exists( 'nvx_content_enhance_img_tag_attrs' ) ) {
+		$attrs = nvx_content_enhance_img_tag_attrs( $attrs );
+	}
 
 	return '<img' . $attrs . '>';
 }

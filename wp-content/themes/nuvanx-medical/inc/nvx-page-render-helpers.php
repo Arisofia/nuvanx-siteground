@@ -250,6 +250,239 @@ function nvx_remove_missing_local_content_images( $content ) {
 }
 add_filter( 'the_content', 'nvx_remove_missing_local_content_images', 20 );
 
+/** Read an HTML attribute value from an attribute string. */
+function nvx_html_attrs_get( string $attrs, string $name ): string {
+	$pattern = '/\b' . preg_quote( $name, '/' ) . '\s*=\s*(["\'])(.*?)\1/iu';
+	if ( ! preg_match( $pattern, $attrs, $match ) ) {
+		return '';
+	}
+
+	return html_entity_decode( (string) $match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+}
+
+/** Set or replace an HTML attribute on an attribute string. */
+function nvx_html_attrs_set( string $attrs, string $name, string $value ): string {
+	$safe    = esc_attr( $value );
+	$pattern = '/\b' . preg_quote( $name, '/' ) . '\s*=\s*(["\'])(.*?)\1/iu';
+	if ( preg_match( $pattern, $attrs ) ) {
+		$updated = preg_replace( $pattern, $name . '="' . $safe . '"', $attrs, 1 );
+		return is_string( $updated ) ? $updated : $attrs;
+	}
+
+	return rtrim( $attrs ) . ' ' . $name . '="' . $safe . '"';
+}
+
+/** Filename stem without a WordPress -WIDTHxHEIGHT suffix. */
+function nvx_image_stem_from_url( string $url ): string {
+	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+	$name = pathinfo( $path, PATHINFO_FILENAME );
+	$stem = preg_replace( '/-\d+x\d+$/', '', $name );
+
+	return is_string( $stem ) && '' !== $stem ? $stem : $name;
+}
+
+/**
+ * Theme-hosted WebP candidates keyed by width.
+ *
+ * @return array<int,string>
+ */
+function nvx_theme_responsive_candidates( string $stem ): array {
+	if ( '' === $stem || false !== strpbrk( $stem, '*?[]\\' ) ) {
+		return array();
+	}
+
+	$dir = get_template_directory() . '/assets/images/responsive';
+	if ( ! is_dir( $dir ) ) {
+		return array();
+	}
+
+	$uri = trailingslashit( get_template_directory_uri() ) . 'assets/images/responsive';
+	$out = array();
+	foreach ( (array) glob( $dir . '/' . $stem . '-*.webp' ) as $file ) {
+		if ( ! is_string( $file ) || ! preg_match( '/-(\d+)\.webp$/', $file, $match ) ) {
+			continue;
+		}
+		$out[ (int) $match[1] ] = $uri . '/' . basename( $file );
+	}
+
+	return $out;
+}
+
+/**
+ * Upload-dir sized siblings keyed by width. Prefers WebP over PNG/JPEG.
+ *
+ * @return array<int,string>
+ */
+function nvx_upload_responsive_candidates( string $url ): array {
+	$local = nvx_local_upload_file_from_url( $url );
+	if ( '' === $local ) {
+		return array();
+	}
+
+	$dir  = dirname( $local );
+	$stem = nvx_image_stem_from_url( $url );
+	if ( '' === $stem || ! is_dir( $dir ) || false !== strpbrk( $stem, '*?[]\\' ) ) {
+		return array();
+	}
+
+	$base_url = (string) wp_parse_url( $url, PHP_URL_SCHEME ) . '://' . (string) wp_parse_url( $url, PHP_URL_HOST );
+	$base_url = trailingslashit( $base_url . dirname( (string) wp_parse_url( $url, PHP_URL_PATH ) ) );
+	$out      = array();
+
+	$files = array_merge(
+		(array) glob( $dir . '/' . $stem . '-*x*.webp' ),
+		(array) glob( $dir . '/' . $stem . '-*x*.jpg' ),
+		(array) glob( $dir . '/' . $stem . '-*x*.jpeg' ),
+		(array) glob( $dir . '/' . $stem . '-*x*.png' )
+	);
+	foreach ( $files as $file ) {
+		if ( ! is_string( $file ) || ! preg_match( '/-(\d+)x(\d+)\.(webp|jpe?g|png)$/i', $file, $match ) ) {
+			continue;
+		}
+		$width = (int) $match[1];
+		$ext   = strtolower( (string) $match[3] );
+		if ( isset( $out[ $width ] ) && 'webp' !== $ext ) {
+			continue;
+		}
+		$out[ $width ] = $base_url . basename( $file );
+	}
+
+	return $out;
+}
+
+/**
+ * Collect width-keyed candidates for a content image URL.
+ *
+ * @return array<int,string>
+ */
+function nvx_responsive_candidates_for_url( string $url ): array {
+	$stem = nvx_image_stem_from_url( $url );
+	$out  = nvx_theme_responsive_candidates( $stem );
+	foreach ( nvx_upload_responsive_candidates( $url ) as $width => $candidate ) {
+		if ( ! isset( $out[ $width ] ) ) {
+			$out[ $width ] = $candidate;
+		}
+	}
+
+	return $out;
+}
+
+/**
+ * Add srcset, sizes, dimensions and a modern src to a body/content img.
+ */
+function nvx_content_enhance_img_tag_attrs( string $attrs ): string {
+	if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero/i', $attrs ) ) {
+		return $attrs;
+	}
+
+	$src = nvx_html_attrs_get( $attrs, 'src' );
+	if ( '' === $src || false !== strpos( $src, '/assets/images/responsive/' ) ) {
+		return $attrs;
+	}
+
+	$candidates = nvx_responsive_candidates_for_url( $src );
+	if ( array() === $candidates ) {
+		return $attrs;
+	}
+
+	ksort( $candidates, SORT_NUMERIC );
+	$parts = array();
+	foreach ( $candidates as $width => $candidate_url ) {
+		$parts[] = $candidate_url . ' ' . $width . 'w';
+	}
+
+	$default_width = 0;
+	foreach ( array_keys( $candidates ) as $width ) {
+		if ( $width >= 480 ) {
+			$default_width = $width;
+			break;
+		}
+	}
+	if ( 0 === $default_width ) {
+		$default_width = (int) array_key_first( $candidates );
+	}
+
+	$default_src = $candidates[ $default_width ];
+	$attrs       = nvx_html_attrs_set( $attrs, 'src', $default_src );
+	$attrs       = nvx_html_attrs_set( $attrs, 'srcset', implode( ', ', $parts ) );
+	if ( '' === nvx_html_attrs_get( $attrs, 'sizes' ) ) {
+		$attrs = nvx_html_attrs_set( $attrs, 'sizes', '(max-width: 680px) calc(100vw - 48px), 680px' );
+	}
+
+	if ( '' === nvx_html_attrs_get( $attrs, 'width' ) ) {
+		$attrs = nvx_html_attrs_set( $attrs, 'width', (string) $default_width );
+		$local = nvx_local_upload_file_from_url( $default_src );
+		if ( '' === $local ) {
+			$theme_file = get_template_directory() . '/assets/images/responsive/' . basename( (string) wp_parse_url( $default_src, PHP_URL_PATH ) );
+			$local      = is_readable( $theme_file ) ? $theme_file : '';
+		}
+		if ( '' !== $local ) {
+			$size = @getimagesize( $local );
+			if ( is_array( $size ) && isset( $size[0], $size[1] ) ) {
+				$attrs = nvx_html_attrs_set( $attrs, 'width', (string) (int) $size[0] );
+				$attrs = nvx_html_attrs_set( $attrs, 'height', (string) (int) $size[1] );
+			}
+		}
+	}
+
+	if ( '' === nvx_html_attrs_get( $attrs, 'loading' ) ) {
+		$attrs = nvx_html_attrs_set( $attrs, 'loading', 'lazy' );
+	}
+	if ( '' === nvx_html_attrs_get( $attrs, 'decoding' ) ) {
+		$attrs = nvx_html_attrs_set( $attrs, 'decoding', 'async' );
+	}
+
+	return $attrs;
+}
+
+/**
+ * Last-pass responsive attributes for every public content image.
+ *
+ * Page modules rebuild the_content after the first presentation pass; this
+ * catch-all still rewrites leftover full-size uploads.
+ */
+function nvx_content_apply_responsive_images( string $content ): string {
+	if ( is_admin() || '' === $content || false === stripos( $content, '<img' ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<img\b([^>]*)>/iu',
+		static function ( array $matches ): string {
+			return '<img' . nvx_content_enhance_img_tag_attrs( $matches[1] ) . '>';
+		},
+		$content
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+add_filter( 'the_content', 'nvx_content_apply_responsive_images', 200 );
+
+/** Build an img tag with srcset/sizes when theme or upload derivatives exist. */
+function nvx_responsive_img_markup( string $src, string $alt, string $extra_attrs = '' ): string {
+	$attrs = ' src="' . esc_url( $src ) . '" alt="' . esc_attr( $alt ) . '"';
+	if ( '' !== trim( $extra_attrs ) ) {
+		$attrs .= ' ' . trim( $extra_attrs );
+	}
+	$attrs = nvx_content_enhance_img_tag_attrs( $attrs );
+
+	return '<img' . $attrs . '>';
+}
+
+/**
+ * Click-to-load Google Maps embed. Avoids maps.googleapis.com until the user asks.
+ */
+function nvx_lazy_map_embed_markup( string $embed_src, string $title, string $modifier = '' ): string {
+	$class = 'nvx-map-embed';
+	if ( '' !== $modifier ) {
+		$class .= ' ' . $modifier;
+	}
+
+	return '<div class="' . esc_attr( $class ) . '" data-nvx-map-src="' . esc_url( $embed_src ) . '" data-nvx-map-title="' . esc_attr( $title ) . '">'
+		. '<button type="button" class="nvx-map-embed__button">' . esc_html__( 'Cargar mapa de Google', 'nuvanx-medical' ) . '</button>'
+		. '</div>';
+}
+
 /**
  * Render canonical FAQ accordion section markup.
  *

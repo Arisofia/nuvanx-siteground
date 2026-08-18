@@ -134,15 +134,13 @@ ob_start();
 				$evidence_w = 1672;
 				$evidence_h = 941;
 				?>
-				<img
-					src="<?php echo esc_url( $evidence_image ); ?>"
-					alt="Consulta médica personalizada en NUVANX Madrid"
-					class="nvx-home-evidence__image"
-					width="<?php echo esc_attr( (string) $evidence_w ); ?>"
-					height="<?php echo esc_attr( (string) $evidence_h ); ?>"
-					loading="lazy"
-					decoding="async"
-				>
+				<?php
+				echo nvx_responsive_img_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+					$evidence_image,
+					'Consulta médica personalizada en NUVANX Madrid',
+					'class="nvx-home-evidence__image" width="' . (int) $evidence_w . '" height="' . (int) $evidence_h . '" loading="lazy" decoding="async"'
+				);
+				?>
 			</div>
 			<div class="nvx-home-evidence__text-col">
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">El seguimiento clínico forma parte del protocolo, no es un extra.</h2>
@@ -205,14 +203,13 @@ ob_start();
 		<div class="nvx-home-locations__grid">
 			<div class="nvx-home-location">
 				<div class="nvx-home-location__map">
-					<iframe
-						title="Ubicación en Google Maps de NUVANX Chamberí"
-						src="https://maps.google.com/maps?q=Calle+de+Fernandez+de+la+Hoz+4+28010+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed"
-						width="100%"
-						height="200"
-						loading="lazy"
-						referrerpolicy="no-referrer-when-downgrade">
-					</iframe>
+					<?php
+					echo nvx_lazy_map_embed_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+						'https://maps.google.com/maps?q=Calle+de+Fernandez+de+la+Hoz+4+28010+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed',
+						__( 'Ubicación en Google Maps de NUVANX Chamberí', 'nuvanx-medical' ),
+						'nvx-map-embed--home'
+					);
+					?>
 				</div>
 				<h3 class="nvx-home-location__name">Chamberí</h3>
 				<p class="nvx-home-location__address">Calle de Fernández de la Hoz, 4</p>
@@ -222,14 +219,13 @@ ob_start();
 			</div>
 			<div class="nvx-home-location">
 				<div class="nvx-home-location__map">
-					<iframe
-						title="Ubicación en Google Maps de NUVANX Salamanca–Goya"
-						src="https://maps.google.com/maps?q=Calle+de+Fernan+Gonzalez+26+28009+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed"
-						width="100%"
-						height="200"
-						loading="lazy"
-						referrerpolicy="no-referrer-when-downgrade">
-					</iframe>
+					<?php
+					echo nvx_lazy_map_embed_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+						'https://maps.google.com/maps?q=Calle+de+Fernan+Gonzalez+26+28009+Madrid&t=&z=16&ie=UTF8&iwloc=&output=embed',
+						__( 'Ubicación en Google Maps de NUVANX Salamanca–Goya', 'nuvanx-medical' ),
+						'nvx-map-embed--home'
+					);
+					?>
 				</div>
 				<h3 class="nvx-home-location__name">Salamanca–Goya</h3>
 				<p class="nvx-home-location__address">Calle de Fernán González, 26</p>

@@ -197,19 +197,15 @@ ob_start();
 			? 'Calle+de+Fernandez+de+la+Hoz+4+28010+Madrid'
 			: 'Calle+de+Fernan+Gonzalez+26+28009+Madrid';
 		?>
-		<section class="nvx-brand-section nvx-brand-section--map" aria-label="<?php echo esc_attr( sprintf( __( 'Mapa de ubicación de %s', 'nuvanx-medical' ), $clinic_name ) ); ?>" style="padding-top:0;">
+		<section class="nvx-brand-section nvx-brand-section--map" aria-label="<?php echo esc_attr( sprintf( __( 'Mapa de ubicación de %s', 'nuvanx-medical' ), $clinic_name ) ); ?>">
 			<div class="nvx-brand-section__inner">
-				<div class="nvx-map-container" style="border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);background:#f4f4f4;line-height:0;">
-					<iframe
-						title="<?php echo esc_attr( sprintf( __( 'Ubicación en Google Maps de %s', 'nuvanx-medical' ), $clinic_name ) ); ?>"
-						src="https://maps.google.com/maps?q=<?php echo esc_attr( $embed_map_query ); ?>&t=&z=16&ie=UTF8&iwloc=&output=embed"
-						width="100%"
-						height="420"
-						style="border:0;display:block;"
-						allowfullscreen=""
-						loading="lazy"
-						referrerpolicy="no-referrer-when-downgrade">
-					</iframe>
+				<div class="nvx-map-container">
+					<?php
+					echo nvx_lazy_map_embed_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+						'https://maps.google.com/maps?q=' . $embed_map_query . '&t=&z=16&ie=UTF8&iwloc=&output=embed',
+						sprintf( __( 'Ubicación en Google Maps de %s', 'nuvanx-medical' ), $clinic_name )
+					);
+					?>
 				</div>
 			</div>
 		</section>

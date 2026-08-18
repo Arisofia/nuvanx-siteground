@@ -89,7 +89,7 @@ function nvx_contact_map_card_markup( array $clinic ): string {
 	$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $address ) . '</p>';
 	$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( (string) ( $clinic['reg'] ?? '' ) ) . '</p>';
 	$html .= '<div class="nvx-location-map-card__embed">';
-	$html .= '<iframe src="' . esc_url( $src ) . '" width="100%" height="320" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="' . esc_attr( $title ) . '"></iframe>';
+	$html .= nvx_lazy_map_embed_markup( $src, $title, 'nvx-map-embed--contact' );
 	$html .= '</div></article>';
 
 	return $html;

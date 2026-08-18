@@ -1217,6 +1217,62 @@ body.nvx-valoracion-modal-open{
   border: 0;
 }
 
+.nvx-brand-section--map {
+  padding-top: 0;
+}
+
+.nvx-map-container {
+  overflow: hidden;
+  background: var(--nvx-surface-soft);
+  line-height: 0;
+}
+
+.nvx-map-embed {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 420px;
+  background: var(--nvx-surface-soft);
+}
+
+.nvx-map-embed--home {
+  min-height: 200px;
+}
+
+.nvx-map-embed--contact {
+  min-height: 320px;
+}
+
+.nvx-map-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  border: 0;
+}
+
+.nvx-map-embed__button {
+  min-height: var(--nvx-control-size);
+  padding: var(--nvx-space-2) var(--nvx-space-4);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-button);
+  background: var(--nvx-light);
+  color: var(--nvx-ink);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-button);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nvx-map-embed__button:hover,
+.nvx-map-embed__button:focus-visible {
+  background: var(--nvx-surface-base);
+}
+
 .nvx-page--contact .nvx-clinic-card > .nvx-btn {
   align-self: flex-start;
   margin-top: auto;

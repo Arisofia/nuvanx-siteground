@@ -69,6 +69,7 @@ const NVX_HOOK_PRIO_TRUST_BADGES         = 22;
 
 // Layout Cleanups
 const NVX_HOOK_PRIO_SEDE_INLINE_STYLES = 28;
+const NVX_HOOK_PRIO_BRIDAL_MEDIA       = 29;
 const NVX_HOOK_PRIO_CLINICS_ENHANCE    = 30;
 
 // High Priority Overrides

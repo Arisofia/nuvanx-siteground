@@ -2407,6 +2407,72 @@ figure.nvx-equipo-portrait{
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
+.nvx-bridal-gallery__feature {
+  margin: var(--nvx-space-5) 0 var(--nvx-space-6);
+}
+
+.nvx-bridal-gallery__feature img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center 55%;
+}
+
+.nvx-bridal-gallery__zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nvx-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-bridal-gallery__item {
+  margin: 0;
+}
+
+.nvx-bridal-gallery__item--wide {
+  grid-column: 1 / -1;
+}
+
+.nvx-bridal-gallery__zones figure {
+  margin: 0;
+}
+
+.nvx-bridal-gallery__zones img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-bridal-gallery__item--wide img {
+  aspect-ratio: 3 / 2;
+  object-position: center;
+}
+
+.nvx-bridal-gallery__item:not(.nvx-bridal-gallery__item--wide) img {
+  aspect-ratio: 3 / 4;
+}
+
+.nvx-bridal-gallery__item:nth-child(2) img {
+  object-position: center 15%;
+}
+
+.nvx-bridal-gallery__item:nth-child(3) img {
+  object-position: center 30%;
+}
+
+@media (max-width: 48rem) {
+  .nvx-bridal-gallery__zones {
+    grid-template-columns: 1fr;
+  }
+
+  .nvx-bridal-gallery__feature img {
+    aspect-ratio: 3 / 4;
+    object-position: center 50%;
+  }
+}
+
 /* Standardized recovery timeline component */
 .nvx-recovery-timeline {
   margin: var(--nvx-space-4) 0;

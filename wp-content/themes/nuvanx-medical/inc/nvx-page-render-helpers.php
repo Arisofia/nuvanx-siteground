@@ -383,6 +383,10 @@ function nvx_known_image_intrinsics(): array {
 		'nuvanx-medicina-estetica1'                      => array( 1220, 960 ),
 		'BTL-Exion-Mobile-Version-1024x956-1'            => array( 1024, 956 ),
 		'endolift-lasemar-1500-eufoton'                  => array( 850, 470 ),
+		'Box-Clinica-Novias'                             => array( 1024, 1536 ),
+		'Brazos-novias'                                  => array( 941, 1672 ),
+		'Espalda-novias'                                 => array( 941, 1672 ),
+		'Papada-novias'                                  => array( 1536, 1024 ),
 	);
 }
 

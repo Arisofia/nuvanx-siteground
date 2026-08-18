@@ -89,6 +89,48 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 
 /**
+ * Guarantee explicit internal links from Top-1 journal articles to their
+ * treatment landings. Does nothing when the destination URL is already present.
+ */
+function nvx_theme_inject_priority_treatment_links( string $content ): string {
+	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
+		return $content;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_the_ID() );
+	$map  = array(
+		'endolift-primeras-72-horas-que-esperar' => array(
+			'url'    => home_url( '/endolift-facial-papada-mandibula/' ),
+			'anchor' => __( 'guía completa del Endolift® facial en Madrid', 'nuvanx-medical' ),
+			'intro'  => __( 'Si aún estás evaluando si el Endolift® es tu opción, consulta nuestra', 'nuvanx-medical' ),
+			'suffix' => __( ': zonas, candidatura, proceso y precios.', 'nuvanx-medical' ),
+		),
+		'endolaser-corporal-vs-no-invasivos-grasa-localizada' => array(
+			'url'    => home_url( '/endolaser-corporal-grasa-localizada/' ),
+			'anchor' => __( 'endoláser corporal en NUVANX', 'nuvanx-medical' ),
+			'intro'  => __( 'Conoce en detalle el', 'nuvanx-medical' ),
+			'suffix' => __( ': zonas tratadas, candidatura, recuperación y precios.', 'nuvanx-medical' ),
+		),
+	);
+
+	if ( ! isset( $map[ $slug ] ) ) {
+		return $content;
+	}
+
+	$item = $map[ $slug ];
+	if ( false !== strpos( $content, (string) $item['url'] ) || false !== strpos( $content, wp_parse_url( (string) $item['url'], PHP_URL_PATH ) ?: '///' ) ) {
+		return $content;
+	}
+
+	$block  = '<div class="nvx-related-links"><p>' . esc_html( (string) $item['intro'] ) . ' ';
+	$block .= '<a href="' . esc_url( (string) $item['url'] ) . '">' . esc_html( (string) $item['anchor'] ) . '</a>';
+	$block .= esc_html( (string) $item['suffix'] ) . '</p></div>';
+
+	return $content . $block;
+}
+add_filter( 'the_content', 'nvx_theme_inject_priority_treatment_links', 24 );
+
+/**
  * Canonical medical author for journal (E-E-A-T). Not the WP login display name.
  *
  * Defaults can be overridden per post via meta:

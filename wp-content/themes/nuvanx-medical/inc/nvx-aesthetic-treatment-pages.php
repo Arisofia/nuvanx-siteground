@@ -251,6 +251,16 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 	$brands     = array_values( array_filter( array_map( 'strval', (array) ( $page['brands'] ?? array() ) ) ) );
 	$techniques = array_values( array_filter( array_map( 'strval', (array) ( $page['techniques'] ?? array() ) ) ) );
 	$price      = (string) ( $page['price_range'] ?? $protocol['price_range'] ?? $schema['price_range'] ?? '' );
+	if ( 'neuromoduladores-faciales-madrid' === (string) ( $page['slug'] ?? '' ) && function_exists( 'nvx_tariff_price_label' ) ) {
+		$from = nvx_tariff_price_label( 'neuromoduladores', 'entrecejo' );
+		if ( '' !== $from ) {
+			$price = sprintf(
+				/* translators: %s: canonical tariff */
+				__( 'Desde %s por zona. El presupuesto final depende de zonas y dosis.', 'nuvanx-medical' ),
+				$from
+			);
+		}
+	}
 	$duration   = (string) ( $page['duration'] ?? $protocol['duration_result'] ?? $schema['duration'] ?? '' );
 	$session    = (string) ( $page['session_time'] ?? $protocol['session_time'] ?? $schema['session_time'] ?? '' );
 	$anesthesia = (string) ( $page['anesthesia'] ?? $protocol['anesthesia'] ?? $schema['anesthesia'] ?? '' );
@@ -262,6 +272,11 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 			<div class="nvx-page-hero__copy">
 				<p class="nvx-kicker"><?php echo esc_html( (string) $page['kicker'] ); ?></p>
 				<h1><?php echo esc_html( (string) $page['h1'] ); ?></h1>
+				<?php
+				if ( function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
+					echo nvx_clinical_authority_byline_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+				}
+				?>
 				<p class="nvx-lead"><?php echo esc_html( (string) $page['lead'] ); ?></p>
 				<a class="nvx-button nvx-button--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
 			</div>
@@ -269,9 +284,51 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 
 		<section class="nvx-prose"><h2><?php esc_html_e( 'Diagnóstico médico', 'nuvanx-medical' ); ?></h2><p><?php echo esc_html( (string) $page['diagnosis'] ); ?></p></section>
 		<section class="nvx-prose"><h2><?php esc_html_e( 'Cuándo puede estar indicado', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['indications'] ) ); ?></section>
+		<?php
+		$yes = array_values( array_filter( array_map( 'strval', (array) ( $page['indications'] ?? array() ) ) ) );
+		$no  = array_values( array_filter( array_map( 'strval', (array) ( $page['precautions'] ?? array() ) ) ) );
+		if ( function_exists( 'nvx_candidacy_markup' ) && ( array() !== $yes || array() !== $no ) ) :
+			?>
+		<section class="nvx-prose" aria-labelledby="nvx-treatment-candidacy">
+			<h2 id="nvx-treatment-candidacy"><?php esc_html_e( 'Quién es candidato y quién no', 'nuvanx-medical' ); ?></h2>
+			<?php echo nvx_candidacy_markup( $yes, $no ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes. ?>
+		</section>
+		<?php endif; ?>
 		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo actúa', 'nuvanx-medical' ), (string) $page['mechanism'] ) ); ?>
 		<section class="nvx-prose"><h2><?php esc_html_e( 'Cómo es el tratamiento', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['process'] ) ); ?></section>
 		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Evolución esperable', 'nuvanx-medical' ), (string) $page['evolution'] ) ); ?>
+		<?php
+		if ( 'neuromoduladores-faciales-madrid' === (string) ( $page['slug'] ?? '' ) && function_exists( 'nvx_recovery_table_markup' ) ) {
+			echo '<section class="nvx-prose" aria-labelledby="nvx-neuro-recovery">';
+			echo '<h2 id="nvx-neuro-recovery">' . esc_html__( 'Recuperación y vuelta a la actividad', 'nuvanx-medical' ) . '</h2>';
+			echo nvx_recovery_table_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+				array(
+					array(
+						'when'     => __( 'Primeras 4 horas', 'nuvanx-medical' ),
+						'expect'   => __( 'Posibles microhematomas puntiformes. No frotar la zona.', 'nuvanx-medical' ),
+						'activity' => __( 'No tumbarse ni hacer ejercicio intenso.', 'nuvanx-medical' ),
+					),
+					array(
+						'when'     => __( 'Día 1', 'nuvanx-medical' ),
+						'expect'   => __( 'Sin downtime. Maquillaje habitual si no hay hematoma.', 'nuvanx-medical' ),
+						'activity' => __( 'Vuelta inmediata al trabajo.', 'nuvanx-medical' ),
+					),
+					array(
+						'when'     => __( 'Días 3–5', 'nuvanx-medical' ),
+						'expect'   => __( 'Empieza la relajación muscular.', 'nuvanx-medical' ),
+						'activity' => __( 'Actividad normal.', 'nuvanx-medical' ),
+					),
+					array(
+						'when'     => __( 'Días 14–21', 'nuvanx-medical' ),
+						'expect'   => __( 'Efecto máximo. Revisión médica de simetría.', 'nuvanx-medical' ),
+						'activity' => __( 'Vida habitual. Ajuste solo si está indicado.', 'nuvanx-medical' ),
+					),
+				),
+				__( 'Recuperación orientativa de neuromoduladores', 'nuvanx-medical' )
+			);
+			echo '</section>';
+		}
+		?>
 
 		<?php if ( $price || $duration || $session || $anesthesia || $sessions || $downtime || $brands || $techniques ) : ?>
 			<section class="nvx-prose" aria-label="<?php esc_attr_e( 'Datos orientativos', 'nuvanx-medical' ); ?>">
@@ -299,9 +356,17 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 		<?php if ( ! empty( $page['faqs'] ) ) : ?>
 			<section class="nvx-prose" aria-label="<?php esc_attr_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?>">
 				<h2><?php esc_html_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?></h2>
-				<?php foreach ( (array) $page['faqs'] as $faq ) : ?>
+				<?php
+				if ( function_exists( 'nvx_faq_direct_answer_markup' ) ) {
+					echo nvx_faq_direct_answer_markup( (array) $page['faqs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+				} else {
+					foreach ( (array) $page['faqs'] as $faq ) :
+						?>
 					<details><summary><?php echo esc_html( (string) ( $faq['q'] ?? '' ) ); ?></summary><p><?php echo esc_html( (string) ( $faq['a'] ?? '' ) ); ?></p></details>
-				<?php endforeach; ?>
+						<?php
+					endforeach;
+				}
+				?>
 			</section>
 		<?php endif; ?>
 	</article>

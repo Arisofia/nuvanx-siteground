@@ -45,7 +45,7 @@ if ( ! defined( 'NVX_CONTACT_EMAIL' ) ) {
  * Editorial review month label for Endolift byline (update with clinical review).
  */
 if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
-	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
+	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'agosto 2026' );
 }
 
 if ( ! defined( 'NVX_SD_ID_MEDICAL_PROCEDURE' ) ) {
@@ -114,7 +114,9 @@ function nvx_tariff_catalog() {
  * @return float
  */
 function nvx_endolift_price_from_eur() {
-	return 798.60; }
+	$pvp = function_exists( 'nvx_tariff_pvp' ) ? nvx_tariff_pvp( 'endolift', 'ojeras' ) : null;
+	return null !== $pvp ? $pvp : 798.60;
+}
 
 /**
  * Reference PVP for papada / marcación mandibular (page core indication).
@@ -122,7 +124,9 @@ function nvx_endolift_price_from_eur() {
  * @return float
  */
 function nvx_endolift_price_papada_eur() {
-	return 1064.80; }
+	$pvp = function_exists( 'nvx_tariff_pvp' ) ? nvx_tariff_pvp( 'endolift', 'papada' ) : null;
+	return null !== $pvp ? $pvp : 1064.80;
+}
 
 /**
  * Reference PVP for Láser CO₂ facial session — used for "desde" schema/copy.
@@ -510,7 +514,9 @@ function nvx_schema_clinics() {
 			'url'                       => home_url( $registry['clinics']['chamberi']['path'] ),
 			'telephone'                 => $ch['phone_href'] ?? '+34669319836',
 			'email'                     => NVX_CONTACT_EMAIL,
-			'image'                     => 'https://nuvanx.com/wp-content/uploads/2024/08/nuvanx-chamberi-clinic.jpg',
+			'image'                     => function_exists( 'nvx_chamberi_schema_image_url' ) && '' !== nvx_chamberi_schema_image_url()
+				? nvx_chamberi_schema_image_url()
+				: trailingslashit( get_template_directory_uri() ) . 'assets/images/clinics/chamberi-interior.jpg',
 			'address'                   => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => $ch['address'] ?? 'Calle de Fernández de la Hoz, 4, Bajo Derecha',

@@ -53,10 +53,29 @@ ob_start();
 			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
 				<h1 id="nvx-sede-hero-title" class="nvx-brand-hero__title">
-					<?php echo esc_html( $clinic_name ); ?>
+					<?php
+					if ( 'chamberi' === $clinic_key ) {
+						esc_html_e( 'Medicina estética en Chamberí, Madrid — clínica NUVANX', 'nuvanx-medical' );
+					} else {
+						echo esc_html( $clinic_name );
+					}
+					?>
 				</h1>
 				<p class="nvx-brand-hero__lead">
-					<?php esc_html_e( 'Centro sanitario autorizado por la Consejería de Sanidad de la Comunidad de Madrid. Medicina estética avanzada con criterio clínico único.', 'nuvanx-medical' ); ?>
+					<?php
+					if ( 'chamberi' === $clinic_key ) {
+						echo esc_html(
+							sprintf(
+								/* translators: 1: street address, 2: phone */
+								__( 'Clínica de medicina estética en Chamberí: %1$s. Teléfono %2$s. Centro sanitario CS20144. Valoración médica presencial antes de cualquier tratamiento.', 'nuvanx-medical' ),
+								$clinic_address !== '' ? $clinic_address : __( 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid', 'nuvanx-medical' ),
+								$phone_display !== '' ? $phone_display : '669 319 836'
+							)
+						);
+					} else {
+						esc_html_e( 'Centro sanitario autorizado por la Consejería de Sanidad de la Comunidad de Madrid. Medicina estética avanzada con criterio clínico único.', 'nuvanx-medical' );
+					}
+					?>
 				</p>
 				<div class="nvx-brand-actions">
 					<a href="<?php echo esc_url( $valoracion_url ); ?>" class="nvx-brand-btn nvx-brand-btn--primary">
@@ -127,6 +146,36 @@ ob_start();
 				</div>
 			</div>
 		</section>
+
+		<?php
+		$clinic_photos = ( 'chamberi' === $clinic_key && function_exists( 'nvx_chamberi_landing_photos' ) )
+			? nvx_chamberi_landing_photos()
+			: array();
+		if ( ! empty( $clinic_photos ) ) :
+			?>
+		<section class="nvx-brand-section nvx-clinic-gallery" aria-labelledby="nvx-clinic-gallery-title">
+			<div class="nvx-brand-section__inner">
+				<p class="nvx-brand-kicker"><?php esc_html_e( 'La sede', 'nuvanx-medical' ); ?></p>
+				<h2 id="nvx-clinic-gallery-title" class="nvx-brand-title"><?php esc_html_e( 'Interior, sala de tratamiento y equipo', 'nuvanx-medical' ); ?></h2>
+				<div class="nvx-clinic-gallery__grid">
+					<?php foreach ( $clinic_photos as $photo ) : ?>
+						<?php
+						$src = trailingslashit( get_template_directory_uri() ) . ltrim( (string) ( $photo['file'] ?? '' ), '/' );
+						if ( '' === (string) ( $photo['file'] ?? '' ) ) {
+							continue;
+						}
+						?>
+						<figure class="nvx-clinic-gallery__item">
+							<img src="<?php echo esc_url( $src ); ?>" alt="<?php echo esc_attr( (string) ( $photo['alt'] ?? '' ) ); ?>" width="1200" height="628" loading="lazy" decoding="async" />
+							<figcaption><?php echo esc_html( (string) ( $photo['caption'] ?? '' ) ); ?></figcaption>
+						</figure>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
+			<?php
+		endif;
+		?>
 
 		<?php
 		$embed_map_query = ( 'chamberi' === $clinic_key )

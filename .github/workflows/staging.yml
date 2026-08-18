@@ -143,6 +143,7 @@ jobs:
           find tools/migrations lib -name '*.php' -type f -print0 | xargs -0 -r -n1 php -l >/dev/null
           php scripts/lint/test-seo-governed-metadata.php
           php scripts/lint/test-governed-blog-request-contract.php
+          php scripts/lint/test-priority-landing-contract.php
           node scripts/lint/test-single-hubspot-mount.mjs
           node scripts/staging2/test-console-error-classifier.mjs
           find wp-content/themes/nuvanx-medical -name '*.js' -type f -print0 | xargs -0 -r -n1 node --check >/dev/null

@@ -467,3 +467,157 @@ function nvx_render_generic_brand_treatment_page_body( array $data, string $pref
 	return $html;
 }
 
+/** Visible medical-review month used on competitive treatment landings. */
+function nvx_clinical_review_month_label(): string {
+	return 'agosto 2026';
+}
+
+/**
+ * Canonical PVP from tariff-catalog.json.
+ */
+function nvx_tariff_pvp( string $group, string $key ): ?float {
+	if ( ! function_exists( 'nvx_tariff_catalog' ) ) {
+		return null;
+	}
+	$catalog = nvx_tariff_catalog();
+	if ( isset( $catalog[ $group ][ $key ]['pvp'] ) && is_numeric( $catalog[ $group ][ $key ]['pvp'] ) ) {
+		return (float) $catalog[ $group ][ $key ]['pvp'];
+	}
+	return null;
+}
+
+/** Formatted euro label for one tariff key, or an empty string. */
+function nvx_tariff_price_label( string $group, string $key ): string {
+	$pvp = nvx_tariff_pvp( $group, $key );
+	if ( null === $pvp ) {
+		return '';
+	}
+	if ( function_exists( 'nvx_format_price_eur' ) ) {
+		return nvx_format_price_eur( $pvp ) . ' €';
+	}
+	return number_format_i18n( $pvp, 2 ) . ' €';
+}
+
+/**
+ * Visible YMYL signature: name, specialty, colegiado, review month.
+ */
+function nvx_clinical_authority_byline_markup( string $review_label = '' ): string {
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
+	$label     = '' !== $review_label ? $review_label : nvx_clinical_review_month_label();
+
+	return '<p class="nvx-medical-review">' . esc_html(
+		sprintf(
+			/* translators: 1: ICOMEM license number, 2: review month label */
+			__( 'Revisado por Dr. Javier Rivera Tejeda, médico estético, %2$s. Nº Col. ICOMEM %1$s.', 'nuvanx-medical' ),
+			$colegiado,
+			$label
+		)
+	) . '</p>';
+}
+
+/**
+ * Recovery table: moment / what to expect / return to activity.
+ *
+ * @param array<int,array{when?:string,expect?:string,activity?:string}> $rows
+ */
+function nvx_recovery_table_markup( array $rows, string $caption = '' ): string {
+	if ( array() === $rows ) {
+		return '';
+	}
+
+	$html  = '<div class="nvx-recovery-table-wrap" role="region" tabindex="0" aria-label="' . esc_attr( $caption !== '' ? $caption : __( 'Tabla de recuperación', 'nuvanx-medical' ) ) . '">';
+	$html .= '<table class="nvx-recovery-table">';
+	if ( '' !== $caption ) {
+		$html .= '<caption>' . esc_html( $caption ) . '</caption>';
+	}
+	$html .= '<thead><tr>';
+	$html .= '<th scope="col">' . esc_html__( 'Momento', 'nuvanx-medical' ) . '</th>';
+	$html .= '<th scope="col">' . esc_html__( 'Qué esperar', 'nuvanx-medical' ) . '</th>';
+	$html .= '<th scope="col">' . esc_html__( 'Actividad', 'nuvanx-medical' ) . '</th>';
+	$html .= '</tr></thead><tbody>';
+	foreach ( $rows as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$html .= '<tr>';
+		$html .= '<th scope="row">' . esc_html( (string) ( $row['when'] ?? '' ) ) . '</th>';
+		$html .= '<td data-label="' . esc_attr__( 'Qué esperar', 'nuvanx-medical' ) . '">' . esc_html( (string) ( $row['expect'] ?? '' ) ) . '</td>';
+		$html .= '<td data-label="' . esc_attr__( 'Actividad', 'nuvanx-medical' ) . '">' . esc_html( (string) ( $row['activity'] ?? '' ) ) . '</td>';
+		$html .= '</tr>';
+	}
+	$html .= '</tbody></table></div>';
+	return $html;
+}
+
+/**
+ * Explicit candidacy: who is / is not a candidate.
+ *
+ * @param array<int,string> $yes
+ * @param array<int,string> $no
+ */
+function nvx_candidacy_markup( array $yes, array $no ): string {
+	if ( array() === $yes && array() === $no ) {
+		return '';
+	}
+
+	$html = '<div class="nvx-candidacy-grid">';
+	if ( array() !== $yes ) {
+		$html .= '<div class="nvx-candidacy-col nvx-candidacy-col--yes">';
+		$html .= '<h3 class="nvx-candidacy-title">' . esc_html__( 'Buen candidato', 'nuvanx-medical' ) . '</h3><ul>';
+		foreach ( $yes as $item ) {
+			$item = trim( (string) $item );
+			if ( '' !== $item ) {
+				$html .= '<li>' . esc_html( $item ) . '</li>';
+			}
+		}
+		$html .= '</ul></div>';
+	}
+	if ( array() !== $no ) {
+		$html .= '<div class="nvx-candidacy-col nvx-candidacy-col--no">';
+		$html .= '<h3 class="nvx-candidacy-title">' . esc_html__( 'No está indicado', 'nuvanx-medical' ) . '</h3><ul>';
+		foreach ( $no as $item ) {
+			$item = trim( (string) $item );
+			if ( '' !== $item ) {
+				$html .= '<li>' . esc_html( $item ) . '</li>';
+			}
+		}
+		$html .= '</ul></div>';
+	}
+	$html .= '</div>';
+	return $html;
+}
+
+/**
+ * FAQ with the first sentence as the direct answer (AEO / AI citation pattern).
+ *
+ * @param array<int,array{q?:string,a?:string}> $faqs
+ */
+function nvx_faq_direct_answer_markup( array $faqs, string $list_class = '' ): string {
+	$classes = trim( 'nvx-faq ' . $list_class );
+	$html    = '<div class="' . esc_attr( $classes ) . '">';
+	foreach ( $faqs as $faq ) {
+		if ( ! is_array( $faq ) ) {
+			continue;
+		}
+		$q = trim( (string) ( $faq['q'] ?? '' ) );
+		$a = trim( (string) ( $faq['a'] ?? '' ) );
+		if ( '' === $q || '' === $a ) {
+			continue;
+		}
+		$parts  = preg_split( '/(?<=[.!?])\s+/u', $a, 2 );
+		$direct = is_array( $parts ) && isset( $parts[0] ) ? (string) $parts[0] : $a;
+		$rest   = is_array( $parts ) && isset( $parts[1] ) ? (string) $parts[1] : '';
+
+		$html .= '<details class="nvx-brand-faq-item">';
+		$html .= '<summary><span>' . esc_html( $q ) . '</span></summary>';
+		$html .= '<div class="nvx-brand-faq-content">';
+		$html .= '<p class="nvx-faq-direct">' . esc_html( $direct ) . '</p>';
+		if ( '' !== $rest ) {
+			$html .= '<p>' . esc_html( $rest ) . '</p>';
+		}
+		$html .= '</div></details>';
+	}
+	$html .= '</div>';
+	return $html;
+}
+

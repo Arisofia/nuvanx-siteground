@@ -158,6 +158,10 @@ function nvx_valoracion_managed_page_markup(): string {
 	$html .= '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'VALORACIÓN MÉDICA · MADRID', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 id="nvx-valoracion-h1" class="nvx-brand-hero__title">' . esc_html__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '</h1>';
+	$html .= function_exists( 'nvx_clinical_authority_byline_markup' )
+		? nvx_clinical_authority_byline_markup()
+		: '';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div></section>';
 
 	// The form is deliberately the first content block after the heading.

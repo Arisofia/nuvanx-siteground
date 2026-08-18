@@ -32,13 +32,6 @@ function nvx_endolift_is_singular_context(): bool {
  * Anchors primarily on stable structural markers (aria-label / ids / brand classes).
  */
 function nvx_content_is_endolift_page( string $content ): bool {
-	if ( false !== strpos( $content, 'nvx-endolift-editorial' )
-		|| false !== strpos( $content, 'nvx-endolaser-editorial' )
-		|| false !== strpos( $content, 'nvx-co2-editorial' )
-		|| false !== strpos( $content, 'nvx-equipo-editorial' ) ) {
-		return false;
-	}
-
 	if ( ! nvx_endolift_is_singular_context() || is_front_page() || is_home() ) {
 		return false;
 	}
@@ -51,27 +44,28 @@ function nvx_content_is_endolift_page( string $content ): bool {
 		false !== strpos( $path, 'endolaser-corporal' )
 		|| false !== strpos( $path, 'laser-co2-fraccionado' )
 		|| false !== strpos( $path, 'equipo-medico' )
-		|| false !== strpos( $path, 'exion' )
+		|| ( false !== strpos( $path, 'exion' ) && false === strpos( $path, 'endolift' ) )
 	) ) {
 		return false;
 	}
 
-	$is_endolift = false;
+	// Path is authoritative. A CMS HTML comment such as
+	// <!-- nvx-endolift-editorial --> must not block the theme renderer.
 	if ( is_string( $path ) && false !== strpos( $path, 'endolift-facial' ) ) {
-		$is_endolift = true;
-	} elseif ( preg_match(
+		return true;
+	}
+
+	if ( preg_match(
 		'/aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|class=["\'][^"\']*nvx-endolift-hero(?![^"\']*nvx-endolaser)(?![^"\']*nvx-co2)(?![^"\']*nvx-equipo)/iu',
 		$content
 	) ) {
-		$is_endolift = true;
-	} elseif ( preg_match(
-		'/nvx-brand-hero--laser[\s\S]{0,1200}Endolift®?[\s\S]{0,400}(papada|mand[ií]bul)/iu',
-		$content
-	) ) {
-		$is_endolift = true;
+		return true;
 	}
 
-	return $is_endolift;
+	return (bool) preg_match(
+		'/nvx-brand-hero--laser[\s\S]{0,1200}Endolift®?[\s\S]{0,400}(papada|mand[ií]bul)/iu',
+		$content
+	);
 }
 
 /**
@@ -104,13 +98,9 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-
-	// E-E-A-T Medical Authority Byline
-	$html .= '<div class="nvx-medical-byline">';
-	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html( $data['byline_author'] ?? '' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline_title'] ?? '' ) . '</span>';
-	$html .= '</div></div>';
+	$html .= function_exists( 'nvx_clinical_authority_byline_markup' )
+		? nvx_clinical_authority_byline_markup()
+		: '';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ?? '' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
@@ -145,7 +135,9 @@ function nvx_endolift_editorial_body_markup(): string {
 	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_from   = function_exists( 'nvx_endolift_price_from_eur' ) ? nvx_endolift_price_from_eur() : 798.60;
 	$price_label  = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( $price_from ) : number_format_i18n( $price_from, 2 );
-	$review_label = defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ? NVX_ENDOLIFT_REVIEW_LABEL : 'julio 2026';
+	$review_label = function_exists( 'nvx_clinical_review_month_label' )
+		? nvx_clinical_review_month_label()
+		: ( defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ? NVX_ENDOLIFT_REVIEW_LABEL : 'agosto 2026' );
 	$equipo_url   = home_url( '/equipo-medico/' );
 
 	$html = '<div class="nvx-endolift-editorial">';
@@ -185,7 +177,33 @@ function nvx_endolift_editorial_body_markup(): string {
 	foreach ( $data['diagnosis']['panel_items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> — ' . esc_html( $item['body'] ?? '' ) . '</li>';
 	}
-	$html .= '</ul></aside></div></section>';
+	$html .= '</ul></aside>';
+	$yes = array();
+	$no  = array();
+	foreach ( (array) ( $data['candidacy']['yes'] ?? array() ) as $item ) {
+		$yes[] = (string) $item;
+	}
+	foreach ( (array) ( $data['candidacy']['no'] ?? array() ) as $item ) {
+		$no[] = (string) $item;
+	}
+	if ( array() === $yes ) {
+		$yes = array(
+			__( 'Flacidez leve–moderada de papada, mandíbula o cuello.', 'nuvanx-medical' ),
+			__( 'Grasa submentoniana localizada con buena calidad de piel.', 'nuvanx-medical' ),
+			__( 'Busca remodelación estructural sin resección quirúrgica.', 'nuvanx-medical' ),
+		);
+	}
+	if ( array() === $no ) {
+		$no = array(
+			__( 'Ptosis severa o exceso cutáneo que requiere lifting quirúrgico.', 'nuvanx-medical' ),
+			__( 'Embarazo, lactancia, infección activa o anticoagulantes no controlados.', 'nuvanx-medical' ),
+			__( 'Expectativa de un resultado idéntico a una cirugía de lifting.', 'nuvanx-medical' ),
+		);
+	}
+	if ( function_exists( 'nvx_candidacy_markup' ) ) {
+		$html .= nvx_candidacy_markup( $yes, $no );
+	}
+	$html .= '</div></section>';
 
 	// C. Comparativa vs lifting (new — not elsewhere on page).
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-compare', 'nvx-endolift-compare-title' );
@@ -200,8 +218,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	foreach ( $data['compare']['rows'] ?? array() as $row ) {
 		$html .= '<tr>';
 		$html .= '<th scope="row">' . esc_html( $row['param'] ?? '' ) . '</th>';
-		$html .= '<td>' . esc_html( $row['endo'] ?? '' ) . '</td>';
-		$html .= '<td>' . esc_html( $row['lift'] ?? '' ) . '</td>';
+		$html .= '<td data-label="' . esc_attr( (string) ( $data['compare']['col_endo'] ?? '' ) ) . '">' . esc_html( $row['endo'] ?? '' ) . '</td>';
+		$html .= '<td data-label="' . esc_attr( (string) ( $data['compare']['col_lift'] ?? '' ) ) . '">' . esc_html( $row['lift'] ?? '' ) . '</td>';
 		$html .= '</tr>';
 	}
 	$html .= '</tbody></table></div></div></section>';
@@ -243,19 +261,60 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-postop', 'nvx-endolift-postop-title', '', array( 'id' => 'postoperatorio-endolift' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), 'nvx-endolift-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
-
-	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list" role="list">';
-	foreach ( $data['postop']['items'] ?? array() as $item ) {
-		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';
+	$recovery_rows = (array) ( $data['postop']['table'] ?? array() );
+	if ( array() === $recovery_rows ) {
+		$recovery_rows = array(
+			array(
+				'when'     => __( 'Días 1–3', 'nuvanx-medical' ),
+				'expect'   => __( 'Edema, sensibilidad y posibles microhematomas en los puntos de entrada.', 'nuvanx-medical' ),
+				'activity' => __( 'Reposo relativo. Mentonera según pauta.', 'nuvanx-medical' ),
+			),
+			array(
+				'when'     => __( '24–48 horas', 'nuvanx-medical' ),
+				'expect'   => __( 'Reincorporación laboral habitual en la mayoría de casos de oficina.', 'nuvanx-medical' ),
+				'activity' => __( 'Vuelta al trabajo sedentario si el médico lo autoriza.', 'nuvanx-medical' ),
+			),
+			array(
+				'when'     => __( 'Días 3–7', 'nuvanx-medical' ),
+				'expect'   => __( 'La inflamación social cede. La zona sigue en curación.', 'nuvanx-medical' ),
+				'activity' => __( 'Reuniones y vida social habituales.', 'nuvanx-medical' ),
+			),
+			array(
+				'when'     => __( 'Semanas 2–4', 'nuvanx-medical' ),
+				'expect'   => __( 'Retracción tisular progresiva. Molestias residuales mínimas.', 'nuvanx-medical' ),
+				'activity' => __( 'Actividad normal. Deporte según indicación.', 'nuvanx-medical' ),
+			),
+			array(
+				'when'     => __( 'Meses 3–6', 'nuvanx-medical' ),
+				'expect'   => __( 'Consolidación del nuevo colágeno y resultado clínico maduro.', 'nuvanx-medical' ),
+				'activity' => __( 'Seguimiento protocolizado.', 'nuvanx-medical' ),
+			),
+		);
 	}
-	$html .= '</ul>';
+	if ( function_exists( 'nvx_recovery_table_markup' ) ) {
+		$html .= nvx_recovery_table_markup( $recovery_rows, __( 'Recuperación orientativa del Endolift® facial', 'nuvanx-medical' ) );
+	}
 	$html .= '<p class="nvx-body nvx-body--measure"><em>' . esc_html( $data['postop']['note'] ?? '' ) . '</em></p>';
 	$html .= '</div></section>';
 
 	// F. Presupuesto Clínico — Valoración personalizada.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-investment', 'nvx-endolift-price-title', '', array( 'id' => 'inversion-endolift' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['investment']['kicker'] ?? '' ), 'nvx-endolift-price-title', esc_html( $data['investment']['title'] ?? '' ) );
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['investment']['body'] ?? '' ) . '</p>';
+	$ojeras     = function_exists( 'nvx_tariff_price_label' ) ? nvx_tariff_price_label( 'endolift', 'ojeras' ) : $price_label . ' €';
+	$papada     = function_exists( 'nvx_tariff_price_label' ) ? nvx_tariff_price_label( 'endolift', 'papada' ) : '';
+	$cuello     = function_exists( 'nvx_tariff_price_label' ) ? nvx_tariff_price_label( 'endolift', 'cuello' ) : '';
+	$combo      = function_exists( 'nvx_tariff_price_label' ) ? nvx_tariff_price_label( 'endolift_combo', 'papada_cuello' ) : '';
+	$full_face  = function_exists( 'nvx_tariff_price_label' ) ? nvx_tariff_price_label( 'endolift_combo', 'full_face' ) : '';
+	$price_body = sprintf(
+		/* translators: 1-5: canonical tariff labels from tariff-catalog.json */
+		__( 'El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Tarifas de referencia del catálogo: desde %1$s (ojeras), %2$s (papada o marcación mandibular cada una), %3$s (cuello). Combos frecuentes como papada+cuello (%4$s) o full face (%5$s) se valoran según indicación. El presupuesto definitivo se documenta tras valoración anatómica presencial. El procedimiento se realiza en 1 sola sesión en la mayoría de indicaciones, con control evolutivo a los 3 y 6 meses. Cada tratamiento incluye:', 'nuvanx-medical' ),
+		$ojeras,
+		$papada,
+		$cuello,
+		$combo,
+		$full_face
+	);
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $price_body ) . '</p>';
 	$html .= '<ul class="nvx-endolift-price-includes" role="list">';
 	foreach ( $data['investment']['items'] ?? array() as $item ) {
 		$html .= '<li>' . esc_html( $item ) . '</li>';
@@ -270,7 +329,6 @@ function nvx_endolift_editorial_body_markup(): string {
 	// G. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolift_facial).
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-faq', 'nvx-endolift-faq-title' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['faq']['kicker'] ?? '' ), 'nvx-endolift-faq-title', esc_html( $data['faq']['title'] ?? '' ) );
-	$html .= '<div class="nvx-faq nvx-endolift-faq-list">';
 
 	// Shared catalog so HTML and JSON-LD never diverge.
 	$faqs = array();
@@ -293,14 +351,20 @@ function nvx_endolift_editorial_body_markup(): string {
 	}
 
 
-	foreach ( $faqs as $faq ) {
-		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-		$html .= '</details>';
+	if ( function_exists( 'nvx_faq_direct_answer_markup' ) ) {
+		$html .= nvx_faq_direct_answer_markup( $faqs, 'nvx-endolift-faq-list' );
+	} else {
+		$html .= '<div class="nvx-faq nvx-endolift-faq-list">';
+		foreach ( $faqs as $faq ) {
+			$html .= '<details class="nvx-brand-faq-item">';
+			$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
+			$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+			$html .= '</details>';
+		}
+		$html .= '</div>';
 	}
 
-	$html .= '</div></div></section>';
+	$html .= '</div></section>';
 
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
@@ -343,8 +407,6 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	// Use standard wrapper like soluciones-medicas for consistent margins
-	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
-	return $standard_wrapper . $hero . $body . '</div>';
+	return '<div class="entry-content nvx-page__content">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 21 );
+add_filter( 'the_content', 'nvx_content_restructure_endolift_page', NVX_HOOK_PRIO_ENDOLIFT );

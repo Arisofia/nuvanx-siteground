@@ -1,10 +1,10 @@
 {
     "hero": {
         "kicker": "@nvx-t:NUVANX · Medicina estética láser",
-        "h1": "@nvx-t:Endolift® en Madrid: papada, mandíbula y cuello sin quirófano",
-        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
-        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
-        "lead": "@nvx-t:Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
+        "h1": "@nvx-t:Endolift® facial en Madrid — papada y mandíbula sin cirugía",
+        "byline_author": "@nvx-t:Revisado por Dr. Javier Rivera Tejeda, médico estético, agosto 2026",
+        "byline_title": "@nvx-t:Director médico NUVANX · Nº Col. ICOMEM 282864786",
+        "lead": "@nvx-t:Endolift® facial en Madrid trata papada y laxitud mandibular con láser subdérmico, sin quirófano ni resección de piel. La indicación y el presupuesto se cierran tras valoración en Chamberí o Salamanca–Goya.",
         "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, protocolo personalizado y recuperación realista — antes de decidir.",
         "meta": "@nvx-t:Papada · Marcación mandibular · Óvalo facial · Chamberí (CS20144) · Salamanca–Goya (CS20073)"
     },
@@ -34,6 +34,18 @@
             { "title": "@nvx-t:Adiposidad submentoniana", "body": "@nvx-t:Laserlipólisis selectiva de grasa localizada en la papada." },
             { "title": "@nvx-t:Combinación", "body": "@nvx-t:Protocolo mixto con vectores y energía calibrados en consulta." },
             { "title": "@nvx-t:Exclusión", "body": "@nvx-t:Ptosis severa / exceso de piel: derivación quirúrgica." }
+        ]
+    },
+    "candidacy": {
+        "yes": [
+            "@nvx-t:Flacidez leve–moderada de papada, mandíbula o cuello.",
+            "@nvx-t:Grasa submentoniana localizada con buena calidad de piel.",
+            "@nvx-t:Busca remodelación estructural sin resección quirúrgica."
+        ],
+        "no": [
+            "@nvx-t:Ptosis severa o exceso cutáneo que requiere lifting quirúrgico.",
+            "@nvx-t:Embarazo, lactancia, infección activa o anticoagulantes no controlados.",
+            "@nvx-t:Expectativa de un resultado idéntico a una cirugía de lifting."
         ]
     },
     "compare": {
@@ -80,7 +92,14 @@
             { "title": "@nvx-t:Semanas 2 a 4 (Retracción Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna profunda. Las molestias físicas desaparecen casi por completo y empiezas a notar la piel visiblemente más firme y adherida al plano profundo." },
             { "title": "@nvx-t:Meses 3 a 6 (Resultado Definitivo):", "body": "@nvx-t:Se alcanza la consolidación máxima de la neo-colagénesis y la retracción tisular. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real." }
         ],
-        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento."
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento.",
+        "table": [
+            { "when": "@nvx-t:Días 1–3", "expect": "@nvx-t:Edema, sensibilidad y posibles microhematomas en los puntos de entrada.", "activity": "@nvx-t:Reposo relativo. Mentonera según pauta." },
+            { "when": "@nvx-t:24–48 horas", "expect": "@nvx-t:Reincorporación laboral habitual en la mayoría de casos de oficina.", "activity": "@nvx-t:Vuelta al trabajo sedentario si el médico lo autoriza." },
+            { "when": "@nvx-t:Días 3–7", "expect": "@nvx-t:La inflamación social cede. La zona sigue en curación.", "activity": "@nvx-t:Reuniones y vida social habituales." },
+            { "when": "@nvx-t:Semanas 2–4", "expect": "@nvx-t:Retracción tisular progresiva. Molestias residuales mínimas.", "activity": "@nvx-t:Actividad normal. Deporte según indicación." },
+            { "when": "@nvx-t:Meses 3–6", "expect": "@nvx-t:Consolidación del nuevo colágeno y resultado clínico maduro.", "activity": "@nvx-t:Seguimiento protocolizado." }
+        ]
     },
     "investment": {
         "kicker": "@nvx-t:Presupuesto médico",

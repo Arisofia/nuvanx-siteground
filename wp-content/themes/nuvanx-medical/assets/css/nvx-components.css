@@ -2095,6 +2095,121 @@ figure.nvx-equipo-portrait{
   border-bottom: none;
 }
 
+.nvx-recovery-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--nvx-space-6) 0;
+}
+
+.nvx-recovery-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body-sm);
+  line-height: var(--nvx-lh-body-sm);
+}
+
+.nvx-recovery-table caption {
+  caption-side: bottom;
+  padding-top: var(--nvx-space-2);
+  text-align: left;
+  color: var(--nvx-ink-muted);
+}
+
+.nvx-recovery-table th,
+.nvx-recovery-table td {
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  vertical-align: top;
+  text-align: left;
+}
+
+.nvx-candidacy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--nvx-space-6);
+  margin-block: var(--nvx-space-6);
+}
+
+.nvx-candidacy-title {
+  margin: 0 0 var(--nvx-space-3);
+}
+
+.nvx-candidacy-col ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.nvx-faq-direct {
+  font-weight: var(--nvx-fw-medium);
+}
+
+.nvx-clinic-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nvx-space-4);
+}
+
+.nvx-clinic-gallery__item {
+  margin: 0;
+}
+
+.nvx-clinic-gallery__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nvx-medical-review {
+  margin: var(--nvx-space-3) 0 var(--nvx-space-4);
+}
+
+@media (max-width: 48rem) {
+  .nvx-endolift-compare-table,
+  .nvx-recovery-table {
+    min-width: 0;
+  }
+
+  .nvx-endolift-compare-table thead,
+  .nvx-recovery-table thead {
+    display: none;
+  }
+
+  .nvx-endolift-compare-table,
+  .nvx-endolift-compare-table tbody,
+  .nvx-endolift-compare-table tr,
+  .nvx-endolift-compare-table th,
+  .nvx-endolift-compare-table td,
+  .nvx-recovery-table,
+  .nvx-recovery-table tbody,
+  .nvx-recovery-table tr,
+  .nvx-recovery-table th,
+  .nvx-recovery-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .nvx-endolift-compare-table tr,
+  .nvx-recovery-table tr {
+    margin-bottom: var(--nvx-space-4);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  }
+
+  .nvx-endolift-compare-table td[data-label]::before,
+  .nvx-recovery-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: var(--nvx-fw-semibold);
+    margin-bottom: var(--nvx-space-1);
+  }
+
+  .nvx-candidacy-grid,
+  .nvx-clinic-gallery__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Bridal Protocol Timeline & Groups */
 .nvx-bridal-timeline {
   display: flex;

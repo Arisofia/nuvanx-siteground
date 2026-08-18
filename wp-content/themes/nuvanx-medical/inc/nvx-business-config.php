@@ -73,6 +73,41 @@ function nvx_get_clinics_config(): array {
 	return $clinics;
 }
 
+/**
+ * Theme-owned photos for the Chamberí local landing (interior, treatment room, team).
+ *
+ * @return array<int,array{file:string,alt:string,caption:string}>
+ */
+function nvx_chamberi_landing_photos(): array {
+	return array(
+		array(
+			'file'    => 'assets/images/clinics/chamberi-interior.jpg',
+			'alt'     => __( 'Interior de la clínica NUVANX en Chamberí, Madrid', 'nuvanx-medical' ),
+			'caption' => __( 'Interior de la sede Chamberí', 'nuvanx-medical' ),
+		),
+		array(
+			'file'    => 'assets/images/clinics/chamberi-sala.jpg',
+			'alt'     => __( 'Sala de tratamiento de medicina estética láser en NUVANX Chamberí', 'nuvanx-medical' ),
+			'caption' => __( 'Sala de tratamiento', 'nuvanx-medical' ),
+		),
+		array(
+			'file'    => 'assets/images/clinics/chamberi-equipo.jpg',
+			'alt'     => __( 'Dr. Javier Rivera Tejeda en consulta en NUVANX Chamberí', 'nuvanx-medical' ),
+			'caption' => __( 'Equipo médico en consulta', 'nuvanx-medical' ),
+		),
+	);
+}
+
+/** Public URL of the first Chamberí landing photo, used as LocalBusiness image. */
+function nvx_chamberi_schema_image_url(): string {
+	$photos = nvx_chamberi_landing_photos();
+	$file   = (string) ( $photos[0]['file'] ?? '' );
+	if ( '' === $file ) {
+		return '';
+	}
+	return trailingslashit( get_template_directory_uri() ) . ltrim( $file, '/' );
+}
+
 /** Render one clinic map card from the canonical clinic configuration. */
 function nvx_contact_map_card_markup( array $clinic ): string {
 	$address = sprintf(

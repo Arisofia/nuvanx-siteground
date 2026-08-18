@@ -26,7 +26,7 @@ $nvx_page_shell_has_hero = true;
 ob_start();
 
 if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-	echo '<div class="entry-content nvx-page__content nvx-prose">';
+	echo '<div class="entry-content nvx-page__content">';
 	the_content();
 	echo '</div>';
 	$content = ob_get_clean();

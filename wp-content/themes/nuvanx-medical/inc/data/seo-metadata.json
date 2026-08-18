@@ -16,16 +16,16 @@
         "description": "Clínicas de medicina estética láser NUVANX en Madrid: Chamberí (CS20144) y Salamanca–Goya (CS20073). Endolift®, CO₂, EXION® BTL, valoración médica y registros sanitarios."
     },
     "chamberi": {
-        "title": "Medicina Estética Láser Chamberí | Endolift · NUVANX",
-        "description": "Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada."
+        "title": "Medicina Estética en Chamberí Madrid | Clínica NUVANX CS20144",
+        "description": "Clínica de medicina estética en Chamberí: Calle de Fernández de la Hoz, 4. Teléfono 669 319 836. Centro sanitario CS20144. Horario L–V 12:00–20:00 y sábados 10:00–18:00."
     },
     "goya": {
         "title": "Medicina Estética Goya · Barrio Salamanca | NUVANX",
         "description": "Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada."
     },
     "endolift": {
-        "title": "Endolift® Madrid | Láser Subdérmico | NUVANX",
-        "description": "Láser subdérmico para papada, mandíbula y cuello. Tarifa de referencia desde 798,60 €. Dr. Rivera Tejeda (ICOMEM 282864786). Valoración presencial en Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+        "title": "Endolift® Facial Madrid | Papada y Mandíbula sin Cirugía | NUVANX",
+        "description": "Endolift® facial en Madrid para papada y mandíbula sin cirugía. Desde 798,60 €. Dr. Rivera Tejeda, médico estético (ICOMEM 282864786). Chamberí (CS20144) y Salamanca–Goya (CS20073)."
     },
     "endolaser": {
         "title": "Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX",
@@ -56,8 +56,8 @@
         "description": "Valoración médica individualizada en NUVANX Madrid. Diagnóstico clínico, indicación técnica y presupuesto transparente documentado antes de tratar."
     },
     "valoracion": {
-        "title": "Valoración Médica Madrid | NUVANX",
-        "description": "Valoración médica presencial 15–30 min en Madrid. Sin obligación de tratar. Chamberí (CS20144) y Salamanca–Goya (CS20073). Diagnóstico y presupuesto documentados antes de indicar."
+        "title": "Valoración Médica Madrid | Diagnóstico y Presupuesto | NUVANX",
+        "description": "Valoración médica en Madrid de 15–30 min: diagnóstico, indicación y presupuesto antes de tratar. Dr. Rivera Tejeda (ICOMEM 282864786). Chamberí (CS20144) y Salamanca–Goya (CS20073)."
     },
     "soluciones": {
         "title": "Soluciones Médicas Madrid | NUVANX",
@@ -144,8 +144,8 @@
         "description": "Contorno masculino en Madrid: abdomen, pecho (grasa vs ginecomastia), espalda y perfil. Chamberí (CS20144) y Salamanca–Goya (CS20073)."
     },
     "neuromodulador": {
-        "title": "Neuromoduladores Madrid | NUVANX",
-        "description": "Neuromoduladores en Madrid para arrugas de expresión del tercio superior. Criterio clínico y naturalidad. Chamberí (CS20144) y Salamanca–Goya (CS20073)."
+        "title": "Neuromoduladores Faciales Madrid | Arrugas de Expresión | NUVANX",
+        "description": "Neuromoduladores faciales en Madrid para arrugas de expresión del tercio superior. Desde 198 €/zona. Dr. Rivera Tejeda (ICOMEM 282864786). Chamberí (CS20144) y Salamanca–Goya (CS20073)."
     },
     "acido_hialuronico": {
         "title": "Ácido Hialurónico Madrid | NUVANX",

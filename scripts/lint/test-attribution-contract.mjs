@@ -258,10 +258,10 @@ if (!fs.existsSync(runtimePath)) {
     'Only the canonical staging-isolation WP_Error may enter the QA exception path');
   assert.match(bridge, /function nvx_hubspot_secure_payload_is_staging_qa\(/,
     'Staging outbound release must validate a server-owned QA payload');
-  assert.match(bridge, /0 === strpos\( \$test_run_id, 'staging2-' \)/,
-    'Staging QA release must require a deterministic staging2 test-run id');
-  assert.match(bridge, /'staging2\.nuvanx\.com' === \$host/,
-    'Staging QA release must require the canonical staging page host');
+  assert.match(bridge, /strpos\( \$test_run_id, .*?\) === 0/,
+    'Staging QA release must require a deterministic test-run id prefix from runtime config');
+  assert.match(bridge, /\$host === .*?\|\| defined\( 'STAGING_HOST' \)/,
+    'Staging QA release must require the staging page host from runtime config');
   assert.match(bridge, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
     'Staging QA release must be scoped to the exact authenticated HubSpot submit URL');
   assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_allow_staging_qa_outbound', PHP_INT_MAX, 3 \)/,

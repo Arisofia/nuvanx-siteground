@@ -103,9 +103,16 @@ function memoryStorage() {
   };
 }
 
-function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test_lead: false, test_run_id: '' } }) {
-  const localStorage = memoryStorage();
-  const sessionStorage = memoryStorage();
+function executeRuntime(runtimeSource, {
+  consent,
+  href,
+  referrer,
+  qa = { is_test_lead: false, test_run_id: '' },
+  localStorage: providedLocalStorage = null,
+  sessionStorage: providedSessionStorage = null,
+}) {
+  const localStorage = providedLocalStorage || memoryStorage();
+  const sessionStorage = providedSessionStorage || memoryStorage();
   const location = new URL(href);
   const window = {
     nvxConversionEvents: {
@@ -134,17 +141,14 @@ function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test
     window, document, URL, URLSearchParams, Date, Uint8Array, Array, Object, Set,
     Boolean, String, Number, JSON, RegExp, Math, console,
   });
-  
-  // Security: Validate runtime source before execution
+
   if (!runtimeSource || typeof runtimeSource !== 'string') {
     throw new Error('Invalid runtime source: must be a non-empty string');
   }
-  
-  // Basic length check to prevent excessively large inputs
-  if (runtimeSource.length > 1000000) { // 1MB limit
+  if (runtimeSource.length > 1000000) {
     throw new Error('Runtime source too large for safe execution');
   }
-  
+
   vm.runInContext(runtimeSource, context, { filename: runtimePath });
   return { window, document, localStorage, sessionStorage };
 }
@@ -269,10 +273,10 @@ if (!fs.existsSync(runtimePath)) {
     'Only the canonical staging-isolation WP_Error may enter the QA exception path');
   assert.match(bridge, /function nvx_hubspot_secure_payload_is_staging_qa\(/,
     'Staging outbound release must validate a server-owned QA payload');
-  assert.match(bridge, /strpos\( \$test_run_id, .*?\) === 0/,
-    'Staging QA release must require a deterministic test-run id prefix from runtime config');
-  assert.match(bridge, /\$host === .*?\|\| defined\( 'STAGING_HOST' \)/,
-    'Staging QA release must require the staging page host from runtime config');
+  assert.match(bridge, /0 === strpos\( \$test_run_id, 'staging2-' \)/,
+    'Staging QA release must require the deterministic staging2 test-run id prefix');
+  assert.match(bridge, /'staging2\.nuvanx\.com' === \$host/,
+    'Staging QA release must require the canonical staging page host');
   assert.match(bridge, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
     'Staging QA release must be scoped to the exact authenticated HubSpot submit URL');
   assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_allow_staging_qa_outbound', PHP_INT_MAX, 3 \)/,
@@ -320,42 +324,42 @@ if (!fs.existsSync(runtimePath)) {
   assert.equal(internalConversion.gclid, 'GCLID123', 'internal navigation must preserve conversion click id');
   assert.equal(internalConversion.landing_url, 'https://nuvanx.com/madrid/valoracion/');
 
+  const sharedLocalStorage = memoryStorage();
+  const sharedSessionStorage = memoryStorage();
   const noConsent = executeRuntime(runtime, {
     consent: false,
     href: 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE',
     referrer: 'https://www.google.com/',
+    localStorage: sharedLocalStorage,
+    sessionStorage: sharedSessionStorage,
   });
   assert.equal(noConsent.window.NUVANXAttributionContract.getFirstTouch(), null);
   assert.equal(noConsent.window.NUVANXAttributionContract.getConversionTouch(), null);
-  assert.equal(noConsent.localStorage.getItem('nvx_first_touch'), null);
-  assert.equal(noConsent.localStorage.getItem('nvx_conversion_touch'), null);
+  assert.equal(sharedLocalStorage.getItem('nvx_first_touch'), null);
+  assert.equal(sharedLocalStorage.getItem('nvx_conversion_touch'), null);
 
-  // Transition: no-consent visit followed by consented visit with the same UTMs.
-  // First/conversion touch must only be initialized on the consented visit, with
-  // no state carried over from the pre-consent visit.
   const consentAfterNoConsent = executeRuntime(runtime, {
     consent: true,
     href: 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE',
     referrer: 'https://www.google.com/',
+    localStorage: sharedLocalStorage,
+    sessionStorage: sharedSessionStorage,
   });
   const postConsentContract = consentAfterNoConsent.window.NUVANXAttributionContract;
   const postConsentFirstTouch = postConsentContract.getFirstTouch();
   const postConsentConversionTouch = postConsentContract.getConversionTouch();
-  // First/conversion touch should be initialized on the consented visit only.
   assert.ok(postConsentFirstTouch, 'first touch must be initialized after consent');
   assert.ok(postConsentConversionTouch, 'conversion touch must be initialized after consent');
-  // Ensure no pre-consent state is used: attribution must reflect the consented visit UTMs.
   assert.equal(postConsentFirstTouch.channel, 'paid_search', 'first touch channel must come from consented visit');
   assert.equal(postConsentFirstTouch.gclid, 'NOPE', 'first touch click id must come from consented visit');
-  assert.equal(postConsentFirstTouch.landing_url, 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE', 'first touch landing url must come from consented visit');
+  assert.equal(postConsentFirstTouch.landing_url, 'https://nuvanx.com/', 'first touch landing url must remain canonical and query-free');
   assert.equal(postConsentConversionTouch.channel, 'paid_search', 'conversion touch channel must come from consented visit');
   assert.equal(postConsentConversionTouch.gclid, 'NOPE', 'conversion touch click id must come from consented visit');
-  assert.equal(postConsentConversionTouch.landing_url, 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE', 'conversion touch landing url must come from consented visit');
-  // Storage must only be populated on the consented visit.
-  assert.notEqual(consentAfterNoConsent.localStorage.getItem('nvx_first_touch'), null, 'first touch must be stored after consent');
-  assert.notEqual(consentAfterNoConsent.localStorage.getItem('nvx_conversion_touch'), null, 'conversion touch must be stored after consent');
+  assert.equal(postConsentConversionTouch.landing_url, 'https://nuvanx.com/', 'conversion landing url must remain canonical and query-free');
+  assert.notEqual(sharedLocalStorage.getItem('nvx_first_touch'), null, 'first touch must be stored after consent');
+  assert.notEqual(sharedLocalStorage.getItem('nvx_conversion_touch'), null, 'conversion touch must be stored after consent');
 
-  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0 consent_boundary=1');
+  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0 consent_boundary=shared_storage');
   console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
   console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1 staging_qa_allowlist=1');
   console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1');

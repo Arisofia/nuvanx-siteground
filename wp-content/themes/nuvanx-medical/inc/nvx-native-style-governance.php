@@ -202,7 +202,7 @@ function nvx_theme_inline_critical_style_foundation(): void {
 
 	if ( is_front_page() ) {
 		$critical_css .= "\n/* home-hero geometry reservation */\n"
-			. 'body.home .nvx-home-hero{height:var(--nvx-home-hero-h);min-height:var(--nvx-home-hero-h);display:flex;align-items:center;overflow:hidden;}' . "\n";
+			. 'body.home .nvx-home-hero{height:var(--nvx-home-hero-h);min-height:var(--nvx-home-hero-h);display:flex;align-items:flex-end;overflow:hidden;}' . "\n";
 	}
 
 	$critical_css .= "\n/* interior-hero first paint */\n"

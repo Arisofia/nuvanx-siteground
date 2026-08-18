@@ -154,6 +154,21 @@ assert.match(
   'dark hero microcopy must meet the requested AA contrast token',
 );
 assert.match(
+  components,
+  /\.nvx-brand-hero \.nvx-brand-btn--primary[\s\S]*--button-bg:\s*var\(--nvx-light\)/,
+  'dark hero primary CTA must invert to light so it is visible on ink',
+);
+assert.match(
+  components,
+  /\.nvx-brand-hero \.nvx-brand-btn--secondary[\s\S]*--button-color:\s*var\(--nvx-light\)/,
+  'dark hero WhatsApp CTA must use light label and border',
+);
+assert.match(
+  components,
+  /\.nvx-reg-copy[\s\S]*font-size:\s*var\(--nvx-type-caption\)/,
+  'sanitary registration must use copyright-scale type',
+);
+assert.match(
   governance,
   /home-hero geometry reservation/,
   'front-page critical CSS must reserve home hero geometry',
@@ -279,6 +294,22 @@ assert.match(
   helpers,
   /'SmartLipo-for-Laserlipolysis-DEKA-1'\s*=>\s*array\(\s*447,\s*800\s*\)/,
   'SmartLipo PNG intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'nvx-fachada-goya-900'\s*=>\s*array\(\s*900,\s*675\s*\)/,
+  'Goya façade intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'BTL-Exion-Mobile-Version-1024x956-1'\s*=>\s*array\(\s*1024,\s*956\s*\)/,
+  'Goya EXION PNG intrinsic size must be catalogued',
+);
+assert.ok(
+  fs.existsSync(
+    'wp-content/themes/nuvanx-medical/assets/images/responsive/BTL-Exion-Mobile-Version-1024x956-1-480.webp',
+  ),
+  'Goya EXION must ship as a 480w WebP instead of the 758 KiB PNG',
 );
 assert.match(
   helpers,

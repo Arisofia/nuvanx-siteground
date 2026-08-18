@@ -147,7 +147,7 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 				<span aria-hidden="true"> · </span>
 				<a href="<?php echo esc_url( home_url( '/politica-de-cookies-ue/' ) ); ?>">Política de cookies</a>
 			</nav>
-			<p class="nvx-footer__registrations">
+			<p class="nvx-footer__registrations nvx-reg-copy">
 				Chamberí · Centro sanitario autorizado CS20144 · Salamanca–Goya · Centro sanitario autorizado CS20073
 			</p>
 		</div>

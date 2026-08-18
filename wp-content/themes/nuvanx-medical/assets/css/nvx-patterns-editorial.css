@@ -643,7 +643,16 @@ body:not(.home) .nvx-hero__copy .nvx-title {
   color: var(--nvx-ink);
 }
 
-.nvx-contact-clinic__reg,
+.nvx-contact-clinic__reg {
+  margin: 0 0 var(--nvx-space-1);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-regular);
+  letter-spacing: var(--nvx-track-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+}
+
 .nvx-contact-clinic__addr,
 .nvx-contact-clinic__phone,
 .nvx-contact-clinic__days {

@@ -379,6 +379,10 @@ function nvx_known_image_intrinsics(): array {
 		'Endolift-ISO9001-Laser'                         => array( 850, 470 ),
 		'SmartLipo-for-Laserlipolysis-DEKA-1'            => array( 447, 800 ),
 		'consulta-medica-personalizada-nuvanx-madrid'    => array( 1672, 941 ),
+		'nvx-fachada-goya-900'                           => array( 900, 675 ),
+		'nuvanx-medicina-estetica1'                      => array( 1220, 960 ),
+		'BTL-Exion-Mobile-Version-1024x956-1'            => array( 1024, 956 ),
+		'endolift-lasemar-1500-eufoton'                  => array( 850, 470 ),
 	);
 }
 
@@ -391,7 +395,7 @@ function nvx_image_dimensions_for_url( string $url ): array {
 	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
 	$file = pathinfo( $path, PATHINFO_FILENAME );
 
-	if ( preg_match( '/-(\d+)x(\d+)$/', $file, $match ) ) {
+	if ( preg_match( '/-(\d+)x(\d+)(?:-\d+)?$/', $file, $match ) ) {
 		return array( (int) $match[1], (int) $match[2] );
 	}
 

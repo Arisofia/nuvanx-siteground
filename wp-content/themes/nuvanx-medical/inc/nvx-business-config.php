@@ -87,7 +87,7 @@ function nvx_contact_map_card_markup( array $clinic ): string {
 	$html  = '<article class="nvx-contact-clinic nvx-location-map-card">';
 	$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( (string) ( $clinic['name'] ?? '' ) ) . '</h3>';
 	$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $address ) . '</p>';
-	$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( (string) ( $clinic['reg'] ?? '' ) ) . '</p>';
+	$html .= '<p class="nvx-contact-clinic__reg nvx-reg-copy">' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ': ' . esc_html( (string) ( $clinic['reg'] ?? '' ) ) . '</p>';
 	$html .= '<div class="nvx-location-map-card__embed">';
 	$html .= nvx_lazy_map_embed_markup( $src, $title, 'nvx-map-embed--contact' );
 	$html .= '</div></article>';

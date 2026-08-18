@@ -214,7 +214,7 @@ ob_start();
 				<h3 class="nvx-home-location__name">Chamberí</h3>
 				<p class="nvx-home-location__address">Calle de Fernández de la Hoz, 4</p>
 				<p class="nvx-home-location__desc">Serenidad y discreción.</p>
-				<span class="nvx-home-location__code">Reg. Sanitario CS20144</span>
+				<span class="nvx-home-location__code nvx-reg-copy">Reg. Sanitario CS20144</span>
 				<a href="<?php echo esc_url( home_url( '/medicina-estetica-chamberi/' ) ); ?>" class="nvx-home-location__link">Ver sede y ubicación →</a>
 			</div>
 			<div class="nvx-home-location">
@@ -230,7 +230,7 @@ ob_start();
 				<h3 class="nvx-home-location__name">Salamanca–Goya</h3>
 				<p class="nvx-home-location__address">Calle de Fernán González, 26</p>
 				<p class="nvx-home-location__desc">Accesibilidad y sofisticación.</p>
-				<span class="nvx-home-location__code">Reg. Sanitario CS20073</span>
+				<span class="nvx-home-location__code nvx-reg-copy">Reg. Sanitario CS20073</span>
 				<a href="<?php echo esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ); ?>" class="nvx-home-location__link">Ver sede y ubicación →</a>
 			</div>
 		</div>

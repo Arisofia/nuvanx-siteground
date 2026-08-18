@@ -60,7 +60,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 						<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
 					</a>
 				</div>
-				<p class="nvx-brand-meta"><?php esc_html_e( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Medicina basada en evidencia', 'nuvanx-medical' ); ?></p>
+				<p class="nvx-brand-meta nvx-reg-copy"><?php esc_html_e( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Medicina basada en evidencia', 'nuvanx-medical' ); ?></p>
 			</div>
 		</div>
 	</section>
@@ -76,7 +76,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 						<meta itemprop="identifier" content="CS20144">
 						<header class="nvx-clinic-card__header">
 							<h3 class="nvx-clinic-card__name nvx-brand-card__title" itemprop="name"><?php esc_html_e( 'Centro Clínico NUVANX Chamberí', 'nuvanx-medical' ); ?></h3>
-							<span class="nvx-clinic-card__reg"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> <strong>CS20144</strong></span>
+							<span class="nvx-clinic-card__reg nvx-reg-copy"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> CS20144</span>
 						</header>
 						<ul class="nvx-clinic-card__data">
 							<li itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
@@ -102,7 +102,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 						<meta itemprop="identifier" content="CS20073">
 						<header class="nvx-clinic-card__header">
 							<h3 class="nvx-clinic-card__name nvx-brand-card__title" itemprop="name"><?php esc_html_e( 'Centro Clínico NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?></h3>
-							<span class="nvx-clinic-card__reg"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> <strong>CS20073</strong></span>
+							<span class="nvx-clinic-card__reg nvx-reg-copy"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> CS20073</span>
 						</header>
 						<ul class="nvx-clinic-card__data">
 							<li itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">

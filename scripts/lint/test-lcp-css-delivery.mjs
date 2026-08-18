@@ -498,13 +498,18 @@ assert.doesNotMatch(
 );
 assert.match(
   components,
-  /\.nvx-bridal-studio__mood/,
-  'bridal studio must use an editorial mood plate, not a boxed grid',
+  /\.nvx-bridal-studio__spread/,
+  'bridal studio must use equal two-column spreads, not a full-bleed box',
 );
 assert.match(
   components,
   /\.nvx-bridal-studio__pair/,
-  'bridal portraits must sit in a staggered pair, not equal tiles',
+  'bridal portraits must sit in a matched pair',
+);
+assert.match(
+  components,
+  /aspect-ratio: 4 \/ 5/,
+  'portrait plates must share one crop so the box cannot dwarf the rest',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

@@ -58,30 +58,29 @@ function nvx_bridal_gallery_markup(): string {
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Mangas, espalda, papada, brazos o piernas: el vestido marca el calendario. La valoración decide qué zona tiene indicación y qué conviene no tratar. Las imágenes ilustran preocupaciones frecuentes; no constituyen un resultado garantizado.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 
-	$html .= '<div class="nvx-bridal-studio__mood nvx-brand-section__inner">';
+	$html .= '<div class="nvx-bridal-studio__spread nvx-brand-section__inner">';
 	$html .= nvx_bridal_figure(
 		'Protocolo-Endolift-Thermage-Morpheus8-ultherapy.png',
 		__( 'Collage de novia: mangas, espalda, cintura y piernas como motivos de consulta', 'nuvanx-medical' ),
 		__( 'Preocupaciones que llegan a consulta', 'nuvanx-medical' ),
 		'nvx-bridal-studio__plate--mood',
-		'(max-width: 680px) 72vw, 383px'
+		'(max-width: 680px) calc(100vw - 48px), 520px'
 	);
-	$html .= '<div class="nvx-bridal-studio__mood-copy">';
+	$html .= '<div class="nvx-bridal-studio__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Antes de elegir tecnología', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-body">' . esc_html__( 'El plan se ordena por el margen temporal, la recuperación aceptable y la anatomía. No se indica un procedimiento porque el vestido lo pida: se indica si hay un motivo clínico y tiempo suficiente para revisarlo.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h3 class="nvx-brand-subtitle">' . esc_html__( 'El vestido marca el calendario, no la indicación', 'nuvanx-medical' ) . '</h3>';
+	$html .= '<p class="nvx-body">' . esc_html__( 'Mangas, espalda o cintura llegan a consulta como una preocupación concreta. El plan se ordena por el margen temporal, la recuperación aceptable y la anatomía. No se indica un procedimiento porque el vestido lo pida: se indica si hay un motivo clínico y tiempo suficiente para revisarlo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div>';
 
-	$html .= '<div class="nvx-bridal-studio__consult">';
-	$html .= '<div class="nvx-bridal-studio__consult-media">';
+	$html .= '<div class="nvx-bridal-studio__spread nvx-brand-section__inner">';
 	$html .= nvx_bridal_figure(
 		'Box-Clinica-Novias.png',
 		__( 'Box de consulta en clínica NUVANX, con camilla y luz de exploración', 'nuvanx-medical' ),
-		'',
+		__( 'Box de consulta', 'nuvanx-medical' ),
 		'nvx-bridal-studio__plate--consult',
-		'(max-width: 900px) 100vw, 56vw'
+		'(max-width: 680px) calc(100vw - 48px), 520px'
 	);
-	$html .= '</div>';
-	$html .= '<div class="nvx-bridal-studio__consult-copy">';
+	$html .= '<div class="nvx-bridal-studio__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El espacio', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h3 class="nvx-brand-subtitle">' . esc_html__( 'Consulta en box clínico', 'nuvanx-medical' ) . '</h3>';
 	$html .= '<p class="nvx-body">' . esc_html__( 'La primera visita documenta objetivos, fecha del evento y límites. El presupuesto y la secuencia se entregan por escrito; cualquier cambio posterior requiere una nueva indicación.', 'nuvanx-medical' ) . '</p>';
@@ -91,7 +90,7 @@ function nvx_bridal_gallery_markup(): string {
 		'Papada-novias.png',
 		__( 'Papada y contorno cervical en tres momentos de un plan de novia', 'nuvanx-medical' ),
 		__( 'Papada y contorno cervical — la indicación se confirma en valoración', 'nuvanx-medical' ),
-		'nvx-bridal-studio__plate--papada'
+		'nvx-bridal-studio__plate--papada nvx-brand-section__inner'
 	);
 
 	$html .= '<div class="nvx-bridal-studio__pair nvx-brand-section__inner">';
@@ -100,14 +99,14 @@ function nvx_bridal_gallery_markup(): string {
 		__( 'Novia de frente con vestido de manga corta, zona de brazos', 'nuvanx-medical' ),
 		__( 'Brazos', 'nuvanx-medical' ),
 		'nvx-bridal-studio__plate--brazos',
-		'(max-width: 680px) calc(100vw - 48px), 42vw'
+		'(max-width: 680px) calc(100vw - 48px), 520px'
 	);
 	$html .= nvx_bridal_figure(
 		'Espalda-novias.png',
 		__( 'Espalda y escote de un vestido de novia sin tirantes', 'nuvanx-medical' ),
 		__( 'Espalda', 'nuvanx-medical' ),
 		'nvx-bridal-studio__plate--espalda',
-		'(max-width: 680px) calc(100vw - 48px), 38vw'
+		'(max-width: 680px) calc(100vw - 48px), 520px'
 	);
 	$html .= '</div></section>';
 
@@ -136,7 +135,7 @@ function nvx_bridal_inject_media( string $content ): string {
 		return $content;
 	}
 
-	if ( false !== strpos( $content, 'nvx-bridal-studio__mood' ) ) {
+	if ( false !== strpos( $content, 'nvx-bridal-studio__spread' ) ) {
 		return $content;
 	}
 

@@ -49,13 +49,17 @@ jobs:
                 index: .key,
                 keys: (.value | keys | sort),
                 groupType: (.value.groupType // null),
+                richTextType: (.value.richTextType // null),
                 fieldCount: (.value.fields | length),
                 fields: [.value.fields[]? | {
                   name: (.name // null),
+                  keys: (keys | sort),
                   objectTypeId: (.objectTypeId // null),
                   fieldType: (.fieldType // null),
                   hidden: (.hidden // false),
-                  required: (.required // false)
+                  required: (.required // false),
+                  width: (.width // null),
+                  displayOrder: (.displayOrder // null)
                 }]
               }
             ]

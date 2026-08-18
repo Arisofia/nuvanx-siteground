@@ -226,6 +226,43 @@ function nvx_hubspot_secure_payload_is_valoracion( array $payload ): bool {
 	return '/madrid/valoracion/' === $path;
 }
 
+/** Is this the staging isolation error that the QA bridge may narrowly replace? */
+function nvx_hubspot_secure_is_staging_isolation_error( $preempt ): bool {
+	return is_wp_error( $preempt )
+		&& 'nvx_staging_outbound_blocked' === (string) $preempt->get_error_code()
+		&& function_exists( 'nvx_environment_is_staging2' )
+		&& nvx_environment_is_staging2();
+}
+
+/** Confirm the nested secure payload carries server-owned Staging2 QA identity. */
+function nvx_hubspot_secure_payload_is_staging_qa( array $payload ): bool {
+	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() || ! nvx_hubspot_secure_payload_is_valoracion( $payload ) ) {
+		return false;
+	}
+
+	$is_test_lead = false;
+	$test_run_id  = '';
+	$fields       = isset( $payload['fields'] ) && is_array( $payload['fields'] ) ? $payload['fields'] : array();
+	foreach ( $fields as $field ) {
+		if ( ! is_array( $field ) || ! isset( $field['name'], $field['value'] ) ) {
+			continue;
+		}
+		$name  = (string) $field['name'];
+		$value = (string) $field['value'];
+		if ( 'nvx_is_test_lead' === $name ) {
+			$is_test_lead = 'true' === strtolower( $value );
+		} elseif ( 'nvx_test_run_id' === $name ) {
+			$test_run_id = $value;
+		}
+	}
+
+	$page_uri = isset( $payload['context']['pageUri'] ) ? (string) $payload['context']['pageUri'] : '';
+	$host     = strtolower( (string) wp_parse_url( $page_uri, PHP_URL_HOST ) );
+	return $is_test_lead
+		&& 0 === strpos( $test_run_id, 'staging2-' )
+		&& 'staging2.nuvanx.com' === $host;
+}
+
 /**
  * Short-circuit the existing unauthenticated Forms API call with one secure
  * authenticated request. The outer wp_remote_post receives this response and
@@ -237,7 +274,12 @@ function nvx_hubspot_secure_payload_is_valoracion( array $payload ): bool {
  * @return mixed
  */
 function nvx_hubspot_secure_pre_http_request( $preempt, array $args, string $url ) {
-	if ( false !== $preempt || nvx_hubspot_secure_original_url() !== $url ) {
+	if ( nvx_hubspot_secure_original_url() !== $url ) {
+		return $preempt;
+	}
+
+	$staging_isolation = nvx_hubspot_secure_is_staging_isolation_error( $preempt );
+	if ( false !== $preempt && ! $staging_isolation ) {
 		return $preempt;
 	}
 
@@ -274,3 +316,28 @@ function nvx_hubspot_secure_pre_http_request( $preempt, array $args, string $url
 	return wp_remote_post( nvx_hubspot_secure_submit_url(), $secure_args );
 }
 add_filter( 'pre_http_request', 'nvx_hubspot_secure_pre_http_request', 10, 3 );
+
+/**
+ * Release only the nested authenticated Staging2 QA request after the global
+ * staging isolation MU-plugin has blocked it. Every other outbound remains
+ * preempted, including Meta, Google and non-QA HubSpot traffic.
+ *
+ * @param mixed               $preempt Existing preempted response or false.
+ * @param array<string,mixed> $args    HTTP request arguments.
+ * @param string              $url     Requested URL.
+ * @return mixed
+ */
+function nvx_hubspot_secure_allow_staging_qa_outbound( $preempt, array $args, string $url ) {
+	if ( ! nvx_hubspot_secure_is_staging_isolation_error( $preempt ) || nvx_hubspot_secure_submit_url() !== $url ) {
+		return $preempt;
+	}
+
+	$raw_body = isset( $args['body'] ) && is_string( $args['body'] ) ? $args['body'] : '';
+	$payload  = '' !== $raw_body ? json_decode( $raw_body, true ) : null;
+	if ( ! is_array( $payload ) || ! nvx_hubspot_secure_payload_is_staging_qa( $payload ) ) {
+		return $preempt;
+	}
+
+	return false;
+}
+add_filter( 'pre_http_request', 'nvx_hubspot_secure_allow_staging_qa_outbound', PHP_INT_MAX, 3 );

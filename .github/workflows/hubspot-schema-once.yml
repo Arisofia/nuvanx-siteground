@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - ops/hubspot-schema-once-20260818
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: read
@@ -11,6 +14,7 @@ permissions:
 jobs:
   apply_schema:
     name: Apply HubSpot attribution schema v2 once
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

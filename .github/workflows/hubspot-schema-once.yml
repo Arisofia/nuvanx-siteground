@@ -1,0 +1,86 @@
+name: HubSpot Schema One-Shot
+
+on:
+  push:
+    branches:
+      - ops/hubspot-schema-once-20260818
+
+permissions:
+  contents: read
+
+jobs:
+  apply_schema:
+    name: Apply HubSpot attribution schema v2 once
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out audited provisioner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 58f033250d94714fa980612081fdacb6b08a1ded
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bootstrap native boolean test-lead property
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
+          api='https://api.hubapi.com'
+          property='nvx_is_test_lead'
+          current="$RUNNER_TEMP/${property}.json"
+          status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 --output "$current" --write-out '%{http_code}' --header "Authorization: Bearer ${HUBSPOT_ACCESS_TOKEN}" "$api/crm/v3/properties/contacts/$property")"
+          if [[ "$status" == '200' ]]; then
+            jq -e '
+              .name == "nvx_is_test_lead" and
+              .type == "bool" and
+              .fieldType == "booleancheckbox" and
+              ([.options[]?.value] | sort) == ["false","true"]
+            ' "$current" >/dev/null
+            echo 'HUBSPOT_PROPERTY_BOOTSTRAP=PASS property=nvx_is_test_lead state=existing'
+            exit 0
+          fi
+          [[ "$status" == '404' ]] || { echo "HUBSPOT_PROPERTY_BOOTSTRAP=FAIL property=$property status=$status" >&2; jq '{status,category,message,correlationId}' "$current" 2>/dev/null || true; exit 1; }
+
+          body="$RUNNER_TEMP/${property}-create.json"
+          jq -n '{
+            groupName: "contactinformation",
+            label: "NUVANX Test Lead",
+            name: "nvx_is_test_lead",
+            description: "Marca determinista para excluir leads QA de Deals, SLA, reporting y feedback publicitario.",
+            type: "bool",
+            fieldType: "booleancheckbox",
+            formField: true,
+            hasUniqueValue: false,
+            hidden: false,
+            options: [
+              {label:"Sí",value:"true",displayOrder:0,hidden:false},
+              {label:"No",value:"false",displayOrder:1,hidden:false}
+            ]
+          }' > "$body"
+          created="$RUNNER_TEMP/${property}-created.json"
+          create_status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 --request POST --output "$created" --write-out '%{http_code}' --header "Authorization: Bearer ${HUBSPOT_ACCESS_TOKEN}" --header 'Content-Type: application/json' --data-binary "@$body" "$api/crm/v3/properties/contacts")"
+          [[ "$create_status" == '201' || "$create_status" == '200' ]] || { echo "HUBSPOT_PROPERTY_BOOTSTRAP=FAIL property=$property status=$create_status" >&2; jq '{status,category,message,correlationId}' "$created" 2>/dev/null || true; exit 1; }
+          jq -e '.name == "nvx_is_test_lead" and .type == "bool" and .fieldType == "booleancheckbox"' "$created" >/dev/null
+          echo 'HUBSPOT_PROPERTY_BOOTSTRAP=PASS property=nvx_is_test_lead state=created'
+
+      - name: Apply canonical Schema Contract v2
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+          NUVANX_CONFIRM: yes
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --apply
+
+      - name: Require clean post-apply check
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
+          echo 'HUBSPOT_SCHEMA_ONE_SHOT=PASS schema=v2'

@@ -21,7 +21,7 @@ jobs:
       - name: Check out audited provisioner
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 613be9e01db70472da008230c1733d38b5ae8d2e
+          ref: e92295b73f1a4ede9c9707a1e33c4871a2d06958
           fetch-depth: 1
           persist-credentials: false
 

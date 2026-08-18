@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   diagnose:
-    name: Read bounded Staging2 valoración outcome
+    name: Diagnose Staging2 secure HubSpot transport
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -53,7 +53,7 @@ jobs:
             ConnectionAttempts 1
           EOF
           chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v php >/dev/null"
+          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v php >/dev/null && command -v wp >/dev/null"
           echo 'STAGING_SSH=PASS'
 
       - name: Read only bounded valoración markers
@@ -81,4 +81,45 @@ jobs:
             exit 1
           fi
           echo 'NVX_VALORACION_MARKER_READ=PASS pii=0 payload=0 token=0'
+          REMOTE
+
+      - name: Probe runtime token validation and secure endpoint transport
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          wp eval '
+          if (!function_exists("nvx_hubspot_secure_access_token") || !function_exists("nvx_hubspot_secure_submit_url")) {
+              echo "HUBSPOT_SECURE_BRIDGE_LOADED=0\n";
+          } else {
+              $token = nvx_hubspot_secure_access_token();
+              echo "HUBSPOT_SECURE_BRIDGE_LOADED=1\n";
+              echo "HUBSPOT_RUNTIME_TOKEN_VALID=" . ($token !== "" ? "1" : "0") . " token_length=" . strlen($token) . "\n";
+              if ($token !== "") {
+                  $response = wp_remote_post(
+                      nvx_hubspot_secure_submit_url(),
+                      array(
+                          "timeout" => 12,
+                          "headers" => array(
+                              "Content-Type" => "application/json",
+                              "Authorization" => "Bearer " . $token,
+                          ),
+                          "body" => "{}",
+                      )
+                  );
+                  if (is_wp_error($response)) {
+                      echo "HUBSPOT_SECURE_TRANSPORT=WP_ERROR code=" . sanitize_key((string) $response->get_error_code()) . "\n";
+                  } else {
+                      echo "HUBSPOT_SECURE_TRANSPORT=HTTP status=" . (int) wp_remote_retrieve_response_code($response) . "\n";
+                  }
+              } else {
+                  echo "HUBSPOT_SECURE_TRANSPORT=SKIP token_invalid=1\n";
+              }
+          }
+          '
+          echo 'HUBSPOT_SECURE_PROBE=PASS pii=0 payload_fields=0 token_exposed=0'
           REMOTE

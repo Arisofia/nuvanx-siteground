@@ -111,6 +111,28 @@ function nvx_gtm_client_context(): array {
 }
 
 /**
+ * Enqueue the attribution contract runtime before conversion events.
+ * Priority 9 ensures it loads before the conversion relay at priority 10.
+ */
+function nvx_gtm_enqueue_attribution_contract(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'nvx-attribution-contract',
+		get_template_directory_uri() . '/assets/js/nvx-attribution-contract.js',
+		array(),
+		nvx_asset_version( 'assets/js/nvx-attribution-contract.js' ),
+		array(
+			'in_footer' => false,
+			'strategy'  => 'defer',
+		)
+	);
+}
+add_action( 'wp_enqueue_scripts', 'nvx_gtm_enqueue_attribution_contract', 9 );
+
+/**
  * Push NUVANX business context before Site Kit executes the GTM container.
  */
 function nvx_gtm_push_context(): void {
@@ -139,7 +161,7 @@ function nvx_gtm_push_context(): void {
 	}
 
 	$script = sprintf(
-		'window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=Object.assign({},window.nvxConversionEvents.forms||{},%s);',
+		'window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=%s;',
 		$data_layer,
 		$client_env,
 		$client_forms

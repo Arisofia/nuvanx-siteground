@@ -336,7 +336,7 @@ function nvx_gbp_admin_register_form(): void {
 		return;
 	}
 	?>
-	<div class="notice notice-info" style="padding:12px 16px;">
+	<div class="notice notice-info">
 		<p><strong><?php esc_html_e( 'Solicitud de reseña GBP a T+7', 'nuvanx-medical' ); ?></strong></p>
 		<p><?php esc_html_e( 'Sin incentivos ni petición de estrellas. Solo el enlace directo al perfil de la sede.', 'nuvanx-medical' ); ?></p>
 		<form method="post">

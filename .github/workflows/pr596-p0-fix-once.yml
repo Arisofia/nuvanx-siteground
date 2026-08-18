@@ -1,0 +1,358 @@
+name: PR596 P0 Fix One-Shot
+
+on:
+  push:
+    branches:
+      - ops/pr596-p0-fix-once-20260818
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  patch_pr596:
+    name: Patch and verify PR #596
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/valoracion-canonical-success-20260818
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Refuse concurrent head movement
+        shell: bash
+        env:
+          EXPECTED_HEAD: 41a04eb3db7a1d56ca3155ab3edb4ed8ad376731
+        run: |
+          set -Eeuo pipefail
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$EXPECTED_HEAD" ]] || { echo "PR596_HEAD_MOVED expected=$EXPECTED_HEAD actual=$actual" >&2; exit 1; }
+          echo "PR596_HEAD_GUARD=PASS sha=$actual"
+
+      - name: Apply bounded P0 corrections
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js')
+          php_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php')
+          js = js_path.read_text()
+          php = php_path.read_text()
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, got {count}')
+              return text.replace(old, new, 1)
+
+          js = replace_once(
+              js,
+              "\tvar submissionWindowMs = 8000;\n\tvar recentSubmissions = new Map();\n",
+              "\tvar submissionWindowMs = 8000;\n\tvar recentSubmissions = new Map();\n\tvar recentFallbackConversionIds = new Map();\n\tvar configuredCanonicalForm = String((config.forms || {}).valoracion || '').toLowerCase();\n\tvar canonicalForm = configuredCanonicalForm || '5042522a-0bc5-4381-ac3e-5aee8649b69c';\n",
+              'canonical form config',
+          )
+          js = replace_once(
+              js,
+              "\tvar adsClickSendTo = 'AW-18236597403/qut3CLWflOAcEJvJ8fdD';\n\tvar adsLeadSendToPrimary = 'AW-18182220789/86RgCI2dht4cEPXX-t1D';\n\tvar adsLeadSendToSecondary = 'AW-18236597403/-1UOCISYlOAcEJvJ8fdD';\n",
+              "\tvar adsClickSendTo = 'AW-18236597403/qut3CLWflOAcEJvJ8fdD';\n",
+              'dead lead ads config',
+          )
+          js = replace_once(
+              js,
+              "\n\t\tif (normalizedName === 'generate_lead') {\n\t\t\tif (typeof window.gtag === 'function') {\n\t\t\t\twindow.gtag('config', 'AW-18236597403');\n\t\t\t}\n\t\t}\n",
+              "",
+              'generate_lead gtag config',
+          )
+
+          track_start = js.index("\n\t/**\n\t * Track successful form submission with deduplication.")
+          track_end = js.index("\n\tfunction isAllowedHubSpotOrigin", track_start)
+          track_block = r'''
+	/**
+	 * Track one confirmed HubSpot submission across V4 and legacy postMessage channels.
+	 * A fallback form+path key always bridges callbacks where one channel lacks a
+	 * conversion ID. Distinct known conversion IDs remain independent conversions.
+	 */
+	function trackSuccessfulSubmission(formId, eventSource, conversionId) {
+		var now = Date.now();
+		var normalizedConversionId = String(conversionId || '');
+		var fallbackKey = submissionKey(formId);
+		var conversionKey = normalizedConversionId ? 'cid_' + normalizedConversionId : '';
+		var fallbackPrevious = recentSubmissions.get(fallbackKey) || 0;
+		var fallbackPreviousId = recentFallbackConversionIds.get(fallbackKey) || '';
+
+		if (conversionKey) {
+			var conversionPrevious = recentSubmissions.get(conversionKey) || 0;
+			if (now - conversionPrevious < 3600000) return;
+		}
+
+		if (now - fallbackPrevious < submissionWindowMs) {
+			var distinctKnownConversions = Boolean(
+				normalizedConversionId && fallbackPreviousId && normalizedConversionId !== fallbackPreviousId
+			);
+			if (!distinctKnownConversions) return;
+		}
+
+		recentSubmissions.set(fallbackKey, now);
+		recentFallbackConversionIds.set(fallbackKey, normalizedConversionId);
+		if (conversionKey) recentSubmissions.set(conversionKey, now);
+
+		emit('generate_lead', {
+			form_id: formId || 'unknown_form',
+			form_context: formContext(formId),
+			lead_source: 'hubspot_form',
+			form_event_source: eventSource,
+		});
+
+		if (String(formId || '').toLowerCase() === canonicalForm) {
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push({
+				event: 'nvx_valoracion_success',
+				form: 'valoracion',
+				source: 'hubspot_native'
+			});
+		}
+	}
+'''
+          js = js[:track_start] + '\n' + track_block.strip('\n') + js[track_end:]
+
+          js = replace_once(
+              js,
+              "\t\tvar convId = detail.conversionId || (typeof detail.getConversionId === 'function' ? detail.getConversionId() : '');\n\t\ttrackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);\n",
+              "\t\tvar convId = '';\n\t\tif (window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getFormFromEvent === 'function') {\n\t\t\ttry {\n\t\t\t\tvar successfulForm = window.HubSpotFormsV4.getFormFromEvent(event);\n\t\t\t\tif (successfulForm && typeof successfulForm.getConversionId === 'function') {\n\t\t\t\t\tconvId = successfulForm.getConversionId() || '';\n\t\t\t\t}\n\t\t\t} catch (_error) {}\n\t\t}\n\t\ttrackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);\n",
+              'HubSpot V4 conversionId API',
+          )
+
+          success_marker = "/**\n * Handle Canonical Success Token Consumption\n */"
+          success_start = php.index(success_marker)
+          success_block = r'''/**
+ * Validate and consume a single-use canonical success token before rendering.
+ * Requests carrying the token are explicitly non-cacheable, including invalid
+ * or already-consumed tokens, so cached HTML can never replay the conversion.
+ */
+function nvx_valoracion_prepare_canonical_success(): void {
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
+
+	if ( ! function_exists( 'nvx_theme_thank_you_page_slugs' ) || ! is_page( nvx_theme_thank_you_page_slugs() ) ) {
+		return;
+	}
+	if ( ! isset( $_GET['nvx_success'] ) ) {
+		return;
+	}
+
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	nocache_headers();
+
+	$token = sanitize_text_field( wp_unslash( (string) $_GET['nvx_success'] ) );
+	if ( 1 !== preg_match( '/^[a-f0-9]{64}$/D', $token ) ) {
+		return;
+	}
+
+	$hash = hash( 'sha256', $token );
+	$key  = 'nvx_success_' . $hash;
+	if ( ! get_transient( $key ) ) {
+		return;
+	}
+
+	delete_transient( $key );
+	$GLOBALS['nvx_valoracion_success_ready'] = true;
+}
+add_action( 'template_redirect', 'nvx_valoracion_prepare_canonical_success', 1 );
+
+/** Emit the already-consumed canonical success signal during render. */
+function nvx_valoracion_emit_canonical_success(): void {
+	if ( empty( $GLOBALS['nvx_valoracion_success_ready'] ) ) {
+		return;
+	}
+	$GLOBALS['nvx_valoracion_success_ready'] = false;
+	$script = "window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'nvx_valoracion_success',form:'valoracion',source:'first_party'});";
+	wp_print_inline_script_tag( $script );
+}
+add_action( 'wp_head', 'nvx_valoracion_emit_canonical_success', 5 );
+'''
+          php = php[:success_start] + success_block
+
+          js_path.write_text(js)
+          php_path.write_text(php)
+          PY
+
+          mapfile -t changed < <(git diff --name-only | sort)
+          expected=(
+            wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+            wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
+          )
+          [[ "${changed[*]}" == "${expected[*]}" ]] || { printf 'PR596_PATCH_SCOPE=FAIL files=%s\n' "${changed[*]}" >&2; exit 1; }
+          echo 'PR596_PATCH_SCOPE=PASS files=2'
+
+      - name: Run syntax and existing direct-form contract
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
+          php scripts/lint/test-valoracion-direct-form-contract.php
+          echo 'PR596_BASE_CONTRACTS=PASS'
+
+      - name: Run native cross-channel dedupe cases
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cat > "$RUNNER_TEMP/pr596-native-test.mjs" <<'NODE'
+          import fs from 'node:fs';
+          import vm from 'node:vm';
+          import assert from 'node:assert/strict';
+
+          const FORM = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+          const OTHER = '11111111-1111-4111-8111-111111111111';
+          const source = fs.readFileSync('wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js', 'utf8');
+          const marker = "\n(function () {\n\t'use strict';\n\n\tvar attributionConfig";
+          const firstIife = source.slice(0, source.indexOf(marker));
+
+          function runtime() {
+            const listeners = new Map();
+            const document = {
+              addEventListener: () => {},
+              dispatchEvent: () => {},
+            };
+            const window = {
+              nvxConversionEvents: { forms: { valoracion: FORM } },
+              location: { pathname: '/madrid/valoracion/' },
+              dataLayer: [],
+              addEventListener(name, fn) {
+                if (!listeners.has(name)) listeners.set(name, []);
+                listeners.get(name).push(fn);
+              },
+              setInterval: () => 1,
+              clearInterval: () => {},
+              setTimeout: () => 1,
+            };
+            window.HubSpotFormsV4 = {
+              getFormFromEvent(event) {
+                return { getConversionId: () => event._conversionId || '' };
+              },
+            };
+            const context = vm.createContext({
+              window, document, URL, Map, Object, String, Boolean, Date, console,
+              CustomEvent: class CustomEvent { constructor(name, options) { this.type = name; this.detail = options?.detail; } },
+            });
+            vm.runInContext(firstIife, context, { filename: 'nvx-conversion-events.js' });
+            const fireV4 = (formId, cid) => {
+              const event = { detail: { formId }, _conversionId: cid };
+              for (const fn of listeners.get('hs-form-event:on-submission:success') || []) fn(event);
+            };
+            const fireMessage = (formId, cid) => {
+              const event = {
+                origin: 'https://forms.hsforms.com',
+                data: { type: 'hsFormCallback', eventName: 'onFormSubmitted', id: formId, data: cid ? { conversionId: cid } : {} },
+              };
+              for (const fn of listeners.get('message') || []) fn(event);
+            };
+            const canonicalCount = () => window.dataLayer.filter((item) => item && item.event === 'nvx_valoracion_success').length;
+            return { fireV4, fireMessage, canonicalCount };
+          }
+
+          {
+            const r = runtime(); r.fireV4(FORM, 'abc123'); r.fireMessage(FORM, ''); assert.equal(r.canonicalCount(), 1);
+          }
+          {
+            const r = runtime(); r.fireMessage(FORM, ''); r.fireV4(FORM, 'abc123'); assert.equal(r.canonicalCount(), 1);
+          }
+          {
+            const r = runtime(); r.fireV4(FORM, 'abc123'); r.fireMessage(FORM, 'abc123'); assert.equal(r.canonicalCount(), 1);
+          }
+          {
+            const r = runtime(); r.fireV4(FORM, 'abc123'); r.fireV4(FORM, 'def456'); assert.equal(r.canonicalCount(), 2);
+          }
+          {
+            const r = runtime(); r.fireV4(OTHER, 'other1'); assert.equal(r.canonicalCount(), 0);
+          }
+          console.log('PR596_NATIVE_DEDUPE=PASS cases=5 conversion_id_api=form_instance dual_key=1');
+          NODE
+          node "$RUNNER_TEMP/pr596-native-test.mjs"
+
+      - name: Run first-party token single-use cases
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cat > "$RUNNER_TEMP/pr596-token-test.php" <<'PHP'
+          <?php
+          define( 'ABSPATH', __DIR__ );
+          $GLOBALS['nvx_test_transients'] = array();
+          $GLOBALS['nvx_test_scripts'] = array();
+          $GLOBALS['nvx_test_nocache'] = 0;
+          function add_action() {}
+          function nvx_theme_thank_you_page_slugs() { return array( 'gracias' ); }
+          function is_page() { return true; }
+          function sanitize_text_field( $value ) { return trim( (string) $value ); }
+          function wp_unslash( $value ) { return $value; }
+          function nocache_headers() { ++$GLOBALS['nvx_test_nocache']; }
+          function get_transient( $key ) { return $GLOBALS['nvx_test_transients'][ $key ] ?? false; }
+          function delete_transient( $key ) { unset( $GLOBALS['nvx_test_transients'][ $key ] ); }
+          function wp_print_inline_script_tag( $script ) { $GLOBALS['nvx_test_scripts'][] = $script; }
+          require 'wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php';
+
+          function run_case( string $token, bool $exists ): int {
+              $_GET = array( 'nvx_success' => $token );
+              $GLOBALS['nvx_test_scripts'] = array();
+              $GLOBALS['nvx_valoracion_success_ready'] = false;
+              $key = 'nvx_success_' . hash( 'sha256', $token );
+              if ( $exists ) {
+                  $GLOBALS['nvx_test_transients'][ $key ] = 1;
+              } else {
+                  unset( $GLOBALS['nvx_test_transients'][ $key ] );
+              }
+              nvx_valoracion_prepare_canonical_success();
+              nvx_valoracion_emit_canonical_success();
+              return count( $GLOBALS['nvx_test_scripts'] );
+          }
+
+          $valid = str_repeat( 'a', 64 );
+          if ( 1 !== run_case( $valid, true ) ) { exit( 11 ); }
+          if ( 0 !== run_case( $valid, false ) ) { exit( 12 ); }
+          if ( 0 !== run_case( 'abc', false ) ) { exit( 13 ); }
+          if ( 0 !== run_case( str_repeat( 'z', 64 ), false ) ) { exit( 14 ); }
+          if ( 0 !== run_case( str_repeat( 'b', 64 ), false ) ) { exit( 15 ); }
+          if ( 0 !== run_case( str_repeat( 'c', 64 ), false ) ) { exit( 16 ); }
+          if ( $GLOBALS['nvx_test_nocache'] < 6 ) { exit( 17 ); }
+          echo "PR596_FIRST_PARTY_TOKEN=PASS valid=1 reload=0 invalid=0 nonexistent=0 expired=0 nocache=1\n";
+          PHP
+          php "$RUNNER_TEMP/pr596-token-test.php"
+
+      - name: Enforce Ads cleanup and final two-file diff
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          js=wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          ! grep -Fq 'adsLeadSendToPrimary' "$js"
+          ! grep -Fq 'adsLeadSendToSecondary' "$js"
+          ! grep -Fq "gtag('config', 'AW-18236597403')" "$js"
+          grep -Fq "adsClickSendTo = 'AW-18236597403/qut3CLWflOAcEJvJ8fdD'" "$js"
+          mapfile -t changed < <(git diff --name-only | sort)
+          [[ "${#changed[@]}" -eq 2 ]]
+          [[ "${changed[0]}" == 'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js' ]]
+          [[ "${changed[1]}" == 'wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php' ]]
+          echo 'PR596_FINAL_SCOPE=PASS files=2 dead_ads_config=0 phone_whatsapp_ads=preserved'
+
+      - name: Amend existing PR commit and force-with-lease
+        shell: bash
+        env:
+          EXPECTED_HEAD: 41a04eb3db7a1d56ca3155ab3edb4ed8ad376731
+          TARGET_BRANCH: fix/valoracion-canonical-success-20260818
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'Nuvanx Bot'
+          git config user.email 'noreply@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php
+          git commit --amend --no-edit
+          amended="$(git rev-parse HEAD)"
+          git push --force-with-lease="refs/heads/${TARGET_BRANCH}:${EXPECTED_HEAD}" origin "HEAD:refs/heads/${TARGET_BRANCH}"
+          echo "PR596_AMEND=PASS sha=$amended force_with_lease=1"

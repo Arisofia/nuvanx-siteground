@@ -1,0 +1,188 @@
+name: Attribution Runtime v2 Final QA One-Shot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'ops/qa-attribution-v2-final-20260818'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_STAGING_SHA: c89021de0640003a5a0616ab98d58ed9ac60dd19
+      QA_EMAIL: qa.attribution.v2.20260818.01@nuvanx.com
+      QA_CAMPAIGN: qa_attribution_v2_20260818_01
+      QA_CAMPAIGN_ID: qa-campaign-20260818-01
+      QA_GCLID: QA-GCLID-20260818-01
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+
+      - name: Install isolated Playwright runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nvx-qa"
+          cd "$RUNNER_TEMP/nvx-qa"
+          npm init -y >/dev/null 2>&1
+          npm install --no-save --no-audit --no-fund playwright@1.54.2 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Submit exactly one deterministic Staging2 valoración
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/nvx-qa"
+          cat > qa.mjs <<'NODE'
+          import { chromium } from 'playwright';
+
+          const expectedSha = process.env.EXPECTED_STAGING_SHA;
+          const campaign = process.env.QA_CAMPAIGN;
+          const campaignId = process.env.QA_CAMPAIGN_ID;
+          const gclid = process.env.QA_GCLID;
+          const email = process.env.QA_EMAIL;
+          const base = 'https://staging2.nuvanx.com';
+          const target = `${base}/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=${encodeURIComponent(campaign)}&utm_id=${encodeURIComponent(campaignId)}&gclid=${encodeURIComponent(gclid)}`;
+          const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          const token64 = /^[a-f0-9]{64}$/;
+          const suspicious = [];
+          let afterSubmit = false;
+
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({ locale: 'es-ES' });
+          const page = await context.newPage();
+
+          page.on('request', (request) => {
+            if (!afterSubmit) return;
+            const url = request.url();
+            if (/graph\.facebook\.com\/.*\/events(?:\?|$)/i.test(url) ||
+                /googleadservices\.com\/pagead\/conversion/i.test(url) ||
+                /google\.[^/]+\/pagead\/(?:1p-)?conversion/i.test(url)) {
+              suspicious.push(url.replace(/[?#].*$/, ''));
+            }
+          });
+
+          await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 60000 });
+          await page.waitForSelector('[data-nvx-direct-form]', { timeout: 30000 });
+
+          const deploySha = await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content');
+          if (deploySha !== expectedSha) throw new Error(`DEPLOY_SHA_MISMATCH expected=${expectedSha} actual=${deploySha || 'missing'}`);
+
+          await page.evaluate(() => {
+            window.wp_has_consent = function (category) {
+              return category === 'marketing' ? true : true;
+            };
+            document.dispatchEvent(new CustomEvent('wp_listen_for_consent_change', { detail: { marketing: 'allow' } }));
+            if (window.NUVANXAttributionContract && typeof window.NUVANXAttributionContract.refresh === 'function') {
+              window.NUVANXAttributionContract.refresh();
+            }
+          });
+
+          await page.fill('[data-nvx-direct-form] input[name="firstname"]', 'QA');
+          await page.fill('[data-nvx-direct-form] input[name="lastname"]', 'Attribution');
+          await page.fill('[data-nvx-direct-form] input[name="phone"]', '+34600000001');
+          await page.fill('[data-nvx-direct-form] input[name="email"]', email);
+          await page.fill('[data-nvx-direct-form] textarea[name="message"]', 'QA determinista Runtime Contract v2');
+          await page.evaluate(() => {
+            const box = document.querySelector('[data-nvx-direct-form] input[name="privacy"]');
+            if (!box) throw new Error('PRIVACY_CHECKBOX_MISSING');
+            box.checked = true;
+            box.dispatchEvent(new Event('input', { bubbles: true }));
+            box.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.NUVANXAttributionContract && typeof window.NUVANXAttributionContract.refresh === 'function') {
+              window.NUVANXAttributionContract.refresh();
+            }
+          });
+
+          const state = await page.evaluate(() => {
+            const form = document.querySelector('[data-nvx-direct-form]');
+            const get = (name) => form?.querySelector(`[name="${name}"]`)?.value || '';
+            return {
+              runtimeV2: window.NUVANXAttributionContract?.version === 2,
+              leadId: get('nvx_lead_id'),
+              isTest: get('nvx_is_test_lead'),
+              testRun: get('nvx_test_run_id'),
+              consent: get('nvx_marketing_consent'),
+              utmSource: get('utm_source'),
+              utmMedium: get('utm_medium'),
+              utmCampaign: get('utm_campaign'),
+              gclid: get('gclid'),
+              firstChannel: get('nvx_first_channel'),
+              firstSource: get('nvx_first_source'),
+              firstMedium: get('nvx_first_medium'),
+              firstCampaignId: get('nvx_first_campaign_id'),
+              firstLanding: get('nvx_first_landing_url'),
+              firstTimestamp: get('nvx_first_timestamp'),
+              conversionChannel: get('nvx_conversion_channel'),
+              conversionSource: get('nvx_conversion_source'),
+              conversionMedium: get('nvx_conversion_medium'),
+              conversionCampaignId: get('nvx_conversion_campaign_id'),
+              conversionLanding: get('nvx_conversion_landing_url'),
+              conversionTimestamp: get('nvx_conversion_timestamp'),
+              privacy: Boolean(form?.querySelector('[name="privacy"]')?.checked),
+            };
+          });
+
+          const required = {
+            runtimeV2: state.runtimeV2 === true,
+            leadId: uuidV4.test(state.leadId),
+            isTest: state.isTest === 'true',
+            testRun: /^staging2-/.test(state.testRun),
+            consent: state.consent === '1',
+            utmSource: state.utmSource === 'google',
+            utmMedium: state.utmMedium === 'cpc',
+            utmCampaign: state.utmCampaign === campaign,
+            gclid: state.gclid === gclid,
+            firstChannel: state.firstChannel === 'paid_search',
+            firstSource: state.firstSource === 'google',
+            firstMedium: state.firstMedium === 'cpc',
+            firstCampaignId: state.firstCampaignId === campaignId,
+            firstLanding: state.firstLanding === `${base}/madrid/valoracion/`,
+            firstTimestamp: Boolean(state.firstTimestamp),
+            conversionChannel: state.conversionChannel === 'paid_search',
+            conversionSource: state.conversionSource === 'google',
+            conversionMedium: state.conversionMedium === 'cpc',
+            conversionCampaignId: state.conversionCampaignId === campaignId,
+            conversionLanding: state.conversionLanding === `${base}/madrid/valoracion/`,
+            conversionTimestamp: Boolean(state.conversionTimestamp),
+            privacy: state.privacy === true,
+          };
+          const failed = Object.entries(required).filter(([, ok]) => !ok).map(([key]) => key);
+          if (failed.length) throw new Error(`PRE_SUBMIT_CONTRACT_FAIL fields=${failed.join(',')}`);
+
+          console.log(`QA_PRE_SUBMIT=PASS runtime=v2 uuid=1 first=paid_search conversion=paid_search test_lead=1 run_id_prefix=staging2 consent=1`);
+
+          afterSubmit = true;
+          await Promise.all([
+            page.waitForURL((url) => url.pathname === '/gracias/' || url.searchParams.get('valoracion') === 'error', { timeout: 60000 }),
+            page.evaluate(() => {
+              const form = document.querySelector('[data-nvx-direct-form]');
+              if (!form) throw new Error('DIRECT_FORM_MISSING_AT_SUBMIT');
+              form.requestSubmit();
+            }),
+          ]);
+
+          const finalUrl = new URL(page.url());
+          if (finalUrl.searchParams.get('valoracion') === 'error') throw new Error('DIRECT_FORM_RESULT=ERROR');
+          const successToken = finalUrl.searchParams.get('nvx_success') || '';
+          if (finalUrl.pathname !== '/gracias/' || !token64.test(successToken)) {
+            throw new Error(`CANONICAL_SUCCESS_FAIL path=${finalUrl.pathname} token=${successToken ? 'invalid' : 'missing'}`);
+          }
+
+          await page.waitForTimeout(3000);
+          const signal = await page.evaluate(() => (window.dataLayer || []).some((entry) => entry && typeof entry === 'object' && entry.event === 'nvx_valoracion_success'));
+          if (!signal) throw new Error('NVX_VALORACION_SUCCESS_SIGNAL_MISSING');
+          if (suspicious.length) throw new Error(`QA_ADS_LEAK detected=${[...new Set(suspicious)].join(',')}`);
+
+          console.log('QA_SUBMIT=PASS canonical_success=1 single_use_token=1 signal=nvx_valoracion_success ads_meta_requests=0');
+          await browser.close();
+          NODE
+          node qa.mjs

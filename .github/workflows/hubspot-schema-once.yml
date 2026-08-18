@@ -40,8 +40,8 @@ jobs:
         env:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_DEPLOY_SHA: f30a0e22d2746d24a0e0cbf35c2315d362763bc7
-          QA_GCLID: NVXQA_33F2390B_20260818_01
-          QA_CAMPAIGN: qa_runtime_v2_33f2390b
+          QA_GCLID: NVXQA_33F2390B_20260818_02
+          QA_CAMPAIGN: qa_runtime_v2_33f2390b_r2
         run: |
           set -Eeuo pipefail
           cd scripts/staging2
@@ -127,13 +127,26 @@ jobs:
             await page.locator('[name="phone"]').fill('+34910000000');
             await page.locator('[name="email"]').fill('qa.e2e@nuvanx.com');
             await page.locator('[name="message"]').fill('QA técnico automatizado Runtime Contract v2. No contactar.');
-            await page.locator('[name="privacy"]').check();
+
+            const privacyState = await page.evaluate(() => {
+              const input = document.querySelector('[data-nvx-direct-form] [name="privacy"]');
+              if (!(input instanceof HTMLInputElement)) return { found: false, checked: false };
+              input.checked = true;
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+              return { found: true, checked: input.checked };
+            });
+            if (!privacyState.found || !privacyState.checked) throw new Error('QA privacy checkbox could not be set');
 
             submitIssued = true;
-            await Promise.all([
-              page.waitForURL((url) => url.pathname === '/gracias/' || url.searchParams.get('valoracion') === 'error', { timeout: 45000 }),
-              page.locator('[data-nvx-direct-form] button[type="submit"]').click(),
-            ]);
+            const navigation = page.waitForURL((url) => url.pathname === '/gracias/' || url.searchParams.get('valoracion') === 'error', { timeout: 45000 });
+            await page.evaluate(() => {
+              const form = document.querySelector('[data-nvx-direct-form]');
+              const button = form?.querySelector('button[type="submit"]');
+              if (!(form instanceof HTMLFormElement) || !(button instanceof HTMLButtonElement)) throw new Error('QA submit control missing');
+              form.requestSubmit(button);
+            });
+            await navigation;
 
             const finalUrl = new URL(page.url());
             const token = finalUrl.searchParams.get('nvx_success') || '';

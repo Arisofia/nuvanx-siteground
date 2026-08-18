@@ -89,33 +89,174 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 
 /**
+ * Wrap the first plain-text mention that is not already inside an anchor.
+ *
+ * @param array<int,string> $needles Candidate phrases, longest first preferred.
+ */
+function nvx_theme_wrap_first_plain_mention( string $html, array $needles, string $href, string $anchor ): string {
+	if ( '' === $html || array() === $needles || '' === $href || '' === $anchor ) {
+		return $html;
+	}
+
+	$parts = preg_split( '/(<[^>]+>)/u', $html, -1, PREG_SPLIT_DELIM_CAPTURE );
+	if ( ! is_array( $parts ) ) {
+		return $html;
+	}
+
+	$in_anchor = 0;
+	$done      = false;
+	foreach ( $parts as $index => $part ) {
+		if ( $done || '' === $part ) {
+			continue;
+		}
+		if ( '<' === $part[0] ) {
+			if ( 1 === preg_match( '/^<a\b/i', $part ) ) {
+				++$in_anchor;
+			} elseif ( 1 === preg_match( '/^<\/a\b/i', $part ) ) {
+				$in_anchor = max( 0, $in_anchor - 1 );
+			}
+			continue;
+		}
+		if ( $in_anchor > 0 ) {
+			continue;
+		}
+
+		foreach ( $needles as $needle ) {
+			$needle = (string) $needle;
+			if ( '' === $needle || false === stripos( $part, $needle ) ) {
+				continue;
+			}
+			$parts[ $index ] = preg_replace(
+				'/' . preg_quote( $needle, '/' ) . '/iu',
+				'<a href="' . esc_url( $href ) . '">' . esc_html( $anchor ) . '</a>',
+				$part,
+				1
+			);
+			$done = true;
+			break;
+		}
+	}
+
+	return implode( '', $parts );
+}
+
+/**
+ * Contextual Top-1 wraps from p6: only existing mentions, never new copy.
+ */
+function nvx_theme_wrap_top1_commercial_mentions( string $slug, string $content ): string {
+	$map = array(
+		'plan-anual-medicina-estetica-sin-sobretratar' => array(
+			array(
+				'path'    => '/endolift-facial-papada-mandibula/',
+				'needles' => array( 'Endolift® Facial', 'Endolift®', 'Endolift', 'tercio inferior' ),
+				'anchor'  => 'Endolift® facial',
+			),
+			array(
+				'path'    => '/endolaser-corporal-grasa-localizada/',
+				'needles' => array( 'endoláser corporal', 'láser corporal', 'grasa localizada', 'remodelación corporal' ),
+				'anchor'  => 'endoláser corporal',
+			),
+			array(
+				'path'    => '/neuromoduladores-faciales-madrid/',
+				'needles' => array( 'neuromoduladores', 'toxina', 'botox' ),
+				'anchor'  => 'neuromoduladores',
+			),
+		),
+		'well-aging-estrategia-medica-global'          => array(
+			array(
+				'path'    => '/neuromoduladores-faciales-madrid/',
+				'needles' => array( 'relajación de expresión', 'mantenimiento muscular', 'tratamientos de apoyo', 'neuromoduladores' ),
+				'anchor'  => 'neuromoduladores',
+			),
+			array(
+				'path'    => '/endolaser-corporal-grasa-localizada/',
+				'needles' => array( 'endoláser corporal', 'composición corporal', 'grasa corporal' ),
+				'anchor'  => 'endoláser corporal',
+			),
+		),
+	);
+
+	if ( ! isset( $map[ $slug ] ) ) {
+		return $content;
+	}
+
+	foreach ( $map[ $slug ] as $item ) {
+		$path = (string) $item['path'];
+		if ( false !== strpos( $content, $path ) ) {
+			continue;
+		}
+		$content = nvx_theme_wrap_first_plain_mention(
+			$content,
+			(array) $item['needles'],
+			home_url( $path ),
+			(string) $item['anchor']
+		);
+	}
+
+	return $content;
+}
+
+/**
  * Guarantee explicit internal links from Top-1 journal articles to their
- * treatment landings. Does nothing when the destination URL is already present.
+ * treatment landings. Skips when the destination path or exact anchor exists.
  */
 function nvx_theme_inject_priority_treatment_links( string $content ): string {
 	if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
 		return $content;
 	}
 
-	$slug = (string) get_post_field( 'post_name', get_the_ID() );
-	$map  = array(
+	$slug    = (string) get_post_field( 'post_name', get_the_ID() );
+	$content = nvx_theme_wrap_top1_commercial_mentions( $slug, $content );
+
+	$map = array(
 		'endolift-primeras-72-horas-que-esperar' => array(
 			'url'    => home_url( '/endolift-facial-papada-mandibula/' ),
+			'path'   => '/endolift-facial-papada-mandibula/',
 			'anchor' => __( 'guía completa del Endolift® facial en Madrid', 'nuvanx-medical' ),
 			'intro'  => __( 'Si aún estás evaluando si el Endolift® es tu opción, consulta nuestra', 'nuvanx-medical' ),
 			'suffix' => __( ': zonas, candidatura, proceso y precios.', 'nuvanx-medical' ),
 		),
+		'endolift-vs-hifu-diferencias-reales' => array(
+			'url'    => home_url( '/endolift-facial-papada-mandibula/' ),
+			'path'   => '/endolift-facial-papada-mandibula/',
+			'anchor' => __( 'ficha completa del tratamiento', 'nuvanx-medical' ),
+			'intro'  => __( 'Para conocer cómo aplicamos el Endolift® en NUVANX — zonas, proceso y candidatura — consulta la', 'nuvanx-medical' ),
+			'suffix' => __( '.', 'nuvanx-medical' ),
+		),
 		'endolaser-corporal-vs-no-invasivos-grasa-localizada' => array(
 			'url'    => home_url( '/endolaser-corporal-grasa-localizada/' ),
+			'path'   => '/endolaser-corporal-grasa-localizada/',
 			'anchor' => __( 'endoláser corporal en NUVANX', 'nuvanx-medical' ),
 			'intro'  => __( 'Conoce en detalle el', 'nuvanx-medical' ),
 			'suffix' => __( ': zonas tratadas, candidatura, recuperación y precios.', 'nuvanx-medical' ),
 		),
 		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
 			'url'    => home_url( '/btl-exilite-ipl-madrid/' ),
+			'path'   => '/btl-exilite-ipl-madrid/',
 			'anchor' => __( 'tratamiento IPL médico en Madrid', 'nuvanx-medical' ),
 			'intro'  => __( 'Si buscas indicación, precio o reserva, consulta el', 'nuvanx-medical' ),
 			'suffix' => __( ': candidatura, proceso y tarifas de BTL EXILITE™.', 'nuvanx-medical' ),
+		),
+		'laserlipolisis-vs-liposuccion' => array(
+			'url'    => home_url( '/endolaser-corporal-grasa-localizada/' ),
+			'path'   => '/endolaser-corporal-grasa-localizada/',
+			'anchor' => __( 'endoláser corporal en NUVANX', 'nuvanx-medical' ),
+			'intro'  => __( 'Si hay indicación de focos corporales, consulta el', 'nuvanx-medical' ),
+			'suffix' => __( ': candidatura, recuperación y tarifas.', 'nuvanx-medical' ),
+		),
+		'smartlipo-laserlipolisis-endolift' => array(
+			'url'    => home_url( '/endolaser-corporal-grasa-localizada/' ),
+			'path'   => '/endolaser-corporal-grasa-localizada/',
+			'anchor' => __( 'endoláser corporal en NUVANX', 'nuvanx-medical' ),
+			'intro'  => __( 'Si hay indicación de focos corporales, consulta el', 'nuvanx-medical' ),
+			'suffix' => __( ': candidatura, recuperación y tarifas.', 'nuvanx-medical' ),
+		),
+		'papada-sin-cirugia-madrid-opciones-endolift' => array(
+			'url'    => home_url( '/endolift-facial-papada-mandibula/' ),
+			'path'   => '/endolift-facial-papada-mandibula/',
+			'anchor' => __( 'ficha del Endolift® facial en Madrid', 'nuvanx-medical' ),
+			'intro'  => __( 'Si hay indicación de láser intersticial, consulta la', 'nuvanx-medical' ),
+			'suffix' => __( '.', 'nuvanx-medical' ),
 		),
 	);
 
@@ -124,7 +265,8 @@ function nvx_theme_inject_priority_treatment_links( string $content ): string {
 	}
 
 	$item = $map[ $slug ];
-	if ( false !== strpos( $content, (string) $item['anchor'] ) ) {
+	$path = (string) ( $item['path'] ?? '' );
+	if ( ( '' !== $path && false !== strpos( $content, $path ) ) || false !== strpos( $content, (string) $item['anchor'] ) ) {
 		return $content;
 	}
 

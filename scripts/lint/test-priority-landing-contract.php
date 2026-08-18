@@ -35,7 +35,7 @@ if ( ! str_contains( $helpers, 'function nvx_clinical_authority_byline_markup' )
 }
 
 if ( ! str_contains( $sede, 'Medicina estética en Chamberí, Madrid' )
-	|| ! str_contains( $sede, 'nvx_chamberi_landing_photos' ) ) {
+	|| ( ! str_contains( $sede, 'nvx_clinic_landing_photos' ) && ! str_contains( $sede, 'nvx_chamberi_landing_photos' ) ) ) {
 	$fail( 'chamberi landing must have local-intent H1 and photo gallery' );
 }
 
@@ -57,8 +57,72 @@ if ( ! str_contains( $exilite_json, 'manchas y rojeces' )
 
 if ( ! str_contains( $blog_meta, '"canonical_path": "/btl-exilite-ipl-madrid/"' )
 	|| ! str_contains( $blog_php, 'tratamiento IPL médico en Madrid' )
+	|| ! str_contains( $blog_php, 'guía completa del Endolift® facial en Madrid' )
+	|| ! str_contains( $blog_php, 'ficha completa del tratamiento' )
+	|| ! str_contains( $blog_php, 'function nvx_theme_wrap_top1_commercial_mentions' )
 	|| ! str_contains( $blog_runtime, 'function nvx_governed_blog_html_canonical_url' ) ) {
-	$fail( 'IPL Journal article must canonical to EXILITE and use the exact transactional anchor' );
+	$fail( 'IPL Journal article must canonical to EXILITE and Top-1 articles must link their commercial fichas' );
+}
+
+$valoracion_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-valoracion-managed-page.php' );
+$valoracion_css = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css' );
+if ( ! str_contains( $valoracion_php, 'Valoración médica estética en Madrid' )
+	|| ! str_contains( $valoracion_php, 'Valoración médica en Madrid de 15 a 30 minutos' )
+	|| ! str_contains( $valoracion_php, 'function nvx_valoracion_schema_graph' )
+	|| ! str_contains( $valoracion_php, 'MedicalWebPage' )
+	|| ! str_contains( $valoracion_php, 'id="nvx-valoracion-lead"' )
+	|| ! str_contains( $valoracion_php, 'nvx_clinical_authority_byline_markup' ) ) {
+	$fail( 'valoracion landing must expose H1, initial answer, Rivera byline and MedicalWebPage schema' );
+}
+
+if ( ! str_contains( $valoracion_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
+	|| ! str_contains( $valoracion_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
+	$fail( 'valoracion mobile ATF rules must compact the hero and surface the form' );
+}
+
+if ( ! str_contains( $helpers, 'function nvx_inject_clinical_authority_byline' )
+	|| ! str_contains( $helpers, 'endolaser-corporal' )
+	|| ! str_contains( $sede, 'nvx_clinical_authority_byline_markup' )
+	|| ! str_contains( $endolift_php, 'nvx_clinical_authority_byline_markup' ) ) {
+	$fail( 'Endolift, Endoláser and Chamberí must carry the Rivera clinical signature' );
+}
+
+$papada_json = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/nvx-signature-phase-catalog.json' );
+$papada_php  = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php' );
+$journal_lipo = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/journal-laserlipolisis-vs-liposuccion.json' );
+$journal_php  = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-journal-laserlipolisis-vs-lipo.php' );
+$laser_json   = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/laser-medicine-page.json' );
+if ( ! str_contains( $journal_lipo, 'Laserlipólisis DEKA' )
+	|| ! str_contains( $journal_lipo, 'Endolift®' )
+	|| ! str_contains( $journal_lipo, 'EXION®' )
+	|| str_contains( $journal_lipo, 'Smartlipo' )
+	|| ! str_contains( $journal_php, 'NVX_JOURNAL_LASERLIPO_VS_LIPO_SLUG' )
+	|| ! str_contains( $blog_php, 'laserlipolisis-vs-liposuccion' )
+	|| ! str_contains( $blog_meta, '"laserlipolisis-vs-liposuccion"' )
+	|| ! str_contains( $laser_json, 'Laserlipólisis DEKA' ) ) {
+	$fail( 'laserlipolysis journal must name DEKA/Endolift/EXION, skip Smartlipo, and link the Endoláser ficha' );
+}
+
+$smartlipo_json = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/journal-smartlipo-laserlipolisis-endolift.json' );
+if ( ! str_contains( $smartlipo_json, 'Nd:YAG' )
+	|| ! str_contains( $smartlipo_json, '1064' )
+	|| ! str_contains( $smartlipo_json, '1470' )
+	|| ! str_contains( $smartlipo_json, 'Endolift®' )
+	|| ! str_contains( $smartlipo_json, 'Kim KH, Geronemus RG' )
+	|| ! str_contains( $journal_php, 'NVX_JOURNAL_SMARTLIPO_ENDOLIFT_SLUG' )
+	|| ! str_contains( $blog_meta, '"smartlipo-laserlipolisis-endolift"' )
+	|| ! str_contains( $endolift_php, '/smartlipo-laserlipolisis-endolift/' ) ) {
+	$fail( 'Smartlipo journal must compare 1064 vs Endolift 1470, cite the literature and link both fichas' );
+}
+
+if ( ! str_contains( $papada_json, 'diagnóstico médico antes de indicar' )
+	|| ! str_contains( $papada_json, '/endolift-facial-papada-mandibula/' )
+	|| ! str_contains( $papada_json, 'ficha del Endolift® facial en Madrid' )
+	|| ! str_contains( $papada_php, 'nvx_clinical_authority_byline_markup' )
+	|| ! str_contains( $papada_php, 'function nvx_papada_hub_schema_graph' )
+	|| ! str_contains( $papada_php, 'DiagnosticProcedure' )
+	|| ! str_contains( $blog_php, 'papada-sin-cirugia-madrid-opciones-endolift' ) ) {
+	$fail( 'papada hub must stay a decision page, sign Rivera, schema without Endolift procedure, and link the ficha' );
 }
 
 $governance = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-native-style-governance.php' );

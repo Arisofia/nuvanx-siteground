@@ -161,7 +161,7 @@ function nvx_valoracion_managed_page_markup(): string {
 	$html .= function_exists( 'nvx_clinical_authority_byline_markup' )
 		? nvx_clinical_authority_byline_markup()
 		: '';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__lead" id="nvx-valoracion-lead">' . esc_html__( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div></section>';
 
 	// The form is deliberately the first content block after the heading.
@@ -234,3 +234,86 @@ add_filter(
 	},
 	10
 );
+
+/**
+ * Page-level MedicalWebPage + ReserveAction for /madrid/valoracion/.
+ *
+ * Organization already exposes ReserveAction. This pass types the landing
+ * itself so the H1 and initial answer are speakable and reviewed.
+ *
+ * @param mixed $graph Yoast schema graph.
+ * @return mixed
+ */
+function nvx_valoracion_schema_graph( $graph ) {
+	if ( ! is_array( $graph ) || is_admin() || is_feed() ) {
+		return $graph;
+	}
+	if ( ! function_exists( 'nvx_is_valoracion_page_request' ) || ! nvx_is_valoracion_page_request() ) {
+		return $graph;
+	}
+
+	$url         = home_url( '/madrid/valoracion/' );
+	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
+	$description = __( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' );
+	$action      = array(
+		'@type'  => 'ReserveAction',
+		'name'   => __( 'Solicitar valoración médica', 'nuvanx-medical' ),
+		'target' => array(
+			'@type'          => 'EntryPoint',
+			'urlTemplate'    => $url . '#nvx-hubspot-form',
+			'inLanguage'     => 'es',
+			'actionPlatform' => array(
+				'https://schema.org/DesktopWebPlatform',
+				'https://schema.org/MobileWebPlatform',
+			),
+		),
+		'result' => array(
+			'@type' => 'Reservation',
+			'name'  => __( 'Cita de valoración médica', 'nuvanx-medical' ),
+		),
+	);
+	$reviewer    = array(
+		'@type'      => 'Physician',
+		'name'       => 'Dr. José Javier Rivera Tejeda',
+		'url'        => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
+		'identifier' => array(
+			'@type' => 'PropertyValue',
+			'name'  => defined( 'NVX_SD_LABEL_NUM_COLEGIADO' ) ? NVX_SD_LABEL_NUM_COLEGIADO : 'Número de colegiado ICOMEM',
+			'value' => $colegiado,
+		),
+	);
+
+	foreach ( $graph as $index => $node ) {
+		if ( ! is_array( $node ) || ! isset( $node['@type'] ) ) {
+			continue;
+		}
+		$types = is_array( $node['@type'] ) ? $node['@type'] : array( $node['@type'] );
+		if ( ! in_array( 'WebPage', $types, true ) && ! in_array( 'MedicalWebPage', $types, true ) ) {
+			continue;
+		}
+
+		if ( function_exists( 'nvx_schema_add_type' ) ) {
+			$graph[ $index ]['@type'] = nvx_schema_add_type( $node['@type'], 'MedicalWebPage' );
+		} else {
+			$types[]                    = 'MedicalWebPage';
+			$graph[ $index ]['@type']   = array_values( array_unique( $types ) );
+		}
+
+		$graph[ $index ]['name']          = __( 'Valoración médica estética en Madrid', 'nuvanx-medical' );
+		$graph[ $index ]['description']   = $description;
+		$graph[ $index ]['url']           = $url;
+		$graph[ $index ]['inLanguage']    = 'es-ES';
+		$graph[ $index ]['lastReviewed']  = '2026-08-01';
+		$graph[ $index ]['reviewedBy']    = $reviewer;
+		$graph[ $index ]['speakable']     = array(
+			'@type'       => 'SpeakableSpecification',
+			'cssSelector' => array( '#nvx-valoracion-h1', '#nvx-valoracion-lead' ),
+		);
+		$graph[ $index ]['potentialAction'] = $action;
+		$graph[ $index ]['mainEntity']      = $action;
+		break;
+	}
+
+	return $graph;
+}
+add_filter( 'wpseo_schema_graph', 'nvx_valoracion_schema_graph', 25, 1 );

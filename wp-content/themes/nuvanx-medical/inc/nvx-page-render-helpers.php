@@ -516,6 +516,36 @@ function nvx_clinical_authority_byline_markup( string $review_label = '' ): stri
 }
 
 /**
+ * Guarantee the visible Rivera signature on gated treatment landings.
+ *
+ * Endoláser clinical files cannot be edited without an APPROVED fingerprint.
+ * The renderer byline is also stripped by nvx_medical_review when post meta
+ * is not approved. This late pass restores name + specialty + colegiado.
+ */
+function nvx_inject_clinical_authority_byline( string $content ): string {
+	if ( is_admin() || wp_doing_ajax() || is_feed() || ! is_singular( 'page' ) ) {
+		return $content;
+	}
+
+	$path = function_exists( 'nvx_schema_current_path' )
+		? nvx_schema_current_path( (int) get_queried_object_id() )
+		: '';
+	if ( ! is_string( $path ) || false === strpos( $path, 'endolaser-corporal' ) ) {
+		return $content;
+	}
+
+	if ( false !== strpos( $content, 'ICOMEM' ) || false !== strpos( $content, 'nvx-medical-review' ) ) {
+		return $content;
+	}
+
+	$byline  = nvx_clinical_authority_byline_markup();
+	$updated = preg_replace( '/(<h1\b[^>]*>[\s\S]*?<\/h1>)/iu', '$1' . $byline, $content, 1 );
+
+	return is_string( $updated ) ? $updated : $content;
+}
+add_filter( 'the_content', 'nvx_inject_clinical_authority_byline', NVX_HOOK_PRIO_MEDICAL_REVIEW + 1 );
+
+/**
  * Recovery table: moment / what to expect / return to activity.
  *
  * @param array<int,array{when?:string,expect?:string,activity?:string}> $rows

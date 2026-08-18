@@ -705,6 +705,64 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   gap: var(--nvx-space-2);
 }
 
+/*
+ * Valoración conversion ATF on small screens: H1 + initial answer + form
+ * start must remain in the first viewport. Form intro copy is already in
+ * the hero lead, so the section kicker/body are deferred visually.
+ */
+@media (max-width: 48rem) {
+  .nvx-valoracion-hero .nvx-brand-hero__copy {
+    padding-block: var(--nvx-space-3);
+  }
+
+  .nvx-valoracion-hero .nvx-brand-hero__title {
+    margin-bottom: var(--nvx-space-2);
+    font-size: clamp(1.7rem, 7.2vw, 2.15rem);
+    line-height: 1.15;
+  }
+
+  .nvx-valoracion-hero .nvx-medical-review {
+    margin: 0 0 var(--nvx-space-2);
+    font-size: var(--nvx-type-caption, 0.85rem);
+  }
+
+  .nvx-valoracion-hero .nvx-brand-hero__lead {
+    margin-bottom: 0;
+    font-size: var(--nvx-type-small, 0.95rem);
+    line-height: 1.45;
+  }
+
+  .nvx-valoracion-page > .nvx-hubspot-form-section,
+  .nvx-valoracion-page > .nvx-form-stage {
+    padding-block: var(--nvx-space-3) var(--nvx-space-6);
+  }
+
+  .nvx-valoracion-page .nvx-hubspot-form-section .nvx-brand-section__inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nvx-valoracion-page .nvx-hubspot-form-section .nvx-brand-kicker,
+  .nvx-valoracion-page .nvx-hubspot-form-section .nvx-brand-body {
+    display: none;
+  }
+
+  .nvx-valoracion-page #nvx-valoracion-form-title {
+    margin-bottom: var(--nvx-space-2);
+    font-size: clamp(1.15rem, 4.6vw, 1.35rem);
+  }
+
+  .nvx-valoracion-page .nvx-hs-native-section {
+    order: 1;
+  }
+
+  .nvx-valoracion-page .nvx-valoracion-direct-contact {
+    order: 2;
+    margin: var(--nvx-space-3) 0 0;
+    padding: var(--nvx-space-2);
+  }
+}
+
 /* Robust HubSpot form fallback */
 .nvx-hubspot-fallback {
   margin: var(--nvx-space-4) 0;

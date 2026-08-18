@@ -2,7 +2,7 @@
   "profile-definition": {
     "phase": 1,
     "slug": "papada-definicion-mandibular-madrid",
-    "title": "Tratamiento médico de papada y definición mandibular en Madrid.",
+    "title": "Papada y definición mandibular en Madrid — diagnóstico médico antes de indicar",
     "kicker": "NUVANX PROFILE DEFINITION™",
     "lead": "Valoración médica de papada, cuello, mandíbula y mentón para distinguir grasa submentoniana, laxitud cutánea, soporte estructural y proporción facial antes de indicar una técnica.",
     "intro": "Papada, cuello y mandíbula forman una misma unidad visual, pero no siempre comparten la misma causa. El plan se diseña después de separar tejido adiposo, calidad de piel y estructura.",
@@ -28,6 +28,21 @@
     "price_range": "desde 1.064,80 €",
     "price_technology": "Endolift®",
     "price_note": "El presupuesto definitivo se documenta tras valoración presencial.",
+    "ficha_links": [
+      {
+        "needle": "Endolift® facial",
+        "path": "/endolift-facial-papada-mandibula/",
+        "anchor": "Endolift® facial"
+      }
+    ],
+    "related_fichas": [
+      {
+        "path": "/endolift-facial-papada-mandibula/",
+        "anchor": "ficha del Endolift® facial en Madrid",
+        "intro": "Esta página orienta el diagnóstico de papada y mandíbula. Si hay indicación de láser intersticial, consulta la",
+        "suffix": ": zonas, candidatura, proceso y tarifas."
+      }
+    ],
     "faq": [
       {
         "q": "¿Toda papada se trata igual?",

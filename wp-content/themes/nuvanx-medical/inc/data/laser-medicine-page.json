@@ -71,6 +71,17 @@
             "url": {
                 "@nvx-laser-url": "laser-co2-fraccionado-madrid-textura-cicatrices-poro"
             }
+        },
+        {
+            "n": "06",
+            "icon": "fiber",
+            "title": "@nvx-t:Endoláser corporal · Laserlipólisis DEKA",
+            "body": "@nvx-t:Laserlipólisis con plataforma DEKA para grasa localizada con flacidez leve–moderada (abdomen, flancos, muslos, brazos). No es liposucción ni tratamiento de obesidad. La indicación se decide por zonas tras valoración.",
+            "goal": "@nvx-t:Reducir focos de grasa y acompañar la pérdida de volumen con retracción térmica, cuando hay indicación.",
+            "recover": "@nvx-t:Reincorporación habitual en 24–48 h; compresión y deporte según zona y plan médico.",
+            "url": {
+                "@nvx-laser-url": "endolaser-corporal-grasa-localizada"
+            }
         }
     ],
     "faqs": [

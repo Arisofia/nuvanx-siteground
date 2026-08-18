@@ -9,155 +9,76 @@ permissions:
   contents: read
 
 jobs:
-  qa_submit:
-    name: One controlled Staging2 QA submission
+  diagnose:
+    name: Read bounded Staging2 valoración outcome
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:
-      - name: Check out canonical tooling
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: master
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.0.0
-        with:
-          node-version: '22'
-
-      - name: Install Playwright
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          cd scripts/staging2
-          npm ci --ignore-scripts
-          ./node_modules/.bin/playwright install --with-deps chromium
-
-      - name: Submit exactly one deterministic QA lead
+      - name: Configure strict Staging2 SSH
         shell: bash
         env:
-          BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_DEPLOY_SHA: f30a0e22d2746d24a0e0cbf35c2315d362763bc7
-          QA_GCLID: NVXQA_33F2390B_20260818_02
-          QA_CAMPAIGN: qa_runtime_v2_33f2390b_r2
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -Eeuo pipefail
-          cd scripts/staging2
-          node --input-type=module <<'NODE'
-          import { chromium } from 'playwright';
+          : "${HOST:?Missing STAGING2_SSH_HOST}"
+          : "${USER:?Missing STAGING2_SSH_USER}"
+          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"
+          chmod 600 "$HOME/.ssh/staging_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ConnectionAttempts 1
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v php >/dev/null"
+          echo 'STAGING_SSH=PASS'
 
-          const baseUrl = process.env.BASE_URL;
-          const expectedDeploySha = process.env.EXPECTED_DEPLOY_SHA;
-          const gclid = process.env.QA_GCLID;
-          const campaign = process.env.QA_CAMPAIGN;
-          if (!baseUrl || !/^[0-9a-f]{40}$/.test(expectedDeploySha || '') || !gclid || !campaign) throw new Error('QA configuration missing');
-          const target = `${baseUrl}/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=${encodeURIComponent(campaign)}&gclid=${encodeURIComponent(gclid)}`;
-          const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
-          let submitIssued = false;
-          const adsRequests = [];
-          try {
-            const context = await browser.newContext({
-              userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
-            });
-            const page = await context.newPage();
-            page.on('request', (request) => {
-              if (!submitIssued) return;
-              const u = request.url();
-              if (/googleadservices\.com\/pagead\/conversion|google\.[^/]+\/pagead\/1p-conversion/i.test(u)) adsRequests.push('google_ads_conversion');
-              if (/graph\.facebook\.com\/v\d+\.\d+\/[^/]+\/events/i.test(u)) adsRequests.push('meta_graph_events');
-            });
-
-            let response = null;
-            for (let attempt = 1; attempt <= 6; attempt += 1) {
-              try { response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 45000 }); } catch (_error) { response = null; }
-              const status = response?.status() || 0;
-              const path = new URL(page.url()).pathname;
-              if (status === 200 && path === '/madrid/valoracion/') break;
-              if (attempt === 6) throw new Error(`Staging2 valuation route unavailable status=${status} path=${path}`);
-              await page.waitForTimeout(3000);
-            }
-
-            const deployedSha = await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content');
-            if (deployedSha !== expectedDeploySha) throw new Error(`Staging2 candidate drift expected=${expectedDeploySha} actual=${deployedSha || 'missing'}`);
-            await page.locator('[data-nvx-direct-form]').waitFor({ state: 'visible', timeout: 20000 });
-            await page.waitForFunction(() => window.NUVANXAttributionContract?.version === 2, null, { timeout: 20000 });
-
-            const qaContext = await page.evaluate(() => window.nvxConversionEvents?.qa || null);
-            if (!qaContext?.is_test_lead || !String(qaContext.test_run_id || '').startsWith('staging2-')) throw new Error('Server-owned Staging2 QA context is missing');
-
-            const consentState = await page.evaluate(async () => {
-              if (typeof window.wp_set_consent !== 'function' || typeof window.wp_has_consent !== 'function') return { supported: false };
-              window.wp_set_consent('marketing', 'allow');
-              document.dispatchEvent(new Event('wp_listen_for_consent_change'));
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              window.NUVANXAttributionContract?.refresh?.();
-              await new Promise((resolve) => setTimeout(resolve, 300));
-              return { supported: true, marketing: window.wp_has_consent('marketing') === true };
-            });
-            if (!consentState.supported || !consentState.marketing) throw new Error('Marketing consent could not be explicitly enabled for QA');
-
-            const state = await page.evaluate(({ gclid, campaign }) => {
-              const form = document.querySelector('[data-nvx-direct-form]');
-              const value = (name) => form?.querySelector(`[name="${name}"]`)?.value || '';
-              return {
-                leadUuid: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value('nvx_lead_id')),
-                marketingConsent: value('nvx_marketing_consent') === '1',
-                qaFlag: value('nvx_is_test_lead') === 'true',
-                qaRun: /^staging2-/.test(value('nvx_test_run_id')),
-                gclid: value('gclid') === gclid,
-                source: value('utm_source') === 'google',
-                medium: value('utm_medium') === 'cpc',
-                campaign: value('utm_campaign') === campaign,
-                firstChannel: value('nvx_first_channel') === 'paid_search',
-                firstSource: value('nvx_first_source') === 'google',
-                firstMedium: value('nvx_first_medium') === 'cpc',
-                firstCampaign: value('nvx_first_campaign_id') === campaign,
-                conversionChannel: value('nvx_conversion_channel') === 'paid_search',
-                conversionSource: value('nvx_conversion_source') === 'google',
-                conversionMedium: value('nvx_conversion_medium') === 'cpc',
-                conversionCampaign: value('nvx_conversion_campaign_id') === campaign,
-              };
-            }, { gclid, campaign });
-            for (const [key, ok] of Object.entries(state)) if (!ok) throw new Error(`Pre-submit attribution assertion failed: ${key}`);
-
-            await page.locator('[name="firstname"]').fill('QA');
-            await page.locator('[name="lastname"]').fill('NUVANX');
-            await page.locator('[name="phone"]').fill('+34910000000');
-            await page.locator('[name="email"]').fill('qa.e2e@nuvanx.com');
-            await page.locator('[name="message"]').fill('QA técnico automatizado Runtime Contract v2. No contactar.');
-
-            const privacyState = await page.evaluate(() => {
-              const input = document.querySelector('[data-nvx-direct-form] [name="privacy"]');
-              if (!(input instanceof HTMLInputElement)) return { found: false, checked: false };
-              input.checked = true;
-              input.dispatchEvent(new Event('input', { bubbles: true }));
-              input.dispatchEvent(new Event('change', { bubbles: true }));
-              return { found: true, checked: input.checked };
-            });
-            if (!privacyState.found || !privacyState.checked) throw new Error('QA privacy checkbox could not be set');
-
-            submitIssued = true;
-            const navigation = page.waitForURL((url) => url.pathname === '/gracias/' || url.searchParams.get('valoracion') === 'error', { timeout: 45000 });
-            await page.evaluate(() => {
-              const form = document.querySelector('[data-nvx-direct-form]');
-              const button = form?.querySelector('button[type="submit"]');
-              if (!(form instanceof HTMLFormElement) || !(button instanceof HTMLButtonElement)) throw new Error('QA submit control missing');
-              form.requestSubmit(button);
-            });
-            await navigation;
-
-            const finalUrl = new URL(page.url());
-            const token = finalUrl.searchParams.get('nvx_success') || '';
-            if (finalUrl.pathname !== '/gracias/' || !/^[a-f0-9]{64}$/.test(token)) throw new Error(`Canonical success redirect failed path=${finalUrl.pathname} valoracion=${finalUrl.searchParams.get('valoracion') || ''}`);
-            await page.waitForLoadState('domcontentloaded');
-            const canonicalEvent = await page.evaluate(() => (window.dataLayer || []).some((item) => item?.event === 'nvx_valoracion_success' && item?.source === 'first_party'));
-            if (!canonicalEvent) throw new Error('Canonical first-party success event missing after consumed token');
-            if (adsRequests.length) throw new Error(`QA generated forbidden downstream Ads request classes: ${[...new Set(adsRequests)].join(',')}`);
-
-            console.log(`STAGING_QA_SUBMIT=PASS candidate=${expectedDeploySha} canonical_success=1 single_submit=1 consent=1 qa_context=1 lineage=1 attribution=1 downstream_ads_requests=0`);
-          } finally {
-            await browser.close();
-          }
-          NODE
+      - name: Read only bounded valoración markers
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          configured_log="$(php -r 'echo (string) ini_get("error_log");' 2>/dev/null || true)"
+          candidates=("$configured_log" "$STAGING_ROOT/php_errorlog" "$STAGING_ROOT/wp-content/debug.log")
+          found=0
+          for file in "${candidates[@]}"; do
+            [[ -n "$file" && -r "$file" ]] || continue
+            markers="$(grep -E 'NVX_VALORACION_(FAILURE|SUCCESS)( |$)' "$file" | tail -n 5 || true)"
+            if [[ -n "$markers" ]]; then
+              printf '%s\n' "$markers"
+              found=1
+            fi
+          done
+          if (( found == 0 )); then
+            echo 'NVX_VALORACION_MARKER=NOT_FOUND'
+            exit 1
+          fi
+          echo 'NVX_VALORACION_MARKER_READ=PASS pii=0 payload=0 token=0'
+          REMOTE

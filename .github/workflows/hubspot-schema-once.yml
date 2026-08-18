@@ -12,56 +12,34 @@ permissions:
   contents: read
 
 jobs:
-  inspect_form:
-    name: Inspect HubSpot canonical form structure
+  apply_schema:
+    name: Apply canonical HubSpot attribution schema v2
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Check out current audited master
+      - name: Check out canonical provisioner
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: e92295b73f1a4ede9c9707a1e33c4871a2d06958
+          ref: f960d81c5b8979f978e3d0bb8515403cc2add31c
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Read sanitized form structure only
+      - name: Apply Schema Contract v2
         shell: bash
         env:
           HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
-          FORM_ID: 5042522a-0bc5-4381-ac3e-5aee8649b69c
+          NUVANX_CONFIRM: yes
         run: |
           set -Eeuo pipefail
-          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
-          form="$RUNNER_TEMP/form.json"
-          status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 --output "$form" --write-out '%{http_code}' --header "Authorization: Bearer ${HUBSPOT_ACCESS_TOKEN}" "https://api.hubapi.com/marketing/v3/forms/${FORM_ID}")"
-          [[ "$status" == '200' ]] || { echo "HUBSPOT_FORM_INSPECT=FAIL status=$status" >&2; jq '{status,category,message,correlationId}' "$form" 2>/dev/null || true; exit 1; }
+          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --apply
 
-          echo 'HUBSPOT_FORM_INSPECT=BEGIN'
-          jq -c '{
-            formId: .id,
-            archived: (.archived // false),
-            groupCount: (.fieldGroups | length),
-            maxFieldsPerGroup: ([.fieldGroups[]? | (.fields | length)] | max // 0),
-            totalFields: ([.fieldGroups[]?.fields[]?] | length),
-            groups: [
-              .fieldGroups | to_entries[] | {
-                index: .key,
-                keys: (.value | keys | sort),
-                groupType: (.value.groupType // null),
-                richTextType: (.value.richTextType // null),
-                fieldCount: (.value.fields | length),
-                fields: [.value.fields[]? | {
-                  name: (.name // null),
-                  keys: (keys | sort),
-                  objectTypeId: (.objectTypeId // null),
-                  fieldType: (.fieldType // null),
-                  hidden: (.hidden // false),
-                  required: (.required // false),
-                  width: (.width // null),
-                  displayOrder: (.displayOrder // null)
-                }]
-              }
-            ]
-          }' "$form"
-          echo 'HUBSPOT_FORM_INSPECT=END'
+      - name: Require clean idempotent post-check
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
+          echo 'HUBSPOT_SCHEMA_ONE_SHOT=PASS schema=v2 canonical_provisioner=1'

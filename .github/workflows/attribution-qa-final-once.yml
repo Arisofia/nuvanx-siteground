@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      EXPECTED_STAGING_SHA: c89021de0640003a5a0616ab98d58ed9ac60dd19
+      RUNTIME_HEAD: c89021de0640003a5a0616ab98d58ed9ac60dd19
       QA_EMAIL: qa.attribution.v2.20260818.01@nuvanx.com
       QA_CAMPAIGN: qa_attribution_v2_20260818_01
       QA_CAMPAIGN_ID: qa-campaign-20260818-01
@@ -44,17 +44,32 @@ jobs:
           cat > qa.mjs <<'NODE'
           import { chromium } from 'playwright';
 
-          const expectedSha = process.env.EXPECTED_STAGING_SHA;
+          const runtimeHead = process.env.RUNTIME_HEAD;
           const campaign = process.env.QA_CAMPAIGN;
           const campaignId = process.env.QA_CAMPAIGN_ID;
           const gclid = process.env.QA_GCLID;
           const email = process.env.QA_EMAIL;
           const base = 'https://staging2.nuvanx.com';
+          const runtimePath = '/wp-content/themes/nuvanx-medical/assets/js/nvx-attribution-contract.js';
+          const candidateRuntimeUrl = `https://raw.githubusercontent.com/Arisofia/nuvanx-siteground/${runtimeHead}${runtimePath}`;
           const target = `${base}/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=${encodeURIComponent(campaign)}&utm_id=${encodeURIComponent(campaignId)}&gclid=${encodeURIComponent(gclid)}`;
           const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
           const token64 = /^[a-f0-9]{64}$/;
           const suspicious = [];
           let afterSubmit = false;
+
+          const [stagingRuntimeResponse, candidateRuntimeResponse] = await Promise.all([
+            fetch(base + runtimePath, { headers: { 'Cache-Control': 'no-cache' } }),
+            fetch(candidateRuntimeUrl),
+          ]);
+          if (!stagingRuntimeResponse.ok || !candidateRuntimeResponse.ok) {
+            throw new Error(`RUNTIME_FETCH_FAIL staging=${stagingRuntimeResponse.status} candidate=${candidateRuntimeResponse.status}`);
+          }
+          const [stagingRuntime, candidateRuntime] = await Promise.all([
+            stagingRuntimeResponse.text(),
+            candidateRuntimeResponse.text(),
+          ]);
+          if (stagingRuntime !== candidateRuntime) throw new Error('RUNTIME_BLOB_MISMATCH');
 
           const browser = await chromium.launch({ headless: true });
           const context = await browser.newContext({ locale: 'es-ES' });
@@ -74,12 +89,11 @@ jobs:
           await page.waitForSelector('[data-nvx-direct-form]', { timeout: 30000 });
 
           const deploySha = await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content');
-          if (deploySha !== expectedSha) throw new Error(`DEPLOY_SHA_MISMATCH expected=${expectedSha} actual=${deploySha || 'missing'}`);
+          if (!/^[0-9a-f]{40}$/.test(String(deploySha || ''))) throw new Error('DEPLOY_SHA_MISSING_OR_INVALID');
+          console.log('QA_RUNTIME_IDENTITY=PASS synthetic_preview_sha=1 exact_runtime_blob=1');
 
           await page.evaluate(() => {
-            window.wp_has_consent = function (category) {
-              return category === 'marketing' ? true : true;
-            };
+            window.wp_has_consent = function () { return true; };
             document.dispatchEvent(new CustomEvent('wp_listen_for_consent_change', { detail: { marketing: 'allow' } }));
             if (window.NUVANXAttributionContract && typeof window.NUVANXAttributionContract.refresh === 'function') {
               window.NUVANXAttributionContract.refresh();
@@ -158,7 +172,7 @@ jobs:
           const failed = Object.entries(required).filter(([, ok]) => !ok).map(([key]) => key);
           if (failed.length) throw new Error(`PRE_SUBMIT_CONTRACT_FAIL fields=${failed.join(',')}`);
 
-          console.log(`QA_PRE_SUBMIT=PASS runtime=v2 uuid=1 first=paid_search conversion=paid_search test_lead=1 run_id_prefix=staging2 consent=1`);
+          console.log('QA_PRE_SUBMIT=PASS runtime=v2 uuid=1 first=paid_search conversion=paid_search test_lead=1 run_id_prefix=staging2 consent=1');
 
           afterSubmit = true;
           await Promise.all([

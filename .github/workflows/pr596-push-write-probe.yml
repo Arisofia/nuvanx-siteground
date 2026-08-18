@@ -1,0 +1,27 @@
+name: PR596 Push Write Probe
+
+on:
+  push:
+    branches:
+      - ops/pr596-p0-fix-once-20260818
+    paths-ignore:
+      - ops-write-probe-result.txt
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Persist push-run marker
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          payload="$(printf 'PR596_PUSH_WRITE_PROBE=PASS commit=%s\n' "$GITHUB_SHA" | base64 -w0)"
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/ops-write-probe-result.txt" \
+            -f message='ops: probe result' \
+            -f content="$payload" \
+            -f branch='ops/pr596-p0-fix-once-20260818' >/dev/null

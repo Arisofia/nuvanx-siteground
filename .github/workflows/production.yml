@@ -219,6 +219,8 @@ jobs:
 
       - name: Upload exact accepted payload and tooling
         shell: bash
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
           REMOTE_RELEASE="$PROD_PARENT/.nvx-releases/${CANDIDATE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -236,6 +238,8 @@ jobs:
       - name: Execute guarded atomic production cutover
         id: cutover
         shell: bash
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
           ssh nvx-prod "NVX_RUN_TOKEN='${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}' GITHUB_RUN_ID='${GITHUB_RUN_ID}' NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-prod.sh' --prod-root '$PROD_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$CANDIDATE_SHA' --confirm"
@@ -243,6 +247,8 @@ jobs:
       - name: Verify production public boundary and exact disk SHA
         id: production_boundary
         shell: bash
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
           pass=0
@@ -268,6 +274,8 @@ jobs:
       - name: Verify full production identity chain (4-field verification)
         id: production_identity
         shell: bash
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
           ORIGIN_SSH_ALIAS=nvx-prod EXPECTED_RUN_ID="$GITHUB_RUN_ID" EXPECTED_SHA="$CANDIDATE_SHA" node "$CANDIDATE_ROOT/scripts/production/verify-production-identity.mjs"
@@ -279,6 +287,8 @@ jobs:
         id: origin_audits
         if: ${{ inputs.run_post_audits }}
         shell: bash
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
         run: |
           set -euo pipefail
           mkdir -p scripts/production/artifacts scripts/seo/artifacts

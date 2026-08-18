@@ -326,8 +326,14 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 
 .nvx-brand-microcopy--dark,
 .nvx-brand-hero .nvx-brand-microcopy,
-.nvx-brand-hero .nvx-brand-microcopy--dark {
-  color: var(--nvx-text-on-dark-82);
+.nvx-brand-hero .nvx-brand-microcopy--dark,
+.nvx-brand-hero__copy .nvx-brand-microcopy,
+.nvx-brand-hero .nvx-brand-kicker,
+.nvx-brand-hero .nvx-eyebrow,
+.nvx-brand-hero .nvx-kicker,
+.nvx-brand-hero .nvx-brand-meta,
+.nvx-brand-hero .nvx-medical-review {
+  color: var(--nvx-light);
 }
 
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {
@@ -396,7 +402,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 .nvx-brand-hero .nvx-brand-meta.nvx-reg-copy {
   margin-top: var(--nvx-space-2);
   max-width: 42ch;
-  color: var(--nvx-text-on-dark-72);
+  color: var(--nvx-light);
 }
 
 /* Existing hero and dark-band markup may still use primary/secondary names.
@@ -424,7 +430,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
     min-height: 300px;
   }
 }
-.nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}
+.nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8);padding:0;list-style:none}
 /*
  * CMS still emits --2 / --3. Without these rules, bare children auto-place into
  * a single 1/12 track and look like a broken two-column layout (Goya ubicación/FAQ).
@@ -1872,7 +1878,7 @@ select[aria-invalid="true"] {
 .nvx-page-hero__copy .nvx-eyebrow,
 .nvx-hero__copy .nvx-kicker,
 .nvx-hero__copy .nvx-eyebrow {
-  color: var(--nvx-text-on-dark-88);
+  color: var(--nvx-light);
   margin-bottom: var(--nvx-space-2);
   max-width: 34ch;
   font-size: var(--nvx-type-kicker);
@@ -1896,7 +1902,7 @@ select[aria-invalid="true"] {
 
 .nvx-brand-hero__copy .nvx-brand-meta{
     max-width: 42ch;
-  color: var(--nvx-text-on-dark-72);
+  color: var(--nvx-light);
     margin-top: var(--nvx-space-2);
   font-family: var(--nvx-sans);
     font-size: var(--nvx-type-caption);

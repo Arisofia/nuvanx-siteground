@@ -245,6 +245,10 @@
   background: var(--nvx-ink);
 }
 
+.nvx-mobile-nav .menu-item-has-children {
+  position: relative;
+}
+
 /* Mobile nav drawer - diseño elegante */
 .nvx-mobile-nav {
   position: fixed;

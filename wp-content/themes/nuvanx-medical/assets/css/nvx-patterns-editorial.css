@@ -209,7 +209,7 @@ body:not(.home) .nvx-hero__copy .nvx-title {
 .nvx-hero__copy .nvx-hero-subtitle,
 .nvx-hero__copy p {
   max-width: 48ch;
-  color: var(--nvx-text-on-dark-90);
+  color: var(--nvx-light);
   line-height: 1.6;
   letter-spacing: 0.01em;
 }

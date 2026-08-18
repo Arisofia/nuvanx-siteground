@@ -458,7 +458,7 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $section_kicker ) . '</p>';
 	}
 	$html .= '<h2 class="nvx-brand-title">' . esc_html( $section_title ) . '</h2>';
-	$html .= '<div class="nvx-brand-grid nvx-brand-grid--3" role="list">';
+	$html .= '<ul class="nvx-brand-grid nvx-brand-grid--3">';
 	foreach ( $cards as $card ) {
 		$title = (string) ( $card['title'] ?? '' );
 		$body  = (string) ( $card['body'] ?? '' );
@@ -468,7 +468,7 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 			continue;
 		}
 		$card_id = 'signature-card-' . sanitize_title( $title );
-		$html   .= '<article class="nvx-brand-card" role="listitem" aria-labelledby="' . esc_attr( $card_id ) . '">';
+		$html   .= '<li class="nvx-brand-card" aria-labelledby="' . esc_attr( $card_id ) . '">';
 		if ( ! empty( $card['kicker'] ) ) {
 			$html .= '<p class="nvx-brand-card__kicker">' . esc_html( (string) $card['kicker'] ) . '</p>';
 		}
@@ -478,9 +478,9 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 			$html .= '<p class="nvx-brand-card__price">' . esc_html( (string) $card['price'] ) . '</p>';
 		}
 		$html .= '<a class="nvx-brand-card__cta" href="' . esc_url( $url ) . '" aria-label="' . esc_attr( $cta . ': ' . $title ) . '">' . esc_html( $cta ) . '</a>';
-		$html .= '</article>';
+		$html .= '</li>';
 	}
-	$html .= '</div></div></section>';
+	$html .= '</ul></div></section>';
 	return $html;
 }
 

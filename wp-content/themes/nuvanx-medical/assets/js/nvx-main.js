@@ -45,25 +45,20 @@
   }
 
   /* --- Mobile nav accordion for submenus --- */
-  var mobileNavList = document.querySelector('.nvx-mobile-nav__list');
-  if (mobileNavList) {
+  function bindMobileNavAccordion() {
+    var mobileNavList = document.querySelector('.nvx-mobile-nav__list');
+    if (!mobileNavList) return;
     var parentItems = mobileNavList.querySelectorAll('.menu-item-has-children');
     parentItems.forEach(function (item) {
-      var link = item.querySelector('a');
+      if (item.querySelector('.nvx-mobile-nav__toggle')) return;
       var subMenu = item.querySelector('.sub-menu');
-      if (!link || !subMenu) return;
+      if (!item.querySelector('a') || !subMenu) return;
 
-      // Add position relative to parent for toggle button positioning
-      item.style.position = 'relative';
-
-      // Create toggle button
       var toggle = document.createElement('button');
       toggle.className = 'nvx-mobile-nav__toggle';
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Expandir submenú');
       toggle.setAttribute('type', 'button');
-
-      // Toggle click handler
       toggle.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -72,10 +67,13 @@
         toggle.setAttribute('aria-label', isExpanded ? 'Expandir submenú' : 'Contraer submenú');
         subMenu.classList.toggle('is-expanded', !isExpanded);
       });
-
-      // Append toggle to parent item
       item.appendChild(toggle);
     });
+  }
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(bindMobileNavAccordion, { timeout: 2000 });
+  } else {
+    window.setTimeout(bindMobileNavAccordion, 1);
   }
 
   /* FAQ: native <details>/<summary> (.nvx-faq / .nvx-brand-faq-*) — no JS. */
@@ -113,41 +111,6 @@
       }
     });
   });
-
-  /* --- Footer Desktop <details> Fix --- */
-  var footerCols = document.querySelectorAll('.nvx-footer__col');
-  if (footerCols.length > 0) {
-    // Columns are rendered <details open> so desktop stays navigable without JS.
-    // On desktop keep them open; on mobile collapse them so the native accordion
-    // starts closed. If JS never runs, mobile degrades to open (content visible)
-    // rather than desktop hiding content behind a non-clickable summary.
-    var footerMql = window.matchMedia('(min-width: 641px)');
-    var handleFooterResize = function (e) {
-      footerCols.forEach(function (col) {
-        if (e.matches) {
-          col.setAttribute('open', '');
-        } else {
-          col.removeAttribute('open');
-        }
-      });
-    };
-    footerMql.addEventListener('change', handleFooterResize);
-    handleFooterResize(footerMql);
-
-    footerCols.forEach(function (col) {
-      var summary = col.querySelector('summary');
-      if (summary) {
-        summary.addEventListener('click', function (e) {
-          if (window.innerWidth > 640) e.preventDefault();
-        });
-        summary.addEventListener('keydown', function (e) {
-          if (window.innerWidth > 640 && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault();
-          }
-        });
-      }
-    });
-  }
 
   /* --- Google Maps: load iframe only after an explicit click --- */
   function bindLazyMaps(root) {
@@ -216,19 +179,24 @@
   } else {
     sanitizeComplianzAccessibleNames();
   }
-  window.addEventListener('load', sanitizeComplianzAccessibleNames);
 
-  if (typeof MutationObserver === 'function') {
-    var complianzObserver = new MutationObserver(function (mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
-          sanitizeComplianzAccessibleNames();
-          break;
-        }
-      }
+  function watchComplianzBanner() {
+    sanitizeComplianzAccessibleNames();
+    if (typeof MutationObserver !== 'function') return;
+    var root = document.querySelector(
+      '#cmplz-cookiebanner-container, .cmplz-cookiebanner, .cmplz-manage-consent-container'
+    );
+    if (!root) return;
+    var complianzObserver = new MutationObserver(function () {
+      sanitizeComplianzAccessibleNames();
     });
-    if (document.body) {
-      complianzObserver.observe(document.body, { childList: true, subtree: true });
-    }
+    complianzObserver.observe(root, { childList: true, subtree: true });
+  }
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(watchComplianzBanner, { timeout: 3000 });
+  } else {
+    window.addEventListener('load', function () {
+      window.setTimeout(watchComplianzBanner, 1);
+    });
   }
 })();

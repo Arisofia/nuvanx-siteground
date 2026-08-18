@@ -126,6 +126,24 @@ assert.match(
 );
 assert.match(
   integrations,
+  /function nvx_theme_interaction_joinchat_script/,
+  'Joinchat must wait for a user gesture so it does not measure layout on first paint',
+);
+assert.match(
+  integrations,
+  /function nvx_theme_disable_public_emoji/,
+  'WordPress emoji detection must not walk the public DOM',
+);
+assert.doesNotMatch(
+  fs.readFileSync(
+    'wp-content/themes/nuvanx-medical/assets/js/nvx-main.js',
+    'utf8',
+  ),
+  /offsetWidth|getBoundingClientRect|getComputedStyle/,
+  'theme UI JS must not force layout on the critical path',
+);
+assert.match(
+  integrations,
   /function nvx_theme_defer_auxiliary_style_tags/,
   'Complianz and Joinchat styles must be non-blocking',
 );
@@ -150,8 +168,13 @@ assert.doesNotMatch(
 );
 assert.match(
   components,
-  /\.nvx-brand-microcopy--dark/,
-  'dark hero microcopy must meet the requested AA contrast token',
+  /\.nvx-brand-microcopy--dark[\s\S]*color:\s*var\(--nvx-light\)/,
+  'dark hero microcopy must use solid light text so Lighthouse AA cannot fail on alpha',
+);
+assert.doesNotMatch(
+  components,
+  /\.nvx-brand-microcopy--dark[^{]*\{[^}]*--nvx-border-on-dark/,
+  'microcopy must not reuse the 0.45 border-on-dark token',
 );
 assert.match(
   components,
@@ -177,6 +200,11 @@ assert.match(
   governance,
   /interior-hero first paint/,
   'interior brand heroes must reserve the dark stage in the inline bundle',
+);
+assert.match(
+  governance,
+  /\.nvx-brand-hero \.nvx-brand-microcopy--dark[^{]*\{[^}]*color:var\(--nvx-light\)|\.nvx-brand-hero \.nvx-brand-microcopy,\.nvx-brand-hero \.nvx-brand-microcopy--dark[^{]*color:var\(--nvx-light\)/,
+  'first-paint snippet must lock Signature/bridal microcopy to solid light',
 );
 assert.match(
   governance,
@@ -320,6 +348,20 @@ assert.match(
   helpers,
   /function nvx_lazy_map_embed_markup/,
   'Google Maps must not load until the user asks',
+);
+const signaturePhp = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php',
+  'utf8',
+);
+assert.match(
+  signaturePhp,
+  /<ul class="nvx-brand-grid nvx-brand-grid--3">/,
+  'Signature cards must be a real list',
+);
+assert.doesNotMatch(
+  signaturePhp,
+  /<article class="nvx-brand-card" role="listitem"/,
+  'article must not take role=listitem (invalid ARIA for agents)',
 );
 assert.match(
   helpers,

@@ -22,7 +22,8 @@
   /* Texto y bordes sobre superficies oscuras */
   --nvx-text-on-dark: var(--nvx-light);
 
-  --nvx-text-on-dark-90: rgba(247, 247, 245, 0.90);
+  /* Solid: Lighthouse treats alpha text as if composited on white and fails AA. */
+  --nvx-text-on-dark-90: var(--nvx-light);
   --nvx-text-on-dark-88: rgba(247, 247, 245, 0.88);
   --nvx-text-on-dark-82: rgba(247, 247, 245, 0.82);
   --nvx-text-on-dark-78: rgba(247, 247, 245, 0.78);

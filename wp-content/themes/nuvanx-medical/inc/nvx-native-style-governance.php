@@ -207,7 +207,7 @@ function nvx_theme_inline_critical_style_foundation(): void {
 
 	$critical_css .= "\n/* interior-hero first paint */\n"
 		. '.nvx-brand-hero{background:var(--nvx-ink);color:var(--nvx-light);}'
-		. '.nvx-brand-hero .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-microcopy--dark{color:var(--nvx-text-on-dark-82);}'
+		. '.nvx-brand-hero .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-microcopy--dark,.nvx-brand-hero__copy .nvx-brand-microcopy,.nvx-brand-hero .nvx-brand-kicker,.nvx-brand-hero .nvx-brand-meta{color:var(--nvx-light);}'
 		. '.nvx-brand-hero__copy{box-sizing:border-box;width:var(--nvx-shell);max-width:100%;margin-inline:auto;padding-block:var(--nvx-space-8);padding-inline:var(--nvx-gutter-inner);}'
 		. '.nvx-header{min-height:var(--nvx-header-height-mobile);padding-block:var(--nvx-space-3);}'
 		. '.nvx-logo__img,.custom-logo{display:block;width:auto;height:var(--nvx-logo-height-mobile);max-width:var(--nvx-logo-width-mobile);object-fit:contain;}'

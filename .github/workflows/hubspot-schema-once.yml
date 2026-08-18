@@ -7,71 +7,37 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   diagnose:
-    name: Read exact Staging2 preview identity
+    name: Identify PR 599 preview run
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    timeout-minutes: 5
     steps:
-      - name: Configure strict Staging2 SSH
+      - name: Query recent pull_request_target runs only
         shell: bash
         env:
-          HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          USER: ${{ secrets.STAGING2_SSH_USER }}
-          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: feat/attribution-contract-v2-secure-20260818
         run: |
           set -Eeuo pipefail
-          : "${HOST:?Missing STAGING2_SSH_HOST}"
-          : "${USER:?Missing STAGING2_SSH_USER}"
-          : "${KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
-          : "${KH:?Missing STAGING2_SSH_KNOWN_HOSTS}"
-          SSH_PORT="${PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          mkdir -p "$HOME/.ssh"
-          chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$KEY" > "$HOME/.ssh/staging_key"
-          chmod 600 "$HOME/.ssh/staging_key"
-          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/known_hosts"
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging2
-            HostName $HOST
-            User $USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-            ConnectionAttempts 1
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-          ssh -n nvx-staging2 "test -d '$STAGING_ROOT' && command -v wp >/dev/null"
-          echo 'STAGING_SSH=PASS'
-
-      - name: Read immutable deploy identity only
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          cd "$STAGING_ROOT"
-          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
-          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
-          deploy_sha="$(wp eval 'echo function_exists("nvx_get_deploy_stamp_value") ? nvx_get_deploy_stamp_value("DEPLOY_SHA") : "";')"
-          [[ "$deploy_sha" =~ ^[0-9a-f]{40}$ ]]
-          echo "STAGING2_DEPLOY_SHA=$deploy_sha"
-          if wp eval 'echo function_exists("nvx_hubspot_secure_allow_staging_qa_outbound") ? "1" : "0";' | grep -qx '1'; then
-            echo 'STAGING2_RUNTIME_V2_ALLOWLIST=1'
-          else
-            echo 'STAGING2_RUNTIME_V2_ALLOWLIST=0'
-          fi
-          echo 'STAGING2_IDENTITY_READ=PASS mutation=0 pii=0 token=0'
-          REMOTE
+          tmp="$(mktemp)"
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request_target&per_page=50" > "$tmp"
+          jq -r --arg branch "$TARGET_BRANCH" '
+            .workflow_runs[]
+            | select(.created_at >= "2026-08-18T15:45:00Z")
+            | [
+                "RUN_ID=" + (.id|tostring),
+                "status=" + (.status // ""),
+                "conclusion=" + (.conclusion // ""),
+                "head_branch=" + (.head_branch // ""),
+                "head_sha=" + (.head_sha // ""),
+                "event=" + (.event // ""),
+                "title=" + ((.display_title // "") | gsub("[\r\n\t]"; " "))
+              ] | join(" ")
+          ' "$tmp" | head -n 20
+          matches="$(jq --arg branch "$TARGET_BRANCH" '[.workflow_runs[] | select(.created_at >= "2026-08-18T15:45:00Z") | select(.head_branch == $branch or (.display_title // "" | contains("secure runtime contract v2")))] | length' "$tmp")"
+          echo "PR599_PREVIEW_RUN_CANDIDATES=$matches"
+          echo 'ACTIONS_RUN_READ=PASS mutation=0 secrets=0'

@@ -2773,3 +2773,11 @@ div[id*="cmplz-cookiebanner"] {
   letter-spacing: var(--nvx-track-button) !important;
 }
 
+
+/* Fix form loading jump and logo */
+.nvx-form-stage .nvx-hs-native-box {
+  min-height: 480px;
+}
+.nvx-form-stage .cmplz-placeholder-1 {
+  background-image: none !important;
+}

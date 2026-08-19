@@ -97,17 +97,15 @@ function nvx_treatments_catalog_markup(): string {
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
 		$html .= '<div class="nvx-catalog-category" data-category="' . esc_attr( $category['key'] ) . '">';
-		$html .= '<h3 class="nvx-catalog-category__label">' . esc_html( $category['label'] ) . '</h3>';
-		$html .= '<div class="nvx-catalog-grid">';
+		$html .= '<h3 class="nvx-brand-title nvx-brand-title--compact">' . esc_html( $category['label'] ) . '</h3>';
+		$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
 
 		foreach ( $category['items'] as $item ) {
-			$html .= '<article class="nvx-catalog-card">';
-			$html .= '<div class="nvx-catalog-card__main">';
-			$html .= '<span class="nvx-catalog-card__meta">' . esc_html( $item['meta'] ) . '</span>';
-			$html .= '<h4 class="nvx-catalog-card__title">' . esc_html( $item['title'] ) . '</h4>';
-			$html .= '<p class="nvx-catalog-card__body">' . esc_html( $item['body'] ) . '</p>';
-			$html .= '</div>';
-			$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $item['url'] ) . '">';
+			$html .= '<article class="nvx-brand-card" style="display:flex; flex-direction:column; height:100%;">';
+			$html .= '<span class="nvx-eyebrow">' . esc_html( $item['meta'] ) . '</span>';
+			$html .= '<h4 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h4>';
+			$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
+			$html .= '<a class="nvx-text-link" style="margin-top:auto;" href="' . esc_url( $item['url'] ) . '">';
 			$html .= esc_html__( 'Explorar protocolo', 'nuvanx-medical' );
 			$html .= ' <span aria-hidden="true">→</span></a>';
 			$html .= '</article>';

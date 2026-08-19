@@ -6,7 +6,7 @@
 
 /* Archive grid: 3 equal columns. Photo plates stay 16:9 and sit with copy. */
 .nvx-blog-grid {
-  --nvx-gap-editorial: var(--nvx-border-hairline);
+  --nvx-gap-editorial: var(--nvx-gap-base);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--nvx-gap-editorial);
@@ -20,7 +20,8 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--nvx-light);
+  background: var(--nvx-surface-base);
+  border: 1px solid var(--nvx-edge);
 }
 
 .nvx-blog-card--hero {

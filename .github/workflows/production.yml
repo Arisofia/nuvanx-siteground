@@ -3,13 +3,8 @@ run-name: >-
   Production · ${{ github.event_name == 'workflow_run' && 'staging-release-dispatch' || (inputs.deploy && format('{0} · {1}', inputs.release_mode, inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha)) }}
 
 on:
-  workflow_run:
-    workflows:
-      - Staging
-    types:
-      - completed
-    branches:
-      - master
+  # Production is deliberately manual-only. A successful Staging run proves a
+  # candidate is eligible, but it must never constitute release authorization.
   workflow_dispatch:
     inputs:
       deploy:
@@ -82,12 +77,10 @@ env:
 
 jobs:
   dispatch_release:
-    name: Dispatch accepted Staging SHA to Production
-    if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+    name: Disabled automatic production dispatcher
+    # Retained temporarily for workflow history compatibility; it is permanently
+    # disabled. A production release is authorized only by workflow_dispatch.
+    if: ${{ false }}
     permissions:
       actions: write
       contents: read

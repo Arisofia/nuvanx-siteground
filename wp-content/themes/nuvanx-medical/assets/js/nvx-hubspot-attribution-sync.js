@@ -74,8 +74,7 @@
 
 	function hubSpotFieldValue(value) {
 		if (value === undefined || value === null) return '';
-		// HubSpot Forms V4 booleancheckbox expects the strings 'true' / 'false'.
-		if (typeof value === 'boolean') return value ? 'true' : 'false';
+		// HubSpot Forms V4 boolean checkbox fields consume booleans directly.
 		return value;
 	}
 

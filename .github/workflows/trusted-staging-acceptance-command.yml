@@ -59,15 +59,19 @@ jobs:
           set -Eeuo pipefail
           run_id=''
           for attempt in $(seq 1 30); do
-            run_id="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/staging.yml/runs?event=workflow_dispatch&per_page=30" \
-              --jq --arg sha "$MASTER_SHA" --arg since "$TRIGGERED_AT" '
-                [.workflow_runs[] | select(.created_at >= $since and .head_branch == "master")]
-                | sort_by(.created_at)
-                | reverse
-                | first
-                | select(.head_sha == $sha)
-                | .id // empty
-              ' 2>/dev/null || true)"
+            runs="$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow staging.yml \
+              --event workflow_dispatch \
+              --branch master \
+              --limit 30 \
+              --json databaseId,createdAt,headSha)"
+            run_id="$(jq -r --arg sha "$MASTER_SHA" --arg since "$TRIGGERED_AT" '
+              [.[] | select(.createdAt >= $since and .headSha == $sha)]
+              | sort_by(.createdAt)
+              | reverse
+              | .[0].databaseId // empty
+            ' <<<"$runs")"
             if [[ "$run_id" =~ ^[0-9]+$ ]]; then
               break
             fi

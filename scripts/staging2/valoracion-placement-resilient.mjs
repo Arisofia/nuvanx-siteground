@@ -291,7 +291,8 @@ async function validateAttempt(context, viewport, attempt) {
       await page.waitForTimeout(350).catch(() => {});
 
       const placement = await collectPlacement(page);
-      issues.push(...validatePlacement(placement));
+      const placementIssues = validatePlacement(placement);
+      issues.push(...placementIssues);
 
       await page.waitForLoadState('load').catch(() => {});
       await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
@@ -299,6 +300,28 @@ async function validateAttempt(context, viewport, attempt) {
       const mountState = await collectMountState(page);
       const hubSpotValidation = await validateHubSpotMount(page, mounted, mountState);
       issues.push(...hubSpotValidation.issues);
+
+      // The route, page structure and identity can be correct while HubSpot's
+      // third-party iframe is temporarily unavailable. Retry that isolated
+      // condition instead of certifying it or misclassifying it as a theme defect.
+      const hubSpotIframeTemporarilyUnavailable =
+        placementIssues.length === 0 &&
+        !mounted &&
+        mountState.canonicalMountCount === 1 &&
+        mountState.embeddedIframeCount === 0 &&
+        mountState.rogueMounts === 0;
+      if (hubSpotIframeTemporarilyUnavailable) {
+        await saveScreenshot(page, viewport.key, attempt, true);
+        return createTransientResult(
+          status,
+          page.url(),
+          'HubSpot iframe did not mount despite an otherwise valid canonical host; retrying the external embed.',
+          placement,
+          mounted,
+          mountState,
+          hubSpotValidation.interactiveState
+        );
+      }
 
       const recoveredTransientHttp = Boolean(isTransientStatus && issues.length === 0);
 

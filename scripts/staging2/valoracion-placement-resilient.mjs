@@ -295,7 +295,12 @@ async function validateAttempt(context, viewport, attempt) {
       issues.push(...placementIssues);
 
       await page.waitForLoadState('load').catch(() => {});
-      await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
+      // The conversion form is intentionally lazy-loaded on interaction or when
+      // it enters the viewport. Reproduce that public path before asserting its
+      // external iframe, particularly for tablet where the form begins below fold.
+      const formStage = page.locator('#nvx-hubspot-form');
+      await formStage.scrollIntoViewIfNeeded().catch(() => {});
+      await formStage.dispatchEvent('focusin').catch(() => {});
       const mounted = await page.locator(mountedSelector).first().waitFor({ state: 'attached', timeout: 12000 }).then(() => true).catch(() => false);
       const mountState = await collectMountState(page);
       const hubSpotValidation = await validateHubSpotMount(page, mounted, mountState);

@@ -31,5 +31,8 @@ export function getGitHubEventPath(eventName = '', refName = '') {
   if (isOneShotMasterPush(eventName, refName)) {
     return 'one_shot_master_push';
   }
+  if (eventName === 'workflow_dispatch' && refName === 'master') {
+    return 'trusted_workflow_dispatch';
+  }
   return 'unsupported_event';
 }

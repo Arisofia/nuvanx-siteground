@@ -73,7 +73,23 @@ Production is dispatched manually from the `Production` workflow with the reques
 
 On every release, `production.yml` runs `scripts/ci/verify-staging-acceptance.sh` to require exact, immutable, successful acceptance evidence (`staging2-block-c-<sha>`) from a completed canonical `master` Staging run before any production mutation. Production also acquires a FIFO environment mutation turn via `scripts/ci/wait-for-environment-mutation-turn.sh`.
 
+**Never infer acceptance from `master` advancing alone.** The correct acceptance signal is a completed canonical Staging run that produced a successful `staging2-block-c-<sha>` artifact. This artifact must:
+- Be from a `master` branch run (not a fork or PR)
+- Contain the exact SHA being promoted
+- Have passed all browser acceptance tests (Block C matrix)
+- Be verified as non-expired and unmodified
+
+Simply having the SHA on `master` is insufficient for production authorization. The artifact provides immutable proof that the specific SHA passed all acceptance tests on Staging2.
+
 This removes the stale-manifest race that can occur when Staging2 advances after a release candidate file was written.
+
+## Trigger ownership
+
+Only canonical workflows `staging.yml` and `production.yml` are authorized to use `GITHUB_TOKEN` for repository mutations. Any third workflow attempting to mutate the repository via the GitHub API will be rejected by the repository hygiene gate in `staging.yml`.
+
+This GITHUB_TOKEN recursion invariant prevents workflow self-mutation attacks where a malicious or transient workflow could modify its own definition or create new workflows. The canonical workflows enforce this by checking that exactly two workflow files exist (`staging.yml` and `production.yml`) and rejecting any additional or modified workflow configurations.
+
+**Example:** The staging2 workflow file (`.github/workflows/staging.yml`) is one of the two trusted workflows that owns the complete Staging2 lifecycle. Any attempt to create a third workflow file (e.g., `staging2-helper.yml`) would be detected and rejected by the repository hygiene check.
 
 ## Staging2 secrets
 

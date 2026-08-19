@@ -31,6 +31,8 @@ assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET/,
 
 assert.match(relay, /'Authorization'\s*=>\s*'Bearer '\s*\.\s*\$token/,
   'Bootstrap must authenticate using the existing HubSpot server credential');
+assert.match(relay, /nuvanx-lead-capture-hmac-key-v1/,
+  'Relay must use the canonical domain-separation context');
 assert.match(relay, /nvx_lead_captured_derive_hmac_key/,
   'Capture must use a derived HMAC key instead of the raw token');
 assert.match(relay, /\$hmac_key\s*=\s*nvx_lead_captured_derive_hmac_key/,
@@ -43,25 +45,12 @@ assert.match(relay, /'x-nvx-signature'\s*=>\s*\$signature/,
   'Signed capture must send only the HMAC signature, not the token');
 assert.match(relay, /401 === \$relay_status \|\| 503 === \$relay_status/,
   'Authentication/bootstrap failures must force exactly one re-bootstrap path');
-assert.match(relay, /nvx_lead_captured_bootstrap_runtime\( \$token, true \)/,
-  'Stale Vault/bootstrap state must be recoverable once');
+const bootstrapRuntimeMatches = relay.match(/nvx_lead_captured_bootstrap_runtime\( \$token, true \)/g) || [];
+assert.equal(bootstrapRuntimeMatches.length, 1,
+  'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery');
 
-const bootstrapRuntimeMatches =
-  relay.match(/nvx_lead_captured_bootstrap_runtime\( \$token, true \)/g) || [];
-assert.equal(
-  bootstrapRuntimeMatches.length,
-  1,
-  'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery',
-);
-
-const bootstrapRuntimeMatches =
-  relay.match(/nvx_lead_captured_bootstrap_runtime\( \$token, true \)/g) || [];
-assert.equal(
-  bootstrapRuntimeMatches.length,
-  1,
-  'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery',
-);
-
+assert.match(relay, /function nvx_lead_captured_post_signed\( string \$body, string \$token \) \{/,
+  'Signed transport must allow WP_Error results rather than declaring array-only return type');
 assert.match(relay, /\$email_hash\s*=\s*'' !== \$email \? hash\( 'sha256', \$email \) : null;/,
   'Relay must derive a one-way email hash before payload construction');
 assert.match(relay, /unset\( \$email \);/,
@@ -78,27 +67,23 @@ assert.match(payloadBlock, /'email_hash'\s*=>\s*\$email_hash/,
 assert.doesNotMatch(payloadBlock, /['"](?:email|phone|phone_number|name|first_name|last_name|full_name|token|authorization)['"]\s*=>/i,
   'Canonical payload must not include direct PII or credentials');
 
-// Transitional gate: current master predates explicit consent persistence. Once a
-// candidate adds marketing_consent, the stricter server-provenance contract becomes
-// mandatory and remains mandatory after that runtime is merged.
-const consentAware = /'marketing_consent'\s*=>/.test(payloadBlock);
-if (consentAware) {
-  assert.match(
-    relay,
-    /\$marketing_consent\s*=\s*function_exists\( 'nvx_hubspot_secure_post_value' \)[\s\S]{0,180}'1' === nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
-    'Capture consent must be re-derived server-side from the validated first-party request',
-  );
-  assert.match(payloadBlock, /'marketing_consent'\s*=>\s*\$marketing_consent/,
-    'Explicit marketing consent must reach the canonical capture ledger');
-  assert.match(relay, /\$relay_body\s*=\s*wp_json_encode\( \$relay_payload \);/,
-    'Capture payload must be encoded before transport');
-  assert.match(relay, /false === \$relay_body/,
-    'JSON encoding failure must fail closed before network transport');
-  assert.match(relay, /'body'\s*=>\s*\$relay_body/,
-    'Only a successfully encoded capture payload may be transmitted');
-} else {
-  console.log('LEAD_CAPTURED_CONSENT_GATE=MIGRATION_PENDING');
-}
+assert.match(
+  relay,
+  /\$marketing_consent\s*=\s*function_exists\( 'nvx_hubspot_secure_post_value' \)[\s\S]{0,180}'1' === nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
+  'Capture consent must be re-derived server-side from the validated first-party request',
+);
+assert.match(payloadBlock, /'marketing_consent'\s*=>\s*\$marketing_consent/,
+  'Explicit marketing consent must reach the canonical capture ledger');
+assert.match(payloadBlock, /'first_attribution'\s*=>\s*\$marketing_consent \? nvx_lead_captured_attribution/,
+  'First-touch attribution must be stripped when marketing consent is absent');
+assert.match(payloadBlock, /'conversion_attribution'\s*=>\s*\$marketing_consent \? nvx_lead_captured_attribution/,
+  'Conversion attribution must be stripped when marketing consent is absent');
+assert.match(relay, /\$relay_body\s*=\s*wp_json_encode\( \$relay_payload \);/,
+  'Capture payload must be encoded before transport');
+assert.match(relay, /false === \$relay_body/,
+  'JSON encoding failure must fail closed before network transport');
+assert.match(relay, /'body'\s*=>\s*\$body/,
+  'Signed transport must transmit only the encoded capture body argument');
 
 assert.match(relay, /HubSpot response IDs unavailable; status=%d json_error=%d/,
   'Unexpected HubSpot response structure must be observable without logging response content');
@@ -125,4 +110,4 @@ assert.match(relay, /'nvx_lead_id'\s*=>\s*\$lead_id/,
 assert.doesNotMatch(relay, /graph\.facebook\.com|functions\/v1\/web-events|googleads\.|crm\/v3\/objects\/deals/i,
   'Capture relay must not contain executable downstream advertising or Deal endpoints');
 
-console.log(`LEAD_CAPTURED_SERVER_RELAY=PASS consent=${consentAware ? 'server-derived' : 'migration-pending'}`);
+console.log('LEAD_CAPTURED_SERVER_RELAY=PASS consent=server-derived');

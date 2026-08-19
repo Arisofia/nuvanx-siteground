@@ -3,7 +3,7 @@
  * Canonical facial aesthetic treatment pages.
  *
  * One versioned catalogue drives visible content, metadata, FAQ schema and the
- * staging-only page seeder. Production pages remain drafts until medical review.
+ * staging-only page seeder. A later medical-review publish reclaims the slug.
  *
  * @package nuvanx-medical
  */

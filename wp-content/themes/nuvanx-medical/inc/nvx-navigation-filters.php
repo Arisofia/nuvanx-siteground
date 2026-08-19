@@ -61,6 +61,10 @@ function nvx_navigation_treatment_definitions(): array {
 				'label' => 'Labios con Ácido Hialurónico',
 				'slugs' => array( 'labios-acido-hialuronico-madrid' ),
 			),
+			'acido-hialuronico' => array(
+				'label' => 'Ácido Hialurónico Facial',
+				'slugs' => array( 'acido-hialuronico-relleno-madrid' ),
+			),
 		)
 	);
 }

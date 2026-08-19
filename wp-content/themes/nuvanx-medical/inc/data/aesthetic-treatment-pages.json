@@ -148,5 +148,83 @@
         "combinations":["Puede combinarse secuencialmente con ácido hialurónico o calidad de piel tras la revisión clínica.","No se aplican múltiples procedimientos inyectables en la misma zona el mismo día por rutina."],
         "faqs":[{"q":"¿El resultado es inmediato?","a":"No. La relajación muscular comienza habitualmente entre el 3.º y 5.º día, completando su efecto a las 2 o 3 semanas, momento en el que se realiza la revisión médica."},{"q":"¿Congela o paraliza el rostro?","a":"No. La dosificación y técnica en NUVANX buscan modular la fuerza muscular manteniendo la mímica natural y la expresividad del paciente."},{"q":"¿Cuánto dura el efecto?","a":"La duración media suele situarse entre 3 y 5 meses, dependiendo del metabolismo individual, fuerza muscular y mímica del paciente."},{"q":"¿Qué cuidados debo seguir las primeras horas?","a":"Se aconseja no frotar la zona tratada, evitar tumbarse o realizar ejercicio físico intenso durante las primeras 4 horas tras la aplicación."},{"q":"¿Cuánto cuesta el tratamiento de neuromoduladores en Madrid?","a":"En NUVANX el precio del neuromodulador parte de 198€ por zona. El precio final depende del número de zonas y la dosis clínica indicada, que varía según masa muscular y objetivo."},{"q":"¿Con qué frecuencia se repite el neuromodulador?","a":"Habitualmente cada 4 a 6 meses. La duración tiende a aumentar con tratamientos repetidos. No se recomienda planificar el siguiente antes de observar el comportamiento individual."}],
         "schema":{"name":"Tratamiento de neuromoduladores faciales","alternateName":["Neuromoduladores en Madrid","Tratamiento de arrugas de expresión"],"bodyLocation":"Tercio superior facial (entrecejo, frente y patas de gallo)","procedureType":"https://schema.org/PercutaneousProcedure","preparation":"Evaluación médica de la dinámica muscular facial, tono, simetría y antecedentes neuromusculares o de salud.","howPerformed":"Inyección médica de microdosis de neuromodulador en puntos anatómicos definidos.","followup":"Revisión médica a los 14-21 días para comprobar simetría y evolución clínica.","indications":["Arrugas dinámicas del entrecejo","Arrugas dinámicas de la frente","Arrugas perioculares (patas de gallo)"],"conditions":["Arrugas de expresión dinámicas"]}
+    },
+    "facial_ha": {
+        "slug": "acido-hialuronico-relleno-madrid",
+        "page_id": 3602,
+        "h1": "Ácido hialurónico facial en Madrid",
+        "seo_title": "Ácido Hialurónico Facial Madrid | Surcos y soporte | NUVANX",
+        "description": "Ácido hialurónico en Madrid para surcos, reposicionamiento y estructuración facial. Valoración médica en Chamberí (CS20144) y Salamanca–Goya (CS20073). Dr. Rivera Tejeda (ICOMEM 282864786).",
+        "kicker": "Medicina estética facial · Madrid",
+        "lead": "El ácido hialurónico no se indica por producto ni por una cantidad predeterminada. La valoración médica estudia soporte, proporciones, movimiento, calidad tisular, tratamientos previos y objetivos para decidir si un relleno es adecuado y en qué zona.",
+        "brands": ["Juvederm Voluma/Volift", "Restylane Lyft/Defyne", "Belotero Volume/Intense"],
+        "duration": "9-18 meses según zona, producto y metabolismo",
+        "session_time": "30-45 minutos",
+        "anesthesia": "Tópica. El gel puede incorporar lidocaína.",
+        "techniques": ["Reposicionamiento malar", "Surcos nasogenianos", "Líneas de marioneta", "Mentón y ángulo mandibular", "Fosa temporal seleccionada"],
+        "protocol": {
+            "sessions": "1 sesión. Revisión a los 15–21 días para valorar integración, simetría y necesidad —o no— de ajuste.",
+            "downtime": "Inflamación y sensibilidad 24–72h. Hematomas ocasionales. El resultado no debe juzgarse mientras exista edema.",
+            "duration_result": "9–18 meses según zona, densidad del gel y metabolismo individual.",
+            "price_range": "Presupuesto según zona, producto y técnica tras valoración. Labios, ojeras y rinomodelación tienen ficha y tarifa propias.",
+            "products_used": ["Ácido hialurónico reticulado — densidad y cohesividad adaptadas a la zona y al plano"]
+        },
+        "diagnosis": "La exploración diferencia pérdida de soporte o volumen, asimetría, cambios relacionados con la edad y problemas cuya causa no se corrige añadiendo volumen. También revisa anatomía vascular, antecedentes de rellenos, cirugía, infección, enfermedades relevantes, alergias y medicación.",
+        "mechanism": "Cuando existe indicación, un gel de ácido hialurónico aporta soporte o suaviza una transición en un plano definido. El producto, la reología, la cantidad y la técnica se eligen según la zona y el movimiento. No es un tratamiento de flacidez cutánea ni sustituye a un lifting cuando la indicación es quirúrgica.",
+        "indications": [
+            "Pérdida seleccionada de soporte o volumen en tercio medio, mentón o mandíbula.",
+            "Surcos nasogenianos o líneas de marioneta cuando el diagnóstico apunta a un déficit estructural, no solo a piel o músculo.",
+            "Asimetrías o transiciones anatómicas que pueden mejorar de forma conservadora.",
+            "Áreas móviles o de mayor riesgo que requieren producto, plano y técnica específicos."
+        ],
+        "precautions": [
+            "Infección activa, inflamación o lesión herpética en la zona requieren aplazar el procedimiento.",
+            "Embarazo, lactancia, alergias, enfermedades autoinmunes relevantes y antecedentes de reacciones a rellenos deben revisarse en consulta.",
+            "El uso de anticoagulantes o antiagregantes exige valoración individual. No debe suspenderse medicación sin indicación del profesional que la prescribe.",
+            "Una expectativa de cambio desproporcionado, una anatomía no apta o un problema que no se corrige con volumen son motivos para no tratar.",
+            "Labios, surco lagrimal y rinomodelación tienen valoración y ficha propias: no se resuelven en esta página."
+        ],
+        "process": [
+            "Historia clínica, exploración facial estática y dinámica, revisión de tratamientos previos y registro fotográfico clínico.",
+            "Definición del objetivo, zona, límites y alternativas —incluida no tratar o derivar a otra técnica.",
+            "Selección médica del producto, plano y cantidad cuando existe indicación.",
+            "Cuidados posteriores, señales de alarma y revisión según evolución."
+        ],
+        "evolution": "Son frecuentes la inflamación, la sensibilidad o pequeños hematomas durante los primeros días. El resultado no debe juzgarse mientras exista edema. La revisión posterior permite valorar integración, simetría y necesidad —o no— de ajustes.",
+        "risks": [
+            "Inflamación, hematoma, dolor, asimetría, irregularidades o infección.",
+            "Reacciones inflamatorias tempranas o tardías y necesidad de tratamiento médico.",
+            "La inyección intravascular es una complicación poco frecuente pero grave; puede producir daño tisular y, de forma excepcional, alteraciones visuales. Requiere reconocimiento y actuación inmediata.",
+            "Cuando existe indicación clínica para degradar el gel, la hialuronidasa debe utilizarse como medicamento por un médico cualificado. La reversibilidad no es inmediata ni idéntica en todos los casos, y no se equipara a la de otros materiales de relleno."
+        ],
+        "combinations": [
+            "Labios, ojeras y rinomodelación se valoran en sus fichas específicas; no se acumulan por rutina en la misma sesión.",
+            "Puede secuenciarse con neuromoduladores o con protocolos de calidad cutánea cuando el diagnóstico lo justifica, no el mismo día por inercia.",
+            "La flacidez o el exceso de piel no se resuelven añadiendo volumen: puede corresponder un abordaje láser, de calidad cutánea o quirúrgico."
+        ],
+        "faqs": [
+            {"q":"¿El ácido hialurónico facial es el mismo tratamiento que labios, ojeras o rinomodelación?","a":"No. Comparten el material, no la indicación. Esta página cubre surcos, reposicionamiento y estructuración. Labios, surco lagrimal y rinomodelación tienen ficha, técnica y tarifa propias."},
+            {"q":"¿Se indica por jeringas o por una cantidad fija?","a":"No. Primero se decide si existe indicación, en qué zona y con qué objetivo. El producto y la cantidad se eligen después, de forma conservadora."},
+            {"q":"¿El ácido hialurónico se puede retirar?","a":"La hialuronidasa puede degradar ácido hialurónico cuando existe una indicación clínica y la aplica un médico cualificado. No convierte el procedimiento en trivial ni garantiza una reversión inmediata o idéntica."},
+            {"q":"¿Debo suspender anticoagulantes antes del tratamiento?","a":"No suspenda anticoagulantes ni antiagregantes por su cuenta. El riesgo de sangrado y el riesgo trombótico deben valorarse con el médico que prescribe la medicación."},
+            {"q":"¿Cuándo se aprecia el resultado real?","a":"La forma inicial está condicionada por la inflamación. La valoración definitiva se realiza cuando el edema ha disminuido y el producto se ha integrado, habitualmente en la revisión de las 2–3 semanas."},
+            {"q":"¿Cuánto cuesta el ácido hialurónico facial en Madrid?","a":"El presupuesto depende de la zona, el producto y la técnica. Se documenta tras la valoración. Labios parten de 290€, ojeras de 448€ y rinomodelación de 598€; esas indicaciones no se cotizan en esta ficha."},
+            {"q":"¿Cuánto dura el ácido hialurónico en el rostro?","a":"Habitualmente entre 9 y 18 meses, según la zona, la densidad del gel y el metabolismo. Las zonas más móviles suelen metabolizarlo antes."}
+        ],
+        "schema": {
+            "name": "Ácido hialurónico facial",
+            "alternateName": ["Relleno facial con ácido hialurónico", "Reposicionamiento y estructuración facial"],
+            "bodyLocation": "Rostro: tercio medio, surcos, mentón y mandíbula",
+            "procedureType": "https://schema.org/PercutaneousProcedure",
+            "preparation": "Historia clínica, exploración facial estática y dinámica, revisión de rellenos o cirugía previos, medicación y definición de expectativas realistas.",
+            "howPerformed": "Inyección médica de ácido hialurónico mediante producto, plano y cantidad individualizados para surcos, reposicionamiento o estructuración.",
+            "followup": "Cuidados posteriores y revisión clínica tras la fase inicial de inflamación; atención inmediata ante síntomas inesperados.",
+            "price_range": "Presupuesto según zona, producto y técnica tras valoración.",
+            "session_time": "30-45 minutos",
+            "duration": "9-18 meses según zona, producto y metabolismo individual",
+            "brands": ["Juvederm Voluma/Volift", "Restylane Lyft/Defyne", "Belotero Volume/Intense"],
+            "indications": ["Pérdida de soporte o volumen facial seleccionada", "Surcos nasogenianos o líneas de marioneta de causa estructural", "Asimetría o transición anatómica seleccionada"],
+            "conditions": ["Pérdida de volumen facial relacionada con la edad", "Surco nasogeniano", "Hipoplasia mentoniana o mandibular seleccionada"]
+        }
     }
 }

@@ -38,7 +38,7 @@ provision_staging_hubspot_runtime_credential() {
   local prod_hash
   local staging_hash
 
-  secret_file="$(mktemp)"
+  secret_file="$(mktemp)" || fail 'mktemp failed: unable to create temporary file for credential provisioning'
   chmod 600 "$secret_file"
 
   if ! (
@@ -50,64 +50,33 @@ provision_staging_hubspot_runtime_credential() {
   fi
   [[ -s "$secret_file" ]] || { rm -f "$secret_file"; fail 'production HubSpot runtime credential resolved empty'; }
 
-  if ! PROD_SECRET_FILE="$secret_file" STAGING_CONFIG="$WP_ROOT/wp-config.php" php <<'PHP'
-<?php
-$secret_file = (string) getenv('PROD_SECRET_FILE');
-$config_path = (string) getenv('STAGING_CONFIG');
-$secret = is_file($secret_file) ? rtrim((string) file_get_contents($secret_file), "\r\n") : '';
-if (strlen($secret) < 20 || !is_file($config_path)) {
-    fwrite(STDERR, "Staging HubSpot credential provisioning prerequisites failed.\n");
-    exit(2);
-}
-$config = (string) file_get_contents($config_path);
-$line = "define( 'NVX_HUBSPOT_ACCESS_TOKEN', " . var_export($secret, true) . " );";
-$define_pattern = '/^[ \t]*define\s*\(\s*[\'\"]NVX_HUBSPOT_ACCESS_TOKEN[\'\"]\s*,.*?\);\s*$/m';
-if (preg_match($define_pattern, $config) === 1) {
-    $updated = preg_replace($define_pattern, $line, $config, 1);
-} else {
-    $anchor_pattern = '/^[ \t]*\/\*\s*That[\'’]s all, stop editing.*$/mi';
-    if (preg_match($anchor_pattern, $config) === 1) {
-        $updated = preg_replace($anchor_pattern, $line . "\n\n$0", $config, 1);
-    } else {
-        $settings_pattern = '/^[ \t]*require_once\s+ABSPATH\s*\.\s*[\'\"]wp-settings\.php[\'\"]\s*;\s*$/m';
-        if (preg_match($settings_pattern, $config) !== 1) {
-            fwrite(STDERR, "Staging wp-config insertion anchor not found.\n");
-            exit(3);
-        }
-        $updated = preg_replace($settings_pattern, $line . "\n\n$0", $config, 1);
-    }
-}
-if (!is_string($updated) || $updated === $config && strpos($config, 'NVX_HUBSPOT_ACCESS_TOKEN') === false) {
-    fwrite(STDERR, "Staging wp-config credential update failed.\n");
-    exit(4);
-}
-$tmp = $config_path . '.nvx-hubspot-' . getmypid() . '.tmp';
-$mode = fileperms($config_path);
-try {
-    if (file_put_contents($tmp, $updated, LOCK_EX) === false) {
-        throw new RuntimeException('write');
-    }
-    if (is_int($mode)) {
-        @chmod($tmp, $mode & 0777);
-    }
-    if (!@rename($tmp, $config_path)) {
-        throw new RuntimeException('rename');
-    }
-} catch (Throwable $e) {
-    @unlink($tmp);
-    fwrite(STDERR, "Staging wp-config atomic credential update failed.\n");
-    exit(5);
-}
-PHP
-  then
+  # Use extracted PHP script for credential provisioning
+  local php_script="$SCRIPT_DIR/provision-hubspot-credential.php"
+  [[ -f "$php_script" ]] || { rm -f "$secret_file"; fail 'HubSpot credential provisioning script not found'; }
+
+  if ! PROD_SECRET_FILE="$secret_file" STAGING_CONFIG="$WP_ROOT/wp-config.php" php "$php_script"; then
+    local php_exit_code=$?
     rm -f "$secret_file"
-    fail 'failed to provision Staging2 HubSpot runtime credential'
+    case "$php_exit_code" in
+      2) fail 'Staging HubSpot credential provisioning prerequisites failed (secret too short or config missing)' ;;
+      3) fail 'Staging wp-config insertion anchor not found (tried: existing define, stop editing comment, wp-settings.php require)' ;;
+      4) fail 'Staging wp-config credential update failed' ;;
+      5) fail 'Staging wp-config atomic credential update failed' ;;
+      *) fail "Staging HubSpot credential provisioning failed with exit code $php_exit_code" ;;
+    esac
   fi
 
   php -l "$WP_ROOT/wp-config.php" >/dev/null || { rm -f "$secret_file"; fail 'Staging2 wp-config failed syntax validation after credential provisioning'; }
   prod_hash="$(sha256sum "$secret_file" | awk '{print $1}')"
   staging_hash="$(cd "$WP_ROOT" && wp eval 'if (!defined("NVX_HUBSPOT_ACCESS_TOKEN") || !is_string(NVX_HUBSPOT_ACCESS_TOKEN)) { exit(3); } echo hash("sha256", NVX_HUBSPOT_ACCESS_TOKEN);')"
+  staging_status=$?
   rm -f "$secret_file"
+
+  if [[ "$staging_status" -eq 3 || -z "$staging_hash" ]]; then
+    fail 'Staging2 HubSpot runtime credential check failed: NVX_HUBSPOT_ACCESS_TOKEN missing or invalid in Staging2 wp-config'
+  elif [[ "$staging_status" -ne 0 ]]; then
+    fail 'Staging2 HubSpot runtime credential check failed: wp eval error'
+  fi
 
   [[ -n "$prod_hash" && "$staging_hash" == "$prod_hash" ]] || fail 'Staging2 HubSpot runtime credential parity check failed'
   echo 'STAGING_HUBSPOT_CREDENTIAL=PASS source=production-readonly value_exposed=0'

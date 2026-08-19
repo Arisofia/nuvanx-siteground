@@ -17,24 +17,30 @@ assert.match(relay, /add_filter\( 'http_response', 'nvx_lead_captured_on_http_re
   'Relay must observe completed HTTP responses rather than browser events');
 assert.match(relay, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
   'Relay must scope itself to the authenticated HubSpot transport only');
-assert.match(relay, /'' === \$endpoint \|\| \$url === \$endpoint/,
-  'Relay must fail closed without config and never observe its own Supabase POST');
-assert.match(relay, /getenv\( 'NVX_LEAD_CAPTURE_ENDPOINT' \)/,
-  'Capture endpoint may only come from server runtime configuration');
-assert.doesNotMatch(
-  relay,
-  /getenv\(\s*'NVX_LEAD_CAPTURE_ENDPOINT'\s*\)\s*\?: ''[\s\S]{0,120}return 'https:/,
-  'Unconfigured capture endpoint must not fall back to a hardcoded URL',
-);
 assert.match(relay, /\$status < 200 \|\| \$status >= 300/,
   'Relay must require a real 2xx HubSpot response before recording a capture');
 
-assert.match(relay, /defined\( 'NUVANX_LEAD_CAPTURE_SECRET' \)/,
-  'Relay secret must come from server runtime configuration');
-assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET[^\n]+['"][A-Za-z0-9_-]{16,}['"]/,
-  'Relay must never contain a hardcoded secret fallback');
-assert.match(relay, /'x-nvx-lead-capture-secret' => \$secret/,
-  'Relay must authenticate to the canonical capture endpoint');
+assert.match(relay, /functions\/v1\/runtime-bootstrap/,
+  'Relay must use the pinned runtime bootstrap endpoint');
+assert.match(relay, /functions\/v1\/lead-captured/,
+  'Relay must use the pinned canonical capture endpoint');
+assert.match(relay, /defined\( 'NVX_HUBSPOT_ACCESS_TOKEN' \)/,
+  'Relay must reuse the existing server-only HubSpot credential mechanism');
+assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET/,
+  'Relay must not require a second manually provisioned capture secret');
+
+assert.match(relay, /'Authorization'\s*=>\s*'Bearer '\s*\.\s*\$token/,
+  'Bootstrap must authenticate using the existing HubSpot server credential');
+assert.match(relay, /hash_hmac\( 'sha256', \$timestamp \. '\.' \. \$body, \$token \)/,
+  'Capture body must be timestamped and HMAC-signed');
+assert.match(relay, /'x-nvx-timestamp'\s*=>\s*\$timestamp/,
+  'Signed capture must send its timestamp');
+assert.match(relay, /'x-nvx-signature'\s*=>\s*\$signature/,
+  'Signed capture must send only the HMAC signature, not the token');
+assert.match(relay, /401 === \$relay_status \|\| 503 === \$relay_status/,
+  'Authentication/bootstrap failures must force exactly one re-bootstrap path');
+assert.match(relay, /nvx_lead_captured_bootstrap_runtime\( \$token, true \)/,
+  'Stale Vault/bootstrap state must be recoverable once');
 
 assert.match(relay, /\$email_hash\s*=\s*'' !== \$email \? hash\( 'sha256', \$email \) : null;/,
   'Relay must derive a one-way email hash before payload construction');
@@ -44,22 +50,28 @@ assert.doesNotMatch(relay, /['"](?:treatment|condition|procedure|diagnosis|body_
   'Relay payload must contain no clinical-treatment semantics');
 
 const payloadStart = relay.indexOf('$relay_payload = array(');
-const postStart = relay.indexOf('$relay = wp_remote_post(', payloadStart);
-assert.ok(payloadStart >= 0 && postStart > payloadStart, 'Canonical relay payload block must be parseable');
-const payloadBlock = relay.slice(payloadStart, postStart);
+const encodeStart = relay.indexOf('$relay_body = wp_json_encode(', payloadStart);
+assert.ok(payloadStart >= 0 && encodeStart > payloadStart, 'Canonical relay payload block must be parseable');
+const payloadBlock = relay.slice(payloadStart, encodeStart);
 assert.match(payloadBlock, /'email_hash'\s*=>\s*\$email_hash/,
   'Canonical payload may carry only the one-way email hash');
-assert.doesNotMatch(payloadBlock, /['"](?:email|phone|phone_number|name|first_name|last_name|full_name)['"]\s*=>/i,
-  'Canonical payload must not include direct email, phone or name fields');
+assert.doesNotMatch(payloadBlock, /['"](?:email|phone|phone_number|name|first_name|last_name|full_name|token|authorization)['"]\s*=>/i,
+  'Canonical payload must not include direct PII or credentials');
 
 assert.match(relay, /HubSpot response IDs unavailable; status=%d json_error=%d/,
   'Unexpected HubSpot response structure must be observable without logging response content');
 assert.doesNotMatch(relay, /Snippet:|substr\(\s*\$body|json_last_error_msg\(\)/,
   'Observability must not log HubSpot body fragments or verbose decode content');
+assert.match(relay, /runtime bootstrap HTTP failure; status=%d/,
+  'Bootstrap failure logs may expose status only');
 assert.match(relay, /relay transport failure; wp_error_code=%s/,
   'Transport failures must expose a bounded machine-readable error code');
 assert.match(relay, /relay HTTP failure; status=%d/,
   'HTTP failures must expose status without response body content');
+
+const logLines = relay.split('\n').filter((line) => line.includes('error_log') || line.includes('sprintf('));
+assert.doesNotMatch(logLines.join('\n'), /\$token|Authorization|x-nvx-signature/,
+  'Credential material must never be referenced in log statements');
 
 assert.match(relay, /'nvx_is_test_lead'\s*=>\s*\$is_test/,
   'Server-owned QA identity must reach the capture ledger');

@@ -33,6 +33,13 @@ section.nvx-hero {
   color: var(--nvx-light);
 }
 
+/* Clear treatment heroes use the neutral editorial surface. Brand heroes remain
+   dark; only the page-hero shell carries the light treatment variant. */
+.nvx-page-hero {
+  background: var(--nvx-surface-base);
+  border-block: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
 /* Home video-stage geometry lives in tokens + nvx-home-v3.css (render-blocking).
    This file is print-deferred — do not change .nvx-home-hero height here or the
    centered copy will shift after first paint (CLS). */
@@ -216,6 +223,21 @@ body:not(.home) .nvx-hero__copy .nvx-title {
 
 .nvx-brand-hero__copy .nvx-page__cta {
   margin-top: var(--nvx-space-3);
+}
+
+/* Treatment pages intentionally have no hero image. Their clear surface must
+   override the light-on-dark hero typography inherited by the shared shell. */
+.nvx-page-hero__copy,
+.nvx-page-hero__copy .nvx-kicker,
+body:not(.home) .nvx-page-hero__copy h1,
+.nvx-page-hero__copy .nvx-lead,
+.nvx-page-hero__copy .nvx-medical-byline,
+.nvx-page-hero__copy .nvx-medical-byline__title {
+  color: var(--nvx-text-body);
+}
+
+.nvx-page-hero__copy .nvx-medical-byline a {
+  color: var(--nvx-accent-muted);
 }
 
 .nvx-page-hero--theme .nvx-page-hero__media {

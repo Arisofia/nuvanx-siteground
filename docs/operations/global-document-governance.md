@@ -29,6 +29,19 @@ Any route missing one of these invariants is a release-blocking defect.
 
 Any violation of these invariants in accepted HTML is a release-blocking defect.
 
+## Measurement ownership
+
+NUVANX uses explicit single-owner boundaries so browser tags and server-side conversion relays cannot duplicate the same responsibility.
+
+| Surface | Canonical owner | Contract |
+| --- | --- | --- |
+| Google Tag / GTM / GA4 / Google Ads / Consent Mode loader | Google Site Kit + the governed GTM container | The theme never injects another GTM loader, noscript iframe, GA4 tag or Google Ads conversion-action ID. |
+| NUVANX browser analytics context | `inc/nvx-gtm-integration.php` | The theme may populate `dataLayer` and NUVANX business/QA context only; context is not a second tag loader. |
+| Meta browser Pixel / FacebookSignal | No public browser owner | Facebook/Meta Pixel plugins and SiteGround FacebookSignal are intentionally disabled on public requests. Rendered acceptance must fail if FacebookSignal reaches public HTML. |
+| Meta server-side conversion delivery | `Nuvanx-System` → Supabase `web-events` | Meta CAPI is server-side only, authenticated internally and remains subject to consent/QA suppression. The WordPress theme must not recreate a parallel browser Pixel path. |
+
+The historical `FacebookSignal is not defined` failure was a symptom of overlapping browser ownership/optimizer behavior. It is therefore not fixed by re-enabling the Facebook plugin or by adding another inline Pixel. Any future decision to restore a browser Meta Pixel requires an explicit architecture change, event-deduplication contract and rendered-acceptance update before activation.
+
 ## Accessibility invariants
 
 - One navigation mode per responsive breakpoint

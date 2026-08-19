@@ -27,10 +27,12 @@ ROLE="${MUTATION_ROLE:-environment-mutation}"
 POLL_SECONDS="${MUTATION_WAIT_POLL_SECONDS:-15}"
 STABILIZE_SECONDS="${MUTATION_WAIT_STABILIZE_SECONDS:-5}"
 MAX_WAIT_SECONDS="${MUTATION_WAIT_MAX_SECONDS:-3600}"
+CANCEL_SUPERSEDED_STAGING="${MUTATION_CANCEL_SUPERSEDED_STAGING:-0}"
 
 [[ "$POLL_SECONDS" =~ ^[0-9]{1,5}$ && "$POLL_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_poll_seconds' >&2; exit 1; }
 [[ "$STABILIZE_SECONDS" =~ ^[0-9]{1,5}$ && "$STABILIZE_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_stabilize_seconds' >&2; exit 1; }
 [[ "$MAX_WAIT_SECONDS" =~ ^[0-9]{1,6}$ && "$MAX_WAIT_SECONDS" -ge 1 ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_max_wait_seconds' >&2; exit 1; }
+[[ "$CANCEL_SUPERSEDED_STAGING" =~ ^[01]$ ]] || { echo 'MUTATION_FIFO=FAIL reason=invalid_cancel_superseded_staging' >&2; exit 1; }
 
 is_mutation_workflow_path() {
   case "$1" in
@@ -122,6 +124,65 @@ check_for_superseding_staging_run() {
   fi
 }
 
+# The newest canonical Staging push may cancel only older active Staging pushes.
+# This prevents an obsolete runner that already mutated Staging2 from holding the
+# cross-workflow FIFO lease indefinitely. Production, workflow_dispatch and PR
+# preview runs are never cancellation targets. The normal FIFO loop still waits
+# until GitHub reports every cancelled run as completed before granting the turn.
+cancel_superseded_staging_pushes() {
+  if [[ "$CANCEL_SUPERSEDED_STAGING" != '1' || "$ROLE" != 'staging' || "$current_event" != 'push' ]]; then
+    return 0
+  fi
+
+  local recent_runs=""
+  for attempt in 1 2 3; do
+    if recent_runs="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/staging.yml/runs?event=push&branch=${DEFAULT_BRANCH}&per_page=30" 2>/dev/null)"; then
+      break
+    fi
+    sleep 2
+  done
+  [[ -n "$recent_runs" ]] || {
+    echo 'MUTATION_FIFO=FAIL reason=cancel_candidate_query_failed' >&2
+    exit 1
+  }
+
+  local targets=""
+  targets="$(printf '%s' "$recent_runs" | jq -r --arg current_id "$CURRENT_RUN_ID" --arg branch "$DEFAULT_BRANCH" '
+    .workflow_runs[]?
+    | select((.id < ($current_id | tonumber))
+      and (.event == "push")
+      and (.head_branch == $branch or .head_branch == null)
+      and ((.status == "queued") or (.status == "in_progress") or (.status == "waiting") or (.status == "requested") or (.status == "pending")))
+    | [(.id|tostring), (.status // ""), (.head_sha // "")] | @tsv
+  ' 2>/dev/null || true)"
+
+  [[ -n "$targets" ]] || return 0
+
+  while IFS=$'\t' read -r old_run_id old_status old_sha; do
+    [[ "$old_run_id" =~ ^[0-9]{1,20}$ ]] || continue
+    (( old_run_id < CURRENT_RUN_ID )) || continue
+
+    if gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${old_run_id}/cancel" >/dev/null 2>&1; then
+      echo "MUTATION_FIFO=CANCEL_SUPERSEDED role=staging run_id=$old_run_id status=$old_status sha=$old_sha newer_run_id=$CURRENT_RUN_ID"
+      continue
+    fi
+
+    # A cancellation may race natural completion. Fail closed unless a fresh
+    # read proves the old run is already completed.
+    local old_meta=""
+    old_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${old_run_id}" 2>/dev/null || true)"
+    local refreshed_status=""
+    refreshed_status="$(printf '%s' "$old_meta" | jq -r '.status // ""' 2>/dev/null || true)"
+    if [[ "$refreshed_status" == 'completed' ]]; then
+      echo "MUTATION_FIFO=CANCEL_RACE_COMPLETED role=staging run_id=$old_run_id newer_run_id=$CURRENT_RUN_ID"
+      continue
+    fi
+
+    echo "MUTATION_FIFO=FAIL reason=cancel_superseded_failed run_id=$old_run_id status=${refreshed_status:-unknown}" >&2
+    exit 1
+  done <<< "$targets"
+}
+
 # A PR preview may spend minutes waiting behind an older mutation. Rebuild the
 # synthetic master+PR tree only after the FIFO turn is clear so the SHA deployed
 # to Staging2 always incorporates the latest master visible at mutation time.
@@ -179,6 +240,7 @@ rebuild_pr_preview_after_fifo() {
 }
 
 check_for_superseding_staging_run
+cancel_superseded_staging_pushes
 
 started_epoch="$(date +%s)"
 clear_scans=0

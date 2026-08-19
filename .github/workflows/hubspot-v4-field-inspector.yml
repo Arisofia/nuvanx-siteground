@@ -1,0 +1,96 @@
+name: HubSpot V4 Field Inspector
+run-name: HubSpot V4 Field Inspector · read-only
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    if: ${{ github.head_ref == 'ops/inspect-live-hubspot-v4-fields-20260820' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trusted repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install repository dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Inspect live V4 field names without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+
+          const FORM_ID = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+          const url = 'https://nuvanx.com/madrid/valoracion/';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
+          try {
+            const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+            if (!response || response.status() !== 200) throw new Error(`Unexpected HTTP status ${response?.status() ?? 'none'}`);
+            await page.locator('#nvx-hubspot-form').scrollIntoViewIfNeeded().catch(() => {});
+            await page.locator('#nvx-hubspot-form').dispatchEvent('focusin').catch(() => {});
+            await page.waitForFunction(
+              (formId) => {
+                const api = window.HubSpotFormsV4;
+                if (!api || typeof api.getForms !== 'function') return false;
+                return (api.getForms() || []).some((form) => {
+                  try { return String(form.getFormId() || '').toLowerCase() === String(formId).toLowerCase(); }
+                  catch { return false; }
+                });
+              },
+              FORM_ID,
+              { timeout: 60_000 }
+            );
+            const result = await page.evaluate(async (formId) => {
+              const api = window.HubSpotFormsV4;
+              const form = (api.getForms() || []).find((candidate) => {
+                try { return String(candidate.getFormId() || '').toLowerCase() === String(formId).toLowerCase(); }
+                catch { return false; }
+              });
+              if (!form) return { found: false, names: [] };
+              const fields = await form.getFormFieldValues();
+              const names = Array.isArray(fields)
+                ? fields.map((field) => String(field?.name || '')).filter(Boolean).sort()
+                : [];
+              return {
+                found: true,
+                formId: String(form.getFormId() || ''),
+                names,
+                lineage: names.filter((name) => /nvx_(lead_id|is_test_lead|test_run_id)|google_click|utm_/i.test(name)),
+              };
+            }, FORM_ID);
+            console.log(`HUBSPOT_V4_FORM_FOUND=${result.found ? '1' : '0'}`);
+            console.log(`HUBSPOT_V4_FORM_ID=${result.formId || ''}`);
+            console.log(`HUBSPOT_V4_FIELD_COUNT=${result.names.length}`);
+            console.log(`HUBSPOT_V4_FIELD_NAMES=${JSON.stringify(result.names)}`);
+            console.log(`HUBSPOT_V4_LINEAGE_FIELDS=${JSON.stringify(result.lineage)}`);
+            if (!result.found) process.exitCode = 1;
+            if (!result.names.some((name) => name.replace(/^\d+-\d+\//, '') === 'nvx_lead_id')) {
+              console.error('HUBSPOT_V4_NVX_LEAD_ID_PRESENT=0');
+              process.exitCode = 2;
+            } else {
+              console.log('HUBSPOT_V4_NVX_LEAD_ID_PRESENT=1');
+            }
+          } finally {
+            await browser.close();
+          }
+          NODE

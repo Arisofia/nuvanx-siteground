@@ -107,11 +107,38 @@ assert.doesNotMatch(
   /\.observe\(frame,\{childList:true,subtree:true,attributes:true/,
   'Valoration bootstrap must not limit mutation detection to the initial frame',
 );
-assert.doesNotMatch(
+assert.match(
   managedPage,
-  /hasMarketingConsent/,
-  'Form availability must not be coupled to marketing-consent tracking cookies',
+  /function hasMarketingConsent\(\)/,
+  'HubSpot recovery must expose a dedicated marketing-consent gate',
 );
+assert.match(
+  managedPage,
+  /window\.cmplz_has_consent\("marketing"\)===true/,
+  'HubSpot recovery must require explicit Complianz marketing consent',
+);
+assert.match(
+  managedPage,
+  /function hasUsableHubSpotIframe\(root\)\{if\(!root\|\|!hasMarketingConsent\(\)\)/,
+  'A HubSpot iframe must not count as usable before marketing consent',
+);
+
+const firstConsentGate = managedPage.indexOf('if(!hasMarketingConsent()){return;}');
+const focusRecovery = managedPage.indexOf('host.dispatchEvent(new Event("focusin"');
+assert.ok(firstConsentGate >= 0, 'Bootstrap must contain a fail-closed marketing consent gate');
+assert.ok(focusRecovery >= 0, 'Bootstrap must retain focus-triggered recovery');
+assert.ok(
+  firstConsentGate < focusRecovery,
+  'Marketing consent must be checked before focus-triggered HubSpot recovery',
+);
+
+const timerStart = managedPage.indexOf('recoveryTimer=window.setTimeout(function(){');
+const timerConsentGate = managedPage.indexOf('if(!hasMarketingConsent()){return;}', timerStart);
+const scriptAppend = managedPage.indexOf('document.head.appendChild(script)', timerStart);
+assert.ok(timerStart >= 0, 'Bootstrap must retain its deferred recovery timer');
+assert.ok(timerConsentGate > timerStart, 'Deferred recovery must re-check marketing consent');
+assert.ok(scriptAppend > timerConsentGate, 'Deferred recovery must verify consent before injecting HubSpot');
+
 assert.doesNotMatch(
   managedPage,
   /formReady/,
@@ -120,7 +147,7 @@ assert.doesNotMatch(
 assert.match(
   managedPage,
   /return hasUsableHubSpotIframe\(root\);/,
-  'A valid HubSpot iframe inside the canonical host must be sufficient render evidence',
+  'A consented valid HubSpot iframe inside the canonical host must be sufficient render evidence',
 );
 assert.match(
   managedPage,
@@ -164,4 +191,4 @@ assert.doesNotMatch(
   'Managed PHP must not expose a literal eager hsforms URL that consent/optimizer scanners can rewrite',
 );
 
-console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1 deterministic_iframe_ready=1 config_validation=1 recovery_dedupe=1');
+console.log('HUBSPOT_SINGLE_MOUNT_STATIC=PASS hosts=1 declarative_mounts=1 imperative_creates=0 runtime_identity_fallback=1 managed_recovery_bootstrap=1 host_allowlist=1 host_observer=1 deterministic_iframe_ready=1 config_validation=1 recovery_dedupe=1 marketing_consent_gate=1');

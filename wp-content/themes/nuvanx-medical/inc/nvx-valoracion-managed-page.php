@@ -107,9 +107,10 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 	return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';var recoveryTimer=0;'
 		. 'function hostMatches(hostname,domain){hostname=String(hostname||"").toLowerCase();return hostname===domain||hostname.slice(-(domain.length+1))==="."+domain;}'
 		. 'function isAllowedHubSpotHost(hostname){return hostMatches(hostname,"hsforms.net")||hostMatches(hostname,"hsforms.com")||hostMatches(hostname,"hubspot.com");}'
+		. 'function hasMarketingConsent(){if(typeof window.cmplz_has_consent!=="function"){return false;}try{return window.cmplz_has_consent("marketing")===true;}catch(e){return false;}}'
 		. 'function iframeIsHubSpot(iframe){if(!iframe){return false;}var src=(iframe.getAttribute("src")||"").trim();if(!src||src==="about:blank"){return false;}try{return isAllowedHubSpotHost(new URL(src,window.location.href).hostname);}catch(e){return false;}}'
-		. 'function hasUsableHubSpotIframe(root){if(!root){return false;}var iframes=root.querySelectorAll("iframe");for(var i=0;i<iframes.length;i++){if(iframeIsHubSpot(iframes[i])){return true;}}return false;}'
-		. 'function isRenderable(root){if(!root){return false;}if(root.querySelector(".hbspt-form input,.hbspt-form textarea,.hs-form input")){return true;}return hasUsableHubSpotIframe(root);}'
+		. 'function hasUsableHubSpotIframe(root){if(!root||!hasMarketingConsent()){return false;}var iframes=root.querySelectorAll("iframe");for(var i=0;i<iframes.length;i++){if(iframeIsHubSpot(iframes[i])){return true;}}return false;}'
+		. 'function isRenderable(root){if(!root||!hasMarketingConsent()){return false;}if(root.querySelector(".hbspt-form input,.hbspt-form textarea,.hs-form input")){return true;}return hasUsableHubSpotIframe(root);}'
 		. 'function formIsDirty(form){if(!form){return false;}var els=form.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=checkbox]),textarea");for(var i=0;i<els.length;i++){if(String(els[i].value||"").trim()){return true;}}return false;}'
 		. 'function sync(host,frame){if(!host){return;}var live=isRenderable(host)||isRenderable(frame);var form=host.querySelector("[data-nvx-direct-form]");if(live&&!formIsDirty(form)){host.classList.add("nvx-hubspot-is-live");}else{host.classList.remove("nvx-hubspot-is-live");}}'
 		. 'function hasActiveEmbed(){var scripts=document.querySelectorAll("#nvx-hubspot-forms-runtime,script[data-nvx-hubspot-canonical=\\"1\\"],script[src*=\\"/forms/embed/\\"]");for(var i=0;i<scripts.length;i++){var type=(scripts[i].getAttribute("type")||"text/javascript").toLowerCase();if(type==="text/plain"){continue;}return true;}return false;}'
@@ -121,10 +122,11 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 		. 'for(i=0;i<frames.length;i++){if(frames[i]!==frame){frames[i].remove();}}'
 		. 'frame.dataset.region=cfg.region;frame.dataset.portalId=cfg.portalId;frame.dataset.formId=cfg.formId;frame.dataset.nvxHubspotLazy="1";sync(host,frame);'
 		. 'if(typeof MutationObserver==="function"&&!host.dataset.nvxHubspotObserver){host.dataset.nvxHubspotObserver="1";new MutationObserver(function(){sync(host,frame);}).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:["src","data-category"]});}'
+		. 'if(!hasMarketingConsent()){return;}'
 		. 'if(isRenderable(host)||isRenderable(frame)){return;}'
 		. 'if(recoveryTimer){return;}'
 		. 'try{host.dispatchEvent(new Event("focusin",{bubbles:true}));}catch(e){}'
-		. 'recoveryTimer=window.setTimeout(function(){recoveryTimer=0;sync(host,frame);if(isRenderable(host)||isRenderable(frame)){return;}'
+		. 'recoveryTimer=window.setTimeout(function(){recoveryTimer=0;sync(host,frame);if(!hasMarketingConsent()){return;}if(isRenderable(host)||isRenderable(frame)){return;}'
 		. 'if(hasActiveEmbed()){return;}'
 		. 'var script=document.createElement("script");script.id="nvx-hubspot-forms-runtime";script.dataset.nvxHubspotCanonical="1";'
 		. 'script.src="https://js-"+cfg.region+".hs"+"forms.net/forms/embed/"+cfg.portalId+".js";script.async=true;'
@@ -295,17 +297,17 @@ function nvx_valoracion_schema_graph( $graph ) {
 		if ( function_exists( 'nvx_schema_add_type' ) ) {
 			$graph[ $index ]['@type'] = nvx_schema_add_type( $node['@type'], 'MedicalWebPage' );
 		} else {
-			$types[]                    = 'MedicalWebPage';
-			$graph[ $index ]['@type']   = array_values( array_unique( $types ) );
+			$types[]                  = 'MedicalWebPage';
+			$graph[ $index ]['@type'] = array_values( array_unique( $types ) );
 		}
 
-		$graph[ $index ]['name']          = __( 'Valoración médica estética en Madrid', 'nuvanx-medical' );
-		$graph[ $index ]['description']   = $description;
-		$graph[ $index ]['url']           = $url;
-		$graph[ $index ]['inLanguage']    = 'es-ES';
-		$graph[ $index ]['lastReviewed']  = '2026-08-01';
-		$graph[ $index ]['reviewedBy']    = $reviewer;
-		$graph[ $index ]['speakable']     = array(
+		$graph[ $index ]['name']            = __( 'Valoración médica estética en Madrid', 'nuvanx-medical' );
+		$graph[ $index ]['description']     = $description;
+		$graph[ $index ]['url']             = $url;
+		$graph[ $index ]['inLanguage']      = 'es-ES';
+		$graph[ $index ]['lastReviewed']    = '2026-08-01';
+		$graph[ $index ]['reviewedBy']      = $reviewer;
+		$graph[ $index ]['speakable']       = array(
 			'@type'       => 'SpeakableSpecification',
 			'cssSelector' => array( '#nvx-valoracion-h1', '#nvx-valoracion-lead' ),
 		);

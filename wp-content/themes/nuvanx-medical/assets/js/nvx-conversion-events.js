@@ -346,7 +346,12 @@
 		return ['0-1/' + propertyName, propertyName];
 	}
 
+	function syncOwnsCanonicalHubSpotFields() {
+		return Boolean(window.NUVANXHubSpotAttributionSync && typeof window.NUVANXHubSpotAttributionSync.syncForm === 'function');
+	}
+
 	async function populateHubSpotClickFields(form) {
+		if (syncOwnsCanonicalHubSpotFields()) return false;
 		if (!isCanonicalForm(form)) return false;
 		if (typeof form.getFormFieldValues !== 'function' || typeof form.setFieldValue !== 'function') return false;
 		var consent = hasMarketingConsent();
@@ -376,6 +381,7 @@
 	}
 
 	function populateExistingForms() {
+		if (syncOwnsCanonicalHubSpotFields()) return;
 		clickValues = collectClickValues();
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
 		try {
@@ -389,17 +395,21 @@
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return;
 		try {
 			var form = window.HubSpotFormsV4.getFormFromEvent(event);
-			populateHubSpotClickFields(form);
+			if (!syncOwnsCanonicalHubSpotFields()) {
+				populateHubSpotClickFields(form);
+			}
 			if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormReady === 'function') {
 				try { window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId); } catch (_error) {}
 			}
 		} catch (_error) {}
 	});
 
-	document.addEventListener('wp_listen_for_consent_change', populateExistingForms);
-	document.addEventListener('wp_consent_type_defined', populateExistingForms);
-	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', populateExistingForms, { once: true });
-	else populateExistingForms();
+	if (!syncOwnsCanonicalHubSpotFields()) {
+		document.addEventListener('wp_listen_for_consent_change', populateExistingForms);
+		document.addEventListener('wp_consent_type_defined', populateExistingForms);
+		if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', populateExistingForms, { once: true });
+		else populateExistingForms();
+	}
 
 	function canonicalLandingUrl() {
 		try {

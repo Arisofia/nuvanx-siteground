@@ -177,7 +177,7 @@ const stages = [
   { name: 'hubspot-a11y-safe-unit', url: new URL('./test-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-head-contract', url: new URL('./governed-blog-head-resilient.mjs', import.meta.url), maxCycles: 1 },
   { name: 'governed-blog-runtime-identity', url: new URL('./governed-blog-runtime-contract.mjs', import.meta.url), maxCycles: 3 },
-  { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: VALORACION_PLACEMENT_CYCLES },
+  { name: 'valoracion-placement', url: new URL('./valoracion-placement-production-gate.mjs', import.meta.url), maxCycles: VALORACION_PLACEMENT_CYCLES },
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
 ];
 

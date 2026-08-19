@@ -225,11 +225,12 @@ function nvx_hubspot_secure_payload_is_staging_qa( array $payload ): bool {
 }
 
 /**
- * Preempt the public HubSpot form submission with one authenticated POST.
+ * Preempt the public HubSpot form submission and route through the secure bridge.
  *
- * Lead transport is independent of advertising consent. If marketing consent
- * is absent, only attribution fields are removed; identity + request content
- * still reach HubSpot. On Staging2, only server-owned QA payloads may leave.
+ * @param mixed               $preempt Existing preempted HTTP response.
+ * @param array<string,mixed> $args    Original request args.
+ * @param string              $url     Request URL.
+ * @return mixed
  */
 function nvx_hubspot_secure_pre_http_request( $preempt, array $args, string $url ) {
 	if ( nvx_hubspot_secure_original_url() !== $url ) {

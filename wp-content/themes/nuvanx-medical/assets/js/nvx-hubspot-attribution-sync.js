@@ -34,10 +34,30 @@
 		'nvx_conversion_timestamp',
 	];
 
+	function debugEnabled() {
+		try {
+			var runtime = window.nvxConversionEvents || {};
+			return runtime.debug === true || runtime.env === 'staging2';
+		} catch (_error) {
+			return false;
+		}
+	}
+
+	function debugWarn(scope, error) {
+		if (!debugEnabled()) return;
+		var name = error && error.name ? String(error.name) : 'Error';
+		var message = error && error.message ? String(error.message) : String(error || 'unknown');
+		if (message.length > 160) message = message.slice(0, 160);
+		try {
+			console.info('[nvx-attribution-sync]', scope, name, message);
+		} catch (_ignore) {}
+	}
+
 	function hasMarketingConsent() {
 		try {
 			return typeof window.wp_has_consent === 'function' && window.wp_has_consent('marketing') === true;
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('hasMarketingConsent', error);
 			return false;
 		}
 	}
@@ -50,7 +70,8 @@
 		if (!FORM_ID || !form || typeof form.getFormId !== 'function') return false;
 		try {
 			return String(form.getFormId() || '').toLowerCase() === FORM_ID;
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('isCanonicalForm', error);
 			return false;
 		}
 	}
@@ -74,7 +95,8 @@
 		try {
 			form.setFieldValue(actualName, value === undefined || value === null ? '' : value);
 			return true;
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('setField', error);
 			return false;
 		}
 	}
@@ -89,7 +111,8 @@
 		var fields;
 		try {
 			fields = await form.getFormFieldValues();
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('getFormFieldValues', error);
 			return false;
 		}
 		if (!Array.isArray(fields)) return false;
@@ -98,7 +121,8 @@
 		var payload;
 		try {
 			payload = contract.buildFormPayload(new Set(index.keys())) || {};
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('buildFormPayload', error);
 			return false;
 		}
 
@@ -123,7 +147,8 @@
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
 		try {
 			return window.HubSpotFormsV4.getFormFromEvent(event) || null;
-		} catch (_error) {
+		} catch (error) {
+			debugWarn('formFromEvent', error);
 			return null;
 		}
 	}
@@ -132,9 +157,14 @@
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
 		try {
 			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) {
-				syncForm(form);
+				var result = syncForm(form);
+				if (result && typeof result.catch === 'function') {
+					result.catch(function (error) { debugWarn('syncExistingForms', error); });
+				}
 			});
-		} catch (_error) {}
+		} catch (error) {
+			debugWarn('syncExistingForms', error);
+		}
 	}
 
 	window.addEventListener('hs-form-event:on-ready', function (event) {

@@ -18,6 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// nvx-integrations.php is loaded immediately before this module. Retire its
+// legacy full-document output buffer before template_redirect ever runs.
+require_once __DIR__ . '/nvx-document-buffer-governance.php';
+
 /**
  * Resolve the canonical route metadata for the current request.
  *

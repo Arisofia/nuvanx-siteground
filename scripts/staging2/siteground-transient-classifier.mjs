@@ -19,3 +19,17 @@ export function isSiteGroundTransientResponse(status, headers = {}, currentUrl =
     || Boolean(headers['sg-captcha'])
     || String(currentUrl).includes(SITEGROUND_CAPTCHA_PATH);
 }
+
+export function isOneShotMasterPush(eventName = '', refName = '') {
+  return eventName === 'push' && refName === 'master';
+}
+
+export function getGitHubEventPath(eventName = '', refName = '') {
+  if (eventName === 'pull_request_target') {
+    return 'pull_request';
+  }
+  if (isOneShotMasterPush(eventName, refName)) {
+    return 'one_shot_master_push';
+  }
+  return 'unsupported_event';
+}

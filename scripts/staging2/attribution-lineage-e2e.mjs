@@ -2,18 +2,23 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { chromium } from 'playwright';
-import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
+import { EX_TEMPFAIL, getGitHubEventPath } from './siteground-transient-classifier.mjs';
 
 const BASE_URL = (process.env.BASE_URL || '').replace(/\/+$/, '');
 const EXPECTED_BASE = 'https://staging2.nuvanx.com';
 const ARTIFACT_PATH = new URL('./valoracion-artifacts/attribution-lineage-e2e.json', import.meta.url);
 const EVENT_NAME = process.env.GITHUB_EVENT_NAME || '';
-const ONE_SHOT_MASTER_PUSH = EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'master';
+const REF_NAME = process.env.GITHUB_REF_NAME || '';
+const EVENT_PATH = getGitHubEventPath(EVENT_NAME, REF_NAME);
 
-if (EVENT_NAME !== 'pull_request_target' && !ONE_SHOT_MASTER_PUSH) {
-  console.log('ATTRIBUTION_LINEAGE_E2E=SKIP reason=unsupported_event');
+if (EVENT_PATH === 'unsupported_event') {
+  console.log(
+    `ATTRIBUTION_LINEAGE_E2E=SKIP reason=unsupported_event event=${EVENT_NAME} ref=${REF_NAME}`
+  );
   process.exit(0);
 }
+
+console.log(`ATTRIBUTION_LINEAGE_E2E=PATH path=${EVENT_PATH} event=${EVENT_NAME} ref=${REF_NAME}`);
 
 assert.equal(BASE_URL, EXPECTED_BASE, 'Real lineage E2E is allowed only against canonical Staging2');
 

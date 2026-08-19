@@ -111,6 +111,9 @@ function nvx_lead_captured_attribution( array $fields, string $prefix ): array {
 /**
  * Extract optional IDs returned by HubSpot without depending on their presence.
  *
+ * No response body fragment is logged because the HubSpot response may contain
+ * identifiers or other personal data. Only decode/status metadata is logged.
+ *
  * @param mixed $response WordPress HTTP response.
  * @return array{contact_id:string,submission_id:string}
  */
@@ -119,8 +122,18 @@ function nvx_lead_captured_hubspot_ids( $response ): array {
 	if ( is_wp_error( $response ) ) {
 		return $result;
 	}
-	$decoded = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+	$body    = (string) wp_remote_retrieve_body( $response );
+	$decoded = json_decode( $body, true );
 	if ( ! is_array( $decoded ) ) {
+		$status     = (int) wp_remote_retrieve_response_code( $response );
+		$json_error = function_exists( 'json_last_error' ) ? (int) json_last_error() : -1;
+		error_log(
+			sprintf(
+				'[NUVANX] lead-captured relay: HubSpot response IDs unavailable; status=%d json_error=%d.',
+				$status,
+				$json_error
+			)
+		);
 		return $result;
 	}
 	foreach ( array( 'contactId', 'contact_id' ) as $key ) {
@@ -172,6 +185,7 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 	$raw_payload = isset( $parsed_args['body'] ) ? $parsed_args['body'] : '';
 	$payload     = is_string( $raw_payload ) ? json_decode( $raw_payload, true ) : (array) $raw_payload;
 	if ( ! is_array( $payload ) ) {
+		error_log( '[NUVANX] lead-captured relay skipped: authenticated HubSpot request payload is not decodable JSON.' );
 		return $response;
 	}
 	$fields  = nvx_lead_captured_field_map( $payload );
@@ -184,14 +198,16 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 	$is_test     = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
 	$test_run_id = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
 	$email       = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
-	$ids         = nvx_lead_captured_hubspot_ids( $response );
+	$email_hash  = '' !== $email ? hash( 'sha256', $email ) : null;
+	unset( $email );
+	$ids = nvx_lead_captured_hubspot_ids( $response );
 
 	$relay_payload = array(
 		'nvx_lead_id'           => $lead_id,
 		'form_id'               => nvx_hubspot_secure_form_id(),
 		'hubspot_contact_id'     => '' !== $ids['contact_id'] ? $ids['contact_id'] : null,
 		'hubspot_submission_id'  => '' !== $ids['submission_id'] ? $ids['submission_id'] : null,
-		'email_hash'             => '' !== $email ? hash( 'sha256', $email ) : null,
+		'email_hash'             => $email_hash,
 		'nvx_is_test_lead'       => $is_test,
 		'nvx_test_run_id'        => '' !== $test_run_id ? $test_run_id : null,
 		'first_attribution'      => nvx_lead_captured_attribution( $fields, 'nvx_first_' ),
@@ -210,8 +226,23 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 			'body'     => wp_json_encode( $relay_payload ),
 		)
 	);
-	if ( is_wp_error( $relay ) || (int) wp_remote_retrieve_response_code( $relay ) >= 300 ) {
-		error_log( '[NUVANX] lead-captured relay failed after successful HubSpot submission.' );
+	if ( is_wp_error( $relay ) ) {
+		error_log(
+			sprintf(
+				'[NUVANX] lead-captured relay transport failure; wp_error_code=%s.',
+				sanitize_key( (string) $relay->get_error_code() )
+			)
+		);
+	} else {
+		$relay_status = (int) wp_remote_retrieve_response_code( $relay );
+		if ( $relay_status < 200 || $relay_status >= 300 ) {
+			error_log(
+				sprintf(
+					'[NUVANX] lead-captured relay HTTP failure; status=%d.',
+					$relay_status
+				)
+			);
+		}
 	}
 
 	return $response;

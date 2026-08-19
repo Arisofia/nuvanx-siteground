@@ -4,7 +4,9 @@ const FORM_ID = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const LEAD_ID = '11111111-1111-4111-8111-111111111111';
 const TEST_RUN_ID = 'staging2-sha-abcdef123456';
 
-const listeners = new Map();
+const api = globalThis.window?.NUVANXHubSpotAttributionSync;
+assert.ok(api, 'HubSpot attribution sync API must already be exposed by integration wiring');
+
 const calls = [];
 const values = new Map([
   ['0-1/nvx_lead_id', []],
@@ -36,37 +38,22 @@ const form = {
   },
 };
 
-globalThis.window = {
-  nvxConversionEvents: { forms: { valoracion: FORM_ID } },
-  wp_has_consent: () => true,
-  setTimeout,
-  NUVANXAttributionContract: {
-    buildFormPayload: () => ({
-      nvx_lead_id: LEAD_ID,
-      nvx_is_test_lead: true,
-      nvx_test_run_id: TEST_RUN_ID,
-      nvx_utm_source: 'google',
-      nvx_google_click_id: 'GCLID-HIDDEN-V4',
-    }),
-  },
-  HubSpotFormsV4: {
-    getForms: () => [form],
-    getFormFromEvent: () => form,
-  },
-  addEventListener: (name, callback) => listeners.set(name, callback),
+globalThis.window.wp_has_consent = () => true;
+globalThis.window.setTimeout = setTimeout;
+globalThis.window.NUVANXAttributionContract = {
+  buildFormPayload: () => ({
+    nvx_lead_id: LEAD_ID,
+    nvx_is_test_lead: true,
+    nvx_test_run_id: TEST_RUN_ID,
+    nvx_utm_source: 'google',
+    nvx_google_click_id: 'GCLID-HIDDEN-V4',
+  }),
+};
+globalThis.window.HubSpotFormsV4 = {
+  getForms: () => [form],
+  getFormFromEvent: () => form,
 };
 
-globalThis.document = {
-  readyState: 'loading',
-  addEventListener: (name, callback) => listeners.set(name, callback),
-};
-
-const syncUrl = new URL('../../wp-content/themes/nuvanx-medical/assets/js/nvx-hubspot-attribution-sync.js', import.meta.url);
-syncUrl.searchParams.set('test', 'hidden-v4-readback');
-await import(syncUrl.href);
-
-const api = globalThis.window.NUVANXHubSpotAttributionSync;
-assert.ok(api, 'HubSpot attribution sync API must be exposed');
 assert.equal(await api.syncForm(form), true, 'V4 hidden fields must synchronize successfully after typed fallback');
 
 assert.deepEqual(values.get('0-1/nvx_lead_id'), [LEAD_ID]);

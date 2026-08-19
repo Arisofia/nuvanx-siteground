@@ -207,7 +207,7 @@ function nvx_equipo_is_person_staff_card( string $card ): bool {
 	}
 
 	// Prefer cards with a named title (person).
-	if ( preg_match( '/nvx-brand-subtitle[^>]*>([\s\S]*?)<\//iu', $card, $tm ) ) {
+	if ( preg_match( '/(?:nvx-brand-card__title|nvx-brand-subtitle)[^>]*>([\s\S]*?)<\//iu', $card, $tm ) ) {
 		$title = trim( wp_strip_all_tags( $tm[1] ) );
 		if ( '' === $title ) {
 			return false;

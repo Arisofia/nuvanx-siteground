@@ -101,11 +101,11 @@ function nvx_treatments_catalog_markup(): string {
 		$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
 
 		foreach ( $category['items'] as $item ) {
-			$html .= '<article class="nvx-brand-card" style="display:flex; flex-direction:column; height:100%;">';
+			$html .= '<article class="nvx-brand-card">';
 			$html .= '<span class="nvx-eyebrow">' . esc_html( $item['meta'] ) . '</span>';
 			$html .= '<h4 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h4>';
 			$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
-			$html .= '<a class="nvx-text-link" style="margin-top:auto;" href="' . esc_url( $item['url'] ) . '">';
+			$html .= '<a class="nvx-text-link" href="' . esc_url( $item['url'] ) . '">';
 			$html .= esc_html__( 'Explorar protocolo', 'nuvanx-medical' );
 			$html .= ' <span aria-hidden="true">→</span></a>';
 			$html .= '</article>';

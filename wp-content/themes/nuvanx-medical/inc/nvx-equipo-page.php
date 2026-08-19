@@ -207,7 +207,7 @@ function nvx_equipo_is_person_staff_card( string $card ): bool {
 	}
 
 	// Prefer cards with a named title (person).
-	if ( preg_match( '/nvx-brand-card__title[^>]*>([\s\S]*?)<\//iu', $card, $tm ) ) {
+	if ( preg_match( '/(?:nvx-brand-card__title|nvx-brand-subtitle)[^>]*>([\s\S]*?)<\//iu', $card, $tm ) ) {
 		$title = trim( wp_strip_all_tags( $tm[1] ) );
 		if ( '' === $title ) {
 			return false;
@@ -465,11 +465,11 @@ function nvx_equipo_render_items_section( array $section ): string {
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid" role="list">';
+		$html .= '<ul class="nvx-brand-grid nvx-brand-grid--3" role="list">';
 		foreach ( $items as $item ) {
 			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
+				$html .= '<h3 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h3>';
 			}
 			if ( ! empty( $item['body'] ) ) {
 				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
@@ -494,11 +494,11 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 		return '';
 	}
 
-	$html = '<ul class="nvx-brand-card-grid" role="list">';
+	$html = '<ul class="nvx-brand-grid nvx-brand-grid--3" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li class="nvx-brand-card">';
 		if ( ! empty( $item['title'] ) ) {
-			$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
+			$html .= '<h3 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h3>';
 		}
 		if ( ! empty( $item['body'] ) ) {
 			$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';

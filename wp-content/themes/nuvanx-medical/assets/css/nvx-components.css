@@ -452,6 +452,14 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 @media (max-width: 640px) {
   .nvx-brand-grid--2 > *, .nvx-brand-grid--3 > *, .nvx-brand-grid--4 > * { grid-column: 1 / -1; }
 }
+.nvx-brand-grid .nvx-brand-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.nvx-brand-grid .nvx-brand-card > .nvx-text-link {
+  margin-top: auto;
+}
 /* Cards — chrome + parts centralized here con diseño elegante */
 .nvx-brand-card__number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--nvx-ink);color:var(--nvx-light);font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:var(--nvx-fw-medium);margin-bottom:var(--nvx-space-2);transition:transform 160ms ease, box-shadow 160ms ease}
 
@@ -2773,3 +2781,11 @@ div[id*="cmplz-cookiebanner"] {
   letter-spacing: var(--nvx-track-button) !important;
 }
 
+
+/* Reserve form height while HubSpot mounts; keep mobile from inheriting 480px. */
+.nvx-form-stage .nvx-hs-native-box {
+  min-height: clamp(18rem, 52vw, 30rem);
+}
+.nvx-form-stage .cmplz-placeholder-1 {
+  background-image: none !important;
+}

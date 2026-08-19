@@ -1,0 +1,108 @@
+name: Release Execution Probe
+run-name: Release Execution Probe · a972dedda9c8fab9b2417d07de426796a85982a2
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  execute-release:
+    name: Execute canonical Staging then Production
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'release/execute-siteground-production-probe-20260819' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      RELEASE_SHA: a972dedda9c8fab9b2417d07de426796a85982a2
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout trusted master release tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags origin master
+          test "$(git rev-parse origin/master)" = "$RELEASE_SHA"
+          git cat-file -e "${RELEASE_SHA}^{commit}"
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/master
+          grep -Fq '[deploy-production]' < <(git show -s --format=%B "$RELEASE_SHA")
+          bash -n scripts/ci/verify-staging-acceptance.sh
+          echo "RELEASE_CANDIDATE=PASS sha=$RELEASE_SHA"
+
+      - name: Dispatch canonical Staging workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run staging.yml \
+            --ref master \
+            -f sha="$RELEASE_SHA" \
+            -f run_acceptance=true \
+            -f deep_quality=false
+          echo "STAGING_DISPATCH=PASS sha=$RELEASE_SHA"
+
+      - name: Wait for immutable Staging acceptance artifact
+        id: acceptance
+        shell: bash
+        env:
+          CANDIDATE_SHA: ${{ env.RELEASE_SHA }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            if bash scripts/ci/verify-staging-acceptance.sh; then
+              echo "STAGING_ACCEPTANCE_PROBE=PASS sha=$RELEASE_SHA"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::Staging acceptance artifact was not produced for $RELEASE_SHA"
+          exit 1
+
+      - name: Dispatch canonical Production workflow
+        id: production_dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          before_id="$(gh run list --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run production.yml \
+            --ref master \
+            -f deploy=true \
+            -f candidate_sha="$RELEASE_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=true \
+            -f run_hubspot_e2e=true \
+            -f run_final_close_audit=true \
+            -f run_mu_plugin_forensics=true
+
+          child_id=''
+          for attempt in $(seq 1 60); do
+            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 30 --json databaseId,headSha)"
+            child_id="$(jq -r --argjson before "$before_id" --arg sha "$RELEASE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            if [[ -n "$child_id" ]]; then
+              break
+            fi
+            sleep 2
+          done
+          [[ "$child_id" =~ ^[0-9]+$ ]] || { echo '::error::Production child run not found'; exit 1; }
+          echo "run_id=$child_id" >> "$GITHUB_OUTPUT"
+          echo "PRODUCTION_DISPATCH=PASS sha=$RELEASE_SHA run_id=$child_id"
+
+      - name: Require Production workflow success
+        shell: bash
+        env:
+          PRODUCTION_RUN_ID: ${{ steps.production_dispatch.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$PRODUCTION_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run watch "$PRODUCTION_RUN_ID" --exit-status
+          echo "PRODUCTION_RELEASE=PASS sha=$RELEASE_SHA run_id=$PRODUCTION_RUN_ID"

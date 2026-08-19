@@ -48,34 +48,37 @@ function nvx_attribution_is_uuid_v4( string $value ): bool {
  */
 function nvx_attribution_collector_config(): array {
 	return array(
-		'host'          => 'ssvvuuysgxyqvmovrlvk.supabase.co',
-		'path'          => '/functions/v1/google-click-attribution',
-		'origin_hosts'  => array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' ),
+		'host'         => 'ssvvuuysgxyqvmovrlvk.supabase.co',
+		'path'         => '/functions/v1/google-click-attribution',
+		'origin_hosts' => array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' ),
 	);
 }
 
+/** Whether a site host may represent the Origin sent to the collector. */
 function nvx_attribution_is_allowed_origin_host( string $host ): bool {
-	$host = strtolower( $host );
-	$config = nvx_attribution_collector_config();
+	$host    = strtolower( trim( $host ) );
+	$config  = nvx_attribution_collector_config();
 	$allowed = $config['origin_hosts'];
+
 	if ( defined( 'NVX_ATTRIBUTION_ORIGIN_HOSTS' ) && is_array( NVX_ATTRIBUTION_ORIGIN_HOSTS ) ) {
 		foreach ( NVX_ATTRIBUTION_ORIGIN_HOSTS as $extra ) {
 			$extra = strtolower( trim( (string) $extra ) );
 			if ( 'nuvanx.com' === $extra || 1 === preg_match( '/^[a-z0-9-]+(?:\.[a-z0-9-]+)*\.nuvanx\.com$/', $extra ) ) {
 				$allowed[] = $extra;
 			}
-		}
 	}
+
 	return in_array( $host, array_values( array_unique( $allowed ) ), true );
 }
 
 /** Resolve the only collector endpoint this theme may call. */
 function nvx_attribution_collector_endpoint(): string {
-	$config = nvx_attribution_collector_config();
+	$config    = nvx_attribution_collector_config();
 	$canonical = 'https://' . $config['host'] . $config['path'];
 	if ( ! defined( 'NVX_ATTRIBUTION_COLLECTOR_URL' ) ) {
 		return $canonical;
 	}
+
 	$candidate = trim( (string) NVX_ATTRIBUTION_COLLECTOR_URL );
 	$parts     = wp_parse_url( $candidate );
 	if (
@@ -83,6 +86,7 @@ function nvx_attribution_collector_endpoint(): string {
 		&& 'https' === ( $parts['scheme'] ?? '' )
 		&& $config['host'] === strtolower( (string) ( $parts['host'] ?? '' ) )
 		&& $config['path'] === (string) ( $parts['path'] ?? '' )
+		&& ! isset( $parts['query'], $parts['fragment'], $parts['user'], $parts['pass'], $parts['port'] )
 	) {
 		return $candidate;
 	}
@@ -92,16 +96,8 @@ function nvx_attribution_collector_endpoint(): string {
 /** Resolve a collector Origin accepted by the production Edge Function. */
 function nvx_attribution_collector_origin(): string {
 	$host = strtolower( (string) wp_parse_url( get_site_url(), PHP_URL_HOST ) );
-	
-	/**
-	 * Filter the allowed origin hosts for the attribution collector.
-	 * 
-	 * @param string[] $allowed_hosts List of allowed hostnames.
-	 * @return string[] Filtered list of allowed hostnames.
-	 */
-	$allowed_hosts = apply_filters( 'nvx_attribution_collector_allowed_hosts', array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' ) );
-	
-	if ( ! in_array( $host, $allowed_hosts, true ) ) {
+	if ( ! nvx_attribution_is_allowed_origin_host( $host ) ) {
+		error_log( 'NVX_ATTRIBUTION_DIRECT_RELAY=FAILURE reason=origin_not_allowed' );
 		return '';
 	}
 	return 'https://' . $host;

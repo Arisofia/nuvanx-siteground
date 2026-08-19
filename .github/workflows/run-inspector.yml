@@ -17,14 +17,28 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       TARGET_SHA: a80f476941bf3502ea498f7d93496c4e6c17b444
+      TARGET_RUN_ID: '32307437592'
     steps:
-      - name: Inspect canonical Staging workflow_dispatch runs
+      - name: Inspect canonical Staging and FIFO blockers
         shell: bash
         run: |
           set -euo pipefail
-          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,status,conclusion,headSha,createdAt,displayTitle,url)"
-          jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' <<<"$runs"
-          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo '::error::No matching Staging run'; exit 1; }
-          echo "INSPECTED_STAGING_RUN_ID=$run_id"
-          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'
+          echo '=== TARGET STAGING ==='
+          gh run view "$TARGET_RUN_ID" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'
+          echo '=== OLDER ACTIVE CANONICAL MUTATION BLOCKERS ==='
+          found=0
+          for status in queued in_progress waiting requested pending; do
+            raw="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100")"
+            rows="$(jq -r --argjson target "$TARGET_RUN_ID" '
+              .workflow_runs[]?
+              | select(.id < $target)
+              | select((.path == ".github/workflows/staging.yml") or (.path == ".github/workflows/production.yml"))
+              | select((.event == "push") or (.event == "workflow_dispatch") or (.event == "pull_request_target"))
+              | [(.id|tostring),(.status//""),(.event//""),(.path//""),(.head_sha//""),(.created_at//"")] | @tsv
+            ' <<<"$raw")"
+            if [[ -n "$rows" ]]; then
+              found=1
+              printf '%s\n' "$rows"
+            fi
+          done
+          echo "FIFO_BLOCKERS_FOUND=$found"

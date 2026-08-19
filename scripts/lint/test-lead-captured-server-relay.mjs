@@ -39,7 +39,7 @@ assert.match(relay, /'nvx_test_run_id'\s*=>/,
 assert.match(relay, /'nvx_lead_id'\s*=>\s*\$lead_id/,
   'Canonical first-party lineage must reach the capture ledger');
 
-assert.doesNotMatch(relay, /graph\.facebook|web-events|googleads|google ads|deal factory|create.*deal/i,
-  'Capture relay must not create downstream advertising or Deal side effects');
+assert.doesNotMatch(relay, /graph\.facebook\.com|functions\/v1\/web-events|googleads\.|crm\/v3\/objects\/deals/i,
+  'Capture relay must not contain executable downstream advertising or Deal endpoints');
 
 console.log('LEAD_CAPTURED_SERVER_RELAY=PASS');

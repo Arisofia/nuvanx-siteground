@@ -65,17 +65,19 @@ const form = {
   setFieldValue: (name, value) => writes.set(name, value),
 };
 
+const buildQaTruePayload = () => ({
+  nvx_lead_id: '11111111-1111-4111-8111-111111111111',
+  nvx_is_test_lead: true,
+  nvx_test_run_id: 'staging2-sha-test',
+  nvx_utm_source: 'google',
+  nvx_google_click_id: 'GCLID-TEST',
+});
+
 globalThis.window = {
   nvxConversionEvents: { forms: { valoracion: FORM_ID } },
   wp_has_consent: () => consent,
   NUVANXAttributionContract: {
-    buildFormPayload: () => ({
-      nvx_lead_id: '11111111-1111-4111-8111-111111111111',
-      nvx_is_test_lead: true,
-      nvx_test_run_id: 'staging2-sha-test',
-      nvx_utm_source: 'google',
-      nvx_google_click_id: 'GCLID-TEST',
-    }),
+    buildFormPayload: buildQaTruePayload,
   },
   HubSpotFormsV4: {
     getForms: () => [form],
@@ -94,9 +96,22 @@ assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source')
 
 await api.syncForm(form);
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
+
+// HubSpot V4 booleancheckbox must also receive the canonical false string.
+globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
+  nvx_lead_id: '11111111-1111-4111-8111-111111111111',
+  nvx_is_test_lead: false,
+  nvx_test_run_id: '',
+});
+writes.clear();
+await api.syncForm(form);
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), 'false');
+globalThis.window.NUVANXAttributionContract.buildFormPayload = buildQaTruePayload;
 
 writes.clear();
 const other = { ...form, getFormId: () => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' };
@@ -117,4 +132,29 @@ assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-11111111111
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 applied_lead_id=untouched');
+// Both asynchronous entry points must consume a rejection returned by syncForm.
+// Force a rejection after buildFormPayload returns so the outer async function,
+// rather than its internal guarded calls, is what rejects.
+const originalBuildFormPayload = globalThis.window.NUVANXAttributionContract.buildFormPayload;
+let ownKeysCalls = 0;
+globalThis.window.NUVANXAttributionContract.buildFormPayload = () => new Proxy({}, {
+  ownKeys() {
+    ownKeysCalls += 1;
+    throw new Error('forced-attribution-sync-rejection');
+  },
+});
+const unhandled = [];
+const onUnhandled = (reason) => unhandled.push(reason);
+process.on('unhandledRejection', onUnhandled);
+try {
+  listeners.get('hs-form-event:on-ready')?.({ detail: { formId: FORM_ID } });
+  listeners.get('wp_listen_for_consent_change')?.();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+} finally {
+  process.off('unhandledRejection', onUnhandled);
+  globalThis.window.NUVANXAttributionContract.buildFormPayload = originalBuildFormPayload;
+}
+assert.equal(ownKeysCalls, 2, 'Both HubSpot async entry points must exercise syncForm');
+assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
+
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');

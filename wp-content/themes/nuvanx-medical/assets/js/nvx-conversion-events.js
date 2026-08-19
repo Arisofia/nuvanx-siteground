@@ -9,12 +9,6 @@
 	var configuredCanonicalForm = String((config.forms || {}).valoracion || '').toLowerCase();
 	var canonicalForm = configuredCanonicalForm || '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 
-	/**
-	 * Normalizes a value for use as a tracking token.
-	 * @param {*} value - The value to normalize.
-	 * @param {string} fallback - The value to use when normalization produces an empty token.
-	 * @return {string} The lowercase normalized token, fallback, or `unknown`.
-	 */
 	function cleanToken(value, fallback) {
 		var token = String(value || '')
 			.toLowerCase()
@@ -87,10 +81,6 @@
 		}, 50);
 	}
 
-	/**
-	 * Official Ads click snippet for "Clic en teléfono o WhatsApp".
-	 * Returns true when the caller must preventDefault and navigate in event_callback.
-	 */
 	function reportPhoneWhatsAppConversion(url, options) {
 		var newTab = Boolean(options && options.newTab);
 		var navigatesAway = Boolean(url) && !newTab;
@@ -123,13 +113,8 @@
 	function emit(eventName, parameters) {
 		var normalizedName = cleanToken(eventName);
 		var params = allowedParameters(parameters);
-
 		window.dataLayer = window.dataLayer || [];
-		window.dataLayer.push(Object.assign({
-			event: signalName,
-			nvx_event_name: normalizedName,
-		}, params));
-
+		window.dataLayer.push(Object.assign({ event: signalName, nvx_event_name: normalizedName }, params));
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
 			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
@@ -143,11 +128,7 @@
 
 		var href = target.getAttribute('href') || '';
 		var dataEvent = target.dataset ? (target.dataset.gtag || '') : '';
-		var common = {
-			cta_region: regionFor(target),
-			cta_marker: dataEvent || 'selector',
-		};
-
+		var common = { cta_region: regionFor(target), cta_marker: dataEvent || 'selector' };
 		var isReserve = (target.matches && target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal'))
 			|| href.indexOf('/madrid/valoracion/') !== -1;
 		var isWhatsApp = (target.matches && target.matches('[data-gtag="click-whatsapp"]'))
@@ -155,9 +136,6 @@
 			|| isJoinchatTarget(target);
 		var isPhone = /^tel:/i.test(href);
 
-		// Track treatment-specific clicks for Google Ads conversion attribution.
-		// Emitted before the early-returning CTA branches so that treatment CTAs
-		// (reservation/WhatsApp/phone) still surface a treatment-scoped signal.
 		if (isReserve || isWhatsApp || isPhone) {
 			if (pagePath().indexOf('/laser-co2-fraccionado-madrid/') !== -1) {
 				emit('co2_treatment_click', Object.assign({ treatment_type: 'laser_co2' }, common));
@@ -167,33 +145,24 @@
 			}
 		}
 
-		// Track reservation clicks
 		if (isReserve) {
 			emit('reserve_click', Object.assign({ contact_method: 'reservation' }, common));
 			return;
 		}
-
-		// Track WhatsApp clicks
 		if (isWhatsApp) {
 			emit('whatsapp_click', Object.assign({ contact_method: 'whatsapp' }, common));
 			if (reportPhoneWhatsAppConversion(href || undefined, {
 				newTab: target.getAttribute('target') === '_blank' || isJoinchatTarget(target) || !href,
-			})) {
-				event.preventDefault();
-			}
+			})) event.preventDefault();
 			return;
 		}
-
-		// Track phone clicks
 		if (isPhone) {
 			emit('phone_click', {
 				contact_method: 'phone',
 				cta_region: regionFor(target),
 				cta_marker: dataEvent || 'tel_link',
 			});
-			if (reportPhoneWhatsAppConversion(href, { newTab: false })) {
-				event.preventDefault();
-			}
+			if (reportPhoneWhatsAppConversion(href, { newTab: false })) event.preventDefault();
 		}
 	}
 
@@ -201,11 +170,6 @@
 		return cleanToken(formId, 'unknown_form') + '|' + pagePath();
 	}
 
-	/**
-	 * Track one confirmed HubSpot submission across V4 and legacy postMessage channels.
-	 * A fallback form+path key always bridges callbacks where one channel lacks a
-	 * conversion ID. Distinct known conversion IDs remain independent conversions.
-	 */
 	function trackSuccessfulSubmission(formId, eventSource, conversionId) {
 		var now = Date.now();
 		var normalizedConversionId = String(conversionId || '');
@@ -214,11 +178,7 @@
 		var fallbackPrevious = recentSubmissions.get(fallbackKey) || 0;
 		var fallbackPreviousId = recentFallbackConversionIds.get(fallbackKey) || '';
 
-		if (conversionKey) {
-			var conversionPrevious = recentSubmissions.get(conversionKey) || 0;
-			if (now - conversionPrevious < 3600000) return;
-		}
-
+		if (conversionKey && now - (recentSubmissions.get(conversionKey) || 0) < 3600000) return;
 		if (now - fallbackPrevious < submissionWindowMs) {
 			var distinctKnownConversions = Boolean(
 				normalizedConversionId && fallbackPreviousId && normalizedConversionId !== fallbackPreviousId
@@ -239,11 +199,7 @@
 
 		if (String(formId || '').toLowerCase() === canonicalForm) {
 			window.dataLayer = window.dataLayer || [];
-			window.dataLayer.push({
-				event: 'nvx_valoracion_success',
-				form: 'valoracion',
-				source: 'hubspot_native'
-			});
+			window.dataLayer.push({ event: 'nvx_valoracion_success', form: 'valoracion', source: 'hubspot_native' });
 		}
 	}
 
@@ -261,27 +217,19 @@
 
 	window.addEventListener('hs-form-event:on-submission:success', function (event) {
 		var detail = event && event.detail ? event.detail : {};
-		// Invoke legacy onBeforeFormSubmit hook for compatibility
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit === 'function') {
-			try {
-				window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId);
-			} catch (_error) {}
+			try { window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId); } catch (_error) {}
 		}
 		var convId = '';
 		if (window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getFormFromEvent === 'function') {
 			try {
 				var successfulForm = window.HubSpotFormsV4.getFormFromEvent(event);
-				if (successfulForm && typeof successfulForm.getConversionId === 'function') {
-					convId = successfulForm.getConversionId() || '';
-				}
+				if (successfulForm && typeof successfulForm.getConversionId === 'function') convId = successfulForm.getConversionId() || '';
 			} catch (_error) {}
 		}
 		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);
-		// Invoke legacy onFormSubmitted hook for compatibility
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormSubmitted === 'function') {
-			try {
-				window.NUVANXGoogleAttributionLegacy.onFormSubmitted(null, detail.formId);
-			} catch (_error) {}
+			try { window.NUVANXGoogleAttributionLegacy.onFormSubmitted(null, detail.formId); } catch (_error) {}
 		}
 	});
 
@@ -289,11 +237,7 @@
 		if (!isAllowedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
 		if (typeof data === 'string') {
-			try {
-				data = JSON.parse(data) || {};
-			} catch (_error) {
-				data = {};
-			}
+			try { data = JSON.parse(data) || {}; } catch (_error) { data = {}; }
 		}
 		if (typeof data !== 'object') data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
@@ -301,10 +245,7 @@
 		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message', convIdMessage);
 	});
 
-	window.NUVANXConversionEvents = Object.freeze({
-		emit: emit,
-		trackSuccessfulSubmission: trackSuccessfulSubmission,
-	});
+	window.NUVANXConversionEvents = Object.freeze({ emit: emit, trackSuccessfulSubmission: trackSuccessfulSubmission });
 }());
 
 (function () {
@@ -331,7 +272,6 @@
 	var sent = false;
 	var inFlight = false;
 	var auditClaimed = false;
-	var clickValues = collectClickValues();
 	var FIELD_MAP = {
 		gclid: ['nvx_google_click_id', 'hs_google_click_id'],
 		gbraid: ['nvx_google_braid'],
@@ -345,15 +285,36 @@
 		return /^[A-Za-z0-9._~:+*%/=\-]+$/.test(normalized) ? normalized : '';
 	}
 
+	function contractTouch(method) {
+		var contract = window.NUVANXAttributionContract;
+		if (!contract || typeof contract[method] !== 'function') return {};
+		try { return contract[method]() || {}; } catch (_error) { return {}; }
+	}
+
+	function getNvxLeadId() {
+		var contract = window.NUVANXAttributionContract;
+		if (!contract || typeof contract.getLeadId !== 'function') return '';
+		try {
+			var id = String(contract.getLeadId() || '').trim().toLowerCase();
+			return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id) ? id : '';
+		} catch (_error) {
+			return '';
+		}
+	}
+
 	function collectClickValues() {
 		var params = new URLSearchParams(window.location.search || '');
+		var conversion = contractTouch('getConversionTouch');
+		var first = contractTouch('getFirstTouch');
 		return {
-			gclid: cleanClickValue(params.get('gclid'), 512),
-			gbraid: cleanClickValue(params.get('gbraid'), 512),
-			wbraid: cleanClickValue(params.get('wbraid'), 512),
-			gclsrc: cleanClickValue(params.get('gclsrc'), 128),
+			gclid: cleanClickValue(params.get('gclid') || conversion.gclid || first.gclid, 512),
+			gbraid: cleanClickValue(params.get('gbraid') || conversion.gbraid || first.gbraid, 512),
+			wbraid: cleanClickValue(params.get('wbraid') || conversion.wbraid || first.wbraid, 512),
+			gclsrc: cleanClickValue(params.get('gclsrc') || conversion.gclsrc || first.gclsrc, 128),
 		};
 	}
+
+	var clickValues = collectClickValues();
 
 	function hasGoogleClickIdentifier(values) {
 		return Boolean(values && (values.gclid || values.gbraid || values.wbraid));
@@ -378,11 +339,7 @@
 
 	function isCanonicalForm(form) {
 		if (!form || typeof form.getFormId !== 'function') return false;
-		try {
-			return String(form.getFormId() || '').toLowerCase() === FORM_ID;
-		} catch (_error) {
-			return false;
-		}
+		try { return String(form.getFormId() || '').toLowerCase() === FORM_ID; } catch (_error) { return false; }
 	}
 
 	function fieldCandidates(propertyName) {
@@ -392,16 +349,10 @@
 	async function populateHubSpotClickFields(form) {
 		if (!isCanonicalForm(form)) return false;
 		if (typeof form.getFormFieldValues !== 'function' || typeof form.setFieldValue !== 'function') return false;
-
 		var consent = hasMarketingConsent();
 		var fields;
-		try {
-			fields = await form.getFormFieldValues();
-		} catch (_error) {
-			return false;
-		}
+		try { fields = await form.getFormFieldValues(); } catch (_error) { return false; }
 		if (!Array.isArray(fields)) return false;
-
 		var availableNames = new Set(fields.map(function (field) {
 			return field && typeof field.name === 'string' ? field.name : '';
 		}).filter(Boolean));
@@ -421,16 +372,14 @@
 				});
 			});
 		});
-
 		return modified;
 	}
 
 	function populateExistingForms() {
+		clickValues = collectClickValues();
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
 		try {
-			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) {
-				populateHubSpotClickFields(form);
-			});
+			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) { populateHubSpotClickFields(form); });
 		} catch (_error) {}
 	}
 
@@ -441,31 +390,22 @@
 		try {
 			var form = window.HubSpotFormsV4.getFormFromEvent(event);
 			populateHubSpotClickFields(form);
-			// Invoke legacy attribution hook for compatibility
 			if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormReady === 'function') {
-				try {
-					window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId);
-				} catch (_error) {}
+				try { window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId); } catch (_error) {}
 			}
 		} catch (_error) {}
 	});
 
 	document.addEventListener('wp_listen_for_consent_change', populateExistingForms);
 	document.addEventListener('wp_consent_type_defined', populateExistingForms);
-
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', populateExistingForms, { once: true });
-	} else {
-		populateExistingForms();
-	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', populateExistingForms, { once: true });
+	else populateExistingForms();
 
 	function canonicalLandingUrl() {
 		try {
 			var current = new URL(window.location.href);
 			return current.origin + current.pathname;
-		} catch (_error) {
-			return '';
-		}
+		} catch (_error) { return ''; }
 	}
 
 	function normalizeEmail(value) {
@@ -473,9 +413,7 @@
 	}
 
 	function bytesToHex(buffer) {
-		return Array.from(new Uint8Array(buffer))
-			.map(function (byte) { return byte.toString(16).padStart(2, '0'); })
-			.join('');
+		return Array.from(new Uint8Array(buffer)).map(function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
 	}
 
 	async function sha256(value) {
@@ -483,12 +421,9 @@
 		try {
 			var digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
 			return bytesToHex(digest);
-		} catch (_error) {
-			return '';
-		}
+		} catch (_error) { return ''; }
 	}
 
-	/** Return one UUID that remains stable for every retry of a submission. */
 	function createSubmissionId() {
 		if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
 		if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
@@ -522,17 +457,9 @@
 		if (!fields) {
 			if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== 'function') return null;
 			var form;
-			try {
-				form = window.HubSpotFormsV4.getFormFromEvent(event);
-			} catch (_error) {
-				return null;
-			}
+			try { form = window.HubSpotFormsV4.getFormFromEvent(event); } catch (_error) { return null; }
 			if (!isCanonicalForm(form) || typeof form.getFormFieldValues !== 'function') return null;
-			try {
-				fields = await form.getFormFieldValues();
-			} catch (_error) {
-				return null;
-			}
+			try { fields = await form.getFormFieldValues(); } catch (_error) { return null; }
 		}
 		if (!Array.isArray(fields) || !hasMarketingConsent()) return null;
 
@@ -540,9 +467,11 @@
 		if (!email || email.length > 320 || email.indexOf('@') <= 0) return null;
 		var emailHash = await sha256(email);
 		if (!/^[0-9a-f]{64}$/.test(emailHash) || !hasMarketingConsent()) return null;
+		clickValues = collectClickValues();
 
 		return {
 			submission_id: createSubmissionId() || null,
+			nvx_lead_id: getNvxLeadId() || null,
 			email_hash: emailHash,
 			gclid: clickValues.gclid || null,
 			gbraid: clickValues.gbraid || null,
@@ -562,18 +491,11 @@
 	function releaseAuditClaim() {
 		auditClaimed = false;
 		var pending = legacyPendingSubmission;
-		// Claim contention does not consume transport retry budget. The retryCount < 3
-		// guard keeps these short rechecks bounded by the same transport-failure budget.
 		if (pending && pending.successSeen && pending.emailHash && !sent && !legacyRetryTimer && pending.retryCount < 3) {
 			scheduleLegacyRetry(pending, false);
 		}
 	}
 
-	/**
-	 * Submits an attribution audit after marketing consent is confirmed.
-	 * @param {Object} payload - The attribution audit data to transmit.
-	 * @return {Promise<boolean>} Whether the request reached a terminal accepted/client-error state.
-	 */
 	async function transmitAudit(payload) {
 		if (sent || inFlight || !payload || !hasMarketingConsent()) return false;
 		inFlight = true;
@@ -606,7 +528,6 @@
 	var legacyRetryTimer = null;
 	var legacyNativeGclidInputs = new WeakSet();
 
-	/** Clear only the currently expected legacy submission when a caller supplies one. */
 	function clearLegacyPendingSubmission(expectedPending) {
 		if (expectedPending && legacyPendingSubmission !== expectedPending) return;
 		legacyPendingSubmission = null;
@@ -623,9 +544,7 @@
 			else if (root && typeof root.get === 'function') root = root.get(0);
 			else if (root && root.jquery && root[0]) root = root[0];
 			else if (root && root[0] && root[0].nodeType === 1) root = root[0];
-		} catch (_error) {
-			return null;
-		}
+		} catch (_error) { return null; }
 		return (root && root.nodeType === 1 && typeof root.querySelector === 'function') ? root : null;
 	}
 
@@ -657,9 +576,7 @@
 			input.dispatchEvent(new Event('input', { bubbles: true }));
 			input.dispatchEvent(new Event('change', { bubbles: true }));
 			return true;
-		} catch (_error) {
-			return false;
-		}
+		} catch (_error) { return false; }
 	}
 
 	function canonicalLegacyRoot(formLike, formId) {
@@ -675,7 +592,7 @@
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return false;
 		if (legacyFormRoots.indexOf(root) === -1) legacyFormRoots.push(root);
-
+		clickValues = collectClickValues();
 		var consent = hasMarketingConsent();
 		var modified = false;
 		Object.keys(FIELD_MAP).forEach(function (param) {
@@ -693,11 +610,7 @@
 				}
 				var wrote = setLegacyField(root, propertyName, value, input);
 				modified = wrote || modified;
-				// Ownership follows the adapter applying the consented attribution value,
-				// not whether the DOM changed; HubSpot may already hold the same GCLID.
-				if (consent && propertyName === 'hs_google_click_id' && value && input) {
-					legacyNativeGclidInputs.add(input);
-				}
+				if (consent && propertyName === 'hs_google_click_id' && value && input) legacyNativeGclidInputs.add(input);
 			});
 		});
 		return modified;
@@ -705,19 +618,10 @@
 
 	function refreshLegacyForms() {
 		if (!hasMarketingConsent()) clearLegacyPendingSubmission();
-		legacyFormRoots = legacyFormRoots.filter(function (root) {
-			return root ? root.isConnected : false;
-		});
-		legacyFormRoots.forEach(function (root) {
-			populateLegacyClickFields(root);
-		});
+		legacyFormRoots = legacyFormRoots.filter(function (root) { return root ? root.isConnected : false; });
+		legacyFormRoots.forEach(function (root) { populateLegacyClickFields(root); });
 	}
 
-	/**
-	 * Captures the newest canonical legacy submission and hashes its email immediately.
-	 * A newer canonical submission attempt invalidates any older pending retry state,
-	 * even when the new attempt has a missing or invalid email field.
-	 */
 	async function captureLegacyEmail(formLike, formId) {
 		populateLegacyClickFields(formLike, formId);
 		if (!hasMarketingConsent()) {
@@ -726,9 +630,6 @@
 		}
 		var root = canonicalLegacyRoot(formLike, formId);
 		if (!root) return;
-
-		// Pair pending state strictly with the newest canonical submit attempt. This
-		// prevents a later invalid capture from reusing an earlier submission hash.
 		clearLegacyPendingSubmission();
 		var emailInput = legacyFieldInput(root, 'email');
 		if (!emailInput) return;
@@ -738,14 +639,13 @@
 		var pending = {
 			root: root,
 			submissionId: createSubmissionId(),
+			nvxLeadId: getNvxLeadId(),
 			emailHash: '',
 			retryCount: 0,
 			successSeen: false,
 		};
 		legacyPendingSubmission = pending;
-		legacyEmailClearTimer = window.setTimeout(function () {
-			clearLegacyPendingSubmission(pending);
-		}, 30000);
+		legacyEmailClearTimer = window.setTimeout(function () { clearLegacyPendingSubmission(pending); }, 30000);
 
 		var emailHash = await sha256(email);
 		email = '';
@@ -758,7 +658,6 @@
 		if (pending.successSeen) transmitLegacySuccess(pending.root, FORM_ID);
 	}
 
-	/** Schedule a bounded retry for the same pending submission. */
 	function scheduleLegacyRetry(pendingArg, consumeBudget) {
 		var pending = pendingArg || legacyPendingSubmission;
 		if (!pending || legacyPendingSubmission !== pending || legacyRetryTimer || sent) return;
@@ -774,11 +673,6 @@
 		}, delay);
 	}
 
-	/**
-	 * Sends a canonical legacy submission. The direct hook confirms its exact root.
-	 * A trusted postMessage may confirm the pending submission only when exactly one
-	 * connected canonical root exists and it is the same root captured before submit.
-	 */
 	async function transmitLegacySuccess(formLike, formId) {
 		var pending = legacyPendingSubmission;
 		if (!pending) return;
@@ -787,9 +681,7 @@
 			if (!root || root !== pending.root) return;
 			pending.successSeen = true;
 		} else if (!pending.successSeen) {
-			legacyFormRoots = legacyFormRoots.filter(function (root) {
-				return root ? root.isConnected : false;
-			});
+			legacyFormRoots = legacyFormRoots.filter(function (root) { return root ? root.isConnected : false; });
 			if (legacyFormRoots.length !== 1 || legacyFormRoots[0] !== pending.root) return;
 			pending.successSeen = true;
 		}
@@ -801,12 +693,13 @@
 			clearLegacyPendingSubmission(pending);
 			return;
 		}
-		if (!pending.emailHash) return;
-		if (!claimAudit()) return;
+		if (!pending.emailHash || !claimAudit()) return;
 		try {
 			if (legacyPendingSubmission !== pending || !hasMarketingConsent()) return;
+			clickValues = collectClickValues();
 			var terminal = await transmitAudit({
 				submission_id: pending.submissionId || null,
+				nvx_lead_id: pending.nvxLeadId || getNvxLeadId() || null,
 				email_hash: pending.emailHash,
 				gclid: clickValues.gclid || null,
 				gbraid: clickValues.gbraid || null,
@@ -829,21 +722,13 @@
 			if (url.protocol !== 'https:' || url.port) return false;
 			var host = url.hostname.toLowerCase();
 			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);
-		} catch (_error) {
-			return false;
-		}
+		} catch (_error) { return false; }
 	}
 
 	window.NUVANXGoogleAttributionLegacy = Object.freeze({
-		onFormReady: function (formLike, formId) {
-			populateLegacyClickFields(formLike, formId);
-		},
-		onBeforeFormSubmit: function (formLike, formId) {
-			return captureLegacyEmail(formLike, formId);
-		},
-		onFormSubmitted: function (formLike, formId) {
-			return transmitLegacySuccess(formLike, formId);
-		},
+		onFormReady: function (formLike, formId) { populateLegacyClickFields(formLike, formId); },
+		onBeforeFormSubmit: function (formLike, formId) { return captureLegacyEmail(formLike, formId); },
+		onFormSubmitted: function (formLike, formId) { return transmitLegacySuccess(formLike, formId); },
 	});
 
 	document.addEventListener('wp_listen_for_consent_change', refreshLegacyForms);
@@ -853,11 +738,7 @@
 		if (!isTrustedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
 		if (typeof data === 'string') {
-			try {
-				data = JSON.parse(data) || {};
-			} catch (_error) {
-				data = {};
-			}
+			try { data = JSON.parse(data) || {}; } catch (_error) { data = {}; }
 		}
 		if (typeof data !== 'object' || data === null) data = {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;

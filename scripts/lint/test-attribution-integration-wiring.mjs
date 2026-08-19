@@ -96,6 +96,7 @@ assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source')
 
 await api.syncForm(form);
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
 assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
@@ -108,6 +109,7 @@ globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
 });
 writes.clear();
 await api.syncForm(form);
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
 assert.equal(writes.get('0-1/nvx_is_test_lead'), 'false');
 globalThis.window.NUVANXAttributionContract.buildFormPayload = buildQaTruePayload;
 
@@ -134,8 +136,10 @@ assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 // Force a rejection after buildFormPayload returns so the outer async function,
 // rather than its internal guarded calls, is what rejects.
 const originalBuildFormPayload = globalThis.window.NUVANXAttributionContract.buildFormPayload;
+let ownKeysCalls = 0;
 globalThis.window.NUVANXAttributionContract.buildFormPayload = () => new Proxy({}, {
   ownKeys() {
+    ownKeysCalls += 1;
     throw new Error('forced-attribution-sync-rejection');
   },
 });
@@ -150,6 +154,7 @@ try {
   process.off('unhandledRejection', onUnhandled);
   globalThis.window.NUVANXAttributionContract.buildFormPayload = originalBuildFormPayload;
 }
+assert.equal(ownKeysCalls, 2, 'Both HubSpot async entry points must exercise syncForm');
 assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
 
 console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');

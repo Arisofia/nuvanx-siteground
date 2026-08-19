@@ -210,8 +210,10 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 
 	$is_test     = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
 	$test_run_id = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
-	$email       = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
-	$email_hash  = '' !== $email ? hash( 'sha256', $email ) : null;
+	$marketing_consent = function_exists( 'nvx_hubspot_secure_post_value' )
+		&& '1' === nvx_hubspot_secure_post_value( 'nvx_marketing_consent', 1 );
+	$email      = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
+	$email_hash = '' !== $email ? hash( 'sha256', $email ) : null;
 	unset( $email );
 	$ids = nvx_lead_captured_hubspot_ids( $response );
 
@@ -223,9 +225,15 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		'email_hash'             => $email_hash,
 		'nvx_is_test_lead'       => $is_test,
 		'nvx_test_run_id'        => '' !== $test_run_id ? $test_run_id : null,
+		'marketing_consent'      => $marketing_consent,
 		'first_attribution'      => nvx_lead_captured_attribution( $fields, 'nvx_first_' ),
 		'conversion_attribution' => nvx_lead_captured_attribution( $fields, 'nvx_conversion_' ),
 	);
+	$relay_body = wp_json_encode( $relay_payload );
+	if ( false === $relay_body ) {
+		error_log( '[NUVANX] lead-captured relay skipped: payload JSON encoding failed.' );
+		return $response;
+	}
 
 	$relay = wp_remote_post(
 		$endpoint,
@@ -236,7 +244,7 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 				'Content-Type'              => 'application/json',
 				'x-nvx-lead-capture-secret' => $secret,
 			),
-			'body'     => wp_json_encode( $relay_payload ),
+			'body'     => $relay_body,
 		)
 	);
 	if ( is_wp_error( $relay ) ) {

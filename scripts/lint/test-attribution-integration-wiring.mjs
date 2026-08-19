@@ -94,7 +94,8 @@ await import(new URL('../../wp-content/themes/nuvanx-medical/assets/js/nvx-hubsp
 const api = globalThis.window.NUVANXHubSpotAttributionSync;
 assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source');
 
-await api.syncForm(form);
+const canonicalResult = await api.syncForm(form);
+assert.equal(canonicalResult, true, 'syncForm must return true when the canonical form produces writes');
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
 assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
@@ -107,7 +108,7 @@ assert.equal(writes.size, 0);
 
 consent = true;
 writes.clear();
-await api.syncForm(form);
+assert.equal(await api.syncForm(form), true, 'syncForm must report consented canonical writes');
 assert.equal(writes.get('7-12/nvx_utm_source'), 'google');
 assert.equal(writes.get('0-1/nvx_google_click_id'), 'GCLID-TEST');
 
@@ -119,4 +120,4 @@ assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-11111111111
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 applied_lead_id=untouched');
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 applied_lead_id=untouched return_semantics=1');

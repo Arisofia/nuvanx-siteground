@@ -52,6 +52,28 @@ assert.match(payloadBlock, /'email_hash'\s*=>\s*\$email_hash/,
 assert.doesNotMatch(payloadBlock, /['"](?:email|phone|phone_number|name|first_name|last_name|full_name)['"]\s*=>/i,
   'Canonical payload must not include direct email, phone or name fields');
 
+// Transitional gate: current master predates explicit consent persistence. Once a
+// candidate adds marketing_consent, the stricter server-provenance contract becomes
+// mandatory and remains mandatory after that runtime is merged.
+const consentAware = /'marketing_consent'\s*=>/.test(payloadBlock);
+if (consentAware) {
+  assert.match(
+    relay,
+    /\$marketing_consent\s*=\s*function_exists\( 'nvx_hubspot_secure_post_value' \)[\s\S]{0,180}'1' === nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
+    'Capture consent must be re-derived server-side from the validated first-party request',
+  );
+  assert.match(payloadBlock, /'marketing_consent'\s*=>\s*\$marketing_consent/,
+    'Explicit marketing consent must reach the canonical capture ledger');
+  assert.match(relay, /\$relay_body\s*=\s*wp_json_encode\( \$relay_payload \);/,
+    'Capture payload must be encoded before transport');
+  assert.match(relay, /false === \$relay_body/,
+    'JSON encoding failure must fail closed before network transport');
+  assert.match(relay, /'body'\s*=>\s*\$relay_body/,
+    'Only a successfully encoded capture payload may be transmitted');
+} else {
+  console.log('LEAD_CAPTURED_CONSENT_GATE=MIGRATION_PENDING');
+}
+
 assert.match(relay, /HubSpot response IDs unavailable; status=%d json_error=%d/,
   'Unexpected HubSpot response structure must be observable without logging response content');
 assert.doesNotMatch(relay, /Snippet:|substr\(\s*\$body|json_last_error_msg\(\)/,
@@ -71,4 +93,4 @@ assert.match(relay, /'nvx_lead_id'\s*=>\s*\$lead_id/,
 assert.doesNotMatch(relay, /graph\.facebook\.com|functions\/v1\/web-events|googleads\.|crm\/v3\/objects\/deals/i,
   'Capture relay must not contain executable downstream advertising or Deal endpoints');
 
-console.log('LEAD_CAPTURED_SERVER_RELAY=PASS');
+console.log(`LEAD_CAPTURED_SERVER_RELAY=PASS consent=${consentAware ? 'server-derived' : 'migration-pending'}`);

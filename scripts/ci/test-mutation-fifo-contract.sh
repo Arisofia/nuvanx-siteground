@@ -167,7 +167,7 @@ env "${common_env[@]}" \
   TEST_SCENARIO=cancel_old \
   TEST_BRANCH_SCENARIO=older_active \
   bash "$SUBJECT" >"$cancel_log" 2>&1
-test -f "$TMP/cancelled_41"
+[[ -f "$TMP/cancelled_41" ]]
 grep -Fq 'MUTATION_FIFO=CANCEL_SUPERSEDED role=staging run_id=41' "$cancel_log"
 grep -Fq 'MUTATION_FIFO=PASS role=staging run_id=42' "$cancel_log"
 

@@ -68,7 +68,7 @@ const shortContentRoutes = new Set([
   '/mas-informacion-sobre-las-cookies/',
 ]);
 
-// Every published WordPress page must remain addressable with HTTP 200.
+// Every published WordPress page and article must remain addressable with HTTP 200.
 // Editorial readiness is governed by robots/sitemap policy, not by turning
 // published CMS records into frontend 404 responses.
 const normalizePath = (value) => {
@@ -107,30 +107,30 @@ async function fetchPublishedPagesViaBrowser(endpoint) {
   }
 }
 
-async function validateAndNormalizePages(pages) {
-  if (!Array.isArray(pages)) throw new TypeError('WordPress REST pages response is not an array');
-  const normalized = pages.map((page) => ({
-    id: Number(page.id),
-    slug: page.slug || '',
-    title: page.title?.rendered || '',
-    url: page.link,
-    path: normalizePath(page.link),
+async function validateAndNormalizeContent(records) {
+  if (!Array.isArray(records)) throw new TypeError('WordPress REST published-content response is not an array');
+  const normalized = records.map((record) => ({
+    id: Number(record.id),
+    slug: record.slug || '',
+    title: record.title?.rendered || '',
+    url: record.link,
+    path: normalizePath(record.link),
   }));
-  const unique = new Set(normalized.map((page) => page.path));
+  const unique = new Set(normalized.map((record) => record.path));
   if (unique.size !== normalized.length) {
-    throw new Error(`WordPress REST returned duplicate published paths: pages=${normalized.length} unique=${unique.size}`);
+    throw new Error(`WordPress REST returned duplicate published paths: records=${normalized.length} unique=${unique.size}`);
   }
 
-  for (const page of normalized) {
-    if (new URL(page.url).hostname !== expectedHost) {
-      throw new Error(`Published page ${page.id} points outside staging2: ${page.url}`);
+  for (const record of normalized) {
+    if (new URL(record.url).hostname !== expectedHost) {
+      throw new Error(`Published content ${record.id} points outside staging2: ${record.url}`);
     }
   }
   return { normalized, unique };
 }
 
-async function fetchPublishedPages() {
-  const endpoint = `${baseUrl}/wp-json/wp/v2/pages?per_page=100&status=publish&orderby=id&order=asc&_fields=id,link,slug,title`;
+async function fetchPublishedCollection(type) {
+  const endpoint = `${baseUrl}/wp-json/wp/v2/${type}?per_page=100&status=publish&orderby=id&order=asc&_fields=id,link,slug,title`;
   let lastError = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     try {
@@ -141,28 +141,31 @@ async function fetchPublishedPages() {
         },
       });
       if (isSiteGroundTransientResponse(response.status, Object.fromEntries(response.headers.entries()), response.url || endpoint)) {
-        console.warn(`Attempt ${attempt}: SiteGround Antibot challenged Node fetch; falling back to Playwright browser...`);
+        console.warn(`Attempt ${attempt}: SiteGround Antibot challenged ${type}; falling back to Playwright browser...`);
         try {
-          const pages = await fetchPublishedPagesViaBrowser(endpoint);
-          return await validateAndNormalizePages(pages);
+          const records = await fetchPublishedPagesViaBrowser(endpoint);
+          return records;
         } catch (browserErr) {
-          lastError = new Error(`SiteGround Antibot challenged WordPress REST (browser fallback failed: ${browserErr.message})`);
+          lastError = new Error(`SiteGround Antibot challenged WordPress REST ${type} (browser fallback failed: ${browserErr.message})`);
         }
       } else if (!response.ok) {
-        lastError = new Error(`WordPress REST returned HTTP ${response.status}`);
+        lastError = new Error(`WordPress REST ${type} returned HTTP ${response.status}`);
       } else {
-        const pages = await response.json();
-        return await validateAndNormalizePages(pages);
+        return await response.json();
       }
     } catch (error) {
       lastError = error;
     }
     await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
   }
-  throw lastError || new Error('Failed to fetch published pages after 4 attempts');
+  throw lastError || new Error(`Failed to fetch published ${type} after 4 attempts`);
 }
 
-const { normalized: publishedPages, unique } = await fetchPublishedPages();
+const publishedCollections = await Promise.all([
+  fetchPublishedCollection('pages'),
+  fetchPublishedCollection('posts'),
+]);
+const { normalized: publishedPages, unique } = await validateAndNormalizeContent(publishedCollections.flat());
 const manifest = await loadPublishedPagesManifest();
 assertCanonicalPublishedPaths(unique, manifest, 'WordPress REST inventory');
 const routes = publishedPages.map((page) => page.path);

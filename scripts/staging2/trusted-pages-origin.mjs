@@ -7,7 +7,7 @@ const ALLOWED_STAGING_ALIASES = new Set(['nvx-staging2', 'nvx-staging2-pr']);
 
 const WP_PAGES_SCRIPT = `set -Eeuo pipefail
 cd "$STAGING_ROOT"
-wp eval '$pages=get_posts(array("post_type"=>"page","post_status"=>"publish","posts_per_page"=>-1,"orderby"=>"ID","order"=>"ASC")); $payload=array_map(static function($p){return array("id"=>(int)$p->ID,"slug"=>(string)$p->post_name,"link"=>(string)get_permalink($p->ID),"title"=>(string)get_the_title($p->ID),"template"=>(string)get_page_template_slug($p->ID));},$pages); echo wp_json_encode($payload);'
+wp eval '$pages=get_posts(array("post_type"=>array("page","post"),"post_status"=>"publish","posts_per_page"=>-1,"orderby"=>"ID","order"=>"ASC")); $payload=array_map(static function($p){return array("id"=>(int)$p->ID,"slug"=>(string)$p->post_name,"link"=>(string)get_permalink($p->ID),"title"=>(string)get_the_title($p->ID),"post_type"=>(string)$p->post_type,"template"=>"page" === $p->post_type ? (string)get_page_template_slug($p->ID) : "");},$pages); echo wp_json_encode($payload);'
 `;
 
 function runTrustedWpCliInventory(alias, stagingRoot) {
@@ -42,7 +42,7 @@ function runTrustedWpCliInventory(alias, stagingRoot) {
 }
 
 /**
- * Ensure Block C has a trusted WordPress page inventory.
+ * Ensure Block C has a trusted WordPress published-content inventory.
  *
  * Canonical Staging already supplies WORDPRESS_PAGES_FILE explicitly. PR
  * previews run the same trusted tooling but previously fell back to the public
@@ -67,12 +67,12 @@ export async function ensureTrustedPagesFile() {
     // An explicitly configured but untrusted alias is a control-plane error,
     // not a signal to fall back to public REST. Fail closed so a typo or
     // unexpected target cannot silently weaken the trusted inventory contract.
-    throw new Error(`Refusing unsupported Staging origin alias for page inventory: ${alias}`);
+    throw new Error(`Refusing unsupported Staging origin alias for published-content inventory: ${alias}`);
   }
 
   const stagingRoot = (process.env.STAGING_ROOT || CANONICAL_STAGING_ROOT).trim();
   if (stagingRoot !== CANONICAL_STAGING_ROOT) {
-    throw new Error(`Refusing unexpected Staging root for page inventory: ${stagingRoot}`);
+    throw new Error(`Refusing unexpected Staging root for published-content inventory: ${stagingRoot}`);
   }
 
   const jsonText = await runTrustedWpCliInventory(alias, stagingRoot);
@@ -81,16 +81,16 @@ export async function ensureTrustedPagesFile() {
     pages = JSON.parse(jsonText);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Trusted WP-CLI page inventory returned invalid JSON: ${reason}`);
+    throw new Error(`Trusted WP-CLI published-content inventory returned invalid JSON: ${reason}`);
   }
   if (!Array.isArray(pages) || pages.length === 0) {
-    throw new Error('Trusted WP-CLI page inventory must be a non-empty array');
+    throw new Error('Trusted WP-CLI published-content inventory must be a non-empty array');
   }
 
   const runnerTemp = process.env.RUNNER_TEMP || '/tmp';
   const outputPath = path.join(runnerTemp, `staging2-published-pages-${process.pid}.json`);
   await fs.writeFile(outputPath, `${JSON.stringify(pages)}\n`, 'utf8');
   process.env.WORDPRESS_PAGES_FILE = outputPath;
-  console.log(`BLOCK_C_INVENTORY_BOOTSTRAP=trusted-wp-cli alias=${alias} pages=${pages.length}`);
+  console.log(`BLOCK_C_INVENTORY_BOOTSTRAP=trusted-wp-cli alias=${alias} published_content=${pages.length}`);
   return outputPath;
 }

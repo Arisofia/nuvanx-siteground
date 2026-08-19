@@ -1,0 +1,2 @@
+QA_ONLY=1
+PURPOSE=hmac-bootstrap-capture-e2e-fresh

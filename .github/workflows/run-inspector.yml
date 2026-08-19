@@ -1,0 +1,30 @@
+name: Run Inspector
+run-name: Run Inspector · 8d531f
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    if: ${{ github.head_ref == 'ops/inspect-staging-8d531f' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 8d531f2f6ca687b10f13b71a879b656e22bd27cb
+    steps:
+      - name: Inspect native Staging push
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event push --branch master --limit 100 --json databaseId,status,conclusion,headSha,createdAt,updatedAt,url)"
+          jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' <<<"$runs"
+          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::No Staging push run for $TARGET_SHA"; exit 1; }
+          echo "STAGING_RUN_ID=$run_id"
+          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'

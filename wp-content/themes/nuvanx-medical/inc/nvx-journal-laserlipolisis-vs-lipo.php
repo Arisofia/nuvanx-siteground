@@ -130,6 +130,15 @@ function nvx_journal_tech_article_markup( string $slug ): string {
 			$no  = is_array( $section['no'] ?? null ) ? $section['no'] : array();
 			if ( function_exists( 'nvx_candidacy_markup' ) ) {
 				$html .= nvx_candidacy_markup( $yes, $no );
+			} else {
+				if ( array() !== $yes ) {
+					$html .= '<h3>' . esc_html__( 'Candidato', 'nuvanx-medical' ) . '</h3>';
+					$html .= nvx_journal_laserlipo_vs_lipo_list( $yes );
+				}
+				if ( array() !== $no ) {
+					$html .= '<h3>' . esc_html__( 'No candidato', 'nuvanx-medical' ) . '</h3>';
+					$html .= nvx_journal_laserlipo_vs_lipo_list( $no );
+				}
 			}
 		}
 	}

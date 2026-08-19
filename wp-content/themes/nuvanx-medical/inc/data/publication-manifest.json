@@ -5,6 +5,7 @@
   "source": "https://nuvanx.com/",
   "routes": {
     "/": {"post_id":9,"post_type":"page","slug":"inicio","status":"publish","robots":{"index":true,"follow":true}},
+    "/acido-hialuronico-relleno-madrid/": {"post_id":3602,"post_type":"page","slug":"acido-hialuronico-relleno-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/aviso-legal/": {"post_id":20,"post_type":"page","slug":"aviso-legal","status":"publish","robots":{"index":true,"follow":true}},
     "/bioestimuladores-colageno-madrid/": {"post_id":3321,"post_type":"page","slug":"bioestimuladores-colageno-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/blog/": {"post_id":16,"post_type":"page","slug":"blog","status":"publish","robots":{"index":true,"follow":true}},
@@ -45,6 +46,7 @@
     "/labios-acido-hialuronico-madrid/": {"post_id":3318,"post_type":"page","slug":"labios-acido-hialuronico-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/": {"post_id":2017,"post_type":"page","slug":"laser-co2-fraccionado-madrid-textura-cicatrices-poro","status":"publish","robots":{"index":true,"follow":true}},
     "/laser-co2-vs-radiofrecuencia-cuando-elegir/": {"post_id":3308,"post_type":"post","slug":"laser-co2-vs-radiofrecuencia-cuando-elegir","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
+    "/laserlipolisis-vs-liposuccion/": {"post_id":3604,"post_type":"post","slug":"laserlipolisis-vs-liposuccion","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/madrid/": {"post_id":2635,"post_type":"page","slug":"madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/madrid/valoracion/": {"post_id":2636,"post_type":"page","slug":"valoracion","status":"publish","robots":{"index":true,"follow":true}},
     "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/": {"post_id":3375,"post_type":"page","slug":"manchas-rojeces-fotorejuvenecimiento-ipl-madrid","status":"publish","robots":{"index":true,"follow":true}},
@@ -69,6 +71,7 @@
     "/remodelacion-corporal-laser-madrid/": {"post_id":3370,"post_type":"page","slug":"remodelacion-corporal-laser-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/rinomodelacion-sin-cirugia-madrid-guia/": {"post_id":3512,"post_type":"post","slug":"rinomodelacion-sin-cirugia-madrid-guia","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/rinomodelacion-sin-cirugia-madrid/": {"post_id":3319,"post_type":"page","slug":"rinomodelacion-sin-cirugia-madrid","status":"publish","robots":{"index":true,"follow":true}},
+    "/smartlipo-laserlipolisis-endolift/": {"post_id":3606,"post_type":"post","slug":"smartlipo-laserlipolisis-endolift","status":"publish","robots":{"index":true,"follow":true},"schema":{"group":"blog","type":"none","context":"https://schema.org"}},
     "/soluciones-medicas/": {"post_id":3368,"post_type":"page","slug":"soluciones-medicas","status":"publish","robots":{"index":true,"follow":true}},
     "/tratamiento-postparto-abdomen-contorno-corporal-madrid/": {"post_id":3371,"post_type":"page","slug":"tratamiento-postparto-abdomen-contorno-corporal-madrid","status":"publish","robots":{"index":true,"follow":true}},
     "/tratamiento-rodillas-grasa-flacidez-madrid/": {"post_id":3380,"post_type":"page","slug":"tratamiento-rodillas-grasa-flacidez-madrid","status":"publish","robots":{"index":true,"follow":true}},

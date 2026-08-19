@@ -23,13 +23,13 @@ $blockedClaimPatterns = NVX_Editorial_Rules::BLOCKED_CLAIM_PATTERNS;
 function nvxEditorialClaimIsAdvisoryContext( string $content, int $offset ): bool {
     $windowStart = max( 0, $offset - NVX_Editorial_Rules::ADVISORY_WINDOW_SIZE );
     $beforeRaw   = substr( $content, $windowStart, $offset - $windowStart );
-    
+
     // Ensure UTF-8 validity before decoding to prevent character loss when
     // the byte-offset window splits a multibyte character (e.g., accented letters)
     if ( function_exists( 'mb_convert_encoding' ) ) {
         $beforeRaw = mb_convert_encoding( $beforeRaw, 'UTF-8', 'UTF-8' );
     }
-    
+
     $before      = html_entity_decode( wp_strip_all_tags( $beforeRaw ), ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8' );
     $before      = preg_replace( '/\s+/u', ' ', $before ) ?? $before;
 
@@ -77,7 +77,7 @@ foreach ( $ids as $postId ) {
     foreach ( $blockedClaimPatterns as $pattern => $label ) {
         $matches = array();
         $matchResult = preg_match_all( $pattern, $content, $matches, PREG_OFFSET_CAPTURE );
-        
+
         // Check for preg_match_all errors to maintain fail-closed behavior
         // Without /u on some patterns, byte-wise matching works even with malformed UTF-8
         // With /u, preg_match_all returns false on invalid UTF-8, converting fail-closed to fail-open
@@ -93,7 +93,7 @@ foreach ( $ids as $postId ) {
             );
             continue;
         }
-        
+
         if ( empty( $matches[0] ) ) {
             continue;
         }

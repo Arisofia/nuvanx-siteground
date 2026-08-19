@@ -45,11 +45,11 @@ async function loadTariffCatalog() {
  */
 function extractCanonicalPrices(catalog) {
   const prices = new Set();
-  
+
   for (const group of Object.keys(catalog)) {
     const groupData = catalog[group];
     if (!groupData || typeof groupData !== 'object') continue;
-    
+
     for (const key of Object.keys(groupData)) {
       const item = groupData[key];
       if (item && typeof item === 'object' && typeof item.pvp === 'number') {
@@ -61,7 +61,7 @@ function extractCanonicalPrices(catalog) {
       }
     }
   }
-  
+
   return prices;
 }
 
@@ -81,14 +81,14 @@ function normalizePrice(priceStr) {
  */
 function isCanonicalPrice(priceStr, canonicalPrices) {
   const normalized = normalizePrice(priceStr);
-  
+
   for (const canonical of canonicalPrices) {
     const canonicalNormalized = normalizePrice(canonical);
     if (normalized === canonicalNormalized) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -106,7 +106,7 @@ async function scanFile(filePath, canonicalPrices) {
 
     // Skip comments
     if (line.trim().startsWith('//') || line.trim().startsWith('/*')) continue;
-    
+
     // Skip if line contains shortcode (that's the correct way)
     if (line.includes('[nvx_tariff')) continue;
 
@@ -114,7 +114,7 @@ async function scanFile(filePath, canonicalPrices) {
       const matches = line.matchAll(pattern);
       for (const match of matches) {
         const matchedText = match[0];
-        
+
         // Check if this price exists in the canonical catalog
         if (!isCanonicalPrice(matchedText, canonicalPrices)) {
           violations.push({
@@ -136,12 +136,12 @@ async function scanFile(filePath, canonicalPrices) {
  */
 async function main() {
   console.log('💰 Validating rendered prices against tariff-catalog.json SSOT...');
-  
+
   const catalog = await loadTariffCatalog();
   const canonicalPrices = extractCanonicalPrices(catalog);
-  
+
   console.log(`📋 Loaded ${canonicalPrices.size} canonical prices from tariff-catalog.json`);
-  
+
   // Scan PHP files for hardcoded prices (excluding data files which are the source)
   const phpDir = THEME_DIR;
   const violations = await scanDirectory(phpDir, ['.php'], (filePath) => {
@@ -180,7 +180,7 @@ async function main() {
   console.log('   Example: 330 € → [nvx_tariff key="laser_co2.facial"]');
   console.log('   Example: 1.064,80 € → [nvx_tariff key="endolift.papada"]');
   console.log('   See docs/operations/tariff-shortcode-usage.md for usage guide');
-  
+
   console.log('\n❌ Orphaned prices detected: blocking deployment');
   process.exit(1);
 }

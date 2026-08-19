@@ -50,7 +50,7 @@ if ( ! isset( $manifest['reconciliation'] ) || ! isset( $manifest['reconciliatio
  */
 function nvx_inventory_real_references(): array {
 	global $wpdb;
-	
+
 	$references = [
 		'images' => [],
 		'scripts' => [],
@@ -60,9 +60,9 @@ function nvx_inventory_real_references(): array {
 
 	// Get images from post content
 	$image_posts = $wpdb->get_col( "
-		SELECT post_content 
-		FROM {$wpdb->posts} 
-		WHERE post_status = 'publish' 
+		SELECT post_content
+		FROM {$wpdb->posts}
+		WHERE post_status = 'publish'
 		AND post_type IN ('page', 'post')
 	" );
 
@@ -120,7 +120,7 @@ function nvx_identify_orphans( array $references ): array {
 	// Check images
 	foreach ( $references['images'] as $image_url ) {
 		$image_path = str_replace( $upload_dir['baseurl'], $upload_dir['basedir'], $image_url );
-		
+
 		// Check if file exists
 		if ( ! file_exists( $image_path ) ) {
 			$orphans['images'][] = [
@@ -149,7 +149,7 @@ function nvx_identify_orphans( array $references ): array {
 	// Check scripts
 	foreach ( $references['scripts'] as $script_url ) {
 		$script_path = str_replace( get_template_directory_uri(), $theme_dir, $script_url );
-		
+
 		if ( ! file_exists( $script_path ) ) {
 			$orphans['scripts'][] = [
 				'url' => $script_url,
@@ -162,7 +162,7 @@ function nvx_identify_orphans( array $references ): array {
 	// Check styles
 	foreach ( $references['styles'] as $style_url ) {
 		$style_path = str_replace( get_template_directory_uri(), $theme_dir, $style_url );
-		
+
 		if ( ! file_exists( $style_path ) ) {
 			$orphans['styles'][] = [
 				'url' => $style_url,
@@ -183,15 +183,15 @@ function nvx_identify_orphans( array $references ): array {
  */
 function nvx_verify_public_consumption( array $orphans ): array {
 	$consumption = [];
-	
+
 	// For each orphan, check if it's referenced in routes.json
 	$routes_file = get_template_directory() . '/inc/data/routes.json';
 	if ( is_readable( $routes_file ) ) {
 		$routes_config = json_decode( file_get_contents( $routes_file ), true );
-		
+
 		foreach ( $orphans['images'] as $orphan ) {
 			$is_referenced = false;
-			
+
 			foreach ( $routes_config as $route => $config ) {
 				// Check if route contains orphan URL
 				if ( strpos( json_encode( $config ), $orphan['url'] ) !== false ) {
@@ -199,7 +199,7 @@ function nvx_verify_public_consumption( array $orphans ): array {
 					break;
 				}
 			}
-			
+
 			$consumption[] = [
 				'url' => $orphan['url'],
 				'publicly_consumed' => $is_referenced,
@@ -248,23 +248,23 @@ function nvx_delete_orphans( array $orphans, bool $dry_run = true ): array {
  */
 function nvx_generate_media_integrity(): array {
 	$integrity = [];
-	
+
 	$upload_dir = wp_upload_dir();
 	$images = glob( $upload_dir['basedir'] . '/**/*.{jpg,jpeg,png,gif,webp,svg}', GLOB_BRACE );
-	
+
 	foreach ( $images as $image_path ) {
 		$image_url = str_replace( $upload_dir['basedir'], $upload_dir['baseurl'], $image_path );
-		
+
 		// Generate SHA-256 hash
 		$hash = hash_file( 'sha256', $image_path );
-		
+
 		$integrity[ $image_url ] = [
 			'sha256' => 'sha256-' . base64_encode( pack( 'H*', $hash ) ),
 			'path' => $image_path,
 			'size' => filesize( $image_path ),
 		];
 	}
-	
+
 	return $integrity;
 }
 

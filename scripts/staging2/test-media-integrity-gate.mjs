@@ -16,7 +16,7 @@ export async function runMediaIntegrityGate(options = {}) {
   const sha = String(options.expectedSha || process.env.EXPECTED_SHA || '').trim();
   const alias = options.originSshAlias || process.env.ORIGIN_SSH_ALIAS || 'nvx-staging2';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/artifacts');
-  
+
   assertConfig(host, sha, alias);
   await fs.mkdir(outputDir, { recursive: true });
 
@@ -44,7 +44,7 @@ export async function runMediaIntegrityGate(options = {}) {
 
   // Validate media integrity
   const issues = [];
-  
+
   if (!report.integrity || Object.keys(report.integrity).length === 0) {
     issues.push('No media integrity hashes generated');
   }

@@ -107,13 +107,13 @@ function memoryStorage() {
 
 /**
  * Execute runtime source in isolated VM context.
- * 
+ *
  * SECURITY: This function is TEST-ONLY and requires strict isolation:
  * - Accepts injectable localStorage/sessionStorage for testing scenarios
  * - External storages can break isolation between test executions
  * - Future callers must assume potential storage contamination
  * - Should ONLY be used in test/CI environments, never in production
- * 
+ *
  * @param {string} runtimeSource - JavaScript source to execute
  * @param {object} options - Execution options
  * @param {boolean} options.consent - Marketing consent flag
@@ -128,7 +128,7 @@ function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test
   if (!runtimeSource || typeof runtimeSource !== 'string') {
     throw new Error('Invalid runtime source: must be a non-empty string');
   }
-  
+
   // Basic length check to prevent excessively large inputs (DoS protection)
   if (runtimeSource.length > 1000000) { // 1MB limit
     throw new Error('Runtime source too large for safe execution');
@@ -164,7 +164,7 @@ function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test
     window, document, URL, URLSearchParams, Date, Uint8Array, Array, Object, Set,
     Boolean, String, Number, JSON, RegExp, Math, console, localStorage, sessionStorage,
   });
-  
+
   vm.runInContext(runtimeSource, context, { filename: runtimePath });
   return { window, document, localStorage, sessionStorage };
 }
@@ -208,7 +208,7 @@ if (!fs.existsSync(runtimePath)) {
     'Consented attribution storage must retain the documented 90-day TTL');
   assert.match(runtime, /CLICK_KEYS = \['gclid', 'gbraid', 'wbraid', 'gclsrc'\]/,
     'Runtime must own the canonical Google click-id set');
-  
+
   // QA marker and V4 embed logic are handled by the secure bridge, not the runtime
   // These assertions are optional and only apply when the bridge exists
 
@@ -216,7 +216,7 @@ if (!fs.existsSync(runtimePath)) {
   // Verify the runtime declares the field list that will be populated
   assert.match(runtime, /'nvx_utm_source'/, 'Runtime must declare UTM field list');
   assert.match(runtime, /'nvx_google_click_id'/, 'Runtime must declare click ID field list');
-  
+
   for (const [click, property] of clickPairs) {
     assert.match(runtime, new RegExp(`${click}`), `Embed runtime must handle ${click}`);
     if (bridge) {
@@ -246,7 +246,7 @@ if (!fs.existsSync(runtimePath)) {
     'WordPress must enqueue the attribution contract');
   assert.match(gtm, /add_action\( 'wp_enqueue_scripts', 'nvx_gtm_enqueue_attribution_contract', 9 \)/,
     'Attribution contract must enqueue before the conversion relay');
-  
+
   // Bridge assertions are optional - Runtime Contract v2 can exist without the secure bridge
   if (bridge) {
     assert.match(gtm, /require_once __DIR__ \. '\/nvx-hubspot-secure-attribution\.php'/,
@@ -255,7 +255,7 @@ if (!fs.existsSync(runtimePath)) {
 
   assert.match(direct, /submissions\/v3\/integration\/submit\//,
     'Existing direct-form transport must remain the proven single-call public transport before interception');
-  
+
   // Bridge assertions are optional - Runtime Contract v2 can exist without the secure bridge
   if (bridge) {
     assert.match(bridge, /submissions\/v3\/integration\/secure\/submit\//,

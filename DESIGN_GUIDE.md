@@ -1,6 +1,6 @@
 # NUVANX Design System & Architecture Guide — Canonical 13-Point System
 
-> **Official Design Architecture Document** · Medical Aesthetics & Laser Technology (Madrid)  
+> **Official Design Architecture Document** · Medical Aesthetics & Laser Technology (Madrid)
 > Single Source of Truth for Visual Identity, CSS Tokens, Components, and Accessibility Governance.
 
 ---

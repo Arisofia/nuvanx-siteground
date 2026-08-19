@@ -99,7 +99,7 @@ test.describe('Hamburger Menu Geometry & Runtime Contract', () => {
       // Check 1-2: hamburger visible, desktop nav hidden
       const hamburger = page.locator('#nvx-hamburger-btn');
       await expect(hamburger).toBeVisible();
-      
+
       const desktopNav = page.locator('.nvx-nav');
       await expect(desktopNav).not.toBeVisible();
 
@@ -109,21 +109,21 @@ test.describe('Hamburger Menu Geometry & Runtime Contract', () => {
       await expect(dialog).toHaveAttribute('open', '');
       await expect(hamburger).toHaveAttribute('aria-expanded', 'true');
       await expect(dialog).not.toHaveAttribute('inert', '');
-      
+
       const bodyOverflow = await page.evaluate(() => getComputedStyle(document.body).overflow);
       expect(bodyOverflow).toBe('hidden');
 
       // Check 8-11: geometry validation
       const links = page.locator('.nvx-mobile-nav__list a');
       const linkCount = await links.count();
-      
+
       for (let i = 0; i < linkCount; i++) {
         const link = links.nth(i);
         const box = await link.boundingBox();
-        
+
         // Check 11: min 48px height
         expect(box.height).toBeGreaterThanOrEqual(48);
-        
+
         // Check 10: within viewport horizontally
         expect(box.x).toBeGreaterThanOrEqual(0);
         expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
@@ -136,7 +136,7 @@ test.describe('Hamburger Menu Geometry & Runtime Contract', () => {
         dialogScrollWidth: document.querySelector('#nvx-mobile-nav').scrollWidth,
         dialogClientWidth: document.querySelector('#nvx-mobile-nav').clientWidth,
       }));
-      
+
       expect(geometry.bodyScrollWidth).toBeLessThanOrEqual(geometry.bodyClientWidth);
       expect(geometry.dialogScrollWidth).toBeLessThanOrEqual(geometry.dialogClientWidth);
 
@@ -147,24 +147,24 @@ test.describe('Hamburger Menu Geometry & Runtime Contract', () => {
       const closeButton = page.locator('#nvx-mobile-close');
       await closeButton.click();
       await expect(dialog).not.toHaveAttribute('open', '');
-      
+
       // Reopen
       await hamburger.click();
       await expect(dialog).toHaveAttribute('open', '');
-      
+
       // Close by Escape
       await page.keyboard.press('Escape');
       await expect(dialog).not.toHaveAttribute('open', '');
-      
+
       // Reopen
       await hamburger.click();
       await expect(dialog).toHaveAttribute('open', '');
-      
+
       // Close by navigation
       const firstLink = links.first();
       await firstLink.click();
       await expect(dialog).not.toHaveAttribute('open', '');
-      
+
       // Check 17: focus returns to hamburger
       await expect(hamburger).toBeFocused();
 
@@ -173,10 +173,10 @@ test.describe('Hamburger Menu Geometry & Runtime Contract', () => {
       page.on('console', msg => {
         if (msg.type() === 'error') consoleErrors.push(msg.text());
       });
-      
+
       // Check 20: screenshot
       await page.screenshot({ path: `hamburger-${viewport.name}.png` });
-      
+
       expect(consoleErrors.length).toBe(0);
     });
   }

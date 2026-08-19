@@ -27,22 +27,22 @@ async function getExpectedManifestInfo() {
   // rather than process cwd, making the reader location-independent
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const manifestPath = path.resolve(moduleDir, '../../wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json');
-  
+
   try {
     const manifestContent = await fs.readFile(manifestPath, 'utf8');
     const manifest = JSON.parse(manifestContent);
-    
+
     if (!manifest.routes || typeof manifest.routes !== 'object') {
       throw new Error('Publication manifest missing or invalid routes object');
     }
-    
+
     const routeCount = Object.keys(manifest.routes).length;
-    
+
     // Explicit non-empty routes assertion to prevent silent pass on empty manifests
     if (routeCount === 0) {
       throw new Error('Publication manifest routes object is empty');
     }
-    
+
     return {
       routeCount,
       version: manifest.version || null,

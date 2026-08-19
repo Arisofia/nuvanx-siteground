@@ -629,11 +629,11 @@ function nvx_sanitize_invalid_list_roles( string $html ): string {
 	// Remove role="listitem" from article elements (invalid ARIA)
 	$updated = preg_replace( '/(<article\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $html );
 	$updated = is_string( $updated ) ? $updated : $html;
-	
+
 	// Remove role="list" from div elements (invalid ARIA)
 	$updated = preg_replace( '/(<div\b[^>]*\bnvx-brand-grid\b[^>]*?)\srole=(["\'])list\2/iu', '$1', $updated );
 	$updated = is_string( $updated ) ? $updated : $html;
-	
+
 	// Remove role="listitem" from any nvx-brand-card article (aggressive catch-all)
 	$updated = preg_replace( '/(<article\b[^>]*\bnvx-brand-card\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $updated );
 	$updated = is_string( $updated ) ? $updated : $html;

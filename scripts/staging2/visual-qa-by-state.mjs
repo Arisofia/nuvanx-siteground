@@ -20,26 +20,26 @@ function validateOutputDir(outputDir) {
   if (!outputDir || typeof outputDir !== 'string') {
     throw new Error('Invalid output directory: must be a non-empty string');
   }
-  
+
   // Resolve to absolute path
   const resolvedPath = path.resolve(outputDir);
-  
+
   // Define allowed base directories
   const allowedBases = [
     path.resolve('scripts/staging2'),
     path.resolve('scripts/staging2/visual-qa-artifacts'),
     path.resolve('scripts/staging2/visual-qa-by-state-artifacts'),
   ];
-  
+
   // Check if the resolved path is within allowed base directories
-  const isAllowed = allowedBases.some(base => 
+  const isAllowed = allowedBases.some(base =>
     resolvedPath === base || resolvedPath.startsWith(base + path.sep)
   );
-  
+
   if (!isAllowed) {
     throw new Error(`Invalid output directory: ${outputDir} is not within allowed directories`);
   }
-  
+
   return resolvedPath;
 }
 
@@ -64,17 +64,17 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
     throw new Error('Invalid output directory in testViewportState');
   }
   const screenshotPath = path.join(outputDir, `${viewportName}_${stateName}.png`);
-  
+
   try {
     // Close any existing session
     runAgentBrowser(['close', '--all']);
-    
+
     // Open with viewport
     runAgentBrowser(['open', url, '--viewport', `${viewport.width}x${viewport.height}`]);
-    
+
     // Wait for page load
     runAgentBrowser(['wait', '--load', 'networkidle']);
-    
+
     // State-specific actions
     switch (stateName) {
       case 'first_visit':
@@ -104,13 +104,13 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
         // Would need to trigger modal
         break;
     }
-    
+
     // Take screenshot
     runAgentBrowser(['screenshot', screenshotPath]);
-    
+
     // Close session
     runAgentBrowser(['close']);
-    
+
     return { success: true, screenshot: screenshotPath };
   } catch (error) {
     runAgentBrowser(['close']);
@@ -120,7 +120,7 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
 
 async function runVisualQA(url, outputDir) {
   const validatedOutputDir = validateOutputDir(outputDir);
-  
+
   const results = {
     schema: 'visual-qa-by-state',
     testedAt: new Date().toISOString(),
@@ -139,11 +139,11 @@ async function runVisualQA(url, outputDir) {
     };
 
     const states = ['first_visit', 'consent_open', 'consent_accepted', 'menu_open', 'hubspot_loaded', 'hubspot_blocked', 'modal_open'];
-    
+
     for (const stateName of states) {
       console.log(`Testing ${viewportName} - ${stateName}...`);
       const result = await testViewportState(url, viewportName, viewport, stateName, validatedOutputDir);
-      
+
       viewportResults.states.push({
         name: stateName,
         success: result.success,

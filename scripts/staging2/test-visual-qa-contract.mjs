@@ -7,7 +7,7 @@ const AGENT_BROWSER = 'agent-browser';
 export async function runVisualQAContract(options = {}) {
   const url = options.url || process.env.STAGING_URL || 'https://staging2.nuvanx.com';
   const outputDir = path.resolve(options.outputDir || 'scripts/staging2/visual-qa-artifacts');
-  
+
   await fs.mkdir(outputDir, { recursive: true });
 
   // Check if agent-browser is installed
@@ -65,7 +65,7 @@ export async function runVisualQAContract(options = {}) {
   };
 
   await fs.writeFile(path.join(outputDir, 'visual-qa-contract.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-  
+
   console.log(`VISUAL_QA_CONTRACT=PASS url=${url} viewports=${report.viewportsTested} states=${report.statesTested}`);
   return report;
 }

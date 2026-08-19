@@ -590,7 +590,7 @@
     function initializeForms() {
       normalizeNativeHubSpotMounts();
       if (modal) modal.classList.remove('nvx-valoracion-modal--embed-error');
-      
+
       // Inject HubSpot identity into modal frame (presentation host only)
       const modalFrame = modal ? modal.querySelector('.hs-form-frame') : null;
       if (modalFrame && !modalFrame.dataset.portalId) {
@@ -604,7 +604,7 @@
           modalFrame.dataset.nvxHubspotLazy = '1';
         }
       }
-      
+
       enforceAccessibleIframeTitles();
       syncConversionSurfaces();
     }
@@ -772,11 +772,11 @@
         'https://forms.hsforms.com',
         window.location.origin
       ];
-      
+
       if (!event.origin || !allowedOrigins.includes(event.origin)) {
         return; // Reject messages from untrusted origins
       }
-      
+
       if (isHubSpotFormMessage(event && event.data)) markHubSpotReady();
     });
 

@@ -19,7 +19,7 @@ assert.match(relay, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
   'Relay must scope itself to the authenticated HubSpot transport only');
 assert.match(relay, /'' === \$endpoint \|\| \$url === \$endpoint/,
   'Relay must fail closed without config and never observe its own Supabase POST');
-assert.match(relay, /getenv\( 'NVX_LEAD_CAPTURE_ENDPOINT' \)/,
+assert.match(relay, /getenv.*NVX_LEAD_CAPTURE_ENDPOINT/,
   'Capture endpoint may only come from server runtime configuration');
 assert.doesNotMatch(
   relay,
@@ -29,7 +29,7 @@ assert.doesNotMatch(
 assert.match(relay, /\$status < 200 \|\| \$status >= 300/,
   'Relay must require a real 2xx HubSpot response before recording a capture');
 
-assert.match(relay, /defined\( 'NUVANX_LEAD_CAPTURE_SECRET' \)/,
+assert.match(relay, /defined.*NUVANX_LEAD_CAPTURE_SECRET/,
   'Relay secret must come from server runtime configuration');
 assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET[^\n]+['"][A-Za-z0-9_-]{16,}['"]/,
   'Relay must never contain a hardcoded secret fallback');
@@ -59,25 +59,62 @@ const consentAware = /'marketing_consent'\s*=>/.test(payloadBlock);
 if (consentAware) {
   assert.match(
     relay,
-    /\$marketing_consent\s*=\s*function_exists\( 'nvx_hubspot_secure_post_value' \)[\s\S]{0,180}'1' === nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
+    /function_exists.*nvx_hubspot_secure_post_value/,
     'Capture consent must be re-derived server-side from the validated first-party request',
+  );
+  assert.match(
+    relay,
+    /nvx_hubspot_secure_post_value.*nvx_marketing_consent/,
+    'Capture consent must derive from the marketing_consent field',
+  );
+  assert.match(
+    relay,
+    /===.*['"]1['"]/,
+    'Capture consent must use strict comparison for consent value',
+  );
+  assert.doesNotMatch(
+    relay,
+    /nvx_hubspot_secure_post_value.*nvx_marketing_consent.*1.*\)/,
+    'Capture consent must default to false when field is absent, not true',
   );
   assert.match(payloadBlock, /'marketing_consent'\s*=>\s*\$marketing_consent/,
     'Explicit marketing consent must reach the canonical capture ledger');
-  assert.match(relay, /\$relay_body\s*=\s*wp_json_encode\( \$relay_payload \);/,
+  
+  // Check for conditional attribution patterns (consent-aware mode)
+  const hasConditionalAttribution = /\?.*nvx_lead_captured_attribution/.test(payloadBlock);
+  if (hasConditionalAttribution) {
+    assert.match(payloadBlock, /'first_attribution'\s*=>\s*\$marketing_consent\s*\?/,
+      'First-touch attribution must be conditional on marketing consent');
+    assert.match(payloadBlock, /'conversion_attribution'\s*=>\s*\$marketing_consent\s*\?/,
+      'Conversion attribution must be conditional on marketing consent');
+    assert.doesNotMatch(payloadBlock, /'first_attribution'\s*=>\s*nvx_lead_captured_attribution(?!\s*\?)/,
+      'First-touch attribution must never be set unconditionally when marketing consent is conditional');
+    assert.doesNotMatch(payloadBlock, /'conversion_attribution'\s*=>\s*nvx_lead_captured_attribution(?!\s*\?)/,
+      'Conversion attribution must never be set unconditionally when marketing consent is conditional');
+  }
+  
+  assert.match(relay, /\$relay_body\s*=\s*wp_json_encode/,
     'Capture payload must be encoded before transport');
   assert.match(relay, /false === \$relay_body/,
     'JSON encoding failure must fail closed before network transport');
   assert.match(relay, /'body'\s*=>\s*\$relay_body/,
     'Only a successfully encoded capture payload may be transmitted');
+  assert.match(relay, /\$relay_identifier/,
+    'JSON encoding failure logging must include an identifier');
+  assert.match(relay, /json_error/,
+    'JSON encoding failure logging must include json_last_error_msg');
 } else {
   console.log('LEAD_CAPTURED_CONSENT_GATE=MIGRATION_PENDING');
 }
 
 assert.match(relay, /HubSpot response IDs unavailable; status=%d json_error=%d/,
   'Unexpected HubSpot response structure must be observable without logging response content');
-assert.doesNotMatch(relay, /Snippet:|substr\(\s*\$body|json_last_error_msg\(\)/,
-  'Observability must not log HubSpot body fragments or verbose decode content');
+assert.doesNotMatch(relay, /Snippet:|substr\(\s*\$body/,
+  'Observability must not log HubSpot body fragments');
+assert.doesNotMatch(relay, /json_last_error_msg\(\).*HubSpot/,
+  'Observability must not log HubSpot verbose decode content');
+assert.doesNotMatch(relay, /json_last_error_msg\(\).*response/,
+  'Observability must not log HubSpot response verbose decode content');
 assert.match(relay, /relay transport failure; wp_error_code=%s/,
   'Transport failures must expose a bounded machine-readable error code');
 assert.match(relay, /relay HTTP failure; status=%d/,

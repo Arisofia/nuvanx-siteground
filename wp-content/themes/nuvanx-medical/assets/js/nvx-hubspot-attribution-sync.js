@@ -81,17 +81,71 @@
 		return String(value);
 	}
 
+	function normalizedComparable(value) {
+		if (Array.isArray(value)) {
+			if (value.length === 0) return '';
+			if (value.length === 1) return normalizedComparable(value[0]);
+			return value.map(normalizedComparable).join(',');
+		}
+		if (value === undefined || value === null) return '';
+		if (typeof value === 'boolean') return value ? 'true' : 'false';
+		return String(value);
+	}
+
+	function fieldValueMatches(actual, expected) {
+		return normalizedComparable(actual) === normalizedComparable(expected);
+	}
+
+	async function verifyFieldValue(form, actualName, expected) {
+		if (typeof form.getFieldValue !== 'function') return null;
+		for (var attempt = 0; attempt < 3; attempt += 1) {
+			try {
+				var actual = await form.getFieldValue(actualName);
+				if (fieldValueMatches(actual, expected)) return true;
+			} catch (_error) {
+				return false;
+			}
+			if (attempt < 2) {
+				await new Promise(function (resolve) { window.setTimeout(resolve, 25); });
+			}
+		}
+		return false;
+	}
+
+	function hiddenFieldFallback(value) {
+		if (typeof value === 'boolean') return [value ? 'true' : 'false'];
+		var scalar = value === undefined || value === null ? '' : String(value);
+		return scalar === '' ? [] : [scalar];
+	}
+
 	async function setField(form, index, propertyName, value) {
 		var actualName = index.get(propertyName);
 		if (!actualName) return false;
+		var expected = hubSpotFieldValue(value);
+		var primarySucceeded = false;
 		try {
 			// HubSpot V4 may complete field writes asynchronously. Wait for the
 			// result so callers cannot read a partially synchronized lineage.
-			await Promise.resolve(form.setFieldValue(actualName, hubSpotFieldValue(value)));
-			return true;
+			await Promise.resolve(form.setFieldValue(actualName, expected));
+			primarySucceeded = true;
+		} catch (_error) {}
+
+		// Older/mocked instances may not expose getFieldValue. Preserve the
+		// documented write path, but use read-back verification whenever V4 does.
+		if (typeof form.getFieldValue !== 'function') return primarySucceeded;
+		if (primarySucceeded && await verifyFieldValue(form, actualName, expected)) return true;
+
+		// Updated HubSpot Forms V4 requires string[] for Hidden fields. Attribution
+		// properties are intentionally hidden in the live form, so retry with the
+		// documented Hidden-field representation only when scalar/boolean write
+		// did not survive read-back. Never accept a write without verifying it.
+		var fallback = hiddenFieldFallback(expected);
+		try {
+			await Promise.resolve(form.setFieldValue(actualName, fallback));
 		} catch (_error) {
 			return false;
 		}
+		return (await verifyFieldValue(form, actualName, expected)) === true;
 	}
 
 	async function syncForm(form) {

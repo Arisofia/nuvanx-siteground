@@ -19,21 +19,49 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Return the canonical HubSpot public forms submit URL intercepted by this bridge.
+ * Resolve the canonical HubSpot portal id used by the first-party form.
+ */
+function nvx_hubspot_secure_portal_id(): string {
+	if ( defined( 'NVX_HUBSPOT_PORTAL_ID' ) && '' !== (string) NVX_HUBSPOT_PORTAL_ID ) {
+		return (string) NVX_HUBSPOT_PORTAL_ID;
+	}
+	if ( defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) && '' !== (string) NVX_VALORACION_HS_FRAME_PORTAL_ID ) {
+		return (string) NVX_VALORACION_HS_FRAME_PORTAL_ID;
+	}
+	$env = (string) ( getenv( 'NVX_HUBSPOT_PORTAL_ID' ) ?: '' );
+	return '' !== $env ? $env : '147416356';
+}
+
+/**
+ * Resolve the canonical HubSpot valoración form id.
+ */
+function nvx_hubspot_secure_form_id(): string {
+	if ( defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) && '' !== (string) NVX_HUBSPOT_VALORACION_FORM_ID ) {
+		return (string) NVX_HUBSPOT_VALORACION_FORM_ID;
+	}
+	if ( defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) && '' !== (string) NVX_VALORACION_HS_FRAME_FORM_ID ) {
+		return (string) NVX_VALORACION_HS_FRAME_FORM_ID;
+	}
+	$env = (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
+	return '' !== $env ? $env : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+}
+
+/**
+ * Return the exact public Forms API URL used by nvx_valoracion_forward_to_hubspot().
  */
 function nvx_hubspot_secure_original_url(): string {
-	$portal_id = defined( 'NVX_HUBSPOT_PORTAL_ID' ) ? (string) NVX_HUBSPOT_PORTAL_ID : (string) ( getenv( 'NVX_HUBSPOT_PORTAL_ID' ) ?: '' );
-	$form_id   = defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ? (string) NVX_HUBSPOT_VALORACION_FORM_ID : (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
-	return 'https://forms.hsforms.com/submissions/v3/integration/submit/' . $portal_id . '/' . $form_id;
+	return 'https://api.hsforms.com/submissions/v3/integration/submit/'
+		. rawurlencode( nvx_hubspot_secure_portal_id() ) . '/'
+		. rawurlencode( nvx_hubspot_secure_form_id() );
 }
 
 /**
  * Return the authenticated HubSpot server-to-server submit URL.
  */
 function nvx_hubspot_secure_submit_url(): string {
-	$portal_id = defined( 'NVX_HUBSPOT_PORTAL_ID' ) ? (string) NVX_HUBSPOT_PORTAL_ID : (string) ( getenv( 'NVX_HUBSPOT_PORTAL_ID' ) ?: '' );
-	$form_id   = defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ? (string) NVX_HUBSPOT_VALORACION_FORM_ID : (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
-	return 'https://api.hsforms.com/submissions/v3/integration/secure/submit/' . $portal_id . '/' . $form_id;
+	return 'https://api.hsforms.com/submissions/v3/integration/secure/submit/'
+		. rawurlencode( nvx_hubspot_secure_portal_id() ) . '/'
+		. rawurlencode( nvx_hubspot_secure_form_id() );
 }
 
 /**
@@ -67,9 +95,8 @@ function nvx_hubspot_secure_server_owned_fields(): array {
 }
 
 /**
- * Marketing attribution fields that must be removed when consent is absent.
- * nvx_lead_id is deliberately excluded: it is first-party lead lineage, not
- * advertising attribution.
+ * Marketing attribution fields removed when consent is absent.
+ * nvx_lead_id is deliberately excluded: it is first-party lead lineage.
  *
  * @return string[]
  */

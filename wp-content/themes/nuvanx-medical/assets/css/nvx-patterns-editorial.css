@@ -1463,3 +1463,101 @@ body:not(.home) .nvx-hero__copy .nvx-title {
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
 }
+
+/* Authentic page photography — real practice, clinical context and spaces only. */
+.nvx-authentic-photo-grid {
+  padding-block: clamp(var(--nvx-space-6), 7.5vw, var(--nvx-space-12));
+  background: var(--nvx-surface-base);
+  border-block: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-authentic-photo-grid__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-authentic-photo-grid__header {
+  max-width: 42rem;
+  margin-bottom: clamp(var(--nvx-space-3), 3vw, var(--nvx-space-5));
+}
+
+.nvx-authentic-photo-grid__eyebrow {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: var(--nvx-lh-caption);
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
+.nvx-authentic-photo-grid__title {
+  margin: 0;
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  font-weight: var(--nvx-fw-regular);
+  line-height: var(--nvx-lh-heading);
+  color: var(--nvx-ink);
+}
+
+.nvx-authentic-photo-grid__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nvx-border-hairline);
+  padding: var(--nvx-border-hairline);
+  background: var(--nvx-color-line);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-authentic-photo-grid__item {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 0;
+  margin: 0;
+  background: var(--nvx-surface-base);
+}
+
+.nvx-authentic-photo-grid__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: calc(var(--nvx-space-10) * 3);
+  object-fit: cover;
+  object-position: center;
+}
+
+.nvx-authentic-photo-grid__caption {
+  margin: 0;
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: var(--nvx-lh-caption);
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
+@media (max-width: 1023px) {
+  .nvx-authentic-photo-grid__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nvx-authentic-photo-grid__image {
+    min-height: calc(var(--nvx-space-10) * 2.5);
+  }
+}
+
+@media (max-width: 640px) {
+  .nvx-authentic-photo-grid__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nvx-authentic-photo-grid__image {
+    min-height: calc(var(--nvx-space-10) * 2.25);
+  }
+}

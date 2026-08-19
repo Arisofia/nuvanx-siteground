@@ -7,9 +7,11 @@ import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 const BASE_URL = (process.env.BASE_URL || '').replace(/\/+$/, '');
 const EXPECTED_BASE = 'https://staging2.nuvanx.com';
 const ARTIFACT_PATH = new URL('./valoracion-artifacts/attribution-lineage-e2e.json', import.meta.url);
+const EVENT_NAME = process.env.GITHUB_EVENT_NAME || '';
+const ONE_SHOT_MASTER_PUSH = EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'master';
 
-if (process.env.GITHUB_EVENT_NAME !== 'pull_request_target') {
-  console.log('ATTRIBUTION_LINEAGE_E2E=SKIP reason=non_pr_preview');
+if (EVENT_NAME !== 'pull_request_target' && !ONE_SHOT_MASTER_PUSH) {
+  console.log('ATTRIBUTION_LINEAGE_E2E=SKIP reason=unsupported_event');
   process.exit(0);
 }
 
@@ -140,7 +142,7 @@ try {
   const evidence = {
     schema: 1,
     environment: 'staging2',
-    source: 'pull_request_target',
+    source: EVENT_NAME,
     form_id: consentState.formId,
     nvx_lead_id: browserLeadId,
     email,

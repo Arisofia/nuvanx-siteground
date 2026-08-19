@@ -265,6 +265,7 @@ add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 require_once get_template_directory() . '/inc/nvx-business-config.php';
 require_once get_template_directory() . '/inc/nvx-environment-flags.php';
 require_once get_template_directory() . '/inc/nvx-page-render-helpers.php';
+require_once get_template_directory() . '/inc/nvx-authentic-page-photography.php';
 require_once get_template_directory() . '/inc/nvx-document-governance.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-page-hygiene.php';

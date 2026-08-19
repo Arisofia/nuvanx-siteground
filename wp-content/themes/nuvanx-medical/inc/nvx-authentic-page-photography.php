@@ -1,0 +1,233 @@
+<?php
+/**
+ * Authentic editorial photography for pages that already have a verified
+ * NUVANX-owned clinical, consultation or clinic-space image in the media library.
+ *
+ * This module intentionally excludes stock-like, supplier, generic, bridal and
+ * patient-case assets unless their individual rights and clinical consents have
+ * been recorded. Pages without an honest candidate stay text-led.
+ *
+ * @package nuvanx-medical
+ */
+
+/**
+ * @return array<string,array{eyebrow:string,title:string,images:array<int,array{id:int,alt:string,caption:string}>}>
+ */
+function nvx_authentic_page_photo_registry(): array {
+	return array(
+		'soluciones-medicas' => array(
+			'eyebrow' => 'La práctica',
+			'title'   => 'Tecnología aplicada con criterio médico',
+			'images'  => array(
+				array( 'id' => 2470, 'alt' => 'Valoración clínica de la zona mandibular en NUVANX', 'caption' => 'Diagnóstico facial' ),
+				array( 'id' => 2471, 'alt' => 'Valoración corporal personalizada en consulta NUVANX', 'caption' => 'Valoración corporal' ),
+				array( 'id' => 2472, 'alt' => 'Tratamiento de energía en entorno clínico NUVANX', 'caption' => 'Tecnología en consulta' ),
+				array( 'id' => 2432, 'alt' => 'Tecnología DEKA preparada en la clínica NUVANX', 'caption' => 'Aparatología clínica' ),
+			),
+		),
+		'tratamientos' => array(
+			'eyebrow' => 'Tratamientos',
+			'title'   => 'La tecnología forma parte del acto médico',
+			'images'  => array(
+				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift en entorno clínico NUVANX', 'caption' => 'Endolift en contexto clínico' ),
+				array( 'id' => 2115, 'alt' => 'Procedimiento corporal láser realizado por el equipo NUVANX', 'caption' => 'Procedimiento corporal' ),
+				array( 'id' => 2472, 'alt' => 'Tecnología de energía en una sesión clínica NUVANX', 'caption' => 'Tecnología facial' ),
+				array( 'id' => 2432, 'alt' => 'Equipo médico DEKA en una sala de NUVANX', 'caption' => 'Tecnología certificada' ),
+			),
+		),
+		'medicina-estetica-laser' => array(
+			'eyebrow' => 'Medicina estética láser',
+			'title'   => 'Tecnología real, indicada de forma individual',
+			'images'  => array(
+				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift en un box clínico NUVANX', 'caption' => 'Endolift' ),
+				array( 'id' => 2115, 'alt' => 'Tratamiento corporal láser en NUVANX', 'caption' => 'Endoláser corporal' ),
+				array( 'id' => 2472, 'alt' => 'Procedimiento facial con tecnología de energía NUVANX', 'caption' => 'Láser y energía' ),
+				array( 'id' => 2432, 'alt' => 'Aparatología láser disponible en NUVANX', 'caption' => 'Equipamiento médico' ),
+			),
+		),
+		'medicina-estetica' => array(
+			'eyebrow' => 'Consulta NUVANX',
+			'title'   => 'Una indicación empieza por escuchar y valorar',
+			'images'  => array(
+				array( 'id' => 2896, 'alt' => 'Retrato del equipo médico de NUVANX', 'caption' => 'Dirección médica' ),
+				array( 'id' => 2381, 'alt' => 'Consulta entre profesional y paciente en NUVANX', 'caption' => 'Valoración personalizada' ),
+				array( 'id' => 1630, 'alt' => 'Box de tratamiento real de NUVANX', 'caption' => 'Entorno clínico' ),
+			),
+		),
+		'por-que-nuvanx' => array(
+			'eyebrow' => 'NUVANX',
+			'title'   => 'Equipo, método y lugar',
+			'images'  => array(
+				array( 'id' => 2896, 'alt' => 'Dirección médica de NUVANX', 'caption' => 'Dirección médica' ),
+				array( 'id' => 1632, 'alt' => 'Recepción real de NUVANX', 'caption' => 'La clínica' ),
+				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí', 'caption' => 'Chamberí' ),
+			),
+		),
+		'protocolos-signature' => array(
+			'eyebrow' => 'Protocolos',
+			'title'   => 'La secuencia se decide en consulta',
+			'images'  => array(
+				array( 'id' => 2892, 'alt' => 'Valoración médica en NUVANX', 'caption' => 'Consulta' ),
+				array( 'id' => 2471, 'alt' => 'Valoración corporal individualizada en NUVANX', 'caption' => 'Criterio corporal' ),
+			),
+		),
+		'endolift-facial-papada-mandibula' => array(
+			'eyebrow' => 'Endolift',
+			'title'   => 'La planificación es tan importante como la tecnología',
+			'images'  => array(
+				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift para rostro y cuello en NUVANX', 'caption' => 'Procedimiento en contexto clínico' ),
+				array( 'id' => 2892, 'alt' => 'Consulta médica antes de un tratamiento Endolift', 'caption' => 'Valoración previa' ),
+			),
+		),
+		'papada-definicion-mandibular-madrid' => array(
+			'eyebrow' => 'Diagnóstico facial',
+			'title'   => 'El abordaje se define en consulta',
+			'images'  => array(
+				array( 'id' => 2113, 'alt' => 'Procedimiento clínico Endolift en NUVANX', 'caption' => 'Tecnología en consulta' ),
+				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Plan individualizado' ),
+			),
+		),
+		'endolaser-corporal-grasa-localizada' => array(
+			'eyebrow' => 'Endoláser corporal',
+			'title'   => 'Tratamiento corporal con indicación médica',
+			'images'  => array(
+				array( 'id' => 2115, 'alt' => 'Procedimiento corporal láser realizado en NUVANX', 'caption' => 'Procedimiento corporal' ),
+				array( 'id' => 2109, 'alt' => 'Tecnología corporal utilizada en una sesión NUVANX', 'caption' => 'Tecnología en uso' ),
+				array( 'id' => 2471, 'alt' => 'Valoración corporal personalizada previa a un tratamiento', 'caption' => 'Valoración médica' ),
+			),
+		),
+		'remodelacion-corporal-laser-madrid' => array(
+			'eyebrow' => 'Remodelación corporal',
+			'title'   => 'Tratamos una indicación, no una imagen genérica',
+			'images'  => array(
+				array( 'id' => 2115, 'alt' => 'Tratamiento corporal con láser en NUVANX', 'caption' => 'Procedimiento corporal' ),
+				array( 'id' => 2109, 'alt' => 'Tecnología corporal NUVANX durante una sesión', 'caption' => 'Tecnología aplicada' ),
+			),
+		),
+		'grasa-localizada-abdomen-flancos-madrid' => array(
+			'eyebrow' => 'Valoración corporal',
+			'title'   => 'La zona se estudia antes de tratarla',
+			'images'  => array(
+				array( 'id' => 2471, 'alt' => 'Valoración corporal individualizada en NUVANX', 'caption' => 'Valoración por zona' ),
+				array( 'id' => 2115, 'alt' => 'Procedimiento corporal láser en un box NUVANX', 'caption' => 'Tratamiento en contexto' ),
+			),
+		),
+		'contacto' => array(
+			'eyebrow' => 'Dos sedes, un mismo criterio',
+			'title'   => 'Conoce dónde te recibimos',
+			'images'  => array(
+				array( 'id' => 2796, 'alt' => 'Fachada de la clínica NUVANX Chamberí', 'caption' => 'Chamberí' ),
+				array( 'id' => 2071, 'alt' => 'Fachada de la clínica NUVANX Goya', 'caption' => 'Salamanca–Goya' ),
+				array( 'id' => 1632, 'alt' => 'Recepción de la clínica NUVANX', 'caption' => 'Recepción NUVANX' ),
+			),
+		),
+		'medicina-estetica-chamberi' => array(
+			'eyebrow' => 'Chamberí',
+			'title'   => 'Una clínica real en el centro de Madrid',
+			'images'  => array(
+				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí', 'caption' => 'Fachada' ),
+				array( 'id' => 1632, 'alt' => 'Recepción de NUVANX Chamberí', 'caption' => 'Recepción' ),
+				array( 'id' => 1630, 'alt' => 'Box de tratamiento de NUVANX Chamberí', 'caption' => 'Box clínico' ),
+			),
+		),
+		'medicina-estetica-goya-barrio-salamanca' => array(
+			'eyebrow' => 'Salamanca–Goya',
+			'title'   => 'La misma práctica, en nuestra sede de Goya',
+			'images'  => array(
+				array( 'id' => 2071, 'alt' => 'Fachada de NUVANX Goya', 'caption' => 'Fachada' ),
+				array( 'id' => 1080, 'alt' => 'Recepción de NUVANX Goya', 'caption' => 'Recepción' ),
+				array( 'id' => 1078, 'alt' => 'Box y tecnología de NUVANX Goya', 'caption' => 'Box clínico' ),
+			),
+		),
+		'clinicas-de-medicina-estetica-nuvanx' => array(
+			'eyebrow' => 'Nuestras clínicas',
+			'title'   => 'Espacios creados para la consulta y el seguimiento',
+			'images'  => array(
+				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí', 'caption' => 'Chamberí' ),
+				array( 'id' => 2071, 'alt' => 'Fachada de NUVANX Goya', 'caption' => 'Salamanca–Goya' ),
+				array( 'id' => 1632, 'alt' => 'Recepción de NUVANX', 'caption' => 'Recepción' ),
+				array( 'id' => 1630, 'alt' => 'Box clínico de NUVANX', 'caption' => 'Entorno clínico' ),
+			),
+		),
+		'equipo-medico' => array(
+			'eyebrow' => 'Equipo médico',
+			'title'   => 'Profesionales que acompañan cada decisión',
+			'images'  => array(
+				array( 'id' => 2896, 'alt' => 'Retrato del Dr. Javier Rivera', 'caption' => 'Dirección médica' ),
+				array( 'id' => 1840, 'alt' => 'Retrato de la Dra. Ivon en NUVANX', 'caption' => 'Medicina preventiva' ),
+				array( 'id' => 2897, 'alt' => 'Retrato de un profesional del equipo NUVANX', 'caption' => 'Equipo NUVANX' ),
+			),
+		),
+		'nosotros' => array(
+			'eyebrow' => 'Nosotros',
+			'title'   => 'Una práctica médica de personas y espacios reales',
+			'images'  => array(
+				array( 'id' => 2896, 'alt' => 'Dirección médica de NUVANX', 'caption' => 'Equipo médico' ),
+				array( 'id' => 1632, 'alt' => 'Interior de NUVANX', 'caption' => 'La clínica' ),
+				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí', 'caption' => 'Chamberí' ),
+			),
+		),
+	);
+}
+
+/**
+ * @param array{eyebrow:string,title:string,images:array<int,array{id:int,alt:string,caption:string}>} $data Gallery data.
+ */
+function nvx_authentic_page_photo_markup( array $data ): string {
+	$items = '';
+
+	foreach ( $data['images'] as $image ) {
+		$markup = wp_get_attachment_image(
+			(int) $image['id'],
+			'large',
+			false,
+			array(
+				'class'    => 'nvx-authentic-photo-grid__image',
+				'loading'  => 'lazy',
+				'decoding' => 'async',
+				'alt'      => $image['alt'],
+				'sizes'    => '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw',
+			)
+		);
+
+		if ( ! is_string( $markup ) || '' === $markup ) {
+			continue;
+		}
+
+		$items .= '<figure class="nvx-authentic-photo-grid__item">';
+		$items .= $markup;
+		$items .= '<figcaption class="nvx-authentic-photo-grid__caption">' . esc_html( $image['caption'] ) . '</figcaption>';
+		$items .= '</figure>';
+	}
+
+	if ( '' === $items ) {
+		return '';
+	}
+
+	$html  = '<section class="nvx-authentic-photo-grid" aria-label="' . esc_attr( $data['title'] ) . '">';
+	$html .= '<div class="nvx-authentic-photo-grid__inner">';
+	$html .= '<header class="nvx-authentic-photo-grid__header">';
+	$html .= '<p class="nvx-authentic-photo-grid__eyebrow">' . esc_html( $data['eyebrow'] ) . '</p>';
+	$html .= '<h2 class="nvx-authentic-photo-grid__title">' . esc_html( $data['title'] ) . '</h2>';
+	$html .= '</header>';
+	$html .= '<div class="nvx-authentic-photo-grid__grid">' . $items . '</div>';
+	$html .= '</div></section>';
+
+	return $html;
+}
+
+/** Insert only the mapped, non-generic page photographs after the managed content. */
+function nvx_append_authentic_page_photography( string $content ): string {
+	if ( is_admin() || ! is_singular( 'page' ) || '' === $content || false !== strpos( $content, 'nvx-authentic-photo-grid' ) ) {
+		return $content;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	$data = nvx_authentic_page_photo_registry()[ $slug ] ?? null;
+	if ( ! is_array( $data ) ) {
+		return $content;
+	}
+
+	return $content . nvx_authentic_page_photo_markup( $data );
+}
+add_filter( 'the_content', 'nvx_append_authentic_page_photography', 175 );

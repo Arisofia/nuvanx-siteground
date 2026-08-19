@@ -34,11 +34,8 @@ function nvx_lead_captured_hubspot_token(): string {
 /**
  * Derive a dedicated HMAC key from the HubSpot token for capture signing.
  *
- * Uses HKDF-like derivation to avoid direct reuse of the access token for
- * multiple purposes, reducing credential material exposure scope.
- *
  * @param string $token HubSpot access token.
- * @return string Derived HMAC key (32 bytes hex-encoded).
+ * @return string Derived HMAC key as lowercase hexadecimal.
  */
 function nvx_lead_captured_derive_hmac_key( string $token ): string {
 	$context = 'nuvanx-lead-capture-hmac-key-v1';
@@ -212,7 +209,7 @@ function nvx_lead_captured_hubspot_ids( $response ): array {
 }
 
 /** Build one signed capture request. */
-function nvx_lead_captured_post_signed( string $body, string $token ): array {
+function nvx_lead_captured_post_signed( string $body, string $token ) {
 	$timestamp = (string) time();
 	$hmac_key  = nvx_lead_captured_derive_hmac_key( $token );
 	$signature = hash_hmac( 'sha256', $timestamp . '.' . $body, $hmac_key );
@@ -294,10 +291,12 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		return $response;
 	}
 
-	$is_test     = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
-	$test_run_id = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
-	$email       = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
-	$email_hash  = '' !== $email ? hash( 'sha256', $email ) : null;
+	$is_test          = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
+	$test_run_id      = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
+	$marketing_consent = function_exists( 'nvx_hubspot_secure_post_value' )
+		&& '1' === nvx_hubspot_secure_post_value( 'nvx_marketing_consent', 1 );
+	$email            = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
+	$email_hash       = '' !== $email ? hash( 'sha256', $email ) : null;
 	unset( $email );
 	$ids = nvx_lead_captured_hubspot_ids( $response );
 
@@ -309,8 +308,9 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		'email_hash'             => $email_hash,
 		'nvx_is_test_lead'       => $is_test,
 		'nvx_test_run_id'        => '' !== $test_run_id ? $test_run_id : null,
-		'first_attribution'      => nvx_lead_captured_attribution( $fields, 'nvx_first_' ),
-		'conversion_attribution' => nvx_lead_captured_attribution( $fields, 'nvx_conversion_' ),
+		'marketing_consent'      => $marketing_consent,
+		'first_attribution'      => $marketing_consent ? nvx_lead_captured_attribution( $fields, 'nvx_first_' ) : array(),
+		'conversion_attribution' => $marketing_consent ? nvx_lead_captured_attribution( $fields, 'nvx_conversion_' ) : array(),
 	);
 	$relay_body = wp_json_encode( $relay_payload );
 	if ( false === $relay_body ) {

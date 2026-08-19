@@ -212,6 +212,10 @@ jobs:
 
   deploy_staging_runners:
     name: Staging SSH runner ${{ matrix.runner_attempt }}/3
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: read
     needs: quality
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
@@ -259,6 +263,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MUTATION_ROLE: staging
+          MUTATION_CANCEL_SUPERSEDED_STAGING: '1'
           MUTATION_WAIT_MAX_SECONDS: 5400
         run: bash scripts/ci/wait-for-environment-mutation-turn.sh
 
@@ -597,8 +602,28 @@ jobs:
         run: |
           set -euo pipefail
           cd scripts/staging2
-          npm ci --ignore-scripts
-          ./node_modules/.bin/playwright install --with-deps chromium
+
+          set +e
+          timeout --signal=TERM --kill-after=15s 300s npm ci --ignore-scripts
+          npm_rc=$?
+          set -e
+          if [[ "$npm_rc" -eq 124 || "$npm_rc" -eq 137 ]]; then
+            echo 'STAGING_ACCEPTANCE_TRANSIENT=1' >> "$GITHUB_ENV"
+            echo "STAGING_ACCEPTANCE=RETRY_FRESH_RUNNER component=npm-ci exit=$npm_rc"
+            exit 0
+          fi
+          [[ "$npm_rc" -eq 0 ]] || exit "$npm_rc"
+
+          set +e
+          timeout --signal=TERM --kill-after=15s 300s ./node_modules/.bin/playwright install --with-deps chromium
+          playwright_rc=$?
+          set -e
+          if [[ "$playwright_rc" -eq 124 || "$playwright_rc" -eq 137 ]]; then
+            echo 'STAGING_ACCEPTANCE_TRANSIENT=1' >> "$GITHUB_ENV"
+            echo "STAGING_ACCEPTANCE=RETRY_FRESH_RUNNER component=playwright-install exit=$playwright_rc"
+            exit 0
+          fi
+          [[ "$playwright_rc" -eq 0 ]] || exit "$playwright_rc"
 
       - name: Run canonical Block C and valoración placement
         if: ${{ steps.ssh_preflight.outputs.connected == 'true' && env.RUN_ACCEPTANCE == 'true' && env.STAGING_ACCEPTANCE_TRANSIENT != '1' }}

@@ -23,6 +23,21 @@ if [[ "${1:-}" != api ]]; then
   exit 2
 fi
 shift
+
+if [[ "${1:-}" == '--method' && "${2:-}" == 'POST' ]]; then
+  target="${3:-}"
+  case "$target" in
+    */actions/runs/41/cancel)
+      touch "${TMP_DIR:-/tmp}/cancelled_41"
+      exit 0
+      ;;
+    *)
+      echo "unexpected gh POST target: $target" >&2
+      exit 2
+      ;;
+  esac
+fi
+
 if [[ "${1:-}" == --paginate ]]; then
   scenario="${TEST_SCENARIO:-pass}"
   case "$scenario" in
@@ -33,6 +48,12 @@ if [[ "${1:-}" == --paginate ]]; then
     blocked)
       # Older run 41 in_progress on staging
       printf '%s\t%s\t%s\t%s\t%s\n' '41' 'in_progress' 'push' '.github/workflows/staging.yml' '0123456789abcdef0123456789abcdef01234567'
+      exit 0
+      ;;
+    cancel_old)
+      if [[ ! -f "${TMP_DIR:-/tmp}/cancelled_41" ]]; then
+        printf '%s\t%s\t%s\t%s\t%s\n' '41' 'in_progress' 'push' '.github/workflows/staging.yml' '1111111111111111111111111111111111111111'
+      fi
       exit 0
       ;;
     transient_api_fail)
@@ -51,16 +72,26 @@ if [[ "${1:-}" == --paginate ]]; then
 fi
 case "${1:-}" in
   */actions/runs/42)
-    printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"in_progress","run_attempt":1,"head_sha":"0123456789abcdef0123456789abcdef01234567"}'
+    printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"in_progress","run_attempt":1,"head_sha":"0123456789abcdef0123456789abcdef01234567","head_branch":"master"}'
+    ;;
+  */actions/runs/41)
+    if [[ -f "${TMP_DIR:-/tmp}/cancelled_41" ]]; then
+      printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"completed","conclusion":"cancelled","run_attempt":1,"head_sha":"1111111111111111111111111111111111111111","head_branch":"master"}'
+    else
+      printf '%s\n' '{"path":".github/workflows/staging.yml","event":"push","status":"in_progress","run_attempt":1,"head_sha":"1111111111111111111111111111111111111111","head_branch":"master"}'
+    fi
     ;;
   */actions/workflows/staging.yml/runs*)
     branch_scenario="${TEST_BRANCH_SCENARIO:-none}"
     case "$branch_scenario" in
       superseded)
-        printf '%s\n' '{"workflow_runs":[{"id":43,"head_sha":"9999999999abcdef0123456789abcdef01234567","head_branch":"master","event":"push"}]}'
+        printf '%s\n' '{"workflow_runs":[{"id":43,"head_sha":"9999999999abcdef0123456789abcdef01234567","head_branch":"master","event":"push","status":"queued"}]}'
+        ;;
+      older_active)
+        printf '%s\n' '{"workflow_runs":[{"id":42,"head_sha":"0123456789abcdef0123456789abcdef01234567","head_branch":"master","event":"push","status":"in_progress"},{"id":41,"head_sha":"1111111111111111111111111111111111111111","head_branch":"master","event":"push","status":"in_progress"}]}'
         ;;
       none|*)
-        printf '%s\n' '{"workflow_runs":[{"id":42,"head_sha":"0123456789abcdef0123456789abcdef01234567","head_branch":"master","event":"push"}]}'
+        printf '%s\n' '{"workflow_runs":[{"id":42,"head_sha":"0123456789abcdef0123456789abcdef01234567","head_branch":"master","event":"push","status":"in_progress"}]}'
         ;;
     esac
     ;;
@@ -126,7 +157,21 @@ set -e
 grep -Fq 'MUTATION_FIFO=SUPERSEDED' "$superseded_log"
 grep -Fq 'mutation=forbidden' "$superseded_log"
 
-echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=5'
+# Case 6: Latest staging push cancels only an older active staging push, then waits for completion.
+cancel_log="$TMP/cancel.log"
+rm -f "$TMP/cancelled_41"
+env "${common_env[@]}" \
+  GITHUB_RUN_ATTEMPT=1 \
+  MUTATION_ROLE=staging \
+  MUTATION_CANCEL_SUPERSEDED_STAGING=1 \
+  TEST_SCENARIO=cancel_old \
+  TEST_BRANCH_SCENARIO=older_active \
+  bash "$SUBJECT" >"$cancel_log" 2>&1
+[[ -f "$TMP/cancelled_41" ]]
+grep -Fq 'MUTATION_FIFO=CANCEL_SUPERSEDED role=staging run_id=41' "$cancel_log"
+grep -Fq 'MUTATION_FIFO=PASS role=staging run_id=42' "$cancel_log"
+
+echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=6'
 
 # Release and theme regressions are intentionally owned by a separate contract
 # with their own diagnostics. Keep this call as the current static-gate

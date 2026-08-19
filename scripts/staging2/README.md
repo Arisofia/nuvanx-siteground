@@ -11,6 +11,10 @@ This directory contains the canonical browser acceptance harness used before any
 5. Only after those conditions are true may `production.yml` be dispatched with that accepted candidate SHA.
 6. Production verifies the immutable acceptance manifest, acquires the FIFO mutation lease, promotes that exact accepted SHA, and verifies the live disk marker and public boundary.
 
+## Trigger ownership
+
+A repository mutation performed from GitHub Actions with the repository `GITHUB_TOKEN` does not recursively trigger the `push` workflow. After an automation-authored master mutation, Staging acceptance therefore requires an explicit `workflow_dispatch` or a GitHub-native/user-authored master event that creates a canonical Staging run. Never infer acceptance from `master` advancing alone.
+
 ## P0-A attribution acceptance
 
 A Staging2 attribution run is not approved until one new QA submission is proven end to end. The same new UUID must be present in HubSpot and `public.web_lead_captures`, with `is_test_lead = true`, `reconciliation_status = 'qa_suppressed'`, and `applied_lead_id IS NULL`. The acceptance transition is therefore `web_lead_captures: 0 -> 1 QA`; static gates, a successful deploy, or a historical QA contact are not substitutes for this evidence.

@@ -21,6 +21,11 @@ assert.equal(getGitHubEventPath('push', 'master'), 'one_shot_master_push');
 assert.equal(getGitHubEventPath('workflow_dispatch', 'master'), 'trusted_workflow_dispatch');
 assert.equal(getGitHubEventPath('workflow_dispatch', 'feature'), 'unsupported_event');
 assert.equal(getGitHubEventPath('pull_request', 'master'), 'unsupported_event');
+assert.equal(getGitHubEventPath(), 'unsupported_event');
+assert.equal(getGitHubEventPath('', ''), 'unsupported_event');
+assert.equal(getGitHubEventPath(undefined, undefined), 'unsupported_event');
+assert.equal(getGitHubEventPath('', 'master'), 'unsupported_event');
+assert.equal(getGitHubEventPath('push', ''), 'unsupported_event');
 
 const captchaUrl = `https://staging2.nuvanx.com${SITEGROUND_CAPTCHA_PATH}?rid=qa`;
 const interrupted = new Error(

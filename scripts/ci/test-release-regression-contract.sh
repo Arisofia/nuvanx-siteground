@@ -17,8 +17,11 @@ BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
 ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
 DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
 LCP_CSS_CONTRACT="$ROOT/scripts/lint/test-lcp-css-delivery.mjs"
+SEO_OWNERSHIP_CONTRACT="$ROOT/scripts/lint/test-seo-catalog-ownership.php"
+SEO_TOOLING_DIR="$ROOT/scripts/seo"
+THEME_DIR="$ROOT/wp-content/themes/nuvanx-medical"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -82,5 +85,31 @@ pass_assert 'single-deploy-sha-head-owner'
 # non-blocking Google Fonts, and the narrow editorial-only defer boundary.
 node "$LCP_CSS_CONTRACT" || fail 'lcp_css_delivery_contract'
 pass_assert 'lcp-css-delivery'
+
+# Keep routed SEO metadata complete and enforce one text-metadata owner.
+php "$SEO_OWNERSHIP_CONTRACT" || fail 'seo_catalog_ownership_contract'
+pass_assert 'seo-catalog-ownership'
+
+# scripts/seo remains an independent support package. CI validates syntax only;
+# no credentialed Google/GTM publisher or diagnostic is executed automatically.
+while IFS= read -r -d '' seo_script; do
+  node --check "$seo_script" >/dev/null || fail "seo_script_syntax:$seo_script"
+done < <(find "$SEO_TOOLING_DIR" -maxdepth 1 -type f -name '*.js' -print0)
+pass_assert 'seo-tooling-syntax'
+
+# The canonical weekly schedule already executes this release contract. Audit
+# the two lockfiles that actually carry dependencies without creating a third
+# workflow or adding registry-sensitive audits to every pull request.
+if [[ "${GITHUB_EVENT_NAME:-}" == 'schedule' ]]; then
+  (
+    cd "$SEO_TOOLING_DIR"
+    npm audit --audit-level=high
+  ) || fail 'weekly_seo_npm_audit'
+  (
+    cd "$THEME_DIR"
+    composer audit --locked --format=summary
+  ) || fail 'weekly_theme_composer_audit'
+  pass_assert 'weekly-dependency-security-audit'
+fi
 
 echo "RELEASE_REGRESSION_CONTRACT=PASS assertions=$assertion_count"

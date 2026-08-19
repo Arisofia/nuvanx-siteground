@@ -1,0 +1,130 @@
+name: Final Release Execution
+run-name: Final Release Execution · 026fdcad
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  release:
+    if: ${{ github.head_ref == 'release/final-staging-production-20260820' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_SHA: 026fdcadc69692f6fcf72b6eb2adcf5e08059dfb
+    steps:
+      - name: Checkout trusted master release tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require exact current master candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master
+          current="$(git rev-parse origin/master)"
+          test "$current" = "$RELEASE_SHA" || {
+            echo "::error::Release SHA is no longer current master: release=$RELEASE_SHA current=$current"
+            exit 1
+          }
+          git cat-file -e "${RELEASE_SHA}^{commit}"
+          echo "RELEASE_CANDIDATE=PASS sha=$RELEASE_SHA"
+
+      - name: Dispatch canonical Staging
+        id: staging_dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run staging.yml --repo "$GITHUB_REPOSITORY" --ref master \
+            -f sha="$RELEASE_SHA" \
+            -f run_acceptance=true \
+            -f deep_quality=false
+          child=''
+          for attempt in $(seq 1 60); do
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --branch master --event workflow_dispatch --limit 50 --json databaseId,headSha,status)"
+            child="$(jq -r --argjson before "$before" --arg sha "$RELEASE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            [[ -n "$child" ]] && break
+            sleep 2
+          done
+          [[ "$child" =~ ^[0-9]+$ ]] || { echo '::error::Canonical Staging child run not found'; exit 1; }
+          echo "run_id=$child" >> "$GITHUB_OUTPUT"
+          echo "STAGING_DISPATCH=PASS run_id=$child sha=$RELEASE_SHA"
+
+      - name: Require canonical Staging success
+        shell: bash
+        env:
+          STAGING_RUN_ID: ${{ steps.staging_dispatch.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$STAGING_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run watch "$STAGING_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          conclusion="$(gh run view "$STAGING_RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')"
+          test "$conclusion" = success
+          echo "STAGING_WORKFLOW=PASS run_id=$STAGING_RUN_ID sha=$RELEASE_SHA"
+
+      - name: Require immutable Staging acceptance artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CANDIDATE_SHA="$RELEASE_SHA"
+          bash scripts/ci/verify-staging-acceptance.sh
+          echo "STAGING_ACCEPTANCE=PASS sha=$RELEASE_SHA"
+
+      - name: Reconfirm current master before Production
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master
+          current="$(git rev-parse origin/master)"
+          test "$current" = "$RELEASE_SHA" || {
+            echo "::error::master advanced after Staging: release=$RELEASE_SHA current=$current"
+            exit 1
+          }
+          echo "PRODUCTION_FRESHNESS=PASS sha=$RELEASE_SHA"
+
+      - name: Dispatch canonical Production
+        id: production_dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run production.yml --repo "$GITHUB_REPOSITORY" --ref master \
+            -f deploy=true \
+            -f candidate_sha="$RELEASE_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=true \
+            -f run_hubspot_e2e=true \
+            -f run_final_close_audit=true \
+            -f run_mu_plugin_forensics=true
+          child=''
+          for attempt in $(seq 1 60); do
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --branch master --event workflow_dispatch --limit 50 --json databaseId,headSha,status)"
+            child="$(jq -r --argjson before "$before" --arg sha "$RELEASE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            [[ -n "$child" ]] && break
+            sleep 2
+          done
+          [[ "$child" =~ ^[0-9]+$ ]] || { echo '::error::Canonical Production child run not found'; exit 1; }
+          echo "run_id=$child" >> "$GITHUB_OUTPUT"
+          echo "PRODUCTION_DISPATCH=PASS run_id=$child sha=$RELEASE_SHA"
+
+      - name: Require canonical Production success
+        shell: bash
+        env:
+          PRODUCTION_RUN_ID: ${{ steps.production_dispatch.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$PRODUCTION_RUN_ID" =~ ^[0-9]+$ ]]
+          gh run watch "$PRODUCTION_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          conclusion="$(gh run view "$PRODUCTION_RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')"
+          test "$conclusion" = success
+          echo "PRODUCTION_WORKFLOW=PASS run_id=$PRODUCTION_RUN_ID sha=$RELEASE_SHA"

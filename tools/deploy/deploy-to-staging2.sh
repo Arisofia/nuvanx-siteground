@@ -33,84 +33,18 @@ fail() {
   exit 1
 }
 
-provision_staging_hubspot_runtime_credential() {
-  local secret_file
-  local prod_hash
-  local staging_hash
+verify_staging_hubspot_embed_contract() {
+  local modal_file="$SOURCE_THEME/inc/nvx-valoracion-modal.php"
 
-  secret_file="$(mktemp)"
-  chmod 600 "$secret_file"
-
-  if ! (
-    cd "$PROD_ROOT"
-    wp eval 'if (!defined("NVX_HUBSPOT_ACCESS_TOKEN") || !is_string(NVX_HUBSPOT_ACCESS_TOKEN) || strlen(NVX_HUBSPOT_ACCESS_TOKEN) < 20) { exit(3); } echo NVX_HUBSPOT_ACCESS_TOKEN;' > "$secret_file"
-  ); then
-    rm -f "$secret_file"
-    fail 'production HubSpot runtime credential is unavailable; Staging2 QA cannot be provisioned'
-  fi
-  [[ -s "$secret_file" ]] || { rm -f "$secret_file"; fail 'production HubSpot runtime credential resolved empty'; }
-
-  if ! PROD_SECRET_FILE="$secret_file" STAGING_CONFIG="$WP_ROOT/wp-config.php" php <<'PHP'
-<?php
-$secret_file = (string) getenv('PROD_SECRET_FILE');
-$config_path = (string) getenv('STAGING_CONFIG');
-$secret = is_file($secret_file) ? rtrim((string) file_get_contents($secret_file), "\r\n") : '';
-if (strlen($secret) < 20 || !is_file($config_path)) {
-    fwrite(STDERR, "Staging HubSpot credential provisioning prerequisites failed.\n");
-    exit(2);
-}
-$config = (string) file_get_contents($config_path);
-$line = "define( 'NVX_HUBSPOT_ACCESS_TOKEN', " . var_export($secret, true) . " );";
-$define_pattern = '/^[ \t]*define\s*\(\s*[\'\"]NVX_HUBSPOT_ACCESS_TOKEN[\'\"]\s*,.*?\);\s*$/m';
-if (preg_match($define_pattern, $config) === 1) {
-    $updated = preg_replace($define_pattern, $line, $config, 1);
-} else {
-    $anchor_pattern = '/^[ \t]*\/\*\s*That[\'’]s all, stop editing.*$/mi';
-    if (preg_match($anchor_pattern, $config) === 1) {
-        $updated = preg_replace($anchor_pattern, $line . "\n\n$0", $config, 1);
-    } else {
-        $settings_pattern = '/^[ \t]*require_once\s+ABSPATH\s*\.\s*[\'\"]wp-settings\.php[\'\"]\s*;\s*$/m';
-        if (preg_match($settings_pattern, $config) !== 1) {
-            fwrite(STDERR, "Staging wp-config insertion anchor not found.\n");
-            exit(3);
-        }
-        $updated = preg_replace($settings_pattern, $line . "\n\n$0", $config, 1);
-    }
-}
-if (!is_string($updated) || $updated === $config && strpos($config, 'NVX_HUBSPOT_ACCESS_TOKEN') === false) {
-    fwrite(STDERR, "Staging wp-config credential update failed.\n");
-    exit(4);
-}
-$tmp = $config_path . '.nvx-hubspot-' . getmypid() . '.tmp';
-$mode = fileperms($config_path);
-try {
-    if (file_put_contents($tmp, $updated, LOCK_EX) === false) {
-        throw new RuntimeException('write');
-    }
-    if (is_int($mode)) {
-        @chmod($tmp, $mode & 0777);
-    }
-    if (!@rename($tmp, $config_path)) {
-        throw new RuntimeException('rename');
-    }
-} catch (Throwable $e) {
-    @unlink($tmp);
-    fwrite(STDERR, "Staging wp-config atomic credential update failed.\n");
-    exit(5);
-}
-PHP
-  then
-    rm -f "$secret_file"
-    fail 'failed to provision Staging2 HubSpot runtime credential'
-  fi
-
-  php -l "$WP_ROOT/wp-config.php" >/dev/null || { rm -f "$secret_file"; fail 'Staging2 wp-config failed syntax validation after credential provisioning'; }
-  prod_hash="$(sha256sum "$secret_file" | awk '{print $1}')"
-  staging_hash="$(cd "$WP_ROOT" && wp eval 'if (!defined("NVX_HUBSPOT_ACCESS_TOKEN") || !is_string(NVX_HUBSPOT_ACCESS_TOKEN)) { exit(3); } echo hash("sha256", NVX_HUBSPOT_ACCESS_TOKEN);')"
-  rm -f "$secret_file"
-
-  [[ -n "$prod_hash" && "$staging_hash" == "$prod_hash" ]] || fail 'Staging2 HubSpot runtime credential parity check failed'
-  echo 'STAGING_HUBSPOT_CREDENTIAL=PASS source=production-readonly value_exposed=0'
+  # The HubSpot iframe is configured with its public portal/form identifiers.
+  # A deployment must never copy a private credential from production or write a
+  # secret into staging wp-config.php: that bypasses repository provenance and
+  # makes staging availability depend on production configuration.
+  [[ -f "$modal_file" ]] || fail 'HubSpot modal source is missing from the immutable theme payload'
+  grep -Fq "NVX_VALORACION_HS_FRAME_PORTAL_ID" "$modal_file" || fail 'HubSpot portal identifier contract is missing'
+  grep -Fq "NVX_VALORACION_HS_FRAME_FORM_ID" "$modal_file" || fail 'HubSpot form identifier contract is missing'
+  grep -Fq "js-eu1.hsforms.net/forms/embed/" "$modal_file" || fail 'HubSpot public embed contract is missing'
+  echo 'STAGING_HUBSPOT_EMBED=PASS mode=public-embed credential-transfer=disabled'
 }
 
 purge_siteground_cache_if_available() {
@@ -269,8 +203,8 @@ echo '== Guard production read-only source identity =='
   [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]] || fail 'unexpected production active theme'
 )
 
-echo '== Provision Staging2 HubSpot runtime credential from production read-only source =='
-provision_staging_hubspot_runtime_credential
+echo '== Verify Staging2 HubSpot public embed contract =='
+verify_staging_hubspot_embed_contract
 
 echo '== Validate source PHP =='
 PHP_LINT_LOG="$(mktemp)"

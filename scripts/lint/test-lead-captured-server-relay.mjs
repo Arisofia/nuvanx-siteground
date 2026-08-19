@@ -20,10 +20,10 @@ assert.match(relay, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
 assert.match(relay, /\$status < 200 \|\| \$status >= 300/,
   'Relay must require a real 2xx HubSpot response before recording a capture');
 
-assert.match(relay, /functions\/v1\/runtime-bootstrap/,
-  'Relay must use the pinned runtime bootstrap endpoint');
-assert.match(relay, /functions\/v1\/lead-captured/,
-  'Relay must use the pinned canonical capture endpoint');
+assert.match(relay, /https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/runtime-bootstrap/,
+  'Relay must use the pinned Supabase runtime bootstrap endpoint');
+assert.match(relay, /https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/lead-captured/,
+  'Relay must use the pinned Supabase canonical capture endpoint');
 assert.match(relay, /defined\( 'NVX_HUBSPOT_ACCESS_TOKEN' \)/,
   'Relay must reuse the existing server-only HubSpot credential mechanism');
 assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET/,
@@ -31,8 +31,12 @@ assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET/,
 
 assert.match(relay, /'Authorization'\s*=>\s*'Bearer '\s*\.\s*\$token/,
   'Bootstrap must authenticate using the existing HubSpot server credential');
-assert.match(relay, /hash_hmac\( 'sha256', \$timestamp \. '\.' \. \$body, \$token \)/,
-  'Capture body must be timestamped and HMAC-signed');
+assert.match(relay, /nvx_lead_captured_derive_hmac_key/,
+  'Capture must use a derived HMAC key instead of the raw token');
+assert.match(relay, /\$hmac_key\s*=\s*nvx_lead_captured_derive_hmac_key/,
+  'HMAC key must be derived from the token');
+assert.match(relay, /hash_hmac\(\s*'sha256',\s*\$timestamp\s*\.\s*'\.'\s*\.\s*\$body,\s*\$hmac_key\s*\)/,
+  'Capture body must be timestamped and HMAC-signed with derived key');
 assert.match(relay, /'x-nvx-timestamp'\s*=>\s*\$timestamp/,
   'Signed capture must send its timestamp');
 assert.match(relay, /'x-nvx-signature'\s*=>\s*\$signature/,
@@ -41,6 +45,14 @@ assert.match(relay, /401 === \$relay_status \|\| 503 === \$relay_status/,
   'Authentication/bootstrap failures must force exactly one re-bootstrap path');
 assert.match(relay, /nvx_lead_captured_bootstrap_runtime\( \$token, true \)/,
   'Stale Vault/bootstrap state must be recoverable once');
+
+const bootstrapRuntimeMatches =
+  relay.match(/nvx_lead_captured_bootstrap_runtime\( \$token, true \)/g) || [];
+assert.equal(
+  bootstrapRuntimeMatches.length,
+  1,
+  'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery',
+);
 
 assert.match(relay, /\$email_hash\s*=\s*'' !== \$email \? hash\( 'sha256', \$email \) : null;/,
   'Relay must derive a one-way email hash before payload construction');

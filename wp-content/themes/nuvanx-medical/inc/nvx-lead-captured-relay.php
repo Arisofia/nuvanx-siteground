@@ -32,6 +32,21 @@ function nvx_lead_captured_hubspot_token(): string {
 }
 
 /**
+ * Derive a dedicated HMAC key from the HubSpot token for capture signing.
+ *
+ * Uses HKDF-like derivation to avoid direct reuse of the access token for
+ * multiple purposes, reducing credential material exposure scope.
+ *
+ * @param string $token HubSpot access token.
+ * @return string Derived HMAC key (32 bytes hex-encoded).
+ */
+function nvx_lead_captured_derive_hmac_key( string $token ): string {
+	$context = 'nuvanx-lead-capture-hmac-key-v1';
+	$info    = hash_hmac( 'sha256', $context, $token, true );
+	return bin2hex( $info );
+}
+
+/**
  * Bootstrap the already-validated HubSpot credential into Supabase Vault.
  *
  * The token is sent only as an Authorization header to the pinned bootstrap
@@ -197,9 +212,10 @@ function nvx_lead_captured_hubspot_ids( $response ): array {
 }
 
 /** Build one signed capture request. */
-function nvx_lead_captured_post_signed( string $body, string $token ) {
+function nvx_lead_captured_post_signed( string $body, string $token ): array {
 	$timestamp = (string) time();
-	$signature = hash_hmac( 'sha256', $timestamp . '.' . $body, $token );
+	$hmac_key  = nvx_lead_captured_derive_hmac_key( $token );
+	$signature = hash_hmac( 'sha256', $timestamp . '.' . $body, $hmac_key );
 	return wp_remote_post(
 		nvx_lead_captured_endpoint(),
 		array(
@@ -241,7 +257,7 @@ function nvx_lead_captured_log_relay_failure( $relay ): void {
  * @param string $url Requested URL.
  * @return mixed
  */
-function nvx_lead_captured_on_http_response( $response, array $parsed_args, string $url ) {
+function nvx_lead_captured_on_http_response( $response, array $parsed_args, string $url ): mixed {
 	if ( $url === nvx_lead_captured_endpoint() || $url === nvx_lead_captured_bootstrap_endpoint() ) {
 		return $response;
 	}

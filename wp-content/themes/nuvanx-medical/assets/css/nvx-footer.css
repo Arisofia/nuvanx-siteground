@@ -19,18 +19,23 @@
   color: var(--nvx-on-dark);
 }
 
-/* ── Inner container - diseño elegante con más spacing */
+/* ── Inner: desktop 2fr 4fr 2fr 2fr (brand + 3 sections) ─ */
 .nvx-footer__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding: var(--nvx-space-8) var(--nvx-gutter-inner);
+  padding: var(--nvx-space-8) var(--nvx-gutter-inner) 0;
   box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 2fr 4fr 2fr 2fr;
+  column-gap: var(--nvx-space-6);
+  row-gap: 0;
+  align-items: start;
 }
 
-/* ── Brand (logo elegante) ─────────────────────────────── */
+/* ── Brand (first desktop column) ──────────────────────── */
 .nvx-footer__brand {
-  margin-bottom: var(--nvx-space-6);
+  min-width: 0;
 }
 
 .nvx-footer__brand .nvx-logo {
@@ -46,7 +51,7 @@
 
 .nvx-footer__brand .nvx-logo__wordmark {
   font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h2);
+  font-size: var(--nvx-type-h3);
   font-weight: var(--nvx-fw-regular);
   color: var(--nvx-on-dark);
   letter-spacing: -0.01em;
@@ -54,58 +59,103 @@
 
 .nvx-footer__brand .nvx-logo__tagline {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-small);
-  font-weight: var(--nvx-fw-regular);
-  letter-spacing: 0.08em;
+  font-size: var(--nvx-type-micro);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  text-transform: none;
   color: var(--nvx-on-dark-72);
 }
 
-/* ── Main content grid elegante ─────────────────────────── */
-.nvx-footer__main {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--nvx-space-8);
-  margin-bottom: var(--nvx-space-8);
+.nvx-footer__cities {
+  margin: var(--nvx-space-4) 0 0;
+  padding-top: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-regular);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-on-dark-72);
 }
 
-/* ── Secciones elegantes ────────────────────────────────── */
+/* ── Main: display:contents so sections sit in the 4-col ─ */
+.nvx-footer__main {
+  display: contents;
+}
+
+/* ── Sections (details/summary accordion on mobile) ────── */
 .nvx-footer__section {
   min-width: 0;
 }
 
 .nvx-footer__section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nvx-space-2);
   margin: 0 0 var(--nvx-space-3);
+  min-height: var(--nvx-touch-target-min);
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
+  font-size: var(--nvx-type-micro);
   font-weight: var(--nvx-fw-bold);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
   color: var(--nvx-on-dark-72);
-  opacity: 0.9;
+  list-style: none;
+  cursor: pointer;
 }
 
-/* ── Links elegantes (inline para minimalismo) ───────────── */
-.nvx-footer__links-compact {
+.nvx-footer__section-title::-webkit-details-marker,
+.nvx-footer__section-title::marker {
+  display: none;
+  content: none;
+}
+
+.nvx-footer__section-title::after {
+  content: '+';
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-h3);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--nvx-on-dark-50);
+}
+
+.nvx-footer__section[open] .nvx-footer__section-title::after {
+  content: '−';
+}
+
+.nvx-footer__section-title:focus-visible {
+  outline: var(--nvx-border-hairline) solid var(--nvx-on-dark);
+  outline-offset: var(--nvx-outline-offset);
+}
+
+.nvx-footer__treatments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--nvx-space-4);
+}
+
+.nvx-footer__links {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--nvx-space-2) var(--nvx-space-4);
+  flex-direction: column;
   margin: 0;
   padding: 0;
 }
 
+.nvx-footer__links a,
 .nvx-footer__links-compact a {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-small);
+  font-size: var(--nvx-type-caption2);
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-body);
   color: var(--nvx-on-dark-72);
-  transition: color 160ms ease, opacity 160ms ease;
+  transition: color 160ms ease;
 }
 
+.nvx-footer__links a:hover,
+.nvx-footer__links a:focus-visible,
 .nvx-footer__links-compact a:hover,
 .nvx-footer__links-compact a:focus-visible {
   color: var(--nvx-on-dark);
-  opacity: 1;
 }
 
 /* ── Clínicas agrupadas (NAP legible) ─────────────────────── */
@@ -176,7 +226,7 @@
 .nvx-footer__social {
   display: flex;
   gap: var(--nvx-space-3);
-  margin-top: var(--nvx-space-4);
+  margin-top: var(--nvx-space-3);
 }
 
 .nvx-footer__social-link {
@@ -249,15 +299,108 @@
   display: none;
 }
 
+.nvx-footer--minimal .nvx-footer__cities,
+.nvx-footer--minimal .nvx-footer__social {
+  display: none;
+}
+
 .nvx-footer--minimal .nvx-footer__bottom {
   border-top: none;
   padding-top: var(--nvx-space-2);
 }
 
-/* ── Responsive: collapse 3-column grid to 1 column on mobile ── */
-@media (max-width: 768px) {
-  .nvx-footer .nvx-footer__main {
-    grid-template-columns: 1fr !important;
-    gap: var(--nvx-space-6);
+/* Desktop/tablet: keep accordions visually open and hide the toggle chrome. */
+@media (min-width: 768px) {
+  .nvx-footer__section::details-content {
+    display: block;
+    content-visibility: visible;
+    height: auto;
+    overflow: visible;
+  }
+
+  .nvx-footer__section > .nvx-footer__treatments {
+    display: grid;
+  }
+
+  .nvx-footer__section > .nvx-footer__links,
+  .nvx-footer__section > .nvx-footer__clinics {
+    display: flex;
+  }
+
+  .nvx-footer__section-title {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .nvx-footer__section-title::after {
+    display: none;
+  }
+}
+
+/* Tablet: logo full-width, then 2fr 1fr 1fr. */
+@media (max-width: 1023px) {
+  .nvx-footer__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .nvx-footer__brand {
+    margin-bottom: var(--nvx-space-5);
+    padding-bottom: var(--nvx-space-4);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  }
+
+  .nvx-footer__cities {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .nvx-footer__main {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--nvx-space-5);
+  }
+}
+
+/* Mobile: stacked brand + collapsible sections. */
+@media (max-width: 767px) {
+  .nvx-footer__inner {
+    padding-top: var(--nvx-space-6);
+  }
+
+  .nvx-footer__brand {
+    margin-bottom: var(--nvx-space-4);
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .nvx-footer__main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  }
+
+  .nvx-footer__section {
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  }
+
+  .nvx-footer__section-title {
+    margin: 0;
+    padding-block: var(--nvx-space-2);
+  }
+
+  .nvx-footer__treatments,
+  .nvx-footer__links,
+  .nvx-footer__clinics {
+    padding-bottom: var(--nvx-space-3);
+  }
+
+  .nvx-footer__treatments {
+    grid-template-columns: 1fr;
+  }
+
+  .nvx-footer__bottom-inner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

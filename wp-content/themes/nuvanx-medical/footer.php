@@ -40,13 +40,41 @@ $nvx_cases_public                = $nvx_cases_id > 0
 $nvx_why_nuvanx_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
 $nvx_investment_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
 
-$nvx_col_one = array();
-$nvx_col_two = array();
-if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_published_treatments ) ) {
-	$nvx_split_at = (int) ceil( count( $nvx_footer_published_treatments ) / 2 );
-	$nvx_col_one  = array_slice( $nvx_footer_published_treatments, 0, $nvx_split_at );
-	$nvx_col_two  = array_slice( $nvx_footer_published_treatments, $nvx_split_at );
+$nvx_footer_treatments = array(
+	array(
+		'label' => 'Endolift® facial',
+		'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
+	),
+	array(
+		'label' => 'Endoláser corporal',
+		'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
+	),
+	array(
+		'label' => 'Láser CO₂ fraccionado',
+		'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
+	),
+	array(
+		'label' => 'EXION® BTL',
+		'url'   => home_url( '/exion-btl/' ),
+	),
+);
+$nvx_footer_seen_urls = array();
+foreach ( $nvx_footer_treatments as $nvx_treatment ) {
+	$nvx_footer_seen_urls[ (string) $nvx_treatment['url'] ] = true;
 }
+if ( is_array( $nvx_footer_published_treatments ) ) {
+	foreach ( $nvx_footer_published_treatments as $nvx_treatment ) {
+		$nvx_url = isset( $nvx_treatment['url'] ) ? (string) $nvx_treatment['url'] : '';
+		if ( '' === $nvx_url || isset( $nvx_footer_seen_urls[ $nvx_url ] ) ) {
+			continue;
+		}
+		$nvx_footer_treatments[]         = $nvx_treatment;
+		$nvx_footer_seen_urls[ $nvx_url ] = true;
+	}
+}
+$nvx_split_at = (int) ceil( count( $nvx_footer_treatments ) / 2 );
+$nvx_col_one  = array_slice( $nvx_footer_treatments, 0, $nvx_split_at );
+$nvx_col_two  = array_slice( $nvx_footer_treatments, $nvx_split_at );
 
 ?>
 
@@ -60,8 +88,9 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 				aria-label="<?php esc_attr_e( 'NUVANX MEDICINA ESTÉTICA LÁSER — Inicio', 'nuvanx-medical' ); ?>"
 			>
 				<span class="nvx-logo__wordmark">NUVANX</span>
-				<span class="nvx-logo__tagline">MEDICINA ESTÉTICA LÁSER</span>
+				<span class="nvx-logo__tagline"><?php esc_html_e( 'Medicina Estética Láser', 'nuvanx-medical' ); ?></span>
 			</a>
+			<p class="nvx-footer__cities">Madrid · Chamberí<br>Madrid · Salamanca</p>
 			<div class="nvx-footer__social">
 				<a href="https://www.instagram.com/nuvanx/" class="nvx-footer__social-link" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Síguenos en Instagram', 'nuvanx-medical' ); ?>">
 					<svg class="nvx-footer__social-icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -73,24 +102,25 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 		</div>
 
 		<div class="nvx-footer__main">
-			<div class="nvx-footer__section">
-				<p class="nvx-footer__section-title">Tratamientos</p>
-				<div class="nvx-footer__links-compact">
-					<a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>">Endolift® facial</a>
-					<a href="<?php echo esc_url( home_url( '/endolaser-corporal-grasa-localizada/' ) ); ?>">Endoláser corporal</a>
-					<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a>
-					<a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>">EXION® BTL</a>
-					<?php foreach ( $nvx_col_one as $nvx_treatment ) : ?>
-						<a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a>
-					<?php endforeach; ?>
-					<?php foreach ( $nvx_col_two as $nvx_treatment ) : ?>
-						<a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a>
-					<?php endforeach; ?>
+			<details class="nvx-footer__section nvx-footer__section--treatments">
+				<summary class="nvx-footer__section-title"><?php esc_html_e( 'Tratamientos', 'nuvanx-medical' ); ?></summary>
+				<div class="nvx-footer__treatments">
+					<div class="nvx-footer__links">
+						<?php foreach ( $nvx_col_one as $nvx_treatment ) : ?>
+							<a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a>
+						<?php endforeach; ?>
+					</div>
+					<div class="nvx-footer__links">
+						<?php foreach ( $nvx_col_two as $nvx_treatment ) : ?>
+							<a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a>
+						<?php endforeach; ?>
+						<a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>"><?php esc_html_e( 'Ver todos →', 'nuvanx-medical' ); ?></a>
+					</div>
 				</div>
-			</div>
+			</details>
 
-			<div class="nvx-footer__section">
-				<p class="nvx-footer__section-title">Clínicas</p>
+			<details class="nvx-footer__section">
+				<summary class="nvx-footer__section-title"><?php esc_html_e( 'Clínicas', 'nuvanx-medical' ); ?></summary>
 				<div class="nvx-footer__clinics">
 					<div class="nvx-footer__clinic">
 						<a href="<?php echo esc_url( home_url( '/medicina-estetica-chamberi/' ) ); ?>" class="nvx-footer__clinic-name">Chamberí</a>
@@ -110,11 +140,11 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 					</div>
 					<a href="<?php echo esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/' ) ); ?>" class="nvx-footer__clinics-all">Nuestras clínicas</a>
 				</div>
-			</div>
+			</details>
 
-			<div class="nvx-footer__section">
-				<p class="nvx-footer__section-title">NUVANX</p>
-				<div class="nvx-footer__links-compact">
+			<details class="nvx-footer__section">
+				<summary class="nvx-footer__section-title"><?php esc_html_e( 'NUVANX', 'nuvanx-medical' ); ?></summary>
+				<div class="nvx-footer__links">
 					<a href="<?php echo esc_url( home_url( '/nosotros/' ) ); ?>">Nosotros</a>
 					<?php if ( '' !== $nvx_why_nuvanx_url ) : ?>
 						<a href="<?php echo esc_url( $nvx_why_nuvanx_url ); ?>">Por qué NUVANX</a>
@@ -130,7 +160,7 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 					<a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>">Contacto</a>
 					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Valoración médica</a>
 				</div>
-			</div>
+			</details>
 		</div>
 
 	</div>
@@ -147,7 +177,7 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 				<span aria-hidden="true"> · </span>
 				<a href="<?php echo esc_url( home_url( '/politica-de-cookies-ue/' ) ); ?>">Política de cookies</a>
 			</nav>
-			<p class="nvx-footer__registrations">
+			<p class="nvx-footer__registrations nvx-reg-copy">
 				Chamberí · Centro sanitario autorizado CS20144 · Salamanca–Goya · Centro sanitario autorizado CS20073
 			</p>
 		</div>

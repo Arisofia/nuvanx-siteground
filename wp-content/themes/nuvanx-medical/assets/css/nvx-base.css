@@ -107,6 +107,8 @@ svg {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--nvx-gap-base);
+  padding: 0;
+  list-style: none;
 }
 
 .nvx-brand-grid--2 > * {

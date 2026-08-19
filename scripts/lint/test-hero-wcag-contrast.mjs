@@ -30,10 +30,10 @@ const lightR = Number.parseInt(lightHex.substring(0, 2), 16);
 const lightG = Number.parseInt(lightHex.substring(2, 4), 16);
 const lightB = Number.parseInt(lightHex.substring(4, 6), 16);
 
-// Parse --nvx-media-overlay stops
-const mediaOverlayMatch = tokensContent.match(/--nvx-media-overlay:\s*linear-gradient\(([\s\S]*?)\);/);
+// Parse the home video scrim. Copy is bottom-anchored; the top of the frame stays open.
+const mediaOverlayMatch = tokensContent.match(/--nvx-home-hero-overlay:\s*linear-gradient\(([\s\S]*?)\);/);
 if (!mediaOverlayMatch) {
-  throw new Error('Could not find --nvx-media-overlay in nvx-tokens.css');
+  throw new Error('Could not find --nvx-home-hero-overlay in nvx-tokens.css');
 }
 
 const overlayGradient = mediaOverlayMatch[1];
@@ -95,7 +95,7 @@ console.log('Testing WCAG 2.1 / 2.2 AA Contrast Compliance on Hero Video Overlay
 console.log(`Using actual text color: --nvx-light #${lightHex} (RGB: ${lightR}, ${lightG}, ${lightB})\n`);
 
 // 1. Test across the gradient positions from top (0.0) to bottom (1.0)
-const samplePositions = [0.0, 0.15, 0.28, 0.40, 0.58, 0.75, 1.0];
+const samplePositions = [0.0, 0.20, 0.32, 0.52, 0.70, 0.86, 1.0];
 let minContrast = Infinity;
 
 for (const pos of samplePositions) {
@@ -108,24 +108,24 @@ for (const pos of samplePositions) {
     `  Stop at ${(pos * 100).toFixed(0).padStart(3)}%: alpha=${alpha.toFixed(2)}, blended RGB=(${blended.bgR}, ${blended.bgG}, ${blended.bgB}), Worst-Case CR=${cr.toFixed(2)}:1`
   );
 
-  // Position 0.0 to 0.40 (where H1 title sits): must be >= 3.0:1 (large text)
-  if (pos <= 0.40) {
+  // Lower third: H1 sits here (large text).
+  if (pos >= 0.70) {
     assert.ok(cr >= 3.0, `Contrast ratio at position ${pos} (${cr.toFixed(2)}:1) must meet WCAG Large Text >= 3.0:1`);
   }
 
-  // Position 0.28 to 1.0 (where Lead and body text sits): must be >= 4.5:1 (normal text)
-  if (pos >= 0.28) {
+  // Bottom band: lead and CTA sit here (normal text).
+  if (pos >= 0.86) {
     assert.ok(cr >= 4.5, `Contrast ratio at position ${pos} (${cr.toFixed(2)}:1) must meet WCAG Normal Text >= 4.5:1`);
   }
 }
 
-// 2. Test top-of-hero minimum contrast (even at absolute position 0.0)
-const topAlpha = getOverlayAlphaAt(0.0);
-const topBlended = computeBlendedWorstCase(topAlpha);
-const topCR = contrastRatio(lightTextLum, topBlended.lum);
+// 2. The open video frame at the top is not a text surface.
+const bottomAlpha = getOverlayAlphaAt(1.0);
+const bottomBlended = computeBlendedWorstCase(bottomAlpha);
+const bottomCR = contrastRatio(lightTextLum, bottomBlended.lum);
 assert.ok(
-  topCR >= 4.5,
-  `Top overlay contrast ratio (${topCR.toFixed(2)}:1) must guarantee >= 4.5:1 for complete AA safety`
+  bottomCR >= 4.5,
+  `Bottom overlay contrast ratio (${bottomCR.toFixed(2)}:1) must guarantee >= 4.5:1 for the home copy`
 );
 
 // 3. Test primary button text contrast: #1A1A1A text on #F7F7F5 button
@@ -134,5 +134,29 @@ const btnTextLum = relativeLuminance(26, 26, 26);   // #1A1A1A
 const btnCR = contrastRatio(btnBgLum, btnTextLum);
 console.log(`\n  Primary CTA Button Contrast: ${btnCR.toFixed(2)}:1 (Text #1A1A1A on #F7F7F5)`);
 assert.ok(btnCR >= 4.5, `CTA button contrast (${btnCR.toFixed(2)}:1) must be >= 4.5:1`);
+
+const componentsCss = await fs.readFile(
+  path.join(__dirname, '../../wp-content/themes/nuvanx-medical/assets/css/nvx-components.css'),
+  'utf8',
+);
+const solutionsCss = await fs.readFile(
+  path.join(__dirname, '../../wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css'),
+  'utf8',
+);
+assert.match(
+  componentsCss,
+  /\.nvx-solutions-group--dark :is\(h2, h3\),[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'Playfair h2/h3 on the dark Contorno corporal band must use solid light, not --nvx-ink',
+);
+assert.match(
+  solutionsCss,
+  /\.nvx-solutions-group--dark :is\(h2, h3\),[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'soluciones-medicas dark group headings must invert to --nvx-light',
+);
+assert.match(
+  solutionsCss,
+  /\.nvx-solutions-closure :is\(h2, \.nvx-solutions-eyebrow\)[\s\S]*?color:\s*var\(--nvx-light\)/,
+  'soluciones closure headings must stay readable on the black band',
+);
 
 console.log('\nHERO_WCAG_CONTRAST_TEST=PASS');

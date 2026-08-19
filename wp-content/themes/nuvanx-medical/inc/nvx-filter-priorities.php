@@ -41,6 +41,7 @@ return [
 	'nvx_clinics_hub_render_managed'                => 25, // the_content
 	'nvxClinicsHubEnhance'                          => 26, // the_content
 	'nvx_contacto_enhance_valoracion_page'           => 27, // the_content
+	'nvx_bridal_inject_media'                        => 29, // the_content
 
 	// === 30-39: Presentation ===
 	'nvx_filter_valoracion_document_title'          => 30, // wpseo_title

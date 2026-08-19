@@ -22,7 +22,8 @@
   /* Texto y bordes sobre superficies oscuras */
   --nvx-text-on-dark: var(--nvx-light);
 
-  --nvx-text-on-dark-90: rgba(247, 247, 245, 0.90);
+  /* Solid: Lighthouse treats alpha text as if composited on white and fails AA. */
+  --nvx-text-on-dark-90: var(--nvx-light);
   --nvx-text-on-dark-88: rgba(247, 247, 245, 0.88);
   --nvx-text-on-dark-82: rgba(247, 247, 245, 0.82);
   --nvx-text-on-dark-78: rgba(247, 247, 245, 0.78);
@@ -102,6 +103,7 @@
   --nvx-measure-wide: 72rem;
 
   /* Media */
+  --nvx-media-ratio-card: 16 / 9;
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
   /* Home video stage. Must stay in tokens (inlined) so first paint reserves
@@ -141,12 +143,31 @@
     rgba(26, 26, 26, 0.90) 100%
   );
 
+  /* Home video stage: keep the upper frame open; scrim only under the bottom copy. */
+  --nvx-home-hero-overlay: linear-gradient(
+    180deg,
+    rgba(26, 26, 26, 0.16) 0%,
+    rgba(26, 26, 26, 0.12) 32%,
+    rgba(26, 26, 26, 0.28) 52%,
+    rgba(26, 26, 26, 0.68) 70%,
+    rgba(26, 26, 26, 0.86) 86%,
+    rgba(26, 26, 26, 0.92) 100%
+  );
+
   --nvx-media-overlay-strong: linear-gradient(
     180deg,
     rgba(26, 26, 26, 0.68) 0%,
     rgba(26, 26, 26, 0.75) 28%,
     rgba(26, 26, 26, 0.85) 58%,
     rgba(26, 26, 26, 0.94) 100%
+  );
+
+  /* Archive hero card: darken the photograph so overlay type stays readable. */
+  --nvx-card-hero-overlay: linear-gradient(
+    to top,
+    rgba(17, 17, 17, 0.82) 0%,
+    rgba(17, 17, 17, 0.28) 46%,
+    transparent 100%
   );
 
   /* ========== TIPOGRAFÍA OFICIAL ÚNICA ========== */

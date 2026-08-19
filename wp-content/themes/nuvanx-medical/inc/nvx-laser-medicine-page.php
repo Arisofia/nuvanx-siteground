@@ -127,7 +127,7 @@ function nvx_laser_hero_markup(): string {
 		)
 	) . '</p>';
 	$html .= nvx_laser_hero_ctas_markup();
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-meta nvx-reg-copy">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= $media;
 	$html .= '</div></section>';

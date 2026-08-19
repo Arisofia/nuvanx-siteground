@@ -92,7 +92,7 @@ ob_start();
 						</a>
 					<?php endif; ?>
 				</div>
-				<p class="nvx-brand-meta">
+				<p class="nvx-brand-meta nvx-reg-copy">
 					<?php
 					if ( 'chamberi' === $clinic_key ) {
 						esc_html_e( 'Registro sanitario: CS20144 · Chamberí, Madrid', 'nuvanx-medical' );

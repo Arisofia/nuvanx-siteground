@@ -379,6 +379,15 @@ function nvx_known_image_intrinsics(): array {
 		'Endolift-ISO9001-Laser'                         => array( 850, 470 ),
 		'SmartLipo-for-Laserlipolysis-DEKA-1'            => array( 447, 800 ),
 		'consulta-medica-personalizada-nuvanx-madrid'    => array( 1672, 941 ),
+		'nvx-fachada-goya-900'                           => array( 900, 675 ),
+		'nuvanx-medicina-estetica1'                      => array( 1220, 960 ),
+		'BTL-Exion-Mobile-Version-1024x956-1'            => array( 1024, 956 ),
+		'endolift-lasemar-1500-eufoton'                  => array( 850, 470 ),
+		'Box-Clinica-Novias'                             => array( 1024, 1536 ),
+		'Brazos-novias'                                  => array( 941, 1672 ),
+		'Espalda-novias'                                 => array( 941, 1672 ),
+		'Papada-novias'                                  => array( 1536, 1024 ),
+		'Protocolo-Endolift-Thermage-Morpheus8-ultherapy' => array( 383, 558 ),
 	);
 }
 
@@ -391,7 +400,7 @@ function nvx_image_dimensions_for_url( string $url ): array {
 	$path = (string) wp_parse_url( $url, PHP_URL_PATH );
 	$file = pathinfo( $path, PATHINFO_FILENAME );
 
-	if ( preg_match( '/-(\d+)x(\d+)$/', $file, $match ) ) {
+	if ( preg_match( '/-(\d+)x(\d+)(?:-\d+)?$/', $file, $match ) ) {
 		return array( (int) $match[1], (int) $match[2] );
 	}
 
@@ -607,6 +616,32 @@ function nvx_rewrite_eager_maps_iframes_in_block( string $block_content ): strin
 	return nvx_rewrite_eager_maps_iframes( $block_content );
 }
 add_filter( 'render_block', 'nvx_rewrite_eager_maps_iframes_in_block', 20 );
+
+/**
+ * article cannot host role="listitem". Strip leftover invalid list ARIA so
+ * cached or CMS Signature cards do not fail the agent accessibility tree.
+ */
+function nvx_sanitize_invalid_list_roles( string $html ): string {
+	if ( '' === $html || false === stripos( $html, 'role=' ) ) {
+		return $html;
+	}
+
+	// Remove role="listitem" from article elements (invalid ARIA)
+	$updated = preg_replace( '/(<article\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $html );
+	$updated = is_string( $updated ) ? $updated : $html;
+	
+	// Remove role="list" from div elements (invalid ARIA)
+	$updated = preg_replace( '/(<div\b[^>]*\bnvx-brand-grid\b[^>]*?)\srole=(["\'])list\2/iu', '$1', $updated );
+	$updated = is_string( $updated ) ? $updated : $html;
+	
+	// Remove role="listitem" from any nvx-brand-card article (aggressive catch-all)
+	$updated = preg_replace( '/(<article\b[^>]*\bnvx-brand-card\b[^>]*?)\srole=(["\'])listitem\2/iu', '$1', $updated );
+	$updated = is_string( $updated ) ? $updated : $html;
+
+	return is_string( $updated ) ? $updated : $html;
+}
+add_filter( 'the_content', 'nvx_sanitize_invalid_list_roles', 202 );
+add_filter( 'render_block', 'nvx_sanitize_invalid_list_roles', 202 );
 
 /**
  * Render canonical FAQ accordion section markup.

@@ -1061,7 +1061,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<div class="nvx-brand-actions nvx-clinics-hub-actions">';
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
 	$html .= '</div>';
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí CS20144 · Salamanca–Goya CS20073 · Medicina basada en evidencia', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-meta nvx-reg-copy">' . esc_html__( 'Chamberí CS20144 · Salamanca–Goya CS20073 · Medicina basada en evidencia', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div></section>';
 
 	$html .= '<nav class="nvx-brand-section nvx-clinics-nav" aria-label="' . esc_attr__( 'Sedes NUVANX', 'nuvanx-medical' ) . '">';

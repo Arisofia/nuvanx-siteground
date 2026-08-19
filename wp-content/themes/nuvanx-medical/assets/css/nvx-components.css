@@ -15,6 +15,12 @@
 }
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
+/* Global h2/h3 ink would vanish on near-black stages. Invert there. */
+.nvx-solutions-group--dark :is(h2, h3),
+.nvx-solutions-closure :is(h2, h3),
+.nvx-brand-section--dark :is(h2, h3) {
+  color: var(--nvx-light);
+}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
 /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
 .nvx-copy,.nvx-brand-body,.nvx-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
@@ -326,8 +332,14 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 
 .nvx-brand-microcopy--dark,
 .nvx-brand-hero .nvx-brand-microcopy,
-.nvx-brand-hero .nvx-brand-microcopy--dark {
-  color: var(--nvx-text-on-dark-82);
+.nvx-brand-hero .nvx-brand-microcopy--dark,
+.nvx-brand-hero__copy .nvx-brand-microcopy,
+.nvx-brand-hero .nvx-brand-kicker,
+.nvx-brand-hero .nvx-eyebrow,
+.nvx-brand-hero .nvx-kicker,
+.nvx-brand-hero .nvx-brand-meta,
+.nvx-brand-hero .nvx-medical-review {
+  color: var(--nvx-light);
 }
 
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {
@@ -338,6 +350,65 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   --button-hover-color: var(--nvx-ink);
   --button-hover-border: var(--nvx-light);
   --button-focus: var(--nvx-light);
+}
+
+/* Interior dark heroes share the home contrast contract: ink primary is invisible on ink. */
+.nvx-brand-hero .nvx-brand-btn--primary,
+.nvx-brand-hero .nvx-btn--primary,
+.nvx-page-hero .nvx-brand-btn--primary,
+.nvx-page-hero .nvx-btn--primary,
+.nvx-editorial-hero .nvx-brand-btn--primary,
+.nvx-hero .nvx-brand-btn--primary,
+.nvx-hero .nvx-btn--primary {
+  --button-bg: var(--nvx-light);
+  --button-color: var(--nvx-ink);
+  --button-border: var(--nvx-light);
+  --button-hover-bg: var(--nvx-surface-soft);
+  --button-hover-color: var(--nvx-ink);
+  --button-hover-border: var(--nvx-surface-soft);
+  --button-focus: var(--nvx-light);
+}
+
+.nvx-brand-hero .nvx-brand-btn--secondary,
+.nvx-brand-hero .nvx-btn--secondary,
+.nvx-page-hero .nvx-brand-btn--secondary,
+.nvx-page-hero .nvx-btn--secondary,
+.nvx-editorial-hero .nvx-brand-btn--secondary,
+.nvx-hero .nvx-brand-btn--secondary,
+.nvx-hero .nvx-btn--secondary {
+  --button-bg: transparent;
+  --button-color: var(--nvx-light);
+  --button-border: var(--nvx-border-on-dark-55);
+  --button-hover-bg: var(--nvx-light);
+  --button-hover-color: var(--nvx-ink);
+  --button-hover-border: var(--nvx-light);
+  --button-focus: var(--nvx-light);
+}
+
+.nvx-reg-copy,
+.nvx-clinic-card__reg,
+.nvx-contact-clinic__reg,
+.nvx-home-location__code {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-regular);
+  letter-spacing: var(--nvx-track-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+}
+
+.nvx-reg-copy strong,
+.nvx-clinic-card__reg strong,
+.nvx-contact-clinic__reg strong {
+  font-weight: var(--nvx-fw-regular);
+}
+
+.nvx-brand-hero .nvx-reg-copy,
+.nvx-brand-hero .nvx-brand-meta.nvx-reg-copy {
+  margin-top: var(--nvx-space-2);
+  max-width: 42ch;
+  color: var(--nvx-light);
 }
 
 /* Existing hero and dark-band markup may still use primary/secondary names.
@@ -365,7 +436,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
     min-height: 300px;
   }
 }
-.nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}
+.nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8);padding:0;list-style:none}
 /*
  * CMS still emits --2 / --3. Without these rules, bare children auto-place into
  * a single 1/12 track and look like a broken two-column layout (Goya ubicación/FAQ).
@@ -1813,7 +1884,7 @@ select[aria-invalid="true"] {
 .nvx-page-hero__copy .nvx-eyebrow,
 .nvx-hero__copy .nvx-kicker,
 .nvx-hero__copy .nvx-eyebrow {
-  color: var(--nvx-text-on-dark-88);
+  color: var(--nvx-light);
   margin-bottom: var(--nvx-space-2);
   max-width: 34ch;
   font-size: var(--nvx-type-kicker);
@@ -1837,13 +1908,13 @@ select[aria-invalid="true"] {
 
 .nvx-brand-hero__copy .nvx-brand-meta{
     max-width: 42ch;
-  color: var(--nvx-text-on-dark-72);
+  color: var(--nvx-light);
     margin-top: var(--nvx-space-2);
   font-family: var(--nvx-sans);
-    font-size: var(--nvx-type-small);
-    letter-spacing: 0.03em;
+    font-size: var(--nvx-type-caption);
+    letter-spacing: var(--nvx-track-caption);
     text-transform: none;
-    line-height: 1.45}
+    line-height: var(--nvx-lh-caption)}
 
 .nvx-brand-hero__copy .nvx-brand-actions{
     margin-top: 0;
@@ -2342,6 +2413,103 @@ figure.nvx-equipo-portrait{
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
+.nvx-bridal-studio {
+  overflow: hidden;
+}
+
+.nvx-bridal-studio__intro {
+  padding-bottom: var(--nvx-space-6);
+}
+
+.nvx-bridal-studio__plate {
+  margin: 0;
+  background: transparent;
+}
+
+.nvx-bridal-studio__plate figcaption {
+  margin-top: var(--nvx-space-2);
+  padding-inline: 0;
+  font-size: var(--nvx-type-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
+.nvx-bridal-studio img.nvx-bridal-studio__img,
+.nvx-bridal-studio img.nvx-media--body {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-bridal-studio__spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nvx-space-6);
+  align-items: center;
+  margin-bottom: var(--nvx-space-7);
+}
+
+.nvx-bridal-studio__copy {
+  max-width: 36rem;
+}
+
+.nvx-bridal-studio__plate--mood img,
+.nvx-bridal-studio__plate--consult img,
+.nvx-bridal-studio__plate--brazos img,
+.nvx-bridal-studio__plate--espalda img {
+  aspect-ratio: 4 / 5;
+}
+
+.nvx-bridal-studio__plate--mood img {
+  object-position: center top;
+}
+
+.nvx-bridal-studio__plate--consult img {
+  object-position: center 45%;
+}
+
+.nvx-bridal-studio__plate--papada {
+  margin: 0 auto var(--nvx-space-7);
+}
+
+.nvx-bridal-studio__plate--papada img {
+  aspect-ratio: 2 / 1;
+  object-position: center;
+}
+
+.nvx-bridal-studio__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nvx-space-6);
+  align-items: start;
+  padding-bottom: var(--nvx-space-4);
+}
+
+.nvx-bridal-studio__plate--brazos img {
+  object-position: center 14%;
+}
+
+.nvx-bridal-studio__plate--espalda img {
+  object-position: center 28%;
+}
+
+@media (max-width: 56rem) {
+  .nvx-bridal-studio__spread,
+  .nvx-bridal-studio__pair {
+    grid-template-columns: 1fr;
+    gap: var(--nvx-space-4);
+    margin-bottom: var(--nvx-space-6);
+  }
+
+  .nvx-bridal-studio__plate--papada {
+    margin-bottom: var(--nvx-space-6);
+  }
+}
+
 /* Standardized recovery timeline component */
 .nvx-recovery-timeline {
   margin: var(--nvx-space-4) 0;
@@ -2411,16 +2579,16 @@ figure.nvx-equipo-portrait{
 .nvx-brand-section--dark h2,
 .nvx-brand-section--dark .nvx-brand-subtitle,
 .nvx-brand-section--dark h3 {
-  color: var(--nvx-on-dark);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-kicker,
 .nvx-brand-section--dark .nvx-eyebrow {
-  color: var(--nvx-on-dark-72);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-body,
 .nvx-brand-section--dark .nvx-copy,
 .nvx-brand-section--dark p {
-  color: var(--nvx-on-dark-88);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-color-line {
   background: var(--nvx-accent-line-dark);

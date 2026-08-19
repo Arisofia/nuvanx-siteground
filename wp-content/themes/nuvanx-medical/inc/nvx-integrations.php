@@ -525,6 +525,53 @@ function nvx_theme_defer_auxiliary_script_tags( string $tag, string $handle, str
 }
 add_filter( 'script_loader_tag', 'nvx_theme_defer_auxiliary_script_tags', 11, 3 );
 
+/**
+ * Load Joinchat only after a real gesture (not scroll — Lighthouse scrolls).
+ *
+ * The widget measures getBoundingClientRect on boot; that is the usual
+ * [unattributed] forced-reflow source in PageSpeed.
+ */
+function nvx_theme_interaction_joinchat_script( string $tag, string $handle, string $src = '' ): string {
+	if ( is_admin() || '' === $src || ! str_contains( $tag, '<script' ) ) {
+		return $tag;
+	}
+
+	$haystack = strtolower( $handle . ' ' . $src );
+	if ( ! str_contains( $haystack, 'joinchat' ) && ! str_contains( $haystack, 'creame-whatsapp-me' ) ) {
+		return $tag;
+	}
+
+	$json_src = wp_json_encode( $src );
+	if ( ! is_string( $json_src ) || '' === $json_src ) {
+		return $tag;
+	}
+
+	return '<script>(function(){var done=false;function load(){if(done)return;done=true;var s=document.createElement("script");s.src=' . $json_src . ';s.defer=true;document.head.appendChild(s);}["pointerdown","keydown","touchstart"].forEach(function(t){window.addEventListener(t,load,{once:true,passive:true});});window.addEventListener("load",function(){window.setTimeout(load,10000);},{once:true});})();</script>' . "\n";
+}
+add_filter( 'script_loader_tag', 'nvx_theme_interaction_joinchat_script', 40, 3 );
+
+/** Public pages do not need the WordPress emoji walker (DOM reads after style invalidation). */
+function nvx_theme_disable_public_emoji(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+	remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+	remove_action( 'admin_print_styles', 'print_emoji_styles' );
+	remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+	remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+	remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+	add_filter(
+		'tiny_mce_plugins',
+		static function ( $plugins ) {
+			return is_array( $plugins ) ? array_values( array_diff( $plugins, array( 'wpemoji' ) ) ) : $plugins;
+		}
+	);
+}
+add_action( 'init', 'nvx_theme_disable_public_emoji' );
+
 /** Force Joinchat/Complianz styles to print media so they cannot stay render-blocking. */
 function nvx_theme_demote_auxiliary_styles(): void {
 	if ( is_admin() || ! function_exists( 'nvx_theme_is_deferred_auxiliary_asset' ) ) {

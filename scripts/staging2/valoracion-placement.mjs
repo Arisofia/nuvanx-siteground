@@ -152,10 +152,6 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 
     sawTransient = true;
     if (cycle < maxCycles) {
-      // Some child validators disarm rollback when their own bounded attempts
-      // are exhausted. The outer orchestrator is about to continue testing, so
-      // restore rollback protection before the next cycle can discover a real
-      // deterministic defect.
       await writeRollbackState('1', name, 'outer-transient-retry');
       const delayMs = backoffMs * cycle;
       console.warn(`STAGING_ACCEPTANCE_COMPONENT=RETRY component=${name} cycle=${cycle} exit=${lastExitCode} delay_ms=${delayMs}`);
@@ -168,7 +164,6 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
   return lastExitCode || 1;
 }
 
-// Outer retry budgets: configurable via environment for single-runner workflows (e.g. PR preview).
 const VALORACION_PLACEMENT_CYCLES = Number.parseInt(process.env.VALORACION_PLACEMENT_CYCLES || '3', 10) || 3;
 const HUBSPOT_A11Y_CYCLES = Number.parseInt(process.env.HUBSPOT_A11Y_CYCLES || '3', 10) || 3;
 
@@ -180,8 +175,13 @@ const stages = [
   { name: 'governed-blog-runtime-identity', url: new URL('./governed-blog-runtime-contract.mjs', import.meta.url), maxCycles: 3 },
   { name: 'valoracion-placement', url: new URL('./valoracion-placement-resilient.mjs', import.meta.url), maxCycles: VALORACION_PLACEMENT_CYCLES },
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
-  { name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 },
 ];
+
+if (process.env.GITHUB_EVENT_NAME === 'pull_request_target') {
+  stages.push({ name: 'attribution-lineage-e2e', url: new URL('./attribution-lineage-e2e.mjs', import.meta.url), maxCycles: 1 });
+}
+
+stages.push({ name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 });
 
 await prepareAllStageEvidence();
 for (const stage of stages) {

@@ -81,11 +81,13 @@
 		return String(value);
 	}
 
-	function setField(form, index, propertyName, value) {
+	async function setField(form, index, propertyName, value) {
 		var actualName = index.get(propertyName);
 		if (!actualName) return false;
 		try {
-			form.setFieldValue(actualName, hubSpotFieldValue(value));
+			// HubSpot V4 may complete field writes asynchronously. Wait for the
+			// result so callers cannot read a partially synchronized lineage.
+			await Promise.resolve(form.setFieldValue(actualName, hubSpotFieldValue(value)));
 			return true;
 		} catch (_error) {
 			return false;
@@ -119,15 +121,20 @@
 		var changed = false;
 
 		if (!marketingConsent) {
-			MARKETING_FIELDS.forEach(function (propertyName) {
-				if (index.has(propertyName)) changed = setField(form, index, propertyName, '') || changed;
-			});
+			for (var marketingIndex = 0; marketingIndex < MARKETING_FIELDS.length; marketingIndex += 1) {
+				var marketingProperty = MARKETING_FIELDS[marketingIndex];
+				if (index.has(marketingProperty)) {
+					changed = (await setField(form, index, marketingProperty, '')) || changed;
+				}
+			}
 		}
 
-		Object.keys(payload).forEach(function (propertyName) {
-			if (!marketingConsent && !FIRST_PARTY_FIELDS.has(propertyName)) return;
-			changed = setField(form, index, propertyName, payload[propertyName]) || changed;
-		});
+		var payloadProperties = Object.keys(payload);
+		for (var payloadIndex = 0; payloadIndex < payloadProperties.length; payloadIndex += 1) {
+			var propertyName = payloadProperties[payloadIndex];
+			if (!marketingConsent && !FIRST_PARTY_FIELDS.has(propertyName)) continue;
+			changed = (await setField(form, index, propertyName, payload[propertyName])) || changed;
+		}
 
 		return changed;
 	}

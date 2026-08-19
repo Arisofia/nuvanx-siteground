@@ -94,7 +94,7 @@ assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source')
 
 await api.syncForm(form);
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
+assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
@@ -117,4 +117,26 @@ assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-11111111111
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 applied_lead_id=untouched');
+// Both asynchronous entry points must consume a rejection returned by syncForm.
+// Force a rejection after buildFormPayload returns so the outer async function,
+// rather than its internal guarded calls, is what rejects.
+const originalBuildFormPayload = globalThis.window.NUVANXAttributionContract.buildFormPayload;
+globalThis.window.NUVANXAttributionContract.buildFormPayload = () => new Proxy({}, {
+  ownKeys() {
+    throw new Error('forced-attribution-sync-rejection');
+  },
+});
+const unhandled = [];
+const onUnhandled = (reason) => unhandled.push(reason);
+process.on('unhandledRejection', onUnhandled);
+try {
+  listeners.get('hs-form-event:on-ready')?.({ detail: { formId: FORM_ID } });
+  listeners.get('wp_listen_for_consent_change')?.();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+} finally {
+  process.off('unhandledRejection', onUnhandled);
+  globalThis.window.NUVANXAttributionContract.buildFormPayload = originalBuildFormPayload;
+}
+assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
+
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 async_rejections=contained applied_lead_id=untouched');

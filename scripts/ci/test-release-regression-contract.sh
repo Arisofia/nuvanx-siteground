@@ -18,10 +18,12 @@ ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
 DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
 LCP_CSS_CONTRACT="$ROOT/scripts/lint/test-lcp-css-delivery.mjs"
 SEO_OWNERSHIP_CONTRACT="$ROOT/scripts/lint/test-seo-catalog-ownership.php"
+DOCUMENT_BUFFER_GOVERNANCE="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-document-buffer-governance.php"
+GTM_CONTEXT="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-gtm-integration.php"
 SEO_TOOLING_DIR="$ROOT/scripts/seo"
 THEME_DIR="$ROOT/wp-content/themes/nuvanx-medical"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$DOCUMENT_BUFFER_GOVERNANCE" "$GTM_CONTEXT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -79,6 +81,19 @@ grep -Fq "function_exists( 'nvx_environment_deploy_sha' )" "$DEPLOY_STAMP" || fa
 grep -Fq "nvx_environment_deploy_sha()" "$DEPLOY_STAMP" || fail 'deploy_stamp_environment_fallback_missing'
 grep -Fq "add_action( 'wp_head', 'nvx_render_deploy_stamp_meta', 1 );" "$DEPLOY_STAMP" || fail 'canonical_deploy_stamp_head_owner_missing'
 pass_assert 'single-deploy-sha-head-owner'
+
+# The theme must not own a full-document rewrite. nvx-integrations.php still
+# contains the historical callback for compatibility while this hotfix is
+# intentionally surgical; it must be retired immediately after integrations
+# load and before template_redirect executes. Reflection narrows removal to the
+# closure defined by nvx-integrations.php at priority 999999, leaving plugin
+# buffers and all other callbacks intact.
+grep -Fq "require_once __DIR__ . '/nvx-document-buffer-governance.php';" "$GTM_CONTEXT" || fail 'document_buffer_governance_not_loaded'
+grep -Fq "\$wp_filter['template_redirect']->callbacks[999999]" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_priority_not_scoped'
+grep -Fq "__DIR__ . '/nvx-integrations.php'" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_source_not_scoped'
+grep -Fq 'new ReflectionFunction' "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_callback_identity_not_verified'
+grep -Fq "remove_action( 'template_redirect', \$callback, 999999 );" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_callback_not_retired'
+pass_assert 'no-theme-full-document-rewrite'
 
 # LCP delivery rules are part of the release contract, not an optional lint.
 # The canonical test protects the inlined foundation, blocking structural CSS,

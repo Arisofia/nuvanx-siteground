@@ -14,23 +14,6 @@
 	// Server-injected QA context (populated by nvx_attribution_qa_context() in PHP)
 	var qa = (window.nvxConversionEvents && window.nvxConversionEvents.qa) || { is_test_lead: false, test_run_id: '' };
 
-	// UTM → CRM property mapping (embed runtime)
-	var UTM_PROPERTY_MAP = {
-		utm_source: 'nvx_utm_source',
-		utm_medium: 'nvx_utm_medium',
-		utm_campaign: 'nvx_utm_campaign',
-		utm_content: 'nvx_utm_content',
-		utm_term: 'nvx_utm_term',
-	};
-
-	// Click ID → CRM property mapping (embed runtime)
-	var CLICK_PROPERTY_MAP = {
-		gclid: 'nvx_google_click_id',
-		gbraid: 'nvx_google_braid',
-		wbraid: 'nvx_google_wbraid',
-		gclsrc: 'nvx_google_gclsrc',
-	};
-
 	/**
 	 * Get or create a session-scoped lead ID.
 	 * Must NOT become a long-lived tracking identifier.
@@ -178,8 +161,8 @@
 			nvx_lead_id: 'nvx_lead_id',
 
 			// QA gate — value comes from server-injected qa context only
-			nvx_is_test_lead: qa.is_test_lead === true,
-			nvx_test_run_id:  qa.test_run_id  || '',
+			nvx_is_test_lead: 'nvx_is_test_lead',
+			nvx_test_run_id: 'nvx_test_run_id',
 
 			// UTM → CRM properties
 			utm_source: 'nvx_utm_source',
@@ -195,37 +178,40 @@
 			gclsrc: 'nvx_google_gclsrc',
 
 			// First touch fields
-			nvx_first_source:          first.source          || '',
-			nvx_first_medium:          first.medium          || '',
-			nvx_first_campaign_id:     first.campaign_id     || '',
-			nvx_first_referrer_domain: first.referrer_domain || '',
-			nvx_first_landing_url:     first.landing_url     || '',
-			nvx_first_timestamp:       first.timestamp       || '',
-			nvx_first_channel:         first.channel         || '',
+			nvx_first_source:          'nvx_first_source',
+			nvx_first_medium:          'nvx_first_medium',
+			nvx_first_campaign_id:     'nvx_first_campaign_id',
+			nvx_first_referrer_domain: 'nvx_first_referrer_domain',
+			nvx_first_landing_url:     'nvx_first_landing_url',
+			nvx_first_timestamp:       'nvx_first_timestamp',
+			nvx_first_channel:         'nvx_first_channel',
 
 			// Conversion touch fields
-			nvx_conversion_channel:     conversion.channel     || '',
-			nvx_conversion_source:      conversion.source      || '',
-			nvx_conversion_medium:      conversion.medium      || '',
-			nvx_conversion_campaign_id: conversion.campaign_id || '',
-			nvx_conversion_landing_url: conversion.landing_url || '',
-			nvx_conversion_timestamp:   conversion.timestamp   || '',
+			nvx_conversion_channel:     'nvx_conversion_channel',
+			nvx_conversion_source:      'nvx_conversion_source',
+			nvx_conversion_medium:      'nvx_conversion_medium',
+			nvx_conversion_campaign_id: 'nvx_conversion_campaign_id',
+			nvx_conversion_landing_url: 'nvx_conversion_landing_url',
+			nvx_conversion_timestamp:   'nvx_conversion_timestamp',
 		};
 
 		// Resolve actual values for the field map
-		var resolvedValues = {
+		var rawValues = {
 			nvx_lead_id:               leadId,
-			nvx_is_test_lead:          qa.is_test_lead === true,
+			nvx_is_test_lead: qa.is_test_lead === true,
 			nvx_test_run_id:           qa.test_run_id || '',
+			
 			utm_source:                first.source || '',
 			utm_medium:                first.medium || '',
 			utm_campaign:              first.campaign_id || '',
 			utm_content:               '',
 			utm_term:                  '',
+
 			gclid:                     first.gclid  || conversion.gclid  || '',
 			gbraid:                    first.gbraid || conversion.gbraid || '',
 			wbraid:                    first.wbraid || conversion.wbraid || '',
 			gclsrc:                    first.gclsrc || conversion.gclsrc || '',
+
 			nvx_first_source:          first.source          || '',
 			nvx_first_medium:          first.medium          || '',
 			nvx_first_campaign_id:     first.campaign_id     || '',
@@ -233,6 +219,7 @@
 			nvx_first_landing_url:     first.landing_url     || '',
 			nvx_first_timestamp:       first.timestamp       || '',
 			nvx_first_channel:         first.channel         || '',
+
 			nvx_conversion_channel:     conversion.channel     || '',
 			nvx_conversion_source:      conversion.source      || '',
 			nvx_conversion_medium:      conversion.medium      || '',
@@ -242,13 +229,14 @@
 		};
 
 		var result = {};
-		for (var fieldName in resolvedValues) {
-			if (!resolvedValues.hasOwnProperty(fieldName)) continue;
+		Object.keys(fieldMap).forEach(function(key) {
+			var fieldName = fieldMap[key];
 			if (!available.has(fieldName)) return;
-			var rawValue = resolvedValues[fieldName];
+			var rawValue = rawValues[key];
 			// HubSpot V4 single checkbox (boolean) must receive Boolean, not string
 			result[fieldName] = key === 'nvx_is_test_lead' ? Boolean(rawValue) : rawValue;
-		}
+		});
+
 		return result;
 	}
 

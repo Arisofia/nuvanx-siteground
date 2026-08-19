@@ -1,0 +1,30 @@
+name: Final Staging Run ID Inspector
+run-name: Final Staging Run ID Inspector · 026fdcad
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    if: ${{ github.head_ref == 'ops/identify-final-staging-026f' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 026fdcadc69692f6fcf72b6eb2adcf5e08059dfb
+    steps:
+      - name: Identify latest manual Staging child
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event workflow_dispatch --branch master --limit 50 --json databaseId,status,conclusion,headSha,createdAt,updatedAt,url)"
+          jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' <<<"$runs"
+          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::No manual Staging child for $TARGET_SHA"; exit 1; }
+          echo "FINAL_STAGING_RUN_ID=$run_id"
+          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'

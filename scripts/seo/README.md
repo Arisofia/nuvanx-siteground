@@ -2,6 +2,20 @@
 
 This directory contains **manual diagnostic/support scripts**, not additional GitHub Actions workflows. The repository intentionally keeps only the canonical `Staging` and `Production` workflows.
 
+## Package and CI boundary
+
+`scripts/seo` remains an independent Node package. It intentionally is **not merged into the repository-root package** because its Google Ads, Search Console, OAuth and GTM dependencies are operational tooling rather than website runtime dependencies.
+
+The CI contract is deliberately lighter than the theme/release contract:
+
+- every pull request/push that reaches the canonical static gate syntax-checks the top-level `scripts/seo/*.js` files with `node --check`;
+- no credentialed Google/GTM diagnostic or publisher is executed automatically;
+- the existing weekly `Staging` schedule runs `npm audit --audit-level=high` against this package lock;
+- changes to dependencies must update `scripts/seo/package-lock.json` with npm;
+- a third SEO-specific workflow is forbidden while repository hygiene requires exactly the canonical `Staging` and `Production` workflows.
+
+This keeps Google SDK dependency churn out of the root package and gives the support tooling its own auditable lockfile without duplicating CI infrastructure.
+
 ## Ownership
 
 - `google-ads-list-campaigns.js` — read-only Google Ads credential/API diagnostic. It may be called manually with credentials supplied through environment variables or a private JSON file. Its CI-facing output is deliberately bounded and does not print credential fingerprints, free-form Google Ads messages, request metadata or account resource names.

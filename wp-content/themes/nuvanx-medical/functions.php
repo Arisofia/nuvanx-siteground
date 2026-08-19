@@ -283,6 +283,7 @@ require_once get_template_directory() . '/inc/nvx-tariff-shortcode.php';
 require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
+require_once get_template_directory() . '/inc/nvx-seo-legacy-retirement.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
 require_once get_template_directory() . '/inc/nvx-schema-website-governance.php';
 require_once get_template_directory() . '/inc/nvx-schema-semantic-governance.php';

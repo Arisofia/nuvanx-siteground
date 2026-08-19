@@ -92,7 +92,7 @@ grep -Fq "require_once __DIR__ . '/nvx-document-buffer-governance.php';" "$GTM_C
 grep -Fq '$hook->callbacks[999999]' "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_priority_not_scoped'
 grep -Fq "__DIR__ . '/nvx-integrations.php'" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_source_not_scoped'
 grep -Fq 'new ReflectionFunction' "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_callback_identity_not_verified'
-grep -Fq "$hook->remove_filter( 'template_redirect', $callback, 999999 );" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_callback_not_retired'
+grep -Fq "\$hook->remove_filter( 'template_redirect', \$callback, 999999 );" "$DOCUMENT_BUFFER_GOVERNANCE" || fail 'document_buffer_callback_not_retired'
 pass_assert 'no-theme-full-document-rewrite'
 
 # LCP delivery rules are part of the release contract, not an optional lint.

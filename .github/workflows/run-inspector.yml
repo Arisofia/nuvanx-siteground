@@ -14,13 +14,51 @@ jobs:
     if: ${{ github.head_ref == 'ops/inspect-active-staging-20260820' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      inspected_staging_run_id: ${{ steps.resolve.outputs.run_id }}
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: a80f476941bf3502ea498f7d93496c4e6c17b444
-      TARGET_RUN_ID: '32307437592'
+      TARGET_SHA: ${{ github.event.pull_request.base.sha }}
     steps:
+      - name: Resolve canonical Staging run for PR base SHA
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v gh >/dev/null 2>&1 || {
+            echo 'GitHub CLI is unavailable on this runner image.' >&2
+            exit 1
+          }
+          command -v jq >/dev/null 2>&1 || {
+            echo 'jq is unavailable on this runner image.' >&2
+            exit 1
+          }
+
+          runs_json="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow staging.yml \
+            --event workflow_dispatch \
+            --limit 100 \
+            --json databaseId,status,conclusion,headSha,createdAt,updatedAt,url)"
+          run_id="$(jq -r --arg sha "$TARGET_SHA" '
+            [.[] | select(.headSha == $sha)]
+            | sort_by(.databaseId)
+            | last
+            | .databaseId // empty
+          ' <<<"$runs_json")"
+
+          [[ "$run_id" =~ ^[0-9]+$ ]] || {
+            echo "No canonical Staging workflow_dispatch run found for TARGET_SHA=$TARGET_SHA" >&2
+            exit 1
+          }
+
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "INSPECTED_STAGING_RUN_ID=$run_id"
+
       - name: Inspect canonical Staging and FIFO blockers
         shell: bash
+        env:
+          TARGET_RUN_ID: ${{ steps.resolve.outputs.run_id }}
         run: |
           set -euo pipefail
           echo '=== TARGET STAGING ==='

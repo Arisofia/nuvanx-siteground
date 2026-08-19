@@ -65,17 +65,19 @@ const form = {
   setFieldValue: (name, value) => writes.set(name, value),
 };
 
+const buildQaTruePayload = () => ({
+  nvx_lead_id: '11111111-1111-4111-8111-111111111111',
+  nvx_is_test_lead: true,
+  nvx_test_run_id: 'staging2-sha-test',
+  nvx_utm_source: 'google',
+  nvx_google_click_id: 'GCLID-TEST',
+});
+
 globalThis.window = {
   nvxConversionEvents: { forms: { valoracion: FORM_ID } },
   wp_has_consent: () => consent,
   NUVANXAttributionContract: {
-    buildFormPayload: () => ({
-      nvx_lead_id: '11111111-1111-4111-8111-111111111111',
-      nvx_is_test_lead: true,
-      nvx_test_run_id: 'staging2-sha-test',
-      nvx_utm_source: 'google',
-      nvx_google_click_id: 'GCLID-TEST',
-    }),
+    buildFormPayload: buildQaTruePayload,
   },
   HubSpotFormsV4: {
     getForms: () => [form],
@@ -97,6 +99,17 @@ assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-11111111111
 assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
+
+// HubSpot V4 booleancheckbox must also receive the canonical false string.
+globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
+  nvx_lead_id: '11111111-1111-4111-8111-111111111111',
+  nvx_is_test_lead: false,
+  nvx_test_run_id: '',
+});
+writes.clear();
+await api.syncForm(form);
+assert.equal(writes.get('0-1/nvx_is_test_lead'), 'false');
+globalThis.window.NUVANXAttributionContract.buildFormPayload = buildQaTruePayload;
 
 writes.clear();
 const other = { ...form, getFormId: () => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' };
@@ -139,4 +152,4 @@ try {
 }
 assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 canonical_form=1 async_rejections=contained applied_lead_id=untouched');
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');

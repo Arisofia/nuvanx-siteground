@@ -48,6 +48,8 @@ const listenerPos = meta.indexOf('function nvx_meta_capi_on_lead_captured');
 const outboundPos = meta.indexOf('$response = wp_remote_post(', listenerPos);
 assert.ok(listenerPos >= 0 && outboundPos > listenerPos, 'Meta listener must be parseable');
 const beforeOutbound = meta.slice(listenerPos, outboundPos);
+assert.match(beforeOutbound, /if\s*\(\s*!\s*nvx_meta_capi_enabled\(\)\s*\)\s*\{\s*return;\s*\}/,
+  'Meta delivery must be explicitly gated and fail closed');
 assert.match(beforeOutbound, /! empty\( \$event\['nvx_is_test_lead'\] \)/,
   'QA must be suppressed before any outbound Meta HTTP');
 assert.match(beforeOutbound, /empty\( \$event\['marketing_consent'\] \)/,

@@ -4,6 +4,20 @@ All notable changes to the NUVANX codebase are documented in this file.
 
 ## [Unreleased]
 
+### Changed - Repository Cleanup (2026-08-19)
+
+- **Documentation cleanup**: Removed outdated content review documentation and consolidation plans
+- **Third-party script filtering**: Consolidated architecture already implemented in MU-plugin
+- **Code hygiene**: Removed trailing whitespace from all source files
+- **Git optimization**: Aggressive git gc and prune operations
+
+### Changed - Staging Workflow Enhancements (2026-08-19)
+
+- **Protected branch configurability**: Added support for configurable protected branch via NUVANX_PROTECTED_BRANCH environment variable
+- **Event detection centralization**: Centralized GitHub event detection logic in siteground-transient-classifier.mjs
+- **Comprehensive testing**: Added edge case tests for event detection and branch rename scenarios
+- **Endolift page fixes**: Made editorial route activation explicit in nvx-endolift-page.php
+
 ### Fixed - Deployment SSH Issues (2026-08-05)
 
 - **production.yml** and **staging.yml**: Applied SSH fixes:

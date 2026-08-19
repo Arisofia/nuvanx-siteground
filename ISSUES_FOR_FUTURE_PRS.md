@@ -10,19 +10,25 @@ Documented issues from bot analysis that should be addressed in separate PRs.
 - Self-hosted runner is not viable in the tested SiteGround environment due to the observed `File size limit exceeded` failure and shared-hosting constraints.
 - Current architecture keeps GitHub-hosted runners, strict host-key verification, and bounded external retries.
 
-## Medium Priority Issues
+## Low Priority Issues
 
-### 1. SEO Titles Conflict
+### 1. SEO Metadata Architecture Cleanup
+
+**Status:** LOW PRIORITY - System is functional, architectural cleanup needed
 
 **Files:**
 
-- `wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php`
-- `wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php`
+- `wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php` (priority 21 filters)
+- `wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php` (priority 100 filters)
 
-**Issue:** `nvx-contacto-valoracion-page.php` registers multiple hardcoded `wpseo_title` and `wpseo_metadesc` filters for contacto/valoración alongside the centralized SEO metadata owner. The contacto title is also defined twice at different priorities in the same module.
-**Impact:** Multiple sources of truth create maintenance drift and make the resulting title depend on filter priority.
-**Fix:** Reconcile metadata ownership route by route before removing filters.
+**Current State:**
+- `nvx-seo-metadata.php` implements centralized catalog-based metadata with priority 100
+- `nvx-contacto-valoracion-page.php` has legacy hardcoded filters for valoración/contacto with priority 21
+- The centralized system correctly overrides legacy filters due to higher priority
+- Both systems are currently functional, but architectural duplication exists
 
-## Recommended PR Order
+**Impact:** Minimal functional impact, but creates maintenance complexity with dual metadata systems
 
-1. **PR 1 - SEO metadata ownership** (reconcile hardcoded filters with the centralized metadata owner).
+**Recommended Action:** Phase out legacy hardcoded filters in `nvx-contacto-valoracion-page.php` after ensuring all valoración/contacto metadata is properly catalogued in the centralized system
+
+**Note:** This is a technical debt cleanup item, not a blocking issue for current operations

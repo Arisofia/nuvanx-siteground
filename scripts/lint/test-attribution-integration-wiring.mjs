@@ -96,12 +96,12 @@ assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source')
 
 await api.syncForm(form);
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
-assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'boolean');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
-// HubSpot V4 booleancheckbox must also receive the canonical false string.
+// HubSpot V4 Single checkbox consumes native booleans, not 'true'/'false' strings.
 globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
   nvx_lead_id: '11111111-1111-4111-8111-111111111111',
   nvx_is_test_lead: false,
@@ -109,8 +109,8 @@ globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
 });
 writes.clear();
 await api.syncForm(form);
-assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), 'false');
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'boolean');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), false);
 globalThis.window.NUVANXAttributionContract.buildFormPayload = buildQaTruePayload;
 
 writes.clear();
@@ -121,6 +121,8 @@ assert.equal(writes.size, 0);
 consent = true;
 writes.clear();
 await api.syncForm(form);
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'boolean');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
 assert.equal(writes.get('7-12/nvx_utm_source'), 'google');
 assert.equal(writes.get('0-1/nvx_google_click_id'), 'GCLID-TEST');
 
@@ -157,4 +159,4 @@ try {
 assert.equal(ownKeysCalls, 2, 'Both HubSpot async entry points must exercise syncForm');
 assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=native_true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');

@@ -3,6 +3,7 @@
  * Runtime wiring for Attribution Contract v2.
  *
  * - Applies the browser contract to the canonical HubSpot V4 form.
+ * - Emits one canonical lead_captured lifecycle event after HubSpot accepts a lead.
  * - Mirrors successful first-party form attribution to the Supabase collector.
  * - Keeps nvx_lead_id separate from submission_id and the reconciled lead FK.
  *
@@ -88,6 +89,52 @@ function nvx_attribution_log_direct_relay( string $outcome, int $status = 0 ): v
 }
 
 /**
+ * Emit the canonical first-party lifecycle event exactly once per lineage UUID.
+ *
+ * This event is independent of marketing consent. Consumers decide whether
+ * their own purpose requires consent. QA identity is rebuilt from WordPress
+ * server context and is never trusted from the browser payload.
+ *
+ * @param array<string,string> $fields            HubSpot field map.
+ * @param bool                 $marketing_consent Current explicit marketing consent.
+ */
+function nvx_attribution_emit_lead_captured( array $fields, bool $marketing_consent ): void {
+	$lead_id = strtolower( trim( (string) ( $fields['nvx_lead_id'] ?? '' ) ) );
+	if ( ! nvx_attribution_is_uuid_v4( $lead_id ) ) {
+		return;
+	}
+
+	static $emitted = array();
+	if ( isset( $emitted[ $lead_id ] ) ) {
+		return;
+	}
+	$emitted[ $lead_id ] = true;
+
+	$qa = function_exists( 'nvx_attribution_qa_context' )
+		? nvx_attribution_qa_context()
+		: array(
+			'is_test_lead' => false,
+			'test_run_id'  => '',
+		);
+
+	do_action(
+		'nvx_lead_captured',
+		array(
+			'event_version'     => '1',
+			'nvx_lead_id'       => $lead_id,
+			'contact_id'        => '',
+			'email'             => sanitize_email( (string) ( $fields['email'] ?? '' ) ),
+			'phone'             => sanitize_text_field( (string) ( $fields['phone'] ?? '' ) ),
+			'nvx_is_test_lead'  => ! empty( $qa['is_test_lead'] ),
+			'nvx_test_run_id'   => (string) ( $qa['test_run_id'] ?? '' ),
+			'marketing_consent' => $marketing_consent,
+			'captured_at'       => gmdate( 'c' ),
+			'source'            => 'hubspot_secure_direct_form',
+		)
+	);
+}
+
+/**
  * Relay attribution only after the secure bridge has produced a successful HubSpot response.
  *
  * This callback runs after nvx_hubspot_secure_pre_http_request() on the same
@@ -119,9 +166,6 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 	}
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- same validated direct-form request.
 	$marketing_consent = isset( $_POST['nvx_marketing_consent'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_POST['nvx_marketing_consent'] ) );
-	if ( ! $marketing_consent ) {
-		return $preempt;
-	}
 
 	$body    = $args['body'] ?? '';
 	$payload = is_string( $body ) ? json_decode( $body, true ) : (array) $body;
@@ -132,7 +176,15 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 
 	$lead_id = strtolower( (string) ( $fields['nvx_lead_id'] ?? '' ) );
 	$email   = strtolower( trim( (string) ( $fields['email'] ?? '' ) ) );
-	if ( ! nvx_attribution_is_uuid_v4( $lead_id ) || ! is_email( $email ) ) {
+	if ( ! nvx_attribution_is_uuid_v4( $lead_id ) ) {
+		return $preempt;
+	}
+
+	// Commercial lifecycle begins at confirmed capture, not at physical Contact creation.
+	nvx_attribution_emit_lead_captured( $fields, $marketing_consent );
+
+	// Google attribution remains a separate consent-gated collector concern.
+	if ( ! $marketing_consent || ! is_email( $email ) ) {
 		return $preempt;
 	}
 
@@ -203,3 +255,6 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 	return $preempt;
 }
 add_filter( 'pre_http_request', 'nvx_attribution_relay_direct_form_after_hubspot', 20, 3 );
+
+// Meta CAPI is an optional consumer of nvx_lead_captured and is disabled by default.
+require_once __DIR__ . '/nvx-meta-capi.php';

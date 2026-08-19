@@ -17,7 +17,13 @@ export const GITHUB_EVENT_NAMES = Object.freeze({
 /** Git ref names for protected branches. */
 export const GIT_REF_NAMES = Object.freeze({
   MASTER: 'master',
+  MAIN: 'main',
 });
+
+/** Get the configured protected branch (master or main) from environment or default. */
+export function getProtectedBranch() {
+  return process.env.NUVANX_PROTECTED_BRANCH || GIT_REF_NAMES.MASTER;
+}
 
 /** Execution path identifiers for GitHub Actions. */
 export const EXECUTION_PATHS = Object.freeze({
@@ -41,7 +47,7 @@ export function isSiteGroundTransientResponse(status, headers = {}, currentUrl =
 }
 
 export function isOneShotMasterPush(eventName = '', refName = '') {
-  return eventName === GITHUB_EVENT_NAMES.PUSH && refName === GIT_REF_NAMES.MASTER;
+  return eventName === GITHUB_EVENT_NAMES.PUSH && refName === getProtectedBranch();
 }
 
 export function getGitHubEventPath(eventName = '', refName = '') {
@@ -51,7 +57,7 @@ export function getGitHubEventPath(eventName = '', refName = '') {
   if (isOneShotMasterPush(eventName, refName)) {
     return EXECUTION_PATHS.ONE_SHOT_MASTER_PUSH;
   }
-  if (eventName === 'workflow_dispatch' && refName === GIT_REF_NAMES.MASTER) {
+  if (eventName === GITHUB_EVENT_NAMES.WORKFLOW_DISPATCH && refName === getProtectedBranch()) {
     return EXECUTION_PATHS.TRUSTED_WORKFLOW_DISPATCH;
   }
   return EXECUTION_PATHS.UNSUPPORTED_EVENT;

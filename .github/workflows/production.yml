@@ -9,7 +9,7 @@ on:
     types:
       - completed
     branches:
-      - master
+      - ${{ env.CANONICAL_BRANCH }}
   workflow_dispatch:
     inputs:
       deploy:
@@ -75,6 +75,7 @@ env:
   SEARCH_CONSOLE_PROPERTY: https://nuvanx.com/
   INDEXNOW_KEY: 53546cf8077aa596b76aac664739bbb4
   STAGING_ACCEPTANCE_BRANCH: master
+  CANONICAL_BRANCH: master
   STAGING_ACCEPTANCE_WORKFLOW_PATH: .github/workflows/staging.yml
   SSH_RETRY_ATTEMPTS: 5
   SSH_RETRY_BASE_DELAY_SECONDS: 15
@@ -110,7 +111,7 @@ jobs:
 
           before_id="$(gh run list --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
           gh workflow run production.yml \
-            --ref master \
+            --ref "$CANONICAL_BRANCH" \
             -f deploy=true \
             -f candidate_sha="$CANDIDATE_SHA" \
             -f release_mode=release \
@@ -122,7 +123,7 @@ jobs:
 
           child_id=''
           for attempt in $(seq 1 30); do
-            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha)"
+            runs="$(gh run list --workflow production.yml --branch "$CANONICAL_BRANCH" --event workflow_dispatch --limit 20 --json databaseId,headSha)"
             child_id="$(jq -r --argjson before "$before_id" --arg sha "$CANDIDATE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
             if [[ -n "$child_id" ]]; then
               break
@@ -191,6 +192,8 @@ jobs:
           theme_tree="$(git rev-parse "${candidate}:wp-content/themes/nuvanx-medical")"
           echo "sha=$candidate" >> "$GITHUB_OUTPUT"
           echo "CANDIDATE_SHA=$candidate" >> "$GITHUB_ENV"
+          # EXPECTED_SHA is set to the resolved candidate SHA for consistency with CANDIDATE_SHA
+          # Both variables will be identical in normal operation; this naming preserves downstream scripts
           echo "EXPECTED_SHA=$candidate" >> "$GITHUB_ENV"
           echo "CANDIDATE_THEME_TREE=$theme_tree" >> "$GITHUB_ENV"
           echo "PRODUCTION_CANDIDATE=$candidate"

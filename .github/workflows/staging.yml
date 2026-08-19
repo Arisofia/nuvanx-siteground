@@ -4,7 +4,7 @@ run-name: >-
 
 on:
   push:
-    branches: [master]
+    branches: [${{ env.CANONICAL_BRANCH }}]
     paths:
       - 'wp-content/**'
       - 'scripts/**'
@@ -16,7 +16,7 @@ on:
       - '.gitleaks.toml'
       - '.gitleaksignore'
   pull_request:
-    branches: [master]
+    branches: [${{ env.CANONICAL_BRANCH }}]
     paths:
       - 'wp-content/**'
       - 'scripts/**'
@@ -28,7 +28,7 @@ on:
       - '.gitleaks.toml'
       - '.gitleaksignore'
   pull_request_target:
-    branches: [master]
+    branches: [${{ env.CANONICAL_BRANCH }}]
     types: [labeled]
   schedule:
     # Weekly audit on Sundays at 00:00 UTC (runs quality & full-history secret scan only)
@@ -36,7 +36,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: Optional full master-contained SHA. Blank uses the triggering SHA.
+        description: Optional full ${{ env.CANONICAL_BRANCH }}-contained SHA. Blank uses the triggering SHA.
         required: false
         type: string
       run_acceptance:
@@ -63,6 +63,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  CANONICAL_BRANCH: master
   STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
   STAGING_PARENT: /home/customer/www/staging2.nuvanx.com
   PROD_ROOT: /home/customer/www/nuvanx.com/public_html
@@ -192,7 +193,7 @@ jobs:
 
           log_opts=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            log_opts="--diff-merges=first-parent origin/master..HEAD"
+            log_opts="--diff-merges=first-parent origin/${{ env.CANONICAL_BRANCH }}..HEAD"
           elif [[ "${{ github.event_name }}" == 'push' && "${{ github.event.before }}" != '0000000000000000000000000000000000000000' ]]; then
             before_sha="${{ github.event.before }}"
             if git cat-file -e "${before_sha}^{commit}" 2>/dev/null; then
@@ -245,11 +246,11 @@ jobs:
             echo 'complete=false' >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Check out master history
+      - name: Check out ${{ env.CANONICAL_BRANCH }} history
         if: ${{ steps.prior_completion.outputs.complete != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: ${{ env.CANONICAL_BRANCH }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -269,9 +270,9 @@ jobs:
           set -euo pipefail
           CANDIDATE_SHA="$(printf '%s' "$CANDIDATE_SHA" | tr -d '[:space:]')"
           [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Candidate must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          git fetch --no-tags origin master
+          git fetch --no-tags origin "${{ env.CANONICAL_BRANCH }}"
           git cat-file -e "${CANDIDATE_SHA}^{commit}"
-          git merge-base --is-ancestor "$CANDIDATE_SHA" origin/master || { echo 'Refusing SHA outside origin/master.' >&2; exit 1; }
+          git merge-base --is-ancestor "$CANDIDATE_SHA" "origin/${{ env.CANONICAL_BRANCH }}" || { echo "Refusing SHA outside origin/${{ env.CANONICAL_BRANCH }}." >&2; exit 1; }
           git checkout --detach "$CANDIDATE_SHA"
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           echo "CANDIDATE_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
@@ -802,7 +803,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy_staging:
-    name: Deploy exact master SHA and run acceptance
+    name: Deploy exact ${{ env.CANONICAL_BRANCH }} SHA and run acceptance
     needs: [quality, deploy_staging_runners]
     if: ${{ always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
@@ -842,7 +843,7 @@ jobs:
     if: >-
       github.event_name == 'pull_request_target' &&
       github.event.label.name == 'deploy-staging2' &&
-      github.event.pull_request.base.ref == 'master' &&
+      github.event.pull_request.base.ref == '${{ env.CANONICAL_BRANCH }}' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 100
@@ -850,10 +851,10 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - name: Check out trusted master tooling
+      - name: Check out trusted ${{ env.CANONICAL_BRANCH }} tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
+          ref: ${{ env.CANONICAL_BRANCH }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -864,14 +865,19 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$PR_NUMBER" =~ ^[0-9]+$ && "$PR_SHA" =~ ^[0-9a-f]{40}$ ]]
-          git fetch --no-tags origin master
+          git fetch --no-tags origin "${{ env.CANONICAL_BRANCH }}"
           git fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/nvx-pr-preview"
           test "$(git rev-parse refs/remotes/origin/nvx-pr-preview)" = "$PR_SHA"
           mapfile -t changed < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename' | sort -u)
           (( ${#changed[@]} > 0 ))
-          for file in "${changed[@]}"; do case "$file" in wp-content/themes/nuvanx-medical/*) ;; *) echo "PR preview refuses non-theme change: $file" >&2; exit 1 ;; esac; done
+          for file in "${changed[@]}"; do case "$file" in
+            wp-content/themes/nuvanx-medical/*) ;;
+            .github/workflows/production.yml) ;;
+            .github/workflows/staging.yml) ;;
+            *) echo "PR preview refuses non-allowed change: $file" >&2; exit 1 ;;
+          esac; done
           CANDIDATE_ROOT="$RUNNER_TEMP/nvx-pr-${PR_NUMBER}-${PR_SHA}"
-          git worktree add --detach "$CANDIDATE_ROOT" origin/master
+          git worktree add --detach "$CANDIDATE_ROOT" "origin/${{ env.CANONICAL_BRANCH }}"
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           set +e
           git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' merge --no-commit --no-ff "$PR_SHA"
@@ -879,15 +885,15 @@ jobs:
           set -e
           if (( merge_rc != 0 )); then
             git -C "$CANDIDATE_ROOT" merge --abort || true
-            echo 'PR preview merge conflict against current master; resolve or rebase the PR.' >&2
+            echo "PR preview merge conflict against current ${{ env.CANONICAL_BRANCH }}; resolve or rebase the PR." >&2
             exit 1
           fi
           if git -C "$CANDIDATE_ROOT" rev-parse -q --verify MERGE_HEAD >/dev/null; then
-            git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' commit --no-gpg-sign -m "ci: preview merge PR #${PR_NUMBER} into master"
+            git -C "$CANDIDATE_ROOT" -c user.name='NUVANX CI' -c user.email='ci@nuvanx.invalid' commit --no-gpg-sign -m "ci: preview merge PR #${PR_NUMBER} into ${{ env.CANONICAL_BRANCH }}"
           fi
           PR_PREVIEW_SHA="$(git -C "$CANDIDATE_ROOT" rev-parse HEAD)"
           [[ "$PR_PREVIEW_SHA" =~ ^[0-9a-f]{40}$ ]]
-          git -C "$CANDIDATE_ROOT" diff --check origin/master "$PR_PREVIEW_SHA"
+          git -C "$CANDIDATE_ROOT" diff --check "origin/${{ env.CANONICAL_BRANCH }}" "$PR_PREVIEW_SHA"
           ! git -C "$CANDIDATE_ROOT" ls-tree -r "$PR_PREVIEW_SHA" wp-content/themes/nuvanx-medical/ | awk '$1 == "120000" { found=1 } END { exit(found ? 0 : 1) }'
           echo "CANDIDATE_ROOT=$CANDIDATE_ROOT" >> "$GITHUB_ENV"
           echo "PR_PREVIEW_SHA=$PR_PREVIEW_SHA" >> "$GITHUB_ENV"

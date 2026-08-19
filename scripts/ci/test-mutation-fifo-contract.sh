@@ -173,6 +173,10 @@ grep -Fq 'MUTATION_FIFO=PASS role=staging run_id=42' "$cancel_log"
 
 echo 'MUTATION_FIFO_CONTRACT_TEST=PASS cases=6'
 
+# Trusted migration gate: it is explicitly pending until the theme runtime is
+# introduced, then becomes blocking automatically for every normal PR/push.
+php "$ROOT/scripts/lint/test-document-buffer-retirement.php"
+
 # Release and theme regressions are intentionally owned by a separate contract
 # with their own diagnostics. Keep this call as the current static-gate
 # aggregation point until the workflow exposes a dedicated release-test step.

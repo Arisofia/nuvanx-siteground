@@ -17,44 +17,43 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /** Retire the legacy theme-owned full-document output-buffer callback. */
-function nvx_retire_legacy_document_buffer(): void {
-	global $wp_filter;
+( static function (): void {
+    global $wp_filter;
 
-	if ( ! isset( $wp_filter['template_redirect'] ) || ! $wp_filter['template_redirect'] instanceof WP_Hook ) {
-		return;
-	}
+    $hook = $wp_filter['template_redirect'] ?? null;
+    if ( ! $hook instanceof WP_Hook ) {
+        return;
+    }
 
-	$priority_callbacks = $wp_filter['template_redirect']->callbacks[999999] ?? array();
-	if ( ! is_array( $priority_callbacks ) || array() === $priority_callbacks ) {
-		return;
-	}
+    $priority_callbacks = $hook->callbacks[999999] ?? array();
+    if ( ! is_array( $priority_callbacks ) || array() === $priority_callbacks ) {
+        return;
+    }
 
-	$integration_file = wp_normalize_path( __DIR__ . '/nvx-integrations.php' );
+    $integration_file = wp_normalize_path( __DIR__ . '/nvx-integrations.php' );
 
-	foreach ( $priority_callbacks as $registration ) {
-		$callback = $registration['function'] ?? null;
-		if ( ! $callback instanceof Closure ) {
-			continue;
-		}
+    foreach ( $priority_callbacks as $registration ) {
+        $callback = $registration['function'] ?? null;
+        if ( ! $callback instanceof Closure ) {
+            continue;
+        }
 
-		try {
-			$reflection = new ReflectionFunction( $callback );
-		} catch ( ReflectionException $exception ) {
-			unset( $exception );
-			continue;
-		}
+        try {
+            $reflection = new ReflectionFunction( $callback );
+        } catch ( ReflectionException $exception ) {
+            unset( $exception );
+            continue;
+        }
 
-		$source_file = $reflection->getFileName();
-		if ( ! is_string( $source_file ) || wp_normalize_path( $source_file ) !== $integration_file ) {
-			continue;
-		}
+        $source_file = $reflection->getFileName();
+        if ( ! is_string( $source_file ) || wp_normalize_path( $source_file ) !== $integration_file ) {
+            continue;
+        }
 
-		remove_action( 'template_redirect', $callback, 999999 );
-	}
-}
-
-nvx_retire_legacy_document_buffer();
+        $hook->remove_filter( 'template_redirect', $callback, 999999 );
+    }
+} )();

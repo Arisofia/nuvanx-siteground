@@ -1,5 +1,5 @@
-name: Final Staging Run ID Inspector
-run-name: Final Staging Run ID Inspector · 026fdcad
+name: Final Staging FIFO Cleaner
+run-name: Final Staging FIFO Cleaner · 026fdcad
 
 on:
   pull_request:
@@ -7,24 +7,60 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 jobs:
-  inspect:
+  clean:
     if: ${{ github.head_ref == 'ops/identify-final-staging-026f' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: 026fdcadc69692f6fcf72b6eb2adcf5e08059dfb
+      TARGET_RUN_ID: '32314040060'
     steps:
-      - name: Identify latest manual Staging child
+      - name: Cancel only older active canonical Staging runs
         shell: bash
         run: |
           set -euo pipefail
-          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event workflow_dispatch --branch master --limit 50 --json databaseId,status,conclusion,headSha,createdAt,updatedAt,url)"
-          jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' <<<"$runs"
-          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::No manual Staging child for $TARGET_SHA"; exit 1; }
-          echo "FINAL_STAGING_RUN_ID=$run_id"
-          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'
+          target_meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}")"
+          test "$(jq -r '.path' <<<"$target_meta")" = '.github/workflows/staging.yml'
+          test "$(jq -r '.event' <<<"$target_meta")" = 'workflow_dispatch'
+          target_sha="$(jq -r '.head_sha' <<<"$target_meta")"
+          echo "TARGET_STAGING run_id=$TARGET_RUN_ID sha=$target_sha status=$(jq -r '.status' <<<"$target_meta")"
+
+          cancelled=0
+          for status in queued in_progress waiting requested pending; do
+            raw="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100")"
+            mapfile -t ids < <(jq -r --argjson target "$TARGET_RUN_ID" '
+              .workflow_runs[]?
+              | select(.id < $target)
+              | select(.path == ".github/workflows/staging.yml")
+              | select((.event == "push") or (.event == "workflow_dispatch") or (.event == "pull_request_target"))
+              | .id
+            ' <<<"$raw" | sort -nu)
+            for id in "${ids[@]}"; do
+              [[ "$id" =~ ^[0-9]+$ ]] || continue
+              meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${id}")"
+              current_status="$(jq -r '.status' <<<"$meta")"
+              [[ "$current_status" != completed ]] || continue
+              echo "CANCEL_OLDER_STAGING run_id=$id status=$current_status event=$(jq -r '.event' <<<"$meta") sha=$(jq -r '.head_sha' <<<"$meta")"
+              gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${id}/cancel" >/dev/null || true
+              cancelled=$((cancelled + 1))
+            done
+          done
+
+          for attempt in $(seq 1 45); do
+            blockers=0
+            for status in queued in_progress waiting requested pending; do
+              raw="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100")"
+              count="$(jq -r --argjson target "$TARGET_RUN_ID" '[.workflow_runs[]? | select(.id < $target) | select(.path == ".github/workflows/staging.yml") | select((.event == "push") or (.event == "workflow_dispatch") or (.event == "pull_request_target"))] | length' <<<"$raw")"
+              blockers=$((blockers + count))
+            done
+            if (( blockers == 0 )); then
+              echo "STAGING_FIFO_RELEASED=PASS cancelled=$cancelled target=$TARGET_RUN_ID"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Older active Staging runs still block FIFO for $TARGET_RUN_ID"
+          exit 1

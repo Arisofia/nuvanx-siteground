@@ -107,20 +107,37 @@ assert.doesNotMatch(
   /\.observe\(frame,\{childList:true,subtree:true,attributes:true/,
   'Valoration bootstrap must not limit mutation detection to the initial frame',
 );
+
+const consentFnStart = managedPage.indexOf('function hasMarketingConsent()');
+const iframeFnStart = managedPage.indexOf('function iframeIsHubSpot(iframe)');
+const usableIframeFnStart = managedPage.indexOf('function hasUsableHubSpotIframe(root)');
+const renderableFnStart = managedPage.indexOf('function isRenderable(root)');
+const formDirtyFnStart = managedPage.indexOf('function formIsDirty(form)');
+assert.ok(consentFnStart >= 0, 'HubSpot recovery must expose a dedicated marketing-consent gate');
+assert.ok(iframeFnStart > consentFnStart, 'Marketing-consent helper must be isolated before iframe detection');
+assert.ok(usableIframeFnStart > iframeFnStart, 'Bootstrap must retain a dedicated usable-iframe detector');
+assert.ok(renderableFnStart > usableIframeFnStart, 'Bootstrap must retain a dedicated renderability detector');
+assert.ok(formDirtyFnStart > renderableFnStart, 'Renderability detector must remain isolated from form-dirty logic');
+
+const consentFnBody = managedPage.slice(consentFnStart, iframeFnStart);
+const usableIframeFnBody = managedPage.slice(usableIframeFnStart, renderableFnStart);
+const renderableFnBody = managedPage.slice(renderableFnStart, formDirtyFnStart);
 assert.match(
-  managedPage,
-  /function hasMarketingConsent\(\)/,
-  'HubSpot recovery must expose a dedicated marketing-consent gate',
-);
-assert.match(
-  managedPage,
+  consentFnBody,
   /window\.cmplz_has_consent\("marketing"\)===true/,
   'HubSpot recovery must require explicit Complianz marketing consent',
 );
-assert.match(
-  managedPage,
-  /function hasUsableHubSpotIframe\(root\)\{if\(!root\|\|!hasMarketingConsent\(\)\)/,
+assert.ok(
+  usableIframeFnBody.includes('hasMarketingConsent()'),
   'A HubSpot iframe must not count as usable before marketing consent',
+);
+assert.ok(
+  renderableFnBody.includes('hasMarketingConsent()'),
+  'HubSpot form controls must not count as renderable before marketing consent',
+);
+assert.ok(
+  renderableFnBody.includes('hasUsableHubSpotIframe(root)'),
+  'A consented allowlisted HubSpot iframe inside the canonical host must be sufficient render evidence',
 );
 
 const firstConsentGate = managedPage.indexOf('if(!hasMarketingConsent()){return;}');
@@ -143,11 +160,6 @@ assert.doesNotMatch(
   managedPage,
   /formReady/,
   'A valid allowlisted HubSpot iframe must not depend on a separate ready-event state flag',
-);
-assert.match(
-  managedPage,
-  /return hasUsableHubSpotIframe\(root\);/,
-  'A consented valid HubSpot iframe inside the canonical host must be sufficient render evidence',
 );
 assert.match(
   managedPage,

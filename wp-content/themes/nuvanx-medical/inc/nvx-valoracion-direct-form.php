@@ -5,8 +5,8 @@
  * HubSpot's embed is a marketing iframe. Complianz leaves it blank until
  * cookie consent, which is the default state for paid mobile traffic.
  * This form is first-party HTML and posts through WordPress so a clean
- * visit can convert without accepting cookies. Leads are forwarded to the
- * same HubSpot form via the server-side Forms API.
+ * visit can convert without accepting marketing cookies. Leads are forwarded
+ * to the same HubSpot form via the server-side Forms API.
  *
  * @package nuvanx-medical
  */
@@ -81,18 +81,39 @@ function nvx_valoracion_direct_form_markup(): string {
 	);
 	$html .= '</label></p>';
 
-	// Capture all attribution parameters from URL
+	// First-party lineage is always allowed; marketing attribution remains consent-gated.
+	$html .= '<input type="hidden" name="nvx_lead_id" value="">';
+	$html .= '<input type="hidden" name="nvx_marketing_consent" value="0">';
+
 	foreach ( array( 'gclid', 'gbraid', 'wbraid', 'gclsrc', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term' ) as $param ) {
 		$value = isset( $_GET[ $param ] ) ? sanitize_text_field( wp_unslash( (string) $_GET[ $param ] ) ) : '';
 		$html .= '<input type="hidden" name="' . esc_attr( $param ) . '" value="' . esc_attr( $value ) . '">';
 	}
 
-	// Placeholder for client-populated attribution metadata from JS
-	$html .= '<input type="hidden" name="nvx_landing_url" value="">';
-	$html .= '<input type="hidden" name="nvx_attribution_captured_at" value="">';
-	$html .= '<input type="hidden" name="nvx_attribution_expires_at" value="">';
+	$managed_hidden = array(
+		'nvx_first_source',
+		'nvx_first_medium',
+		'nvx_first_campaign_id',
+		'nvx_first_referrer_domain',
+		'nvx_first_landing_url',
+		'nvx_first_timestamp',
+		'nvx_first_channel',
+		'nvx_conversion_channel',
+		'nvx_conversion_source',
+		'nvx_conversion_medium',
+		'nvx_conversion_campaign_id',
+		'nvx_conversion_landing_url',
+		'nvx_conversion_timestamp',
+		'nvx_landing_url',
+		'nvx_attribution_captured_at',
+		'nvx_attribution_expires_at',
+	);
+	foreach ( $managed_hidden as $name ) {
+		$html .= '<input type="hidden" name="' . esc_attr( $name ) . '" value="">';
+	}
 
-	$html .= '<script>(function(){try{var form=document.querySelector("[data-nvx-direct-form]");if(!form)return;var touch=window.nvxAttribution&&window.nvxAttribution.getFirstTouch?window.nvxAttribution.getFirstTouch():{};if(touch.nvx_attribution_captured_at){form.querySelector("input[name=nvx_landing_url]").value=touch.nvx_first_landing_url||"";form.querySelector("input[name=nvx_attribution_captured_at]").value=touch.nvx_attribution_captured_at||"";form.querySelector("input[name=nvx_attribution_expires_at]").value=touch.nvx_attribution_expires_at||""}}catch(e){}}());</script>';
+	// Defer synchronization until the deferred attribution runtime has executed.
+	$html .= '<script>(function(){function setv(form,name,value){var el=form.querySelector("[name=\""+name+"\"]");if(el)el.value=value==null?"":String(value)}function sync(){try{var form=document.querySelector("[data-nvx-direct-form]");if(!form)return;var c=window.NUVANXAttributionContract;var consent=typeof window.wp_has_consent==="function"&&window.wp_has_consent("marketing")===true;setv(form,"nvx_marketing_consent",consent?"1":"0");if(c&&typeof c.getLeadId==="function")setv(form,"nvx_lead_id",c.getLeadId()||"");if(!consent||!c)return;var first=typeof c.getFirstTouch==="function"?(c.getFirstTouch()||{}):{};var conv=typeof c.getConversionTouch==="function"?(c.getConversionTouch()||first):first;setv(form,"utm_source",conv.source||"");setv(form,"utm_medium",conv.medium||"");setv(form,"utm_campaign",conv.campaign_id||"");setv(form,"utm_content",conv.utm_content||"");setv(form,"utm_term",conv.utm_term||"");setv(form,"gclid",conv.gclid||first.gclid||"");setv(form,"gbraid",conv.gbraid||first.gbraid||"");setv(form,"wbraid",conv.wbraid||first.wbraid||"");setv(form,"gclsrc",conv.gclsrc||first.gclsrc||"");setv(form,"nvx_first_source",first.source||"");setv(form,"nvx_first_medium",first.medium||"");setv(form,"nvx_first_campaign_id",first.campaign_id||"");setv(form,"nvx_first_referrer_domain",first.referrer_domain||"");setv(form,"nvx_first_landing_url",first.landing_url||"");setv(form,"nvx_first_timestamp",first.timestamp||"");setv(form,"nvx_first_channel",first.channel||"");setv(form,"nvx_conversion_channel",conv.channel||"");setv(form,"nvx_conversion_source",conv.source||"");setv(form,"nvx_conversion_medium",conv.medium||"");setv(form,"nvx_conversion_campaign_id",conv.campaign_id||"");setv(form,"nvx_conversion_landing_url",conv.landing_url||"");setv(form,"nvx_conversion_timestamp",conv.timestamp||"");setv(form,"nvx_landing_url",conv.landing_url||first.landing_url||"");setv(form,"nvx_attribution_captured_at",first.timestamp||"");if(first.expires_at){var exp=Number(first.expires_at);setv(form,"nvx_attribution_expires_at",Number.isFinite(exp)?new Date(exp).toISOString():first.expires_at)}}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",sync,{once:true});else sync();document.addEventListener("wp_listen_for_consent_change",sync);document.addEventListener("wp_consent_type_defined",sync)})();</script>';
 
 	$html .= '<button type="submit" class="nvx-brand-btn nvx-btn--primary nvx-valoracion-direct-form__submit">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</button>';
 	$html .= '</form>';
@@ -101,103 +122,80 @@ function nvx_valoracion_direct_form_markup(): string {
 }
 
 /**
- * Character length for first-party name fields. Bytes would accept a single
- * multi-byte surname such as Ñ or 李 as if it met the two-character minimum.
+ * Character length for first-party name fields.
  */
 function nvx_valoracion_name_length( string $value ): int {
 	if ( function_exists( 'mb_strlen' ) ) {
 		return (int) mb_strlen( $value, 'UTF-8' );
 	}
-
 	if ( function_exists( 'iconv_strlen' ) ) {
 		$iconv_length = @iconv_strlen( $value, 'UTF-8' );
 		if ( false !== $iconv_length ) {
 			return (int) $iconv_length;
 		}
 	}
-
 	$utf8_count = preg_match_all( '/./us', $value );
-	// Invalid UTF-8 must fail closed. strlen() would count Ñ as 2 and pass the minimum.
 	return false === $utf8_count ? 0 : (int) $utf8_count;
 }
 
 /**
- * Generate or retrieve session-scoped lead ID.
- * Must not leak across sessions or become a long-lived tracking cookie.
- *
- * @return string
+ * Validate a canonical UUID v4.
  */
-function nvx_valoracion_lead_id(): string {
-	if ( ! function_exists( 'wp_cache_get' ) ) {
-		return '';
-	}
-
-	// Use transient for session scope (wp_cache is not persistent across requests)
-	$lead_id = get_transient( 'nvx_valoracion_lead_id' );
-	if ( ! $lead_id ) {
-		$lead_id = 'lead_' . time() . '_' . wp_generate_password( 8, false );
-		set_transient( 'nvx_valoracion_lead_id', $lead_id, HOUR_IN_SECONDS );
-	}
-
-	return (string) $lead_id;
+function nvx_valoracion_is_uuid_v4( string $value ): bool {
+	return 1 === preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $value );
 }
 
 /**
- * Append attribution field to HubSpot submission if value exists.
+ * Resolve the logical lead lineage id for this submission.
  *
- * @param array<int,array{objectTypeId:string,name:string,value:string}> $fields Fields array (passed by reference).
- * @param string                                                          $name   Field name.
- * @param string                                                          $value  Field value.
- * @return void
+ * The browser contract owns the session-scoped UUID. A no-JS request receives
+ * a fresh server UUID for that submission; no site-global transient is used.
+ */
+function nvx_valoracion_lead_id(): string {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- called only after the direct-form nonce is validated.
+	$posted = isset( $_POST['nvx_lead_id'] ) ? strtolower( trim( sanitize_text_field( wp_unslash( (string) $_POST['nvx_lead_id'] ) ) ) ) : '';
+	if ( '' !== $posted && nvx_valoracion_is_uuid_v4( $posted ) ) {
+		return $posted;
+	}
+
+	return function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : '';
+}
+
+/**
+ * Append a HubSpot field when a value exists.
+ *
+ * @param array<int,array{objectTypeId:string,name:string,value:string}> $fields Fields array.
  */
 function nvx_valoracion_append_field( array &$fields, string $name, string $value ): void {
 	if ( '' === $value ) {
 		return;
 	}
-
 	$fields[] = array(
 		'objectTypeId' => '0-1',
 		'name'         => $name,
-			'value'        => $value,
-		);
+		'value'        => $value,
+	);
 }
 
 /**
- * Get attribution value from POST or metadata source.
- * Implements consent gate for marketing attribution.
- *
- * @param string $property_name Property name (e.g., 'nvx_utm_source').
- * @param int    $trust_level   0=untrusted POST only; 1=trust POST; 2=trust+metadata.
- * @return string
+ * Whether this request has explicit marketing consent for attribution data.
  */
-function nvx_valoracion_attribution_value( string $property_name, int $trust_level = 1 ): string {
-	// Marketing consent must be explicitly granted for attribution
-	if ( $trust_level > 0 && '1' !== nvx_valoracion_attribution_value( 'nvx_marketing_consent', 0 ) ) {
-		return '';
-	}
-
-	// Try POST first (form submission data)
-	if ( isset( $_POST[ $property_name ] ) ) {
-		return sanitize_text_field( wp_unslash( (string) $_POST[ $property_name ] ) );
-	}
-
-	// Level 2 would check wp_transient or metadata sources (not implemented yet)
-	return '';
+function nvx_valoracion_has_marketing_consent(): bool {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- called only from the nonce-validated direct-form flow.
+	$value = isset( $_POST['nvx_marketing_consent'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nvx_marketing_consent'] ) ) : '';
+	return '1' === $value;
 }
 
 /**
- * Emit a bounded operational event without personal data, request identifiers,
- * cookies, tokens or HubSpot payload content.
+ * Emit a bounded operational event without personal data.
  */
 function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $status = 0 ): void {
 	$allowed_outcomes = array( 'FAILURE', 'SUCCESS' );
 	$allowed_reasons  = array( 'nonce', 'rate_limit', 'validation', 'hubspot_transport', 'hubspot_http' );
 	$outcome          = strtoupper( $outcome );
-
 	if ( ! in_array( $outcome, $allowed_outcomes, true ) ) {
 		return;
 	}
-
 	$line = 'NVX_VALORACION_' . $outcome;
 	if ( 'FAILURE' === $outcome && in_array( $reason, $allowed_reasons, true ) ) {
 		$line .= ' reason=' . $reason;
@@ -205,7 +203,6 @@ function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $
 	if ( $status > 0 ) {
 		$line .= ' status=' . (int) $status;
 	}
-
 	error_log( $line );
 }
 
@@ -213,10 +210,7 @@ function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $
  * Handle a first-party valoración POST and forward it to HubSpot.
  */
 function nvx_valoracion_maybe_handle_direct_submit(): void {
-	if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) {
-		return;
-	}
-	if ( empty( $_POST['nvx_valoracion_submit'] ) ) {
+	if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) || empty( $_POST['nvx_valoracion_submit'] ) ) {
 		return;
 	}
 
@@ -260,73 +254,65 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	}
 
 	$fields = array(
-		array(
-			'objectTypeId' => '0-1',
-			'name'         => 'firstname',
-			'value'        => $firstname,
-		),
-		array(
-			'objectTypeId' => '0-1',
-			'name'         => 'lastname',
-			'value'        => $lastname,
-		),
-		array(
-			'objectTypeId' => '0-1',
-			'name'         => 'email',
-			'value'        => $email,
-		),
-		array(
-			'objectTypeId' => '0-1',
-			'name'         => 'phone',
-			'value'        => $phone,
-		),
-		array(
-			'objectTypeId' => '0-1',
-			'name'         => 'message',
-			'value'        => $message,
-		),
+		array( 'objectTypeId' => '0-1', 'name' => 'firstname', 'value' => $firstname ),
+		array( 'objectTypeId' => '0-1', 'name' => 'lastname', 'value' => $lastname ),
+		array( 'objectTypeId' => '0-1', 'name' => 'email', 'value' => $email ),
+		array( 'objectTypeId' => '0-1', 'name' => 'phone', 'value' => $phone ),
+		array( 'objectTypeId' => '0-1', 'name' => 'message', 'value' => $message ),
 	);
 
-	// Add lead lineage ID (independent of marketing consent)
+	// Lineage is operational first-party data and is independent of marketing consent.
 	nvx_valoracion_append_field( $fields, 'nvx_lead_id', nvx_valoracion_lead_id() );
 
-	// Add UTM fields (from form submission)
-	foreach ( array( 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term' ) as $utm_param ) {
-		$utm_value = isset( $_POST[ $utm_param ] ) ? sanitize_text_field( wp_unslash( (string) $_POST[ $utm_param ] ) ) : '';
-		if ( '' !== $utm_value ) {
-			nvx_valoracion_append_field( $fields, 'nvx_' . $utm_param, $utm_value );
+	$marketing_consent = nvx_valoracion_has_marketing_consent();
+	if ( $marketing_consent ) {
+		foreach ( array( 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term' ) as $utm_param ) {
+			$value = isset( $_POST[ $utm_param ] ) ? sanitize_text_field( wp_unslash( (string) $_POST[ $utm_param ] ) ) : '';
+			nvx_valoracion_append_field( $fields, 'nvx_' . $utm_param, $value );
+		}
+
+		$click_id_map = array(
+			'gclid'  => 'nvx_google_click_id',
+			'gbraid' => 'nvx_google_braid',
+			'wbraid' => 'nvx_google_wbraid',
+			'gclsrc' => 'nvx_google_gclsrc',
+		);
+		foreach ( $click_id_map as $param => $property ) {
+			$value = isset( $_POST[ $param ] ) ? sanitize_text_field( wp_unslash( (string) $_POST[ $param ] ) ) : '';
+			nvx_valoracion_append_field( $fields, $property, $value );
+		}
+
+		$managed_text = array(
+			'nvx_first_source',
+			'nvx_first_medium',
+			'nvx_first_campaign_id',
+			'nvx_first_referrer_domain',
+			'nvx_first_timestamp',
+			'nvx_first_channel',
+			'nvx_conversion_channel',
+			'nvx_conversion_source',
+			'nvx_conversion_medium',
+			'nvx_conversion_campaign_id',
+			'nvx_conversion_timestamp',
+			'nvx_attribution_captured_at',
+			'nvx_attribution_expires_at',
+		);
+		foreach ( $managed_text as $property ) {
+			$value = isset( $_POST[ $property ] ) ? sanitize_text_field( wp_unslash( (string) $_POST[ $property ] ) ) : '';
+			nvx_valoracion_append_field( $fields, $property, $value );
+		}
+
+		foreach ( array( 'nvx_first_landing_url', 'nvx_conversion_landing_url', 'nvx_landing_url' ) as $property ) {
+			$value = isset( $_POST[ $property ] ) ? esc_url_raw( wp_unslash( (string) $_POST[ $property ] ) ) : '';
+			nvx_valoracion_append_field( $fields, $property, $value );
 		}
 	}
-
-	// Add Google click IDs (all variants)
-	$click_id_map = array(
-		'gclid'  => 'nvx_google_click_id',
-		'gbraid' => 'nvx_google_braid',
-		'wbraid' => 'nvx_google_wbraid',
-		'gclsrc' => 'nvx_google_gclsrc',
-	);
-	foreach ( $click_id_map as $click_param => $click_property ) {
-		$click_value = isset( $_POST[ $click_param ] ) ? sanitize_text_field( wp_unslash( (string) $_POST[ $click_param ] ) ) : '';
-		if ( '' !== $click_value ) {
-			nvx_valoracion_append_field( $fields, $click_property, $click_value );
-		}
-	}
-
-	// Add attribution metadata
-	$landing_url = isset( $_POST['nvx_landing_url'] ) ? esc_url_raw( wp_unslash( $_POST['nvx_landing_url'] ) ) : home_url( '/madrid/valoracion/' );
-	nvx_valoracion_append_field( $fields, 'nvx_landing_url', $landing_url );
-
-	$captured_at = isset( $_POST['nvx_attribution_captured_at'] ) ? sanitize_text_field( wp_unslash( $_POST['nvx_attribution_captured_at'] ) ) : gmdate( 'c' );
-	nvx_valoracion_append_field( $fields, 'nvx_attribution_captured_at', $captured_at );
-
-	$expires_at = isset( $_POST['nvx_attribution_expires_at'] ) ? sanitize_text_field( wp_unslash( $_POST['nvx_attribution_expires_at'] ) ) : gmdate( 'c', time() + 90 * DAY_IN_SECONDS );
-	nvx_valoracion_append_field( $fields, 'nvx_attribution_expires_at', $expires_at );
 
 	$context = array(
 		'pageUri'  => home_url( '/madrid/valoracion/' ),
 		'pageName' => 'Valoración médica estética en Madrid',
 	);
-	if ( isset( $_COOKIE['hubspotutk'] ) ) {
+	if ( $marketing_consent && isset( $_COOKIE['hubspotutk'] ) ) {
 		$hutk = sanitize_text_field( wp_unslash( (string) $_COOKIE['hubspotutk'] ) );
 		if ( '' !== $hutk ) {
 			$context['hutk'] = $hutk;
@@ -347,25 +333,23 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 add_action( 'template_redirect', 'nvx_valoracion_maybe_handle_direct_submit', 0 );
 
 /**
- * POST a lead to the canonical HubSpot form. The returned contract contains
- * only an allow-listed reason and an HTTP status; it never contains request,
- * cookie, token, payload or response-body data.
+ * POST a lead to the canonical HubSpot form.
  *
  * @param array<int,array{objectTypeId:string,name:string,value:string}> $fields  HubSpot fields.
  * @param array<string,string>                                           $context Submission context.
  * @return array{ok:bool,reason:string,status:int}
  */
 function nvx_valoracion_forward_to_hubspot( array $fields, array $context ): array {
-	$portal = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? (string) NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
-	$form   = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-	$url    = 'https://api.hsforms.com/submissions/v3/integration/submit/' . rawurlencode( $portal ) . '/' . rawurlencode( $form );
+	$portal = function_exists( 'nvx_hubspot_secure_portal_id' )
+		? nvx_hubspot_secure_portal_id()
+		: ( defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? (string) NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356' );
+	$form = function_exists( 'nvx_hubspot_secure_form_id' )
+		? nvx_hubspot_secure_form_id()
+		: ( defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c' );
+	$url = 'https://api.hsforms.com/submissions/v3/integration/submit/' . rawurlencode( $portal ) . '/' . rawurlencode( $form );
 
 	$failed = static function ( string $reason, int $status ): array {
-		return array(
-			'ok'     => false,
-			'reason' => $reason,
-			'status' => $status,
-		);
+		return array( 'ok' => false, 'reason' => $reason, 'status' => $status );
 	};
 
 	$body = wp_json_encode(
@@ -388,9 +372,7 @@ function nvx_valoracion_forward_to_hubspot( array $fields, array $context ): arr
 		$url,
 		array(
 			'timeout' => 12,
-			'headers' => array(
-				'Content-Type' => 'application/json',
-			),
+			'headers' => array( 'Content-Type' => 'application/json' ),
 			'body'    => $body,
 		)
 	);
@@ -401,11 +383,7 @@ function nvx_valoracion_forward_to_hubspot( array $fields, array $context ): arr
 
 	$code = (int) wp_remote_retrieve_response_code( $response );
 	if ( $code >= 200 && $code < 300 ) {
-		return array(
-			'ok'     => true,
-			'reason' => '',
-			'status' => $code,
-		);
+		return array( 'ok' => true, 'reason' => '', 'status' => $code );
 	}
 
 	return $failed( 'hubspot_http', $code );

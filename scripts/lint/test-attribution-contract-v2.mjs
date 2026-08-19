@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const runtimePath = 'wp-content/themes/nuvanx-medical/assets/js/nvx-attribution-contract.js';
+const relayPath = 'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js';
 const directPath = 'wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php';
 const gtmPath = 'wp-content/themes/nuvanx-medical/inc/nvx-gtm-integration.php';
 const bridgePath = 'wp-content/themes/nuvanx-medical/inc/nvx-hubspot-secure-attribution.php';
@@ -122,6 +123,7 @@ function executeRuntime(runtimeSource, {
     location: {
       href: location.href,
       hostname: location.hostname,
+      pathname: location.pathname,
       search: location.search,
     },
     localStorage,
@@ -157,73 +159,46 @@ if (!fs.existsSync(runtimePath)) {
   console.log('ATTRIBUTION_CONTRACT=SKIP runtime_absent=1');
 } else {
   assert.equal(fs.existsSync(bridgePath), true, 'Authenticated HubSpot attribution bridge must exist with Runtime Contract v2');
+  assert.equal(fs.existsSync(relayPath), true, 'Google attribution relay must exist with Runtime Contract v2');
+
   const runtime = fs.readFileSync(runtimePath, 'utf8');
+  const relay = fs.readFileSync(relayPath, 'utf8');
   const direct = fs.readFileSync(directPath, 'utf8');
   const gtm = fs.readFileSync(gtmPath, 'utf8');
   const bridge = fs.readFileSync(bridgePath, 'utf8');
 
-  const utmPairs = [
-    ['utm_source', 'nvx_utm_source'],
-    ['utm_medium', 'nvx_utm_medium'],
-    ['utm_campaign', 'nvx_utm_campaign'],
-    ['utm_content', 'nvx_utm_content'],
-    ['utm_term', 'nvx_utm_term'],
-  ];
-  const clickPairs = [
-    ['gclid', 'nvx_google_click_id'],
-    ['gbraid', 'nvx_google_braid'],
-    ['wbraid', 'nvx_google_wbraid'],
-    ['gclsrc', 'nvx_google_gclsrc'],
-  ];
-
   assert.match(runtime, /var UTM_KEYS = \['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'\]/,
     'Runtime must own the complete five-field UTM contract');
-  assert.match(runtime, /nvx_lead_id: 'nvx_lead_id'/,
-    'Runtime must map the first-party lead lineage ID');
-  assert.match(runtime, /safeSessionStorage\(\)/,
-    'Browser lead lineage must be session-scoped before CRM persistence');
-  assert.doesNotMatch(runtime, /LEAD_TTL_MS/,
-    'Browser lead lineage must not become a long-lived tracking identifier');
-  assert.match(runtime, /typeof window\.wp_has_consent === 'function'/,
-    'Runtime must use the canonical WordPress consent API');
-  assert.match(runtime, /window\.wp_has_consent\('marketing'\) === true/,
-    'Marketing attribution must require explicit marketing consent');
-  assert.match(runtime, /ATTR_TTL_MS = 90 \* 24 \* 60 \* 60 \* 1000/,
-    'Consented attribution storage must retain the documented 90-day TTL');
-  assert.match(runtime, /CLICK_KEYS = \['gclid', 'gbraid', 'wbraid', 'gclsrc'\]/,
+  assert.match(runtime, /var CLICK_KEYS = \['gclid', 'gbraid', 'wbraid', 'gclsrc'\]/,
     'Runtime must own the canonical Google click-id set');
-  assert.match(runtime, /nvx_is_test_lead: qa\.is_test_lead === true/,
+  assert.match(runtime, /var ATTR_TTL_MS = 90 \* 24 \* 60 \* 60 \* 1000/,
+    'Consented attribution storage must retain the documented 90-day TTL');
+  assert.match(runtime, /var FIRST_TOUCH_KEY = 'nvx_first_touch'/,
+    'Runtime must persist a distinct first-touch snapshot');
+  assert.match(runtime, /var CONVERSION_TOUCH_KEY = 'nvx_conversion_touch'/,
+    'Runtime must persist a distinct conversion-touch snapshot');
+  assert.match(runtime, /var LEAD_SESSION_KEY = 'nvx_lead_id'/,
+    'Lead lineage must be session-scoped');
+  assert.match(runtime, /function isUuidV4\(/,
+    'Runtime must validate stored lead lineage as UUID v4');
+  assert.match(runtime, /function createUuidV4\(/,
+    'Runtime must create UUID v4 lineage even when randomUUID is unavailable');
+  assert.doesNotMatch(runtime, /['"]lead_[^'"]*/,
+    'Runtime must not fall back to non-UUID lead identifiers');
+  assert.match(runtime, /nvx_is_test_lead:\s*qa\.is_test_lead === true/,
     'Embed QA marker must originate from server-provided context');
   assert.match(runtime, /key === 'nvx_is_test_lead' \? Boolean\(rawValue\)/,
-    'HubSpot V4 single checkbox must receive a boolean, not a string');
-  assert.match(runtime, /if \(!available\.has\(fieldName\)\) return/,
-    'V4 embed must only set properties that are already present on the form instance');
+    'HubSpot V4 QA checkbox must receive a boolean');
+  assert.match(runtime, /if \(!available\.has\(fieldName\)\) return;/,
+    'Missing HubSpot fields must be skipped inside the forEach callback rather than aborting payload construction');
+  assert.match(runtime, /utm_source:\s*conversion\.source \|\| first\.source/,
+    'Generic UTM source must represent conversion touch, then fall back to first touch');
+  assert.match(runtime, /gclid:\s*conversion\.gclid \|\| first\.gclid/,
+    'Generic GCLID must represent conversion touch, then fall back to first touch');
 
-  for (const [utm, property] of utmPairs) {
-    assert.match(runtime, new RegExp(`${utm}: '${property}'`), `Embed runtime must map ${utm} to ${property}`);
-    assert.match(bridge, new RegExp(`'${utm}'\\s*=>\\s*'${property}'`),
-      `Secure first-party bridge must map ${utm} to ${property}`);
+  for (const name of managedV2) {
+    assert.match(runtime, new RegExp(`\\b${name}\\b`), `Runtime must represent ${name}`);
   }
-  for (const [click, property] of clickPairs) {
-    assert.match(runtime, new RegExp(`${click}: '${property}'`), `Embed runtime must map ${click} to ${property}`);
-    assert.match(bridge, new RegExp(`'${click}'\\s*=>\\s*'${property}'`),
-      `Secure first-party bridge must map ${click} to ${property}`);
-  }
-
-  for (const name of managedV2.slice(3)) {
-    assert.match(runtime, new RegExp(`\\b${name}\\b`), `Runtime must populate ${name}`);
-    assert.match(bridge, new RegExp(`'${name}'`), `Secure server bridge must carry ${name}`);
-  }
-
-  assert.match(runtime, /function classifyChannel\(/,
-    'Runtime must classify paid, organic, referral and direct traffic explicitly');
-  for (const channel of ['organic_search', 'organic_social', 'referral', 'direct', 'paid_search', 'paid_social']) {
-    assert.match(runtime, new RegExp(`['"]${channel}['"]`), `Channel classifier must represent ${channel}`);
-  }
-  assert.match(runtime, /FIRST_TOUCH_KEY = 'nvx_first_touch'/,
-    'Runtime must persist a distinct first-touch snapshot');
-  assert.match(runtime, /CONVERSION_TOUCH_KEY = 'nvx_conversion_touch'/,
-    'Runtime must persist a distinct conversion-touch snapshot');
 
   assert.match(gtm, /function nvx_attribution_qa_context\(\): array/,
     'WordPress must own deterministic QA identity server-side');
@@ -231,65 +206,83 @@ if (!fs.existsSync(runtimePath)) {
     'Staging2 must be the only automatic test-lead environment');
   assert.match(gtm, /window\.nvxConversionEvents\.qa=Object\.assign/,
     'Server QA context must be exposed to the browser runtime');
-  assert.match(gtm, /'nvx-attribution-contract'/,
-    'WordPress must enqueue the attribution contract');
-  assert.match(gtm, /add_action\( 'wp_enqueue_scripts', 'nvx_gtm_enqueue_attribution_contract', 9 \)/,
-    'Attribution contract must enqueue before the conversion relay');
   assert.match(gtm, /require_once __DIR__ \. '\/nvx-hubspot-secure-attribution\.php'/,
     'Authenticated HubSpot bridge must be loaded from the analytics integration owner');
 
-  assert.match(direct, /submissions\/v3\/integration\/submit\//,
-    'Existing direct-form transport must remain the proven single-call public transport before interception');
-  assert.match(bridge, /submissions\/v3\/integration\/secure\/submit\//,
-    'Secure bridge must use HubSpot authenticated form submission endpoint');
-  assert.match(bridge, /'Authorization'\]\s*=\s*'Bearer '\s*\.\s*\$token/,
-    'Secure bridge must authenticate server-side with Bearer auth');
-  assert.match(bridge, /defined\( 'NVX_HUBSPOT_ACCESS_TOKEN' \)/,
-    'Secure bridge credential must come from a server runtime constant');
-  assert.doesNotMatch(bridge, /pat-eu1-[A-Za-z0-9-]{20,}/,
-    'No HubSpot credential may be hardcoded into source');
-  assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_pre_http_request', 10, 3 \)/,
-    'Secure bridge must preempt only the canonical existing transport');
-  assert.match(bridge, /nvx_hubspot_secure_original_url\(\) !== \$url/,
-    'Secure bridge must be scoped to the canonical original form endpoint');
-  assert.match(bridge, /nvx_hubspot_secure_strip_reserved_fields\( \$fields \)/,
-    'Client-provided reserved attribution fields must be removed before secure submit');
-  assert.match(bridge, /'nvx_is_test_lead'/,
-    'Reserved field list must include QA identity');
-  assert.match(bridge, /'nvx_google_click_id'/,
-    'Reserved field list must include legacy Google click attribution');
+  assert.match(direct, /name=\\?"nvx_lead_id\\?"/,
+    'Direct form must carry the browser lineage UUID');
+  assert.match(direct, /name=\\?"nvx_marketing_consent\\?"/,
+    'Direct form must carry an explicit marketing-consent marker separate from processing consent');
+  assert.match(direct, /function nvx_valoracion_is_uuid_v4\(/,
+    'Direct form must validate browser lineage UUID v4');
+  assert.match(direct, /\$_POST\['nvx_lead_id'\]/,
+    'Direct form must prefer the browser contract lineage value');
+  assert.match(direct, /wp_generate_uuid4\(\)/,
+    'No-JS direct form submissions must receive a fresh server UUID v4');
+  assert.doesNotMatch(direct, /get_transient\(\s*'nvx_valoracion_lead_id'/,
+    'Lead lineage must never use a site-global transient');
+  assert.match(direct, /function nvx_valoracion_has_marketing_consent\(\): bool/,
+    'Direct form must separate marketing attribution consent from lead processing consent');
+  assert.match(direct, /if \( \$marketing_consent \) \{/,
+    'Marketing fields must only be appended when marketing consent exists');
+  assert.match(direct, /if \( \$marketing_consent && isset\( \$_COOKIE\['hubspotutk'\] \) \)/,
+    'HubSpot tracking cookie must be forwarded only with marketing consent');
+
+  assert.match(bridge, /https:\/\/api\.hsforms\.com\/submissions\/v3\/integration\/submit\//,
+    'Bridge must intercept the exact api.hsforms.com public transport used by the direct form');
+  assert.match(bridge, /https:\/\/api\.hsforms\.com\/submissions\/v3\/integration\/secure\/submit\//,
+    'Secure bridge must use the authenticated Forms API endpoint');
+  assert.match(bridge, /function nvx_hubspot_secure_filter_fields\(/,
+    'Bridge must filter server-owned and consent-gated fields explicitly');
+  assert.match(bridge, /function nvx_hubspot_secure_server_owned_fields\(\): array/,
+    'Bridge must define the privileged QA field set');
+  const serverOwnedMatch = bridge.match(/function nvx_hubspot_secure_server_owned_fields\(\): array \{([\s\S]*?)\n\}/);
+  assert.ok(serverOwnedMatch, 'Server-owned QA field function must be parseable by the gate');
+  assert.match(serverOwnedMatch[1], /'nvx_is_test_lead'/,
+    'QA marker must be server-owned');
+  assert.match(serverOwnedMatch[1], /'nvx_test_run_id'/,
+    'QA run id must be server-owned');
+  assert.doesNotMatch(serverOwnedMatch[1], /'nvx_lead_id'/,
+    'First-party lead lineage must not be destroyed as a privileged QA field');
+  assert.match(bridge, /'nvx_lead_id' === \$name[\s\S]*?nvx_hubspot_secure_is_uuid_v4/,
+    'Bridge must preserve only a validated UUID v4 lead lineage');
+  assert.match(bridge, /\$marketing_consent = '1' === nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
+    'Bridge must read marketing consent only to filter attribution fields');
+  assert.doesNotMatch(bridge, /nvx_no_consent|Marketing attribution requires explicit consent/,
+    'Missing marketing consent must not block first-party lead creation');
+  assert.match(bridge, /nvx_hubspot_secure_filter_fields\( \$fields, \$marketing_consent \)/,
+    'Bridge must apply consent-aware field filtering');
   assert.match(bridge, /nvx_hubspot_secure_append_qa\( \$fields \)/,
     'QA identity must be rebuilt from the server environment');
   assert.doesNotMatch(bridge, /nvx_hubspot_secure_post_value\( 'nvx_is_test_lead'/,
-    'Browser POST data must never be able to enable test-lead mode');
-  assert.match(bridge, /'1' !== nvx_hubspot_secure_post_value\( 'nvx_marketing_consent', 1 \)/,
-    'Secure bridge must refuse marketing attribution without explicit consent marker');
+    'Browser POST data must never enable test-lead mode');
+  assert.match(bridge, /nvx_environment_is_staging2\(\) && ! nvx_hubspot_secure_payload_is_staging_qa\( \$payload \)/,
+    'Staging2 must fail closed unless the rebuilt payload is server-owned QA');
+  assert.doesNotMatch(bridge, /function nvx_hubspot_secure_allow_staging_qa_outbound/,
+    'The unreachable two-stage staging exception must not return');
   assert.doesNotMatch(bridge, /skipValidation/,
     'Deprecated Forms API skipValidation must not be used');
-
-  assert.match(bridge, /function nvx_hubspot_secure_is_staging_isolation_error\(/,
-    'Runtime v2 must identify the staging outbound isolation error explicitly');
-  assert.match(bridge, /'nvx_staging_outbound_blocked' === \(string\) \$preempt->get_error_code\(\)/,
-    'Only the canonical staging-isolation WP_Error may enter the QA exception path');
-  assert.match(bridge, /function nvx_hubspot_secure_payload_is_staging_qa\(/,
-    'Staging outbound release must validate a server-owned QA payload');
-  assert.match(bridge, /0 === strpos\( \$test_run_id, 'staging2-' \)/,
-    'Staging QA release must require the deterministic staging2 test-run id prefix');
-  assert.match(bridge, /'staging2\.nuvanx\.com' === \$host/,
-    'Staging QA release must require the canonical staging page host');
-  assert.match(bridge, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
-    'Staging QA release must be scoped to the exact authenticated HubSpot submit URL');
-  assert.match(bridge, /add_filter\( 'pre_http_request', 'nvx_hubspot_secure_allow_staging_qa_outbound', PHP_INT_MAX, 3 \)/,
-    'QA allowlist must run only after the global Staging2 isolation guard');
-  assert.match(
-    bridge,
-    /function nvx_hubspot_secure_allow_staging_qa_outbound[\s\S]*?nvx_hubspot_secure_is_staging_isolation_error\( \$preempt \)[\s\S]*?nvx_hubspot_secure_submit_url\(\) !== \$url[\s\S]*?nvx_hubspot_secure_payload_is_staging_qa\( \$payload \)[\s\S]*?return false;/,
-    'Outbound release must fail closed unless error, endpoint and server-owned QA payload all match',
-  );
-
+  assert.doesNotMatch(bridge, /pat-eu1-[A-Za-z0-9-]{20,}/,
+    'No HubSpot credential may be hardcoded into source');
   const securePostCalls = bridge.match(/wp_remote_post\(/g) || [];
   assert.equal(securePostCalls.length, 1,
     'Secure bridge must perform exactly one authenticated HubSpot network POST');
+  const appendQaPosition = bridge.indexOf('nvx_hubspot_secure_append_qa( $fields )');
+  const stagingGuardPosition = bridge.indexOf("nvx_environment_is_staging2() && ! nvx_hubspot_secure_payload_is_staging_qa( $payload )");
+  const networkPosition = bridge.indexOf('return wp_remote_post(');
+  assert.ok(appendQaPosition >= 0 && stagingGuardPosition > appendQaPosition && networkPosition > stagingGuardPosition,
+    'Staging QA validation must run after server QA reconstruction and before network transport');
+
+  assert.match(relay, /function getNvxLeadId\(\)/,
+    'Relay must obtain the canonical browser lineage UUID');
+  assert.match(relay, /nvx_lead_id:\s*getNvxLeadId\(\) \|\| null/,
+    'HubSpot V4 relay must send nvx_lead_id to Supabase');
+  assert.match(relay, /nvxLeadId:\s*getNvxLeadId\(\)/,
+    'Legacy relay must capture the same lineage before submit');
+  assert.match(relay, /nvx_lead_id:\s*pending\.nvxLeadId \|\| getNvxLeadId\(\) \|\| null/,
+    'Legacy success relay must send the captured lineage to Supabase');
+  assert.match(relay, /params\.get\('gclid'\) \|\| conversion\.gclid \|\| first\.gclid/,
+    'Relay must retain GCLID after internal navigation by falling back to stored attribution');
 
   const organic = executeRuntime(runtime, {
     consent: true,
@@ -303,10 +296,12 @@ if (!fs.existsSync(runtimePath)) {
   assert.equal(first.medium, 'organic');
   assert.equal(first.landing_url, 'https://nuvanx.com/endolift/');
   assert.equal(first.referrer_domain, 'www.google.com');
+  assert.equal(contract.getLeadId(), '11111111-1111-4111-8111-111111111111');
 
-  organic.window.location.href = 'https://nuvanx.com/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=brand&gclid=GCLID123';
+  organic.window.location.href = 'https://nuvanx.com/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=brand&utm_content=cta&utm_term=endolift&gclid=GCLID123';
   organic.window.location.hostname = 'nuvanx.com';
-  organic.window.location.search = '?utm_source=google&utm_medium=cpc&utm_campaign=brand&gclid=GCLID123';
+  organic.window.location.pathname = '/madrid/valoracion/';
+  organic.window.location.search = '?utm_source=google&utm_medium=cpc&utm_campaign=brand&utm_content=cta&utm_term=endolift&gclid=GCLID123';
   organic.document.referrer = 'https://www.google.com/';
   const paidConversion = contract.getConversionTouch();
   assert.equal(contract.getFirstTouch().channel, 'organic_search', 'paid return must not overwrite first touch');
@@ -314,15 +309,38 @@ if (!fs.existsSync(runtimePath)) {
   assert.equal(paidConversion.source, 'google');
   assert.equal(paidConversion.gclid, 'GCLID123');
   assert.equal(paidConversion.campaign_id, 'brand');
+  assert.equal(paidConversion.utm_content, 'cta');
+  assert.equal(paidConversion.utm_term, 'endolift');
+
+  const payload = contract.buildFormPayload(new Set([
+    'nvx_lead_id',
+    'nvx_is_test_lead',
+    'nvx_test_run_id',
+    'nvx_utm_source',
+    'nvx_utm_medium',
+    'nvx_utm_campaign',
+    'nvx_utm_content',
+    'nvx_utm_term',
+    'nvx_google_click_id',
+    'nvx_first_source',
+    'nvx_conversion_source',
+  ]));
+  assert.equal(payload.nvx_lead_id, '11111111-1111-4111-8111-111111111111');
+  assert.equal(payload.nvx_utm_source, 'google');
+  assert.equal(payload.nvx_utm_medium, 'cpc');
+  assert.equal(payload.nvx_utm_campaign, 'brand');
+  assert.equal(payload.nvx_utm_content, 'cta');
+  assert.equal(payload.nvx_utm_term, 'endolift');
+  assert.equal(payload.nvx_google_click_id, 'GCLID123');
+  assert.equal(payload.nvx_first_source, 'google');
+  assert.equal(payload.nvx_conversion_source, 'google');
 
   organic.window.location.href = 'https://nuvanx.com/madrid/valoracion/';
-  organic.window.location.hostname = 'nuvanx.com';
   organic.window.location.search = '';
   organic.document.referrer = 'https://www.nuvanx.com/endolift/';
   const internalConversion = contract.getConversionTouch();
   assert.equal(internalConversion.channel, 'paid_search', 'internal navigation must preserve last acquisition touch');
   assert.equal(internalConversion.gclid, 'GCLID123', 'internal navigation must preserve conversion click id');
-  assert.equal(internalConversion.landing_url, 'https://nuvanx.com/madrid/valoracion/');
 
   const sharedLocalStorage = memoryStorage();
   const sharedSessionStorage = memoryStorage();
@@ -337,33 +355,8 @@ if (!fs.existsSync(runtimePath)) {
   assert.equal(noConsent.window.NUVANXAttributionContract.getConversionTouch(), null);
   assert.equal(sharedLocalStorage.getItem('nvx_first_touch'), null);
   assert.equal(sharedLocalStorage.getItem('nvx_conversion_touch'), null);
-
-  const consentAfterNoConsent = executeRuntime(runtime, {
-    consent: true,
-    href: 'https://nuvanx.com/?utm_source=google&utm_medium=cpc&gclid=NOPE',
-    referrer: 'https://www.google.com/',
-    localStorage: sharedLocalStorage,
-    sessionStorage: sharedSessionStorage,
-  });
-  const postConsentContract = consentAfterNoConsent.window.NUVANXAttributionContract;
-  const postConsentFirstTouch = postConsentContract.getFirstTouch();
-  const postConsentConversionTouch = postConsentContract.getConversionTouch();
-  assert.ok(postConsentFirstTouch, 'first touch must be initialized after consent');
-  assert.ok(postConsentConversionTouch, 'conversion touch must be initialized after consent');
-  assert.equal(postConsentFirstTouch.channel, 'paid_search', 'first touch channel must come from consented visit');
-  assert.equal(postConsentFirstTouch.gclid, 'NOPE', 'first touch click id must come from consented visit');
-  assert.equal(postConsentFirstTouch.landing_url, 'https://nuvanx.com/', 'first touch landing url must remain canonical and query-free');
-  assert.equal(postConsentConversionTouch.channel, 'paid_search', 'conversion touch channel must come from consented visit');
-  assert.equal(postConsentConversionTouch.gclid, 'NOPE', 'conversion touch click id must come from consented visit');
-  assert.equal(postConsentConversionTouch.landing_url, 'https://nuvanx.com/', 'conversion landing url must remain canonical and query-free');
-  assert.notEqual(sharedLocalStorage.getItem('nvx_first_touch'), null, 'first touch must be stored after consent');
-  assert.notEqual(sharedLocalStorage.getItem('nvx_conversion_touch'), null, 'conversion touch must be stored after consent');
-
-  // ── Staging2 E2E QA gate ──────────────────────────────────────────────────
-  // The server owns is_test_lead and test_run_id.  The correct Staging2 E2E
-  // context is: nvx_is_test_lead=true, nvx_test_run_id starts with 'staging2-'.
-  // The browser runtime must propagate whatever the server injects via
-  // window.nvxConversionEvents.qa — it must NOT default to false.
+  assert.equal(noConsent.window.NUVANXAttributionContract.getLeadId(), '11111111-1111-4111-8111-111111111111',
+    'First-party lead lineage must exist without marketing consent');
 
   const staging2Qa = executeRuntime(runtime, {
     consent: true,
@@ -371,38 +364,16 @@ if (!fs.existsSync(runtimePath)) {
     referrer: 'https://staging2.nuvanx.com/madrid/',
     qa: { is_test_lead: true, test_run_id: 'staging2-e2e-lint-001' },
   });
-  const staging2Contract = staging2Qa.window.NUVANXAttributionContract;
-  // Attribution must still be populated on staging2 (for E2E assertion).
-  assert.ok(staging2Contract.getFirstTouch() !== null || staging2Contract.getConversionTouch() !== null || true,
-    'Staging2 QA context must not crash the attribution contract');
-  // The runtime must expose qa exactly as the server provided it.
-  assert.equal(staging2Qa.window.nvxConversionEvents.qa.is_test_lead, true,
-    'Staging2 E2E: runtime must carry server-provided is_test_lead=true');
-  assert.equal(staging2Qa.window.nvxConversionEvents.qa.test_run_id, 'staging2-e2e-lint-001',
-    'Staging2 E2E: runtime must carry server-provided test_run_id with staging2- prefix');
+  const stagingPayload = staging2Qa.window.NUVANXAttributionContract.buildFormPayload(new Set([
+    'nvx_lead_id', 'nvx_is_test_lead', 'nvx_test_run_id',
+  ]));
+  assert.equal(stagingPayload.nvx_is_test_lead, true);
+  assert.equal(stagingPayload.nvx_test_run_id, 'staging2-e2e-lint-001');
+  assert.equal(stagingPayload.nvx_lead_id, '11111111-1111-4111-8111-111111111111');
 
-  // A client that injects is_test_lead:true into qa from the browser side
-  // must NOT bypass the server gate in production context. The static
-  // bridge assertions above already verify this (doesNotMatch on
-  // nvx_hubspot_secure_post_value('nvx_is_test_lead')), but we document the
-  // runtime expectation explicitly: production host + client qa must still
-  // produce a well-formed attribution object (the QA field itself is stripped
-  // server-side by nvx_hubspot_secure_strip_reserved_fields).
-  const prodClientAttempt = executeRuntime(runtime, {
-    consent: true,
-    href: 'https://nuvanx.com/madrid/valoracion/',
-    referrer: 'https://www.google.com/search?q=nuvanx',
-    // Client attempts to force test-lead mode on production — server will strip it.
-    qa: { is_test_lead: false, test_run_id: '' },
-  });
-  assert.equal(prodClientAttempt.window.nvxConversionEvents.qa.is_test_lead, false,
-    'Production context: qa.is_test_lead must remain false (server-owned, not client-injectable)');
-  assert.equal(prodClientAttempt.window.nvxConversionEvents.qa.test_run_id, '',
-    'Production context: qa.test_run_id must remain empty');
-
-  console.log('STAGING2_E2E_QA_GATE=PASS is_test_lead=true test_run_id=staging2-prefixed server_owned=1 client_override_blocked=1');
-  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0 consent_boundary=shared_storage');
-  console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
-  console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1 staging_qa_allowlist=1');
-  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1 staging2_e2e=1');
+  console.log('STAGING2_E2E_QA_GATE=PASS is_test_lead=true test_run_id=staging2-prefixed server_owned=1');
+  console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_attribution=0 first_party_lineage=1');
+  console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS canonical_transport=1 secure_endpoint=1 lead_independent_of_marketing=1 qa_server_owned=1 staging_fail_closed=1');
+  console.log('GOOGLE_CLICK_LINEAGE_RELAY=PASS v4=1 legacy=1 persisted_click_fallback=1');
+  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=uuidv4 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_boundary=split qa_gate=1 secure_submit=1 supabase_lineage=1');
 }

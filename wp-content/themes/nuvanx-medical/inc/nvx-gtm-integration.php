@@ -111,6 +111,36 @@ function nvx_gtm_client_context(): array {
 }
 
 /**
+ * Return deterministic QA identity for the current request.
+ *
+ * Staging2 is the ONLY environment where is_test_lead is automatically true.
+ * The client must NEVER be able to set or override these values.
+ *
+ * @return array{is_test_lead: bool, test_run_id: string}
+ */
+function nvx_attribution_qa_context(): array {
+	$is_staging2 = function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2();
+
+	if ( ! $is_staging2 ) {
+		return array(
+			'is_test_lead' => false,
+			'test_run_id'  => '',
+		);
+	}
+
+	// Deterministic test_run_id: staging2-sha-{short-sha}
+	// Prefer a deploy SHA constant; fall back to a per-request pseudo-stable value.
+	$sha = defined( 'NVX_DEPLOY_SHA' )
+		? substr( (string) NVX_DEPLOY_SHA, 0, 12 )
+		: substr( sha1( get_site_url() ), 0, 12 );
+
+	return array(
+		'is_test_lead' => true,
+		'test_run_id'  => 'staging2-sha-' . $sha,
+	);
+}
+
+/**
  * Enqueue the attribution contract runtime before conversion events.
  * Priority 9 ensures it loads before the conversion relay at priority 10.
  */
@@ -134,6 +164,7 @@ add_action( 'wp_enqueue_scripts', 'nvx_gtm_enqueue_attribution_contract', 9 );
 
 /**
  * Push NUVANX business context before Site Kit executes the GTM container.
+ * Includes the server-owned QA context exposed to the browser runtime.
  */
 function nvx_gtm_push_context(): void {
 	if ( is_admin() ) {
@@ -141,6 +172,7 @@ function nvx_gtm_push_context(): void {
 	}
 
 	$client_context = nvx_gtm_client_context();
+	$qa_context     = nvx_attribution_qa_context();
 	$json_flags     = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 	$data_layer     = wp_json_encode(
 		array(
@@ -149,24 +181,36 @@ function nvx_gtm_push_context(): void {
 		),
 		$json_flags
 	);
-	$client_env     = wp_json_encode( $client_context['env'], $json_flags );
-	$client_forms   = wp_json_encode( $client_context['forms'], $json_flags );
+	$client_env   = wp_json_encode( $client_context['env'], $json_flags );
+	$client_forms = wp_json_encode( $client_context['forms'], $json_flags );
+	$client_qa    = wp_json_encode(
+		array(
+			'is_test_lead' => (bool) $qa_context['is_test_lead'],
+			'test_run_id'  => (string) $qa_context['test_run_id'],
+		),
+		$json_flags
+	);
 
 	if (
 		! is_string( $data_layer ) || '' === $data_layer
 		|| ! is_string( $client_env ) || '' === $client_env
 		|| ! is_string( $client_forms ) || '' === $client_forms
+		|| ! is_string( $client_qa ) || '' === $client_qa
 	) {
 		return;
 	}
 
 	$script = sprintf(
-		'window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=%s;',
+		'window.dataLayer=window.dataLayer||[];window.dataLayer.push(%s);window.nvxConversionEvents=window.nvxConversionEvents||{};window.nvxConversionEvents.env=%s;window.nvxConversionEvents.forms=%s;window.nvxConversionEvents.qa=Object.assign(window.nvxConversionEvents.qa||{},%s);',
 		$data_layer,
 		$client_env,
-		$client_forms
+		$client_forms,
+		$client_qa
 	);
 
 	wp_print_inline_script_tag( $script );
 }
 add_action( 'wp_head', 'nvx_gtm_push_context', 1 );
+
+// Load the secure HubSpot attribution bridge (Runtime Contract v2).
+require_once __DIR__ . '/nvx-hubspot-secure-attribution.php';

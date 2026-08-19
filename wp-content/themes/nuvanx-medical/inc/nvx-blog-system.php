@@ -259,11 +259,41 @@ function nvx_blog_named_image_html( array $asset, array $args = array() ): strin
 	}
 
 	if ( isset( $asset['stem'] ) && is_string( $asset['stem'] ) && '' !== $asset['stem'] ) {
-		$src = trailingslashit( get_template_directory_uri() ) . 'assets/images/responsive/' . $asset['stem'] . '.png';
-		if ( function_exists( 'nvx_responsive_img_markup' ) ) {
-			return nvx_responsive_img_markup( $src, '', $extra );
+		$stem       = $asset['stem'];
+		$candidates = function_exists( 'nvx_theme_responsive_candidates' )
+			? nvx_theme_responsive_candidates( $stem )
+			: array();
+
+		if ( array() === $candidates ) {
+			return '';
 		}
-		return '<img src="' . esc_url( $src ) . '" alt="" ' . $extra . '>';
+
+		ksort( $candidates, SORT_NUMERIC );
+		$default_width = 0;
+		foreach ( array_keys( $candidates ) as $width ) {
+			if ( $width >= 480 ) {
+				$default_width = (int) $width;
+				break;
+			}
+		}
+		if ( 0 === $default_width ) {
+			$default_width = (int) array_key_first( $candidates );
+		}
+
+		$srcset = array();
+		foreach ( $candidates as $width => $candidate_url ) {
+			$srcset[] = $candidate_url . ' ' . (int) $width . 'w';
+		}
+
+		$src  = $candidates[ $default_width ];
+		$size = function_exists( 'nvx_image_dimensions_for_url' )
+			? nvx_image_dimensions_for_url( $src )
+			: array( 0, 0 );
+		$dimensions = ( $size[0] > 0 && $size[1] > 0 )
+			? ' width="' . (int) $size[0] . '" height="' . (int) $size[1] . '"'
+			: '';
+
+		return '<img src="' . esc_url( $src ) . '" srcset="' . esc_attr( implode( ', ', $srcset ) ) . '"' . $dimensions . ' alt="" ' . $extra . '>';
 	}
 
 	if ( isset( $asset['file'] ) && is_string( $asset['file'] ) && '' !== $asset['file'] ) {

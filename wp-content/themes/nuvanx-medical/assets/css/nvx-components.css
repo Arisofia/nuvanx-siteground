@@ -15,6 +15,12 @@
 }
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
+/* Global h2/h3 ink would vanish on near-black stages. Invert there. */
+.nvx-solutions-group--dark :is(h2, h3),
+.nvx-solutions-closure :is(h2, h3),
+.nvx-brand-section--dark :is(h2, h3) {
+  color: var(--nvx-light);
+}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
 /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
 .nvx-copy,.nvx-brand-body,.nvx-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
@@ -2407,69 +2413,100 @@ figure.nvx-equipo-portrait{
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-bridal-gallery__feature {
-  margin: var(--nvx-space-5) 0 var(--nvx-space-6);
+.nvx-bridal-studio {
+  overflow: hidden;
 }
 
-.nvx-bridal-gallery__feature img {
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  object-position: center 55%;
+.nvx-bridal-studio__intro {
+  padding-bottom: var(--nvx-space-6);
 }
 
-.nvx-bridal-gallery__zones {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--nvx-space-4);
+.nvx-bridal-studio__plate {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  background: transparent;
 }
 
-.nvx-bridal-gallery__item {
-  margin: 0;
+.nvx-bridal-studio__plate figcaption {
+  margin-top: var(--nvx-space-2);
+  padding-inline: 0;
+  font-size: var(--nvx-type-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
 }
 
-.nvx-bridal-gallery__item--wide {
-  grid-column: 1 / -1;
-}
-
-.nvx-bridal-gallery__zones figure {
-  margin: 0;
-}
-
-.nvx-bridal-gallery__zones img {
+.nvx-bridal-studio img.nvx-bridal-studio__img,
+.nvx-bridal-studio img.nvx-media--body {
+  display: block;
   width: 100%;
   height: auto;
+  max-height: none;
   object-fit: cover;
   border-radius: var(--nvx-radius-image);
 }
 
-.nvx-bridal-gallery__item--wide img {
-  aspect-ratio: 3 / 2;
+.nvx-bridal-studio__spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nvx-space-6);
+  align-items: center;
+  margin-bottom: var(--nvx-space-7);
+}
+
+.nvx-bridal-studio__copy {
+  max-width: 36rem;
+}
+
+.nvx-bridal-studio__plate--mood img,
+.nvx-bridal-studio__plate--consult img,
+.nvx-bridal-studio__plate--brazos img,
+.nvx-bridal-studio__plate--espalda img {
+  aspect-ratio: 4 / 5;
+}
+
+.nvx-bridal-studio__plate--mood img {
+  object-position: center top;
+}
+
+.nvx-bridal-studio__plate--consult img {
+  object-position: center 45%;
+}
+
+.nvx-bridal-studio__plate--papada {
+  margin: 0 auto var(--nvx-space-7);
+}
+
+.nvx-bridal-studio__plate--papada img {
+  aspect-ratio: 2 / 1;
   object-position: center;
 }
 
-.nvx-bridal-gallery__item:not(.nvx-bridal-gallery__item--wide) img {
-  aspect-ratio: 3 / 4;
+.nvx-bridal-studio__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nvx-space-6);
+  align-items: start;
+  padding-bottom: var(--nvx-space-4);
 }
 
-.nvx-bridal-gallery__item:nth-child(2) img {
-  object-position: center 15%;
+.nvx-bridal-studio__plate--brazos img {
+  object-position: center 14%;
 }
 
-.nvx-bridal-gallery__item:nth-child(3) img {
-  object-position: center 30%;
+.nvx-bridal-studio__plate--espalda img {
+  object-position: center 28%;
 }
 
-@media (max-width: 48rem) {
-  .nvx-bridal-gallery__zones {
+@media (max-width: 56rem) {
+  .nvx-bridal-studio__spread,
+  .nvx-bridal-studio__pair {
     grid-template-columns: 1fr;
+    gap: var(--nvx-space-4);
+    margin-bottom: var(--nvx-space-6);
   }
 
-  .nvx-bridal-gallery__feature img {
-    aspect-ratio: 3 / 4;
-    object-position: center 50%;
+  .nvx-bridal-studio__plate--papada {
+    margin-bottom: var(--nvx-space-6);
   }
 }
 
@@ -2542,16 +2579,16 @@ figure.nvx-equipo-portrait{
 .nvx-brand-section--dark h2,
 .nvx-brand-section--dark .nvx-brand-subtitle,
 .nvx-brand-section--dark h3 {
-  color: var(--nvx-on-dark);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-kicker,
 .nvx-brand-section--dark .nvx-eyebrow {
-  color: var(--nvx-on-dark-72);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-brand-body,
 .nvx-brand-section--dark .nvx-copy,
 .nvx-brand-section--dark p {
-  color: var(--nvx-on-dark-88);
+  color: var(--nvx-light);
 }
 .nvx-brand-section--dark .nvx-color-line {
   background: var(--nvx-accent-line-dark);

@@ -3,7 +3,8 @@
  * Canonical lead-captured relay.
  *
  * Observes only successful authenticated HubSpot submissions and mirrors
- * first-party lineage to Supabase. It never creates Deals or sends ad feedback.
+ * first-party lineage to Supabase. HubSpot remains authoritative for the
+ * patient response; relay failures never alter an accepted HubSpot submission.
  *
  * @package nuvanx-medical
  */
@@ -12,37 +13,83 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Canonical capture ledger URL. Never used as an implicit default. */
-function nvx_lead_captured_canonical_endpoint(): string {
+/** Canonical Supabase capture ledger URL. */
+function nvx_lead_captured_endpoint(): string {
 	return 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/lead-captured';
 }
 
-/**
- * Resolve the capture endpoint from server config only.
- *
- * Missing or non-canonical configuration fails closed so a mis-set env
- * cannot send captures to an unintended host.
- */
-function nvx_lead_captured_endpoint(): string {
-	$canonical = nvx_lead_captured_canonical_endpoint();
-	$value     = defined( 'NVX_LEAD_CAPTURE_ENDPOINT' )
-		? trim( (string) NVX_LEAD_CAPTURE_ENDPOINT )
-		: trim( (string) ( getenv( 'NVX_LEAD_CAPTURE_ENDPOINT' ) ?: '' ) );
-	if ( '' === $value ) {
+/** Canonical one-purpose runtime bootstrap URL. */
+function nvx_lead_captured_bootstrap_endpoint(): string {
+	return 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/runtime-bootstrap';
+}
+
+/** Resolve the existing server-only HubSpot private-app token. */
+function nvx_lead_captured_hubspot_token(): string {
+	if ( ! defined( 'NVX_HUBSPOT_ACCESS_TOKEN' ) ) {
 		return '';
 	}
-
-	return hash_equals( $canonical, esc_url_raw( $value ) ) ? $canonical : '';
+	return trim( (string) NVX_HUBSPOT_ACCESS_TOKEN );
 }
 
 /**
- * Resolve the server-only relay secret without any source fallback.
+ * Derive a dedicated HMAC key from the HubSpot token for capture signing.
+ *
+ * @param string $token HubSpot access token.
+ * @return string Derived HMAC key as lowercase hexadecimal.
  */
-function nvx_lead_captured_secret(): string {
-	if ( defined( 'NUVANX_LEAD_CAPTURE_SECRET' ) ) {
-		return trim( (string) NUVANX_LEAD_CAPTURE_SECRET );
+function nvx_lead_captured_derive_hmac_key( string $token ): string {
+	$context = 'nuvanx-lead-capture-hmac-key-v1';
+	$info    = hash_hmac( 'sha256', $context, $token, true );
+	return bin2hex( $info );
+}
+
+/**
+ * Bootstrap the already-validated HubSpot credential into Supabase Vault.
+ *
+ * The token is sent only as an Authorization header to the pinned bootstrap
+ * endpoint. It is never written to WordPress storage, payloads or logs.
+ */
+function nvx_lead_captured_bootstrap_runtime( string $token, bool $force = false ): bool {
+	$transient = 'nvx_runtime_bootstrap_ok_v1';
+	if ( ! $force && '1' === (string) get_transient( $transient ) ) {
+		return true;
 	}
-	return trim( (string) ( getenv( 'NUVANX_LEAD_CAPTURE_SECRET' ) ?: '' ) );
+	if ( $force ) {
+		delete_transient( $transient );
+	}
+
+	$response = wp_remote_post(
+		nvx_lead_captured_bootstrap_endpoint(),
+		array(
+			'timeout'     => 5,
+			'redirection' => 0,
+			'blocking'    => true,
+			'headers'     => array(
+				'Authorization' => 'Bearer ' . $token,
+				'Content-Type'  => 'application/json',
+			),
+			'body'        => '{}',
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		error_log(
+			sprintf(
+				'[NUVANX] runtime bootstrap transport failure; wp_error_code=%s.',
+				sanitize_key( (string) $response->get_error_code() )
+			)
+		);
+		return false;
+	}
+
+	$status = (int) wp_remote_retrieve_response_code( $response );
+	if ( $status < 200 || $status >= 300 ) {
+		error_log( sprintf( '[NUVANX] runtime bootstrap HTTP failure; status=%d.', $status ) );
+		return false;
+	}
+
+	set_transient( $transient, '1', HOUR_IN_SECONDS );
+	return true;
 }
 
 /**
@@ -119,9 +166,7 @@ function nvx_lead_captured_attribution( array $fields, string $prefix ): array {
 
 /**
  * Extract optional IDs returned by HubSpot without depending on their presence.
- *
- * No response body fragment is logged because the HubSpot response may contain
- * identifiers or other personal data. Only decode/status metadata is logged.
+ * No response body fragment is logged because it may contain personal data.
  *
  * @param mixed $response WordPress HTTP response.
  * @return array{contact_id:string,submission_id:string}
@@ -163,19 +208,54 @@ function nvx_lead_captured_hubspot_ids( $response ): array {
 	return $result;
 }
 
+/** Build one signed capture request. */
+function nvx_lead_captured_post_signed( string $body, string $token ) {
+	$timestamp = (string) time();
+	$hmac_key  = nvx_lead_captured_derive_hmac_key( $token );
+	$signature = hash_hmac( 'sha256', $timestamp . '.' . $body, $hmac_key );
+	return wp_remote_post(
+		nvx_lead_captured_endpoint(),
+		array(
+			'timeout'     => 5,
+			'redirection' => 0,
+			'blocking'    => true,
+			'headers'     => array(
+				'Content-Type'    => 'application/json',
+				'x-nvx-timestamp' => $timestamp,
+				'x-nvx-signature' => $signature,
+			),
+			'body'        => $body,
+		)
+	);
+}
+
+/** Log only bounded transport/status metadata for a failed capture. */
+function nvx_lead_captured_log_relay_failure( $relay ): void {
+	if ( is_wp_error( $relay ) ) {
+		error_log(
+			sprintf(
+				'[NUVANX] lead-captured relay transport failure; wp_error_code=%s.',
+				sanitize_key( (string) $relay->get_error_code() )
+			)
+		);
+		return;
+	}
+	$status = (int) wp_remote_retrieve_response_code( $relay );
+	if ( $status < 200 || $status >= 300 ) {
+		error_log( sprintf( '[NUVANX] lead-captured relay HTTP failure; status=%d.', $status ) );
+	}
+}
+
 /**
  * Mirror one successful secure HubSpot submission into the canonical capture ledger.
- * The HubSpot response remains authoritative for the patient request; relay failures
- * are logged and never turn a successful submission into a browser-visible failure.
  *
  * @param mixed  $response HTTP response.
  * @param array  $parsed_args Parsed HTTP args.
  * @param string $url Requested URL.
  * @return mixed
  */
-function nvx_lead_captured_on_http_response( $response, array $parsed_args, string $url ) {
-	$endpoint = nvx_lead_captured_endpoint();
-	if ( '' === $endpoint || $url === $endpoint ) {
+function nvx_lead_captured_on_http_response( $response, array $parsed_args, string $url ): mixed {
+	if ( $url === nvx_lead_captured_endpoint() || $url === nvx_lead_captured_bootstrap_endpoint() ) {
 		return $response;
 	}
 	if ( ! function_exists( 'nvx_hubspot_secure_submit_url' ) || nvx_hubspot_secure_submit_url() !== $url ) {
@@ -189,9 +269,12 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		return $response;
 	}
 
-	$secret = nvx_lead_captured_secret();
-	if ( '' === $secret ) {
-		error_log( '[NUVANX] lead-captured relay skipped: NUVANX_LEAD_CAPTURE_SECRET missing.' );
+	$token = nvx_lead_captured_hubspot_token();
+	if ( '' === $token ) {
+		error_log( '[NUVANX] lead-captured relay skipped: existing HubSpot server credential missing.' );
+		return $response;
+	}
+	if ( ! nvx_lead_captured_bootstrap_runtime( $token ) ) {
 		return $response;
 	}
 
@@ -208,10 +291,12 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		return $response;
 	}
 
-	$is_test     = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
-	$test_run_id = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
-	$email       = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
-	$email_hash  = '' !== $email ? hash( 'sha256', $email ) : null;
+	$is_test           = isset( $fields['nvx_is_test_lead'] ) && 'true' === strtolower( $fields['nvx_is_test_lead'] );
+	$test_run_id       = isset( $fields['nvx_test_run_id'] ) ? $fields['nvx_test_run_id'] : '';
+	$marketing_consent = function_exists( 'nvx_hubspot_secure_post_value' )
+		&& '1' === nvx_hubspot_secure_post_value( 'nvx_marketing_consent', 1 );
+	$email             = isset( $fields['email'] ) ? strtolower( trim( $fields['email'] ) ) : '';
+	$email_hash        = '' !== $email ? hash( 'sha256', $email ) : null;
 	unset( $email );
 	$ids = nvx_lead_captured_hubspot_ids( $response );
 
@@ -223,40 +308,26 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 		'email_hash'             => $email_hash,
 		'nvx_is_test_lead'       => $is_test,
 		'nvx_test_run_id'        => '' !== $test_run_id ? $test_run_id : null,
-		'first_attribution'      => nvx_lead_captured_attribution( $fields, 'nvx_first_' ),
-		'conversion_attribution' => nvx_lead_captured_attribution( $fields, 'nvx_conversion_' ),
+		'marketing_consent'      => $marketing_consent,
+		'first_attribution'      => $marketing_consent ? nvx_lead_captured_attribution( $fields, 'nvx_first_' ) : array(),
+		'conversion_attribution' => $marketing_consent ? nvx_lead_captured_attribution( $fields, 'nvx_conversion_' ) : array(),
 	);
+	$relay_body = wp_json_encode( $relay_payload );
+	if ( false === $relay_body ) {
+		error_log( '[NUVANX] lead-captured relay skipped: canonical payload encoding failed.' );
+		return $response;
+	}
 
-	$relay = wp_remote_post(
-		$endpoint,
-		array(
-			'timeout'  => 5,
-			'blocking' => true,
-			'headers'  => array(
-				'Content-Type'              => 'application/json',
-				'x-nvx-lead-capture-secret' => $secret,
-			),
-			'body'     => wp_json_encode( $relay_payload ),
-		)
-	);
-	if ( is_wp_error( $relay ) ) {
-		error_log(
-			sprintf(
-				'[NUVANX] lead-captured relay transport failure; wp_error_code=%s.',
-				sanitize_key( (string) $relay->get_error_code() )
-			)
-		);
-	} else {
+	$relay = nvx_lead_captured_post_signed( $relay_body, $token );
+	if ( ! is_wp_error( $relay ) ) {
 		$relay_status = (int) wp_remote_retrieve_response_code( $relay );
-		if ( $relay_status < 200 || $relay_status >= 300 ) {
-			error_log(
-				sprintf(
-					'[NUVANX] lead-captured relay HTTP failure; status=%d.',
-					$relay_status
-				)
-			);
+		if ( 401 === $relay_status || 503 === $relay_status ) {
+			if ( nvx_lead_captured_bootstrap_runtime( $token, true ) ) {
+				$relay = nvx_lead_captured_post_signed( $relay_body, $token );
+			}
 		}
 	}
+	nvx_lead_captured_log_relay_failure( $relay );
 
 	return $response;
 }

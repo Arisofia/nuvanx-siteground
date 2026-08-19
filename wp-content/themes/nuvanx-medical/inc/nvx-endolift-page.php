@@ -51,7 +51,13 @@ function nvx_content_is_endolift_page( string $content ): bool {
 
 	// Path is authoritative. A CMS HTML comment such as
 	// <!-- nvx-endolift-editorial --> must not block the theme renderer.
-	if ( is_string( $path ) && false !== strpos( $path, 'endolift-facial' ) || false !== strpos( $path, 'endolift-lifting' ) ) {
+	if (
+		is_string( $path )
+		&& (
+			false !== strpos( $path, 'endolift-facial' )
+			|| false !== strpos( $path, 'endolift-lifting' )
+		)
+	) {
 		return true;
 	}
 

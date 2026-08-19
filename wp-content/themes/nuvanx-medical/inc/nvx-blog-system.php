@@ -259,7 +259,7 @@ function nvx_blog_named_image_html( array $asset, array $args = array() ): strin
 	}
 
 	if ( isset( $asset['stem'] ) && is_string( $asset['stem'] ) && '' !== $asset['stem'] ) {
-		$src = trailingslashit( get_template_directory_uri() ) . 'assets/images/responsive/' . $asset['stem'] . '.png';
+		$src = trailingslashit( get_template_directory_uri() ) . 'assets/images/theme-named/' . $asset['stem'] . '.png';
 		if ( function_exists( 'nvx_responsive_img_markup' ) ) {
 			return nvx_responsive_img_markup( $src, '', $extra );
 		}

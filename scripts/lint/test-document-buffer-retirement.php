@@ -28,7 +28,7 @@ $requiredGovernanceFragments = [
     '$hook->callbacks[999999]',
     "__DIR__ . '/nvx-integrations.php'",
     'new ReflectionFunction',
-    "$hook->remove_filter( 'template_redirect', $callback, 999999 );",
+    '$hook->remove_filter( \'template_redirect\', $callback, 999999 );',
 ];
 
 $failures = [];

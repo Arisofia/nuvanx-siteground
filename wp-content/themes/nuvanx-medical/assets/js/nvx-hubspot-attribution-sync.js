@@ -8,35 +8,37 @@
 		'nvx_is_test_lead',
 		'nvx_test_run_id',
 	]);
-	// Keep aligned with nvx_hubspot_secure_marketing_fields().
-	var MARKETING_FIELDS = [
-		'nvx_utm_source',
-		'nvx_utm_medium',
-		'nvx_utm_campaign',
-		'nvx_utm_content',
-		'nvx_utm_term',
-		'nvx_google_click_id',
-		'nvx_google_braid',
-		'nvx_google_wbraid',
-		'nvx_google_gclsrc',
-		'hs_google_click_id',
-		'nvx_first_source',
-		'nvx_first_medium',
-		'nvx_first_campaign_id',
-		'nvx_first_referrer_domain',
-		'nvx_first_landing_url',
-		'nvx_first_timestamp',
-		'nvx_first_channel',
-		'nvx_conversion_channel',
-		'nvx_conversion_source',
-		'nvx_conversion_medium',
-		'nvx_conversion_campaign_id',
-		'nvx_conversion_landing_url',
-		'nvx_conversion_timestamp',
-		'nvx_landing_url',
-		'nvx_attribution_captured_at',
-		'nvx_attribution_expires_at',
-	];
+	// Prefer the PHP SSOT injected before this file; keep a fallback if inline config is absent.
+	var MARKETING_FIELDS = Array.isArray(window.nvxAttributionMarketingFields)
+		? window.nvxAttributionMarketingFields
+		: [
+			'nvx_utm_source',
+			'nvx_utm_medium',
+			'nvx_utm_campaign',
+			'nvx_utm_content',
+			'nvx_utm_term',
+			'nvx_google_click_id',
+			'nvx_google_braid',
+			'nvx_google_wbraid',
+			'nvx_google_gclsrc',
+			'hs_google_click_id',
+			'nvx_first_source',
+			'nvx_first_medium',
+			'nvx_first_campaign_id',
+			'nvx_first_referrer_domain',
+			'nvx_first_landing_url',
+			'nvx_first_timestamp',
+			'nvx_first_channel',
+			'nvx_conversion_channel',
+			'nvx_conversion_source',
+			'nvx_conversion_medium',
+			'nvx_conversion_campaign_id',
+			'nvx_conversion_landing_url',
+			'nvx_conversion_timestamp',
+			'nvx_landing_url',
+			'nvx_attribution_captured_at',
+			'nvx_attribution_expires_at',
+		];
 
 	function hasMarketingConsent() {
 		try {
@@ -74,8 +76,9 @@
 
 	function hubSpotFieldValue(value) {
 		if (value === undefined || value === null) return '';
-		// HubSpot Forms V4 boolean checkbox fields consume booleans directly.
-		return value;
+		// HubSpot V4 Single checkbox requires a native boolean, not 'true'/'false'.
+		if (typeof value === 'boolean') return value;
+		return String(value);
 	}
 
 	function setField(form, index, propertyName, value) {

@@ -39,6 +39,12 @@ assert.match(integration, /'nvx_lead_id'\s*=>\s*\$lead_id/);
 assert.match(integration, /\$form_id = nvx_hubspot_secure_form_id\(\)/);
 assert.doesNotMatch(integration, new RegExp(FORM_ID));
 assert.match(integration, /return 'https:\/\/ssvvuuysgxyqvmovrlvk\.supabase\.co\/functions\/v1\/google-click-attribution';/);
+assert.match(integration, /NVX_ATTRIBUTION_COLLECTOR_ENDPOINT/);
+assert.match(integration, /NVX_ATTRIBUTION_COLLECTOR_ALLOWED_HOSTS/);
+assert.match(integration, /nvxAttributionMarketingFields/);
+assert.match(integration, /'timeout'\s*=>\s*0\.5/);
+assert.match(integration, /'blocking'\s*=>\s*false/);
+assert.match(syncSource, /typeof value === 'boolean'\) return value;/);
 assert.doesNotMatch(integration, /NVX_GOOGLE_CLICK_ATTRIBUTION_ENDPOINT/);
 const collectorPayload = integration.match(/\$collector_payload = array\(([\s\S]*?)\n\t\);/)?.[1] || '';
 assert.ok(collectorPayload);
@@ -96,12 +102,12 @@ assert.equal(api.canonicalPropertyName('7-12/nvx_utm_source'), 'nvx_utm_source')
 
 await api.syncForm(form);
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
-assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), 'true');
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'boolean');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), true);
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
 
-// HubSpot V4 booleancheckbox must also receive the canonical false string.
+// HubSpot V4 Single checkbox consumes native booleans, not 'true'/'false' strings.
 globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
   nvx_lead_id: '11111111-1111-4111-8111-111111111111',
   nvx_is_test_lead: false,
@@ -109,8 +115,8 @@ globalThis.window.NUVANXAttributionContract.buildFormPayload = () => ({
 });
 writes.clear();
 await api.syncForm(form);
-assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'string');
-assert.equal(writes.get('0-1/nvx_is_test_lead'), 'false');
+assert.equal(typeof writes.get('0-1/nvx_is_test_lead'), 'boolean');
+assert.equal(writes.get('0-1/nvx_is_test_lead'), false);
 globalThis.window.NUVANXAttributionContract.buildFormPayload = buildQaTruePayload;
 
 writes.clear();

@@ -29,6 +29,17 @@ function nvx_attribution_enqueue_hubspot_sync(): void {
 			'strategy'  => 'defer',
 		)
 	);
+
+	if ( function_exists( 'nvx_hubspot_secure_marketing_fields' ) ) {
+		$marketing_fields = wp_json_encode( array_values( nvx_hubspot_secure_marketing_fields() ) );
+		if ( false !== $marketing_fields ) {
+			wp_add_inline_script(
+				'nvx-hubspot-attribution-sync',
+				'window.nvxAttributionMarketingFields=' . $marketing_fields . ';',
+				'before'
+			);
+		}
+	}
 }
 add_action( 'wp_enqueue_scripts', 'nvx_attribution_enqueue_hubspot_sync', 9 );
 
@@ -37,20 +48,93 @@ function nvx_attribution_is_uuid_v4( string $value ): bool {
 	return 1 === preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $value );
 }
 
-/** Resolve the only collector endpoint this theme may call. */
-function nvx_attribution_collector_endpoint(): string {
+/** Canonical collector URL; env/constant may only pin this exact value. */
+function nvx_attribution_collector_canonical_endpoint(): string {
 	return 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/google-click-attribution';
+}
+
+/**
+ * Resolve the collector endpoint.
+ *
+ * A missing override uses the canonical URL. A configured override that does
+ * not match the canonical pin fails closed so traffic never leaves the ledger.
+ */
+function nvx_attribution_collector_endpoint(): string {
+	$canonical = nvx_attribution_collector_canonical_endpoint();
+	$value     = defined( 'NVX_ATTRIBUTION_COLLECTOR_ENDPOINT' )
+		? trim( (string) NVX_ATTRIBUTION_COLLECTOR_ENDPOINT )
+		: trim( (string) ( getenv( 'NVX_ATTRIBUTION_COLLECTOR_ENDPOINT' ) ?: $canonical ) );
+
+	return hash_equals( $canonical, $value ) ? $canonical : '';
+}
+
+/** Whether a hostname is safe to send as a collector Origin. */
+function nvx_attribution_is_collector_host( string $host ): bool {
+	return 1 === preg_match( '/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/', $host );
+}
+
+/**
+ * Collector Origin hosts: canonical first-party set plus optional extras.
+ *
+ * Extra hosts come from NVX_ATTRIBUTION_COLLECTOR_ALLOWED_HOSTS (constant or
+ * env, comma/whitespace separated) so a preview domain needs no theme edit.
+ *
+ * @return string[]
+ */
+function nvx_attribution_collector_allowed_hosts(): array {
+	$hosts = array(
+		'nuvanx.com',
+		'www.nuvanx.com',
+		'staging2.nuvanx.com',
+	);
+
+	$extra = defined( 'NVX_ATTRIBUTION_COLLECTOR_ALLOWED_HOSTS' )
+		? (string) NVX_ATTRIBUTION_COLLECTOR_ALLOWED_HOSTS
+		: (string) ( getenv( 'NVX_ATTRIBUTION_COLLECTOR_ALLOWED_HOSTS' ) ?: '' );
+
+	foreach ( preg_split( '/[\s,]+/', $extra, -1, PREG_SPLIT_NO_EMPTY ) as $candidate ) {
+		$candidate = strtolower( trim( $candidate ) );
+		if ( nvx_attribution_is_collector_host( $candidate ) ) {
+			$hosts[] = $candidate;
+		}
+	}
+
+	$hosts    = array_values( array_unique( $hosts ) );
+	$filtered = apply_filters( 'nvx_attribution_collector_allowed_hosts', $hosts );
+	if ( ! is_array( $filtered ) ) {
+		return $hosts;
+	}
+
+	$safe = array();
+	foreach ( $filtered as $candidate ) {
+		$candidate = strtolower( trim( (string) $candidate ) );
+		if ( nvx_attribution_is_collector_host( $candidate ) ) {
+			$safe[] = $candidate;
+		}
+	}
+
+	return array_values( array_unique( $safe ) );
 }
 
 /** Resolve a collector Origin accepted by the production Edge Function. */
 function nvx_attribution_collector_origin(): string {
-	$host    = strtolower( (string) wp_parse_url( get_site_url(), PHP_URL_HOST ) );
-	$allowed = array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' );
-	if ( ! in_array( $host, $allowed, true ) ) {
-		error_log( 'NVX_ATTRIBUTION_DIRECT_RELAY=FAILURE reason=origin_not_allowed' );
+	$host = strtolower( (string) wp_parse_url( get_site_url(), PHP_URL_HOST ) );
+	if ( ! in_array( $host, nvx_attribution_collector_allowed_hosts(), true ) ) {
+		nvx_attribution_log_direct_relay( 'FAILURE', 0, 'origin_not_allowed' );
 		return '';
 	}
 	return 'https://' . $host;
+}
+
+/**
+ * Email hash for the Google click collector.
+ *
+ * Must stay SHA-256 of the lowercase email so PHP matches the browser relay
+ * and the existing Edge Function join key. HMAC would break that contract.
+ */
+function nvx_attribution_email_hash( string $email ): string {
+	$email = strtolower( trim( $email ) );
+	return '' === $email ? '' : hash( 'sha256', $email );
 }
 
 /**
@@ -76,7 +160,7 @@ function nvx_attribution_hubspot_field_map( array $payload ): array {
 }
 
 /** Emit bounded, non-PII collector telemetry. */
-function nvx_attribution_log_direct_relay( string $outcome, int $status = 0 ): void {
+function nvx_attribution_log_direct_relay( string $outcome, int $status = 0, string $reason = '' ): void {
 	$outcome = strtoupper( $outcome );
 	if ( ! in_array( $outcome, array( 'SUCCESS', 'FAILURE' ), true ) ) {
 		return;
@@ -84,6 +168,12 @@ function nvx_attribution_log_direct_relay( string $outcome, int $status = 0 ): v
 	$line = 'NVX_ATTRIBUTION_DIRECT_RELAY=' . $outcome;
 	if ( $status > 0 ) {
 		$line .= ' status=' . $status;
+	}
+	if ( '' !== $reason ) {
+		$safe_reason = preg_replace( '/[^a-z0-9_]/', '', strtolower( $reason ) );
+		if ( is_string( $safe_reason ) && '' !== $safe_reason ) {
+			$line .= ' reason=' . $safe_reason;
+		}
 	}
 	error_log( $line );
 }
@@ -167,7 +257,7 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 	$collector_payload = array(
 		'submission_id' => $submission_id,
 		'nvx_lead_id'   => $lead_id,
-		'email_hash'    => hash( 'sha256', $email ),
+		'email_hash'    => nvx_attribution_email_hash( $email ),
 		'gclid'         => '' !== $gclid ? $gclid : null,
 		'gbraid'        => '' !== $gbraid ? $gbraid : null,
 		'wbraid'        => '' !== $wbraid ? $wbraid : null,
@@ -181,11 +271,18 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 		return $preempt;
 	}
 
+	$endpoint = nvx_attribution_collector_endpoint();
+	if ( '' === $endpoint ) {
+		nvx_attribution_log_direct_relay( 'FAILURE' );
+		return $preempt;
+	}
+
 	$response = wp_remote_post(
-		nvx_attribution_collector_endpoint(),
+		$endpoint,
 		array(
-			'timeout'     => 1.5,
+			'timeout'     => 0.5,
 			'redirection' => 0,
+			'blocking'    => false,
 			'headers'     => array(
 				'Content-Type' => 'application/json',
 				'Origin'       => $origin,
@@ -196,13 +293,6 @@ function nvx_attribution_relay_direct_form_after_hubspot( $preempt, array $args,
 
 	if ( is_wp_error( $response ) ) {
 		nvx_attribution_log_direct_relay( 'FAILURE' );
-		return $preempt;
-	}
-	$status = (int) wp_remote_retrieve_response_code( $response );
-	if ( $status >= 200 && $status < 300 ) {
-		nvx_attribution_log_direct_relay( 'SUCCESS', $status );
-	} else {
-		nvx_attribution_log_direct_relay( 'FAILURE', $status );
 	}
 
 	return $preempt;

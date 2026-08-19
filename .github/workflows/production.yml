@@ -122,7 +122,8 @@ jobs:
 
           child_id=''
           for attempt in $(seq 1 30); do
-            child_id="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha --jq --argjson before "$before_id" --arg sha "$CANDIDATE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty')"
+            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha)"
+            child_id="$(jq -r --argjson before "$before_id" --arg sha "$CANDIDATE_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
             if [[ -n "$child_id" ]]; then
               break
             fi
@@ -190,7 +191,7 @@ jobs:
           theme_tree="$(git rev-parse "${candidate}:wp-content/themes/nuvanx-medical")"
           echo "sha=$candidate" >> "$GITHUB_OUTPUT"
           echo "CANDIDATE_SHA=$candidate" >> "$GITHUB_ENV"
-          echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$candidate" >> "$GITHUB_ENV"
           echo "CANDIDATE_THEME_TREE=$theme_tree" >> "$GITHUB_ENV"
           echo "PRODUCTION_CANDIDATE=$candidate"
           echo "PRODUCTION_CANDIDATE_THEME_TREE=$theme_tree"

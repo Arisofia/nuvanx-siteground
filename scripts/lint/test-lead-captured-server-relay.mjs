@@ -17,6 +17,15 @@ assert.match(relay, /add_filter\( 'http_response', 'nvx_lead_captured_on_http_re
   'Relay must observe completed HTTP responses rather than browser events');
 assert.match(relay, /nvx_hubspot_secure_submit_url\(\) !== \$url/,
   'Relay must scope itself to the authenticated HubSpot transport only');
+assert.match(relay, /'' === \$endpoint \|\| \$url === \$endpoint/,
+  'Relay must fail closed without config and never observe its own Supabase POST');
+assert.match(relay, /getenv\( 'NVX_LEAD_CAPTURE_ENDPOINT' \)/,
+  'Capture endpoint may only come from server runtime configuration');
+assert.doesNotMatch(
+  relay,
+  /getenv\(\s*'NVX_LEAD_CAPTURE_ENDPOINT'\s*\)\s*\?: ''[\s\S]{0,120}return 'https:/,
+  'Unconfigured capture endpoint must not fall back to a hardcoded URL',
+);
 assert.match(relay, /\$status < 200 \|\| \$status >= 300/,
   'Relay must require a real 2xx HubSpot response before recording a capture');
 

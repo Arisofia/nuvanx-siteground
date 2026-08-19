@@ -12,18 +12,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/** Canonical capture ledger URL. Never used as an implicit default. */
+function nvx_lead_captured_canonical_endpoint(): string {
+	return 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/lead-captured';
+}
+
 /**
- * Resolve the canonical Supabase lead-captured endpoint.
+ * Resolve the capture endpoint from server config only.
+ *
+ * Missing or non-canonical configuration fails closed so a mis-set env
+ * cannot send captures to an unintended host.
  */
 function nvx_lead_captured_endpoint(): string {
-	if ( defined( 'NVX_LEAD_CAPTURE_ENDPOINT' ) && '' !== trim( (string) NVX_LEAD_CAPTURE_ENDPOINT ) ) {
-		return esc_url_raw( (string) NVX_LEAD_CAPTURE_ENDPOINT );
+	$canonical = nvx_lead_captured_canonical_endpoint();
+	$value     = defined( 'NVX_LEAD_CAPTURE_ENDPOINT' )
+		? trim( (string) NVX_LEAD_CAPTURE_ENDPOINT )
+		: trim( (string) ( getenv( 'NVX_LEAD_CAPTURE_ENDPOINT' ) ?: '' ) );
+	if ( '' === $value ) {
+		return '';
 	}
-	$env = trim( (string) ( getenv( 'NVX_LEAD_CAPTURE_ENDPOINT' ) ?: '' ) );
-	if ( '' !== $env ) {
-		return esc_url_raw( $env );
-	}
-	return 'https://ssvvuuysgxyqvmovrlvk.supabase.co/functions/v1/lead-captured';
+
+	return hash_equals( $canonical, esc_url_raw( $value ) ) ? $canonical : '';
 }
 
 /**
@@ -165,6 +174,10 @@ function nvx_lead_captured_hubspot_ids( $response ): array {
  * @return mixed
  */
 function nvx_lead_captured_on_http_response( $response, array $parsed_args, string $url ) {
+	$endpoint = nvx_lead_captured_endpoint();
+	if ( '' === $endpoint || $url === $endpoint ) {
+		return $response;
+	}
 	if ( ! function_exists( 'nvx_hubspot_secure_submit_url' ) || nvx_hubspot_secure_submit_url() !== $url ) {
 		return $response;
 	}
@@ -215,7 +228,7 @@ function nvx_lead_captured_on_http_response( $response, array $parsed_args, stri
 	);
 
 	$relay = wp_remote_post(
-		nvx_lead_captured_endpoint(),
+		$endpoint,
 		array(
 			'timeout'  => 5,
 			'blocking' => true,

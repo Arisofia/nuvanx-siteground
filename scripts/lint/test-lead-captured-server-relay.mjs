@@ -54,6 +54,14 @@ assert.equal(
   'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery',
 );
 
+const bootstrapRuntimeMatches =
+  relay.match(/nvx_lead_captured_bootstrap_runtime\( \$token, true \)/g) || [];
+assert.equal(
+  bootstrapRuntimeMatches.length,
+  1,
+  'Bootstrap runtime must be invoked exactly once for stale Vault/bootstrap recovery',
+);
+
 assert.match(relay, /\$email_hash\s*=\s*'' !== \$email \? hash\( 'sha256', \$email \) : null;/,
   'Relay must derive a one-way email hash before payload construction');
 assert.match(relay, /unset\( \$email \);/,

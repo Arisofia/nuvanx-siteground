@@ -395,3 +395,14 @@ if ( 0 === $blocks_fail ) {
 
 printf( "Status: MIGRATION_FAIL (%d block(s) failed)\n", $blocks_fail );
 exit( 1 );
+
+// ── Fix Staging2 Primary Menu ────────────────────────────────────────────────
+// The canonical menu is defined in nvx-navigation-filters.php (fallback).
+// Staging2 has a stale DB menu that lacks "Protocolo Novias", breaking E2E.
+// By unsetting the primary location, we force the canonical fallback to be used.
+$menu_locations = get_theme_mod( 'nav_menu_locations' );
+if ( is_array( $menu_locations ) && isset( $menu_locations['primary'] ) ) {
+    unset( $menu_locations['primary'] );
+    set_theme_mod( 'nav_menu_locations', $menu_locations );
+    printf( "STAGING_MENU_SYNC: Unset primary menu location to force canonical fallback.\n" );
+}

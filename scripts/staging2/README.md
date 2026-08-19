@@ -17,8 +17,21 @@ A repository mutation performed from GitHub Actions with the repository `GITHUB_
 
 ## P0-A attribution acceptance
 
-A Staging2 attribution run is not approved until one new QA submission is proven end to end. The same new UUID must be present in HubSpot and `public.web_lead_captures`, with `is_test_lead = true`, `reconciliation_status = 'qa_suppressed'`, and `applied_lead_id IS NULL`. The acceptance transition is therefore `web_lead_captures: 0 -> 1 QA`; static gates, a successful deploy, or a historical QA contact are not substitutes for this evidence.
+"P0-A attribution" refers to our highest priority user conversion path. Acceptance here ensures we never break core lead routing and guarantees that QA traffic does not pollute production analytics or sales queues.
 
-The QA UUID must produce no operational `public.leads` row, HubSpot Deal, Google Data Manager/offline-conversion side effect, or production Meta event.
+A Staging2 attribution run is not approved until one new QA submission is proven end-to-end. The acceptance transition is therefore `web_lead_captures: 0 -> 1 QA`; static gates, a successful deploy, or a historical QA contact are not substitutes for this evidence.
+
+The same new UUID must be present across downstream systems with these exact values:
+* **HubSpot (CRM):** A contact matching the new UUID must exist.
+* **Database (`public.web_lead_captures`):** 
+  * `is_test_lead = true`
+  * `reconciliation_status = 'qa_suppressed'`
+  * `applied_lead_id IS NULL`
+
+To prevent QA data from skewing sales operations or paid media optimization, the QA UUID must produce **no side effects** in the following operational systems:
+* **`public.leads`:** No operational row created.
+* **HubSpot:** No Deal created.
+* **Google Data Manager (Offline Conversions):** No conversion recorded (monitored via GDM logs/dashboards).
+* **Meta Events:** No production event dispatched (monitored via Meta Events Manager).
 
 Do not update the production candidate before Staging acceptance is complete. This ordering prevents a production run from racing an in-progress Staging deployment.

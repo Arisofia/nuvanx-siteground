@@ -44,6 +44,285 @@ function nvx_theme_is_blog_context(): bool {
 		|| is_post_type_archive( 'post' );
 }
 
+/**
+ * Editorial card format for one archive slot.
+ *
+ * Desktop 3-col: featured (2) + vertical | two verticals + text | horizontal.
+ * Photo cards always pair a 16:9 plate with copy — never a full-bleed overlay.
+ *
+ * @return 'hero'|'vertical'|'horizontal'|'text'
+ */
+function nvx_blog_archive_card_format( int $index, bool $has_media ): string {
+	$slot = $index % 6;
+
+	if ( 0 === $slot ) {
+		return $has_media ? 'hero' : 'text';
+	}
+
+	if ( 5 === $slot ) {
+		return $has_media ? 'horizontal' : 'text';
+	}
+
+	if ( 4 === $slot ) {
+		return 'text';
+	}
+
+	return $has_media ? 'vertical' : 'text';
+}
+
+/**
+ * Theme-hosted photos keyed by the names already on disk.
+ *
+ * Prefer the featured image when WordPress has one. Otherwise match the
+ * post title/slug/category against these stems and clinic JPEGs.
+ *
+ * @return array<int, array{id:string,keys:string[],stem?:string,file?:string}>
+ */
+function nvx_blog_named_image_catalog(): array {
+	return array(
+		array(
+			'id'   => 'endolift-iso',
+			'keys' => array( 'endolift' ),
+			'stem' => 'Endolift-ISO9001-Laser',
+		),
+		array(
+			'id'   => 'endolift-lasemar',
+			'keys' => array( 'endolift', 'lasemar', 'eufoton' ),
+			'stem' => 'endolift-lasemar-1500-eufoton',
+		),
+		array(
+			'id'   => 'endolift-clinic',
+			'keys' => array( 'endolift' ),
+			'file' => 'assets/images/clinics/chamberi/04-endolift.jpg',
+		),
+		array(
+			'id'   => 'exion',
+			'keys' => array( 'exion', 'exilite' ),
+			'stem' => 'BTL-Exion-Mobile-Version-1024x956-1',
+		),
+		array(
+			'id'   => 'smartlipo',
+			'keys' => array( 'smartlipo', 'lipolisis', 'liposucci', 'endolaser', 'endoláser', 'corporal' ),
+			'stem' => 'SmartLipo-for-Laserlipolysis-DEKA-1',
+		),
+		array(
+			'id'   => 'laser-detalle',
+			'keys' => array( 'laser', 'láser', 'co2', 'co₂', 'fraccionad' ),
+			'file' => 'assets/images/clinics/chamberi/05-laser-detalle.jpg',
+		),
+		array(
+			'id'   => 'laser-piel',
+			'keys' => array( 'laser', 'láser', 'piel', 'mancha', 'cicatriz' ),
+			'file' => 'assets/images/clinics/chamberi/10-laser-piel.jpg',
+		),
+		array(
+			'id'   => 'consulta',
+			'keys' => array( 'consulta', 'valoracion', 'valoración', 'diagnost', 'bioestimul', 'colageno', 'colágeno' ),
+			'stem' => 'consulta-medica-personalizada-nuvanx-madrid',
+		),
+		array(
+			'id'   => 'consulta-rivera',
+			'keys' => array( 'consulta', 'rivera', 'equipo', 'medico', 'médico' ),
+			'file' => 'assets/images/clinics/chamberi/03-consulta-rivera.jpg',
+		),
+		array(
+			'id'   => 'retrato-rivera',
+			'keys' => array( 'rivera', 'equipo', 'director', 'ojera', 'rino' ),
+			'file' => 'assets/images/clinics/chamberi/06-retrato-rivera.jpg',
+		),
+		array(
+			'id'   => 'retrato-corp',
+			'keys' => array( 'equipo', 'labio', 'hialuron', 'relleno' ),
+			'file' => 'assets/images/clinics/chamberi/09-retrato-corporativo.jpg',
+		),
+		array(
+			'id'   => 'ojeras',
+			'keys' => array( 'ojera', 'lagrimal', 'surco' ),
+			'file' => 'assets/images/clinics/chamberi/08-lifestyle.jpg',
+		),
+		array(
+			'id'   => 'novias-papada',
+			'keys' => array( 'novia', 'bridal', 'papada', 'cuello' ),
+			'stem' => 'Papada-novias',
+		),
+		array(
+			'id'   => 'novias-brazos',
+			'keys' => array( 'novia', 'brazo', 'manga' ),
+			'stem' => 'Brazos-novias',
+		),
+		array(
+			'id'   => 'novias-espalda',
+			'keys' => array( 'novia', 'espalda', 'escote' ),
+			'stem' => 'Espalda-novias',
+		),
+		array(
+			'id'   => 'novias-box',
+			'keys' => array( 'novia', 'box', 'protocolo' ),
+			'stem' => 'Box-Clinica-Novias',
+		),
+		array(
+			'id'   => 'protocolo-endolift',
+			'keys' => array( 'protocolo', 'thermage', 'morpheus', 'ultherapy' ),
+			'stem' => 'Protocolo-Endolift-Thermage-Morpheus8-ultherapy',
+		),
+		array(
+			'id'   => 'sala-nuvanx',
+			'keys' => array( 'clinica', 'clínica', 'chamber', 'sala', 'sede' ),
+			'stem' => 'Sala-Nuvanx',
+		),
+		array(
+			'id'   => 'interior-chamberi',
+			'keys' => array( 'chamber', 'interior', 'clinica', 'clínica' ),
+			'file' => 'assets/images/clinics/chamberi/01-interior.jpg',
+		),
+		array(
+			'id'   => 'fachada-goya',
+			'keys' => array( 'goya', 'salamanca', 'fachada' ),
+			'stem' => 'nvx-fachada-goya-900',
+		),
+		array(
+			'id'   => 'medicina-1',
+			'keys' => array( 'medicina', 'estetica', 'estética' ),
+			'stem' => 'nuvanx-medicina-estetica1',
+		),
+		array(
+			'id'   => 'medicina-2',
+			'keys' => array( 'medicina', 'nuvanx' ),
+			'stem' => 'nuvanx-medicina-2',
+		),
+	);
+}
+
+/**
+ * Pick a catalog entry for a journal post without repeating photos on the page.
+ *
+ * @param array<int, array{id:string,keys:string[],stem?:string,file?:string}> $catalog Catalog.
+ * @param array<string,bool>                                                    $used    Used ids.
+ * @return array{id:string,keys:string[],stem?:string,file?:string}|null
+ */
+function nvx_blog_match_named_image( string $haystack, array $catalog, array &$used ): ?array {
+	$lower    = static function ( string $value ): string {
+		return function_exists( 'mb_strtolower' ) ? mb_strtolower( $value, 'UTF-8' ) : strtolower( $value );
+	};
+	$haystack = strtr( $lower( $haystack ), array( '-' => ' ', '_' => ' ', '/' => ' ' ) );
+	$best     = null;
+	$best_score = 0;
+
+	foreach ( $catalog as $asset ) {
+		$id = (string) $asset['id'];
+		if ( isset( $used[ $id ] ) ) {
+			continue;
+		}
+
+		$score = 0;
+		foreach ( $asset['keys'] as $key ) {
+			if ( '' !== $key && false !== strpos( $haystack, $lower( $key ) ) ) {
+				++$score;
+			}
+		}
+
+		if ( $score > $best_score ) {
+			$best       = $asset;
+			$best_score = $score;
+		}
+	}
+
+	if ( null !== $best ) {
+		$used[ (string) $best['id'] ] = true;
+		return $best;
+	}
+
+	foreach ( $catalog as $asset ) {
+		$id = (string) $asset['id'];
+		if ( isset( $used[ $id ] ) ) {
+			continue;
+		}
+		$used[ $id ] = true;
+		return $asset;
+	}
+
+	return null;
+}
+
+/**
+ * Build <img> markup from a named theme asset.
+ *
+ * @param array{id:string,keys:string[],stem?:string,file?:string} $asset Asset.
+ * @param array{priority?:bool,sizes?:string}                     $args  Flags.
+ */
+function nvx_blog_named_image_html( array $asset, array $args = array() ): string {
+	$priority = ! empty( $args['priority'] );
+	$sizes    = isset( $args['sizes'] ) ? (string) $args['sizes'] : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw';
+	$extra    = 'class="nvx-blog-card__image" loading="' . ( $priority ? 'eager' : 'lazy' ) . '" decoding="async" sizes="' . esc_attr( $sizes ) . '"';
+	if ( $priority ) {
+		$extra .= ' fetchpriority="high"';
+	}
+
+	if ( isset( $asset['stem'] ) && is_string( $asset['stem'] ) && '' !== $asset['stem'] ) {
+		$src = trailingslashit( get_template_directory_uri() ) . 'assets/images/responsive/' . $asset['stem'] . '.png';
+		if ( function_exists( 'nvx_responsive_img_markup' ) ) {
+			return nvx_responsive_img_markup( $src, '', $extra );
+		}
+		return '<img src="' . esc_url( $src ) . '" alt="" ' . $extra . '>';
+	}
+
+	if ( isset( $asset['file'] ) && is_string( $asset['file'] ) && '' !== $asset['file'] ) {
+		$relative = ltrim( $asset['file'], '/' );
+		if ( ! is_readable( get_template_directory() . '/' . $relative ) ) {
+			return '';
+		}
+		$src = trailingslashit( get_template_directory_uri() ) . $relative;
+		return '<img src="' . esc_url( $src ) . '" alt="" ' . $extra . '>';
+	}
+
+	return '';
+}
+
+/**
+ * Featured image, or a named theme photo matched to the post.
+ *
+ * @param array{priority?:bool,sizes?:string} $args Image flags.
+ */
+function nvx_blog_archive_card_image( array $args = array() ): string {
+	static $used = array();
+
+	$priority = ! empty( $args['priority'] );
+	$sizes    = isset( $args['sizes'] ) ? (string) $args['sizes'] : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw';
+
+	if ( has_post_thumbnail() ) {
+		$attr = array(
+			'class'    => 'nvx-blog-card__image',
+			'loading'  => $priority ? 'eager' : 'lazy',
+			'decoding' => 'async',
+			'alt'      => '',
+			'sizes'    => $sizes,
+		);
+		if ( $priority ) {
+			$attr['fetchpriority'] = 'high';
+		}
+
+		$html = get_the_post_thumbnail( null, 'large', $attr );
+		if ( is_string( $html ) && '' !== $html && 1 !== preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $html ) ) {
+			return $html;
+		}
+	}
+
+	$parts = array( (string) get_the_title(), (string) get_post_field( 'post_name', get_the_ID() ) );
+	foreach ( get_the_category() as $category ) {
+		if ( $category instanceof WP_Term ) {
+			$parts[] = $category->name;
+			$parts[] = $category->slug;
+		}
+	}
+
+	$asset = nvx_blog_match_named_image( implode( ' ', $parts ), nvx_blog_named_image_catalog(), $used );
+	if ( null === $asset ) {
+		return '';
+	}
+
+	return nvx_blog_named_image_html( $asset, $args );
+}
+
 /** Load the journal layer after the global design system. */
 function nvx_theme_enqueue_blog_styles(): void {
 	if ( ! nvx_theme_is_blog_context() ) {

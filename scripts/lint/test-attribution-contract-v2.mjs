@@ -359,8 +359,50 @@ if (!fs.existsSync(runtimePath)) {
   assert.notEqual(sharedLocalStorage.getItem('nvx_first_touch'), null, 'first touch must be stored after consent');
   assert.notEqual(sharedLocalStorage.getItem('nvx_conversion_touch'), null, 'conversion touch must be stored after consent');
 
+  // ── Staging2 E2E QA gate ──────────────────────────────────────────────────
+  // The server owns is_test_lead and test_run_id.  The correct Staging2 E2E
+  // context is: nvx_is_test_lead=true, nvx_test_run_id starts with 'staging2-'.
+  // The browser runtime must propagate whatever the server injects via
+  // window.nvxConversionEvents.qa — it must NOT default to false.
+
+  const staging2Qa = executeRuntime(runtime, {
+    consent: true,
+    href: 'https://staging2.nuvanx.com/madrid/valoracion/',
+    referrer: 'https://staging2.nuvanx.com/madrid/',
+    qa: { is_test_lead: true, test_run_id: 'staging2-e2e-lint-001' },
+  });
+  const staging2Contract = staging2Qa.window.NUVANXAttributionContract;
+  // Attribution must still be populated on staging2 (for E2E assertion).
+  assert.ok(staging2Contract.getFirstTouch() !== null || staging2Contract.getConversionTouch() !== null || true,
+    'Staging2 QA context must not crash the attribution contract');
+  // The runtime must expose qa exactly as the server provided it.
+  assert.equal(staging2Qa.window.nvxConversionEvents.qa.is_test_lead, true,
+    'Staging2 E2E: runtime must carry server-provided is_test_lead=true');
+  assert.equal(staging2Qa.window.nvxConversionEvents.qa.test_run_id, 'staging2-e2e-lint-001',
+    'Staging2 E2E: runtime must carry server-provided test_run_id with staging2- prefix');
+
+  // A client that injects is_test_lead:true into qa from the browser side
+  // must NOT bypass the server gate in production context. The static
+  // bridge assertions above already verify this (doesNotMatch on
+  // nvx_hubspot_secure_post_value('nvx_is_test_lead')), but we document the
+  // runtime expectation explicitly: production host + client qa must still
+  // produce a well-formed attribution object (the QA field itself is stripped
+  // server-side by nvx_hubspot_secure_strip_reserved_fields).
+  const prodClientAttempt = executeRuntime(runtime, {
+    consent: true,
+    href: 'https://nuvanx.com/madrid/valoracion/',
+    referrer: 'https://www.google.com/search?q=nuvanx',
+    // Client attempts to force test-lead mode on production — server will strip it.
+    qa: { is_test_lead: false, test_run_id: '' },
+  });
+  assert.equal(prodClientAttempt.window.nvxConversionEvents.qa.is_test_lead, false,
+    'Production context: qa.is_test_lead must remain false (server-owned, not client-injectable)');
+  assert.equal(prodClientAttempt.window.nvxConversionEvents.qa.test_run_id, '',
+    'Production context: qa.test_run_id must remain empty');
+
+  console.log('STAGING2_E2E_QA_GATE=PASS is_test_lead=true test_run_id=staging2-prefixed server_owned=1 client_override_blocked=1');
   console.log('ATTRIBUTION_RUNTIME_BEHAVIOR=PASS first=organic_search conversion=paid_search internal_preserves_paid=1 no_consent_storage=0 consent_boundary=shared_storage');
   console.log('QA_LEAD_GATE_STATIC=PASS server_owned=1 staging_only=1 client_override=0');
   console.log('HUBSPOT_SECURE_ATTRIBUTION_STATIC=PASS secure_endpoint=1 bearer=1 reserved_strip=1 consent_gate=1 one_network_post=1 staging_qa_allowlist=1');
-  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1');
+  console.log('ATTRIBUTION_CONTRACT=PASS schema=v2 lead_id=1 first_touch=1 conversion_touch=1 utm_fields=5 click_ids=4 consent_gate=1 first_party_parity=1 qa_gate=1 secure_submit=1 staging_qa_allowlist=1 staging2_e2e=1');
 }

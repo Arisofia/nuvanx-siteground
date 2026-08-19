@@ -297,6 +297,7 @@ require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
 require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-strategy-pages.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
+require_once get_template_directory() . '/inc/nvx-bridal-page.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php';
 require_once get_template_directory() . '/inc/nvx-blog-system.php';

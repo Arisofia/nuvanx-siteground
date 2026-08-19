@@ -365,6 +365,11 @@ assert.doesNotMatch(
 );
 assert.match(
   helpers,
+  /function nvx_sanitize_invalid_list_roles/,
+  'invalid article listitem roles must be stripped from rendered content',
+);
+assert.match(
+  helpers,
   /function nvx_rewrite_eager_maps_iframes/,
   'CMS and leftover Maps iframes must be rewritten to click-to-load',
 );
@@ -399,6 +404,112 @@ assert.ok(
     'wp-content/themes/nuvanx-medical/assets/images/responsive/Sala-Nuvanx-480.webp',
   ),
   'Chamberí waiting-room photo must have a 480w WebP',
+);
+assert.match(
+  helpers,
+  /'Box-Clinica-Novias'\s*=>\s*array\(\s*1024,\s*1536\s*\)/,
+  'bridal clinic-box intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'Papada-novias'\s*=>\s*array\(\s*1536,\s*1024\s*\)/,
+  'bridal papada intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'Brazos-novias'\s*=>\s*array\(\s*941,\s*1672\s*\)/,
+  'bridal arms intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'Espalda-novias'\s*=>\s*array\(\s*941,\s*1672\s*\)/,
+  'bridal back intrinsic size must be catalogued',
+);
+assert.match(
+  helpers,
+  /'Protocolo-Endolift-Thermage-Morpheus8-ultherapy'\s*=>\s*array\(\s*383,\s*558\s*\)/,
+  'bridal mood-collage intrinsic size must be catalogued',
+);
+for (const file of [
+  'Box-Clinica-Novias-480.webp',
+  'Box-Clinica-Novias-768.webp',
+  'Box-Clinica-Novias-1024.webp',
+  'Papada-novias-480.webp',
+  'Papada-novias-768.webp',
+  'Papada-novias-960.webp',
+  'Papada-novias-1536.webp',
+  'Brazos-novias-480.webp',
+  'Brazos-novias-768.webp',
+  'Brazos-novias-941.webp',
+  'Espalda-novias-480.webp',
+  'Espalda-novias-768.webp',
+  'Espalda-novias-941.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-280.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-383.webp',
+]) {
+  assert.ok(
+    fs.existsSync(`wp-content/themes/nuvanx-medical/assets/images/responsive/${file}`),
+    `bridal protocol must ship ${file} as WebP`,
+  );
+}
+const bridalPhp = fs.readFileSync(
+  'wp-content/themes/nuvanx-medical/inc/nvx-bridal-page.php',
+  'utf8',
+);
+assert.match(
+  functionsPhp,
+  /require_once get_template_directory\(\) \. '\/inc\/nvx-bridal-page\.php';/,
+  'bridal gallery module must be bootstrapped',
+);
+assert.match(
+  bridalPhp,
+  /function nvx_bridal_inject_media/,
+  'bridal page must inject gallery markup via the_content',
+);
+assert.match(
+  bridalPhp,
+  /Box-Clinica-Novias\.png/,
+  'bridal gallery must use the clinic-box upload stem',
+);
+assert.match(
+  bridalPhp,
+  /Papada-novias\.png/,
+  'bridal gallery must use the papada upload stem',
+);
+assert.match(
+  bridalPhp,
+  /Brazos-novias\.png/,
+  'bridal gallery must use the arms upload stem',
+);
+assert.match(
+  bridalPhp,
+  /Espalda-novias\.png/,
+  'bridal gallery must use the back upload stem',
+);
+assert.match(
+  bridalPhp,
+  /Protocolo-Endolift-Thermage-Morpheus8-ultherapy\.png/,
+  'bridal studio must use the mood-collage upload stem',
+);
+assert.doesNotMatch(
+  bridalPhp,
+  /\.png(?!["'])/,
+  'bridal markup must not hard-code PNG as the delivered src',
+);
+assert.match(
+  components,
+  /\.nvx-bridal-studio__spread/,
+  'bridal studio must use equal two-column spreads, not a full-bleed box',
+);
+assert.match(
+  components,
+  /\.nvx-bridal-studio__pair/,
+  'bridal portraits must sit in a matched pair',
+);
+assert.match(
+  components,
+  /aspect-ratio: 4 \/ 5/,
+  'portrait plates must share one crop so the box cannot dwarf the rest',
 );
 
 console.log('LCP_CSS_DELIVERY=PASS');

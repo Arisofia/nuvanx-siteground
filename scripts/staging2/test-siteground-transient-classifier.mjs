@@ -3,6 +3,8 @@ import {
   SITEGROUND_CAPTCHA_PATH,
   SITEGROUND_TRANSIENT_HTTP_STATUSES,
   EX_TEMPFAIL,
+  isOneShotMasterPush,
+  getGitHubEventPath,
   isSiteGroundCaptchaInterruption,
   isSiteGroundTransientResponse,
 } from './siteground-transient-classifier.mjs';
@@ -11,6 +13,14 @@ assert.equal(EX_TEMPFAIL, 75);
 assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(202), true);
 assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(429), true);
 assert.equal(SITEGROUND_TRANSIENT_HTTP_STATUSES.has(503), true);
+
+assert.equal(isOneShotMasterPush('push', 'master'), true);
+assert.equal(isOneShotMasterPush('push', 'feature'), false);
+assert.equal(getGitHubEventPath('pull_request_target', ''), 'pull_request');
+assert.equal(getGitHubEventPath('push', 'master'), 'one_shot_master_push');
+assert.equal(getGitHubEventPath('workflow_dispatch', 'master'), 'trusted_workflow_dispatch');
+assert.equal(getGitHubEventPath('workflow_dispatch', 'feature'), 'unsupported_event');
+assert.equal(getGitHubEventPath('pull_request', 'master'), 'unsupported_event');
 
 const captchaUrl = `https://staging2.nuvanx.com${SITEGROUND_CAPTCHA_PATH}?rid=qa`;
 const interrupted = new Error(

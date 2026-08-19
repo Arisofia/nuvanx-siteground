@@ -9,3 +9,6 @@ await import(mode === 'v2' ? './test-attribution-contract-v2.mjs' : './test-attr
 if (mode === 'v2' && fs.existsSync(integrationPath)) {
   await import('./test-attribution-integration-wiring.mjs');
 }
+if (mode === 'v2') {
+  await import('./test-lead-captured-server-relay.mjs');
+}

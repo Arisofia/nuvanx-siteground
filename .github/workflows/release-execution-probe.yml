@@ -1,3 +1,4 @@
+# Fresh run required: mutating Staging workflows deliberately forbid GitHub reruns.
 name: Release Execution Probe
 run-name: Release Execution Probe · current master
 

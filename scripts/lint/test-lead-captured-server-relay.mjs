@@ -27,10 +27,30 @@ assert.doesNotMatch(relay, /NUVANX_LEAD_CAPTURE_SECRET[^\n]+['"][A-Za-z0-9_-]{16
 assert.match(relay, /'x-nvx-lead-capture-secret' => \$secret/,
   'Relay must authenticate to the canonical capture endpoint');
 
-assert.match(relay, /hash\( 'sha256', \$email \)/,
-  'Relay may send only a one-way email hash to the capture ledger');
+assert.match(relay, /\$email_hash\s*=\s*'' !== \$email \? hash\( 'sha256', \$email \) : null;/,
+  'Relay must derive a one-way email hash before payload construction');
+assert.match(relay, /unset\( \$email \);/,
+  'Relay must discard the raw email variable before constructing the canonical payload');
 assert.doesNotMatch(relay, /['"](?:treatment|condition|procedure|diagnosis|body_area)['"]/i,
   'Relay payload must contain no clinical-treatment semantics');
+
+const payloadStart = relay.indexOf('$relay_payload = array(');
+const postStart = relay.indexOf('$relay = wp_remote_post(', payloadStart);
+assert.ok(payloadStart >= 0 && postStart > payloadStart, 'Canonical relay payload block must be parseable');
+const payloadBlock = relay.slice(payloadStart, postStart);
+assert.match(payloadBlock, /'email_hash'\s*=>\s*\$email_hash/,
+  'Canonical payload may carry only the one-way email hash');
+assert.doesNotMatch(payloadBlock, /['"](?:email|phone|phone_number|name|first_name|last_name|full_name)['"]\s*=>/i,
+  'Canonical payload must not include direct email, phone or name fields');
+
+assert.match(relay, /HubSpot response IDs unavailable; status=%d json_error=%d/,
+  'Unexpected HubSpot response structure must be observable without logging response content');
+assert.doesNotMatch(relay, /Snippet:|substr\(\s*\$body|json_last_error_msg\(\)/,
+  'Observability must not log HubSpot body fragments or verbose decode content');
+assert.match(relay, /relay transport failure; wp_error_code=%s/,
+  'Transport failures must expose a bounded machine-readable error code');
+assert.match(relay, /relay HTTP failure; status=%d/,
+  'HTTP failures must expose status without response body content');
 
 assert.match(relay, /'nvx_is_test_lead'\s*=>\s*\$is_test/,
   'Server-owned QA identity must reach the capture ledger');

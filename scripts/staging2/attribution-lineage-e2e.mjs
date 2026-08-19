@@ -81,7 +81,7 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
   });
 
-  const nativeFields = await page.evaluate(async (formId) => {
+  const readNativeFields = () => page.evaluate(async (formId) => {
     const forms = window.HubSpotFormsV4?.getForms?.() || [];
     const form = forms.find((candidate) => String(candidate?.getFormId?.() || '').toLowerCase() === formId);
     if (!form) return null;
@@ -94,6 +94,16 @@ try {
     }
     return values;
   }, consentState.formId);
+
+  let nativeFields = null;
+  const lineageDeadline = Date.now() + 7_000;
+  while (Date.now() < lineageDeadline) {
+    nativeFields = await readNativeFields();
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(nativeFields?.nvx_lead_id || ''))) {
+      break;
+    }
+    await page.waitForTimeout(250);
+  }
 
   assert.ok(nativeFields, 'Canonical HubSpot V4 form must be discoverable after marketing consent');
   const browserLeadId = String(nativeFields.nvx_lead_id || '').toLowerCase();

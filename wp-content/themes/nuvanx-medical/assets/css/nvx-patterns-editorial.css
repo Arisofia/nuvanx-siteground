@@ -462,9 +462,9 @@ body:not(.home) .nvx-hero__copy .nvx-title {
   transform: translateX(calc(var(--nvx-space-1) * 0.75));
 }
 
-/* Logo cloud — discreet partner strip */
+/* Partner marks — authorized, quiet and subordinate to the catalogue. */
 .nvx-logo-cloud {
-  padding-block: var(--nvx-space-10) var(--nvx-space-12);
+  padding-block: var(--nvx-space-8);
   background: var(--nvx-surface-base);
   border-block: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
@@ -475,34 +475,96 @@ body:not(.home) .nvx-hero__copy .nvx-title {
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
+}
+
+.nvx-logo-cloud__header {
+  max-width: 42rem;
+  margin: 0 auto var(--nvx-space-6);
   text-align: center;
 }
 
+.nvx-logo-cloud__eyebrow {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: var(--nvx-lh-caption);
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
 .nvx-logo-cloud__title {
-  margin: 0 0 var(--nvx-space-6);
+  margin: 0;
   font-family: var(--nvx-serif);
-  font-size: clamp(
-    calc(var(--nvx-space-1) * 2.5),
-    2vw,
-    calc(var(--nvx-space-1) * 3.5)
-  );
-  font-weight: 400;
-  line-height: 1.3;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: var(--nvx-fw-regular);
+  line-height: 1.2;
   color: var(--nvx-ink);
-  max-width: 28ch;
-  margin-inline: auto;
+}
+
+.nvx-logo-cloud__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nvx-border-hairline);
+  margin: 0;
+  padding: var(--nvx-border-hairline);
+  list-style: none;
+  background: var(--nvx-color-line);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 .nvx-logo-cloud__item {
+  display: grid;
+  min-height: calc(var(--nvx-space-10) + var(--nvx-space-4));
   margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(
-    --nvx-text-body
-  ); /* solid body ink — avoid opacity washout on surface */
+  padding: var(--nvx-space-4);
+  place-items: center;
+  background: var(--nvx-surface-base);
+  box-sizing: border-box;
+}
+
+.nvx-logo-cloud__image {
+  display: block;
+  width: auto;
+  max-width: min(100%, 9rem);
+  max-height: 2.15rem;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.08);
+  opacity: 0.76;
+}
+
+.nvx-logo-cloud__item--invert {
+  background: var(--nvx-ink);
+}
+
+.nvx-logo-cloud__item--invert .nvx-logo-cloud__image {
+  filter: grayscale(1) brightness(0) invert(1);
+  opacity: 0.84;
+}
+
+@media (max-width: 767px) {
+  .nvx-logo-cloud {
+    padding-block: var(--nvx-space-6);
+  }
+
+  .nvx-logo-cloud__header {
+    margin-bottom: var(--nvx-space-4);
+  }
+
+  .nvx-logo-cloud__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nvx-logo-cloud__item {
+    min-height: calc(var(--nvx-space-9) + var(--nvx-space-3));
+    padding: var(--nvx-space-3);
+  }
+
+  .nvx-logo-cloud__image {
+    max-width: 7.5rem;
+    max-height: 1.75rem;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════

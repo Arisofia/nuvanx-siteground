@@ -67,21 +67,29 @@ function nvx_treatments_catalog_data(): array {
 	return $catalog;
 }
 
-/** @return string[] */
-function nvx_treatments_partner_labels(): array {
+/**
+ * Authorized partner marks available in the WordPress media library.
+ *
+ * Do not add partner marks here until written authorization and the original
+ * asset have both been recorded. IDs 3346, 2473, 2101, 1379 and 1376 remain
+ * deliberately excluded while their source files are in quarantine.
+ *
+ * @return array<int, array{id:int,label:string,invert?:bool}>
+ */
+function nvx_treatments_partner_assets(): array {
 	return array(
-		'DEKA',
-		'BTL',
-		'Teoxane',
-		'Merz Pharma',
-		'Vivacy',
-		'Radiesse',
-		'Sculptra',
-		'Azzalure',
-		'Croma',
-		'Allergan Aesthetics',
-		'Galderma',
-		'IBSA',
+		array( 'id' => 892,  'label' => 'DEKA' ),
+		array( 'id' => 3048, 'label' => 'BTL', 'invert' => true ),
+		array( 'id' => 1506, 'label' => 'Teoxane' ),
+		array( 'id' => 905,  'label' => 'Merz Pharma' ),
+		array( 'id' => 898,  'label' => 'Vivacy' ),
+		array( 'id' => 897,  'label' => 'Sculptra' ),
+		array( 'id' => 896,  'label' => 'Radiesse' ),
+		array( 'id' => 894,  'label' => 'Endolift' ),
+		array( 'id' => 893,  'label' => 'Ellansé' ),
+		array( 'id' => 891,  'label' => 'Croma' ),
+		array( 'id' => 889,  'label' => 'Azzalure' ),
+		array( 'id' => 904,  'label' => 'SkinCeuticals' ),
 	);
 }
 
@@ -117,15 +125,30 @@ function nvx_treatments_catalog_markup(): string {
 	return $html . '</div></section>';
 }
 
-/** Replace long collaborator essays with a discreet name cloud. */
+/** Build a discreet, authorized partner-mark band beneath the treatment catalogue. */
 function nvx_treatments_logo_cloud_markup(): string {
-	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios de referencia">';
+	$html  = '<section class="nvx-logo-cloud" aria-labelledby="nvx-partner-marks-title">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
-	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnología y laboratorios de referencia mundial con los que colaboramos', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<header class="nvx-logo-cloud__header">';
+	$html .= '<p class="nvx-logo-cloud__eyebrow">' . esc_html__( 'Tecnología y laboratorios autorizados', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 class="nvx-logo-cloud__title" id="nvx-partner-marks-title">' . esc_html__( 'Partners clínicos y tecnológicos', 'nuvanx-medical' ) . '</h2>';
+	$html .= '</header>';
 	$html .= '<ul class="nvx-logo-cloud__list" role="list">';
 
-	foreach ( nvx_treatments_partner_labels() as $label ) {
-		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';
+	foreach ( nvx_treatments_partner_assets() as $partner ) {
+		$url = wp_get_attachment_url( (int) $partner['id'] );
+		if ( ! is_string( $url ) || '' === $url ) {
+			continue;
+		}
+
+		$class = 'nvx-logo-cloud__item';
+		if ( ! empty( $partner['invert'] ) ) {
+			$class .= ' nvx-logo-cloud__item--invert';
+		}
+
+		$html .= '<li class="' . esc_attr( $class ) . '">';
+		$html .= '<img class="nvx-logo-cloud__image" src="' . esc_url( $url ) . '" alt="' . esc_attr( $partner['label'] ) . '" loading="lazy" decoding="async">';
+		$html .= '</li>';
 	}
 
 	return $html . '</ul></div></section>';

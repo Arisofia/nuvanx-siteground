@@ -10,25 +10,12 @@ Documented issues from bot analysis that should be addressed in separate PRs.
 - Self-hosted runner is not viable in the tested SiteGround environment due to the observed `File size limit exceeded` failure and shared-hosting constraints.
 - Current architecture keeps GitHub-hosted runners, strict host-key verification, and bounded external retries.
 
-## Low Priority Issues
+## Resolved quality debt
 
-### 1. SEO Metadata Architecture Cleanup
+### SEO metadata architecture cleanup
 
-**Status:** LOW PRIORITY - System is functional, architectural cleanup needed
+**Status:** RESOLVED IN QUALITY CONTRACT
 
-**Files:**
+Canonical text metadata is owned by `wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php` and the versioned `seo-metadata.json` catalog. `/contacto/` now has a complete catalog record, while the page-local Valoración/Contacto title/description and social text registrations are retired after module registration. Contact-specific social image and schema ownership remains separate by design.
 
-- `wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php` (priority 21 filters)
-- `wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php` (priority 100 filters)
-
-**Current State:**
-- `nvx-seo-metadata.php` implements centralized catalog-based metadata with priority 100
-- `nvx-contacto-valoracion-page.php` has legacy hardcoded filters for valoración/contacto with priority 21
-- The centralized system correctly overrides legacy filters due to higher priority
-- Both systems are currently functional, but architectural duplication exists
-
-**Impact:** Minimal functional impact, but creates maintenance complexity with dual metadata systems
-
-**Recommended Action:** Phase out legacy hardcoded filters in `nvx-contacto-valoracion-page.php` after ensuring all valoración/contacto metadata is properly catalogued in the centralized system
-
-**Note:** This is a technical debt cleanup item, not a blocking issue for current operations
+`scripts/lint/test-seo-catalog-ownership.php` blocks future canonical routes whose `seo_id` has no complete metadata record and verifies the known legacy registrations remain retired.

@@ -21,7 +21,10 @@ assert.match(syncSource, /form\.setFieldValue\(actualName,/);
 assert.match(syncSource, /'nvx_lead_id'/);
 assert.match(syncSource, /'nvx_is_test_lead'/);
 assert.match(syncSource, /'nvx_test_run_id'/);
-assert.match(syncSource, /MARKETING_FIELDS\.forEach/);
+assert.match(syncSource, /await Promise\.resolve\(form\.setFieldValue\(actualName,/,
+  'HubSpot V4 field writes must complete before lineage validation continues');
+assert.match(syncSource, /await setField\(form, index, propertyName, payload\[propertyName\]\)/,
+  'Canonical payload fields must be synchronized sequentially');
 assert.match(syncSource, /!marketingConsent && !FIRST_PARTY_FIELDS\.has\(propertyName\)/);
 assert.match(syncSource, /hs-form-event:on-ready/);
 assert.match(syncSource, /wp_listen_for_consent_change/);
@@ -68,7 +71,12 @@ const fields = [
 const form = {
   getFormId: () => FORM_ID,
   getFormFieldValues: async () => fields,
-  setFieldValue: (name, value) => writes.set(name, value),
+  setFieldValue: (name, value) => new Promise((resolve) => {
+    setTimeout(() => {
+      writes.set(name, value);
+      resolve();
+    }, 0);
+  }),
 };
 
 const buildQaTruePayload = () => ({
@@ -135,7 +143,7 @@ assert.equal(writes.get('0-1/nvx_google_click_id'), 'GCLID-TEST');
 consent = false;
 writes.clear();
 listeners.get('wp_listen_for_consent_change')?.();
-await new Promise((resolve) => setTimeout(resolve, 0));
+await new Promise((resolve) => setTimeout(resolve, 80));
 assert.equal(writes.get('0-1/nvx_lead_id'), '11111111-1111-4111-8111-111111111111');
 assert.equal(writes.get('7-12/nvx_utm_source'), '');
 assert.equal(writes.get('0-1/nvx_google_click_id'), '');
@@ -165,4 +173,4 @@ try {
 assert.equal(ownKeysCalls, 2, 'Both HubSpot async entry points must exercise syncForm');
 assert.equal(unhandled.length, 0, 'HubSpot async sync entry points must consume rejected promises');
 
-console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=native_true+false canonical_form=1 async_rejections=contained applied_lead_id=untouched');
+console.log('ATTRIBUTION_INTEGRATION_WIRING=PASS lineage=1 consent_split=1 qa_boolean=native_true+false canonical_form=1 async_field_writes=awaited async_rejections=contained applied_lead_id=untouched');

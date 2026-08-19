@@ -61,31 +61,90 @@ $topics = get_categories(
 			<?php if ( have_posts() ) : ?>
 				<div class="nvx-blog-grid">
 					<?php
+					$nvx_editorial_index = 0;
 					while ( have_posts() ) :
 						the_post();
 						$categories = get_the_category();
 						$primary    = ! empty( $categories ) ? $categories[0] : null;
-						// Index is text-only: no featured photos (single posts keep media).
-						$classes = 'nvx-blog-card nvx-blog-card--no-media';
+						$slot       = $nvx_editorial_index % 6;
+						$sizes      = 5 === $slot
+							? '(min-width: 768px) 40vw, 100vw'
+							: '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw';
+						$image      = ( 4 !== $slot && function_exists( 'nvx_blog_archive_card_image' ) )
+							? nvx_blog_archive_card_image(
+								array(
+									'priority' => 0 === $nvx_editorial_index,
+									'sizes'    => $sizes,
+								)
+							)
+							: '';
+						$has_media  = '' !== $image;
+						$format     = function_exists( 'nvx_blog_archive_card_format' )
+							? nvx_blog_archive_card_format( $nvx_editorial_index, $has_media )
+							: ( $has_media ? 'vertical' : 'text' );
+						$classes    = array(
+							'nvx-blog-card',
+							'nvx-blog-card--' . $format,
+						);
+						if ( ! $has_media ) {
+							$classes[] = 'nvx-blog-card--no-media';
+						}
+						$permalink  = get_permalink();
+						$title_attr = the_title_attribute( array( 'echo' => false ) );
+						$excerpt    = wp_trim_words( get_the_excerpt(), 'horizontal' === $format ? 30 : 22, '…' );
+						$reading    = function_exists( 'nvx_reading_time' ) ? nvx_reading_time() : '';
+						$index_label = str_pad( (string) ( $nvx_editorial_index + 1 ), 2, '0', STR_PAD_LEFT );
 						?>
 						<article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
-							<div class="nvx-blog-card__content">
-								<div class="nvx-blog-card__meta">
+							<?php if ( in_array( $format, array( 'hero', 'horizontal' ), true ) && $has_media ) : ?>
+								<div class="nvx-blog-card__media" aria-hidden="true"><?php echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WP thumbnail HTML. ?></div>
+								<div class="nvx-blog-card__content">
 									<?php if ( $primary instanceof WP_Term ) : ?>
 										<span class="nvx-blog-card__category"><a href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a></span>
 									<?php endif; ?>
-									<time class="nvx-blog-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
-									<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
-										<span class="nvx-blog-card__reading"><?php echo esc_html( nvx_reading_time() ); ?></span>
+									<h2 class="nvx-blog-card__title"><a href="<?php echo esc_url( $permalink ); ?>"><?php the_title(); ?></a></h2>
+									<div class="nvx-blog-card__excerpt"><p><?php echo esc_html( $excerpt ); ?></p></div>
+									<div class="nvx-blog-card__meta">
+										<time class="nvx-blog-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+										<?php if ( '' !== $reading ) : ?>
+											<span class="nvx-blog-card__reading"><?php echo esc_html( $reading ); ?></span>
+										<?php endif; ?>
+										<a class="nvx-blog-card__link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Leer artículo: %s', 'nuvanx-medical' ), $title_attr ) ); ?>"><?php esc_html_e( 'Leer artículo', 'nuvanx-medical' ); ?> <span aria-hidden="true">→</span></a>
+									</div>
+								</div>
+							<?php else : ?>
+								<?php if ( $has_media && 'vertical' === $format ) : ?>
+									<div class="nvx-blog-card__media" aria-hidden="true"><?php echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WP thumbnail HTML. ?></div>
+								<?php endif; ?>
+								<div class="nvx-blog-card__content">
+									<?php if ( 'text' === $format ) : ?>
+										<span class="nvx-blog-card__index" aria-hidden="true"><?php echo esc_html( $index_label ); ?></span>
+									<?php endif; ?>
+									<div class="nvx-blog-card__meta">
+										<?php if ( $primary instanceof WP_Term ) : ?>
+											<span class="nvx-blog-card__category"><a href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a></span>
+										<?php endif; ?>
+										<?php if ( 'vertical' === $format && '' !== $reading ) : ?>
+											<span class="nvx-blog-card__reading"><?php echo esc_html( $reading ); ?></span>
+										<?php endif; ?>
+									</div>
+									<h2 class="nvx-blog-card__title"><a href="<?php echo esc_url( $permalink ); ?>"><?php the_title(); ?></a></h2>
+									<div class="nvx-blog-card__excerpt"><p><?php echo esc_html( $excerpt ); ?></p></div>
+									<?php if ( 'text' === $format ) : ?>
+										<div class="nvx-blog-card__meta">
+											<time class="nvx-blog-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+											<a class="nvx-blog-card__link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Leer artículo: %s', 'nuvanx-medical' ), $title_attr ) ); ?>"><?php esc_html_e( 'Leer', 'nuvanx-medical' ); ?> <span aria-hidden="true">→</span></a>
+										</div>
+									<?php else : ?>
+										<a class="nvx-blog-card__link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Leer artículo: %s', 'nuvanx-medical' ), $title_attr ) ); ?>"><?php esc_html_e( 'Leer artículo', 'nuvanx-medical' ); ?> <span aria-hidden="true">→</span></a>
 									<?php endif; ?>
 								</div>
-
-								<h2 class="nvx-blog-card__title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
-								<div class="nvx-blog-card__excerpt"><p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 30, '…' ) ); ?></p></div>
-								<a class="nvx-blog-card__link" href="<?php the_permalink(); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Leer artículo: %s', 'nuvanx-medical' ), get_the_title() ) ); ?>"><?php esc_html_e( 'Leer artículo', 'nuvanx-medical' ); ?> <span aria-hidden="true">→</span></a>
-							</div>
+							<?php endif; ?>
 						</article>
-					<?php endwhile; ?>
+						<?php
+						++$nvx_editorial_index;
+					endwhile;
+					?>
 				</div>
 
 				<nav class="nvx-blog-pagination" aria-label="<?php esc_attr_e( 'Paginación del Journal', 'nuvanx-medical' ); ?>">

@@ -103,6 +103,7 @@
   --nvx-measure-wide: 72rem;
 
   /* Media */
+  --nvx-media-ratio-card: 16 / 9;
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
   /* Home video stage. Must stay in tokens (inlined) so first paint reserves
@@ -159,6 +160,14 @@
     rgba(26, 26, 26, 0.75) 28%,
     rgba(26, 26, 26, 0.85) 58%,
     rgba(26, 26, 26, 0.94) 100%
+  );
+
+  /* Archive hero card: darken the photograph so overlay type stays readable. */
+  --nvx-card-hero-overlay: linear-gradient(
+    to top,
+    rgba(17, 17, 17, 0.82) 0%,
+    rgba(17, 17, 17, 0.28) 46%,
+    transparent 100%
   );
 
   /* ========== TIPOGRAFÍA OFICIAL ÚNICA ========== */

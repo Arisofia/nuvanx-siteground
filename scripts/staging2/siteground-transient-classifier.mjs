@@ -7,6 +7,26 @@ export const EX_TEMPFAIL = 75;
 /** BSD sysexits: EX_CONFIG (78) - invalid recovery configuration/identity. */
 export const EX_CONFIG = 78;
 
+/** GitHub event names that trigger pipeline execution. */
+export const GITHUB_EVENT_NAMES = Object.freeze({
+  PULL_REQUEST_TARGET: 'pull_request_target',
+  PUSH: 'push',
+  WORKFLOW_DISPATCH: 'workflow_dispatch',
+});
+
+/** Git ref names for protected branches. */
+export const GIT_REF_NAMES = Object.freeze({
+  MASTER: 'master',
+});
+
+/** Execution path identifiers for GitHub Actions. */
+export const EXECUTION_PATHS = Object.freeze({
+  PULL_REQUEST: 'pull_request',
+  ONE_SHOT_MASTER_PUSH: 'one_shot_master_push',
+  TRUSTED_WORKFLOW_DISPATCH: 'trusted_workflow_dispatch',
+  UNSUPPORTED_EVENT: 'unsupported_event',
+});
+
 export function isSiteGroundCaptchaInterruption(error, currentUrl = '') {
   const message = error instanceof Error ? error.message : String(error || '');
   return String(currentUrl).includes(SITEGROUND_CAPTCHA_PATH)
@@ -21,18 +41,18 @@ export function isSiteGroundTransientResponse(status, headers = {}, currentUrl =
 }
 
 export function isOneShotMasterPush(eventName = '', refName = '') {
-  return eventName === 'push' && refName === 'master';
+  return eventName === GITHUB_EVENT_NAMES.PUSH && refName === GIT_REF_NAMES.MASTER;
 }
 
 export function getGitHubEventPath(eventName = '', refName = '') {
-  if (eventName === 'pull_request_target') {
-    return 'pull_request';
+  if (eventName === GITHUB_EVENT_NAMES.PULL_REQUEST_TARGET) {
+    return EXECUTION_PATHS.PULL_REQUEST;
   }
   if (isOneShotMasterPush(eventName, refName)) {
-    return 'one_shot_master_push';
+    return EXECUTION_PATHS.ONE_SHOT_MASTER_PUSH;
   }
-  if (eventName === 'workflow_dispatch' && refName === 'master') {
-    return 'trusted_workflow_dispatch';
+  if (eventName === 'workflow_dispatch' && refName === GIT_REF_NAMES.MASTER) {
+    return EXECUTION_PATHS.TRUSTED_WORKFLOW_DISPATCH;
   }
-  return 'unsupported_event';
+  return EXECUTION_PATHS.UNSUPPORTED_EVENT;
 }

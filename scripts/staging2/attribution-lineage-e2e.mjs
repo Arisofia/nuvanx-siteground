@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { chromium } from 'playwright';
-import { EX_TEMPFAIL, getGitHubEventPath } from './siteground-transient-classifier.mjs';
+import { EX_TEMPFAIL, getGitHubEventPath, EXECUTION_PATHS } from './siteground-transient-classifier.mjs';
 
 const BASE_URL = (process.env.BASE_URL || '').replace(/\/+$/, '');
 const EXPECTED_BASE = 'https://staging2.nuvanx.com';
@@ -11,7 +11,7 @@ const EVENT_NAME = process.env.GITHUB_EVENT_NAME || '';
 const REF_NAME = process.env.GITHUB_REF_NAME || '';
 const EVENT_PATH = getGitHubEventPath(EVENT_NAME, REF_NAME);
 
-if (EVENT_PATH === 'unsupported_event') {
+if (EVENT_PATH === EXECUTION_PATHS.UNSUPPORTED_EVENT) {
   console.log(
     `ATTRIBUTION_LINEAGE_E2E=SKIP reason=unsupported_event event=${EVENT_NAME} ref=${REF_NAME}`
   );

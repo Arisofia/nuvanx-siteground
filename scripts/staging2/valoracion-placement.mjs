@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { EX_TEMPFAIL, getGitHubEventPath } from './siteground-transient-classifier.mjs';
+import { EX_TEMPFAIL, getGitHubEventPath, EXECUTION_PATHS } from './siteground-transient-classifier.mjs';
 
 function runProcess(moduleUrl) {
   return new Promise((resolve, reject) => {
@@ -181,7 +181,7 @@ const stages = [
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
 ];
 
-if (EVENT_PATH !== 'unsupported_event') {
+if (EVENT_PATH !== EXECUTION_PATHS.UNSUPPORTED_EVENT) {
   stages.push({ name: 'attribution-lineage-e2e', url: new URL('./attribution-lineage-e2e.mjs', import.meta.url), maxCycles: 1 });
 }
 

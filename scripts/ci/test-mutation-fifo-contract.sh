@@ -5,6 +5,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SUBJECT="$ROOT/scripts/ci/wait-for-environment-mutation-turn.sh"
 [[ -s "$SUBJECT" ]]
 
+# Centralized test configuration
+readonly TEST_REPOSITORY="${TEST_REPOSITORY:-Arisofia/nuvanx-siteground}"
+readonly TEST_RUN_ID="${TEST_RUN_ID:-42}"
+readonly TEST_RUN_ATTEMPT="${TEST_RUN_ATTEMPT:-1}"
+readonly TEST_TOKEN="${TEST_TOKEN:-test-token}"
+
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/bin"
@@ -69,12 +75,12 @@ chmod +x "$TMP/bin/gh"
 common_env=(
   "PATH=$TMP/bin:$PATH"
   "TMP_DIR=$TMP"
-  'GITHUB_REPOSITORY=Arisofia/nuvanx-siteground'
-  'GITHUB_RUN_ID=42'
-  'GH_TOKEN=test-token'
-  'MUTATION_WAIT_STABILIZE_SECONDS=1'
-  'MUTATION_WAIT_POLL_SECONDS=1'
-  'MUTATION_WAIT_MAX_SECONDS=60'
+  "GITHUB_REPOSITORY=$TEST_REPOSITORY"
+  "GITHUB_RUN_ID=$TEST_RUN_ID"
+  "GH_TOKEN=$TEST_TOKEN"
+  "MUTATION_WAIT_STABILIZE_SECONDS=1"
+  "MUTATION_WAIT_POLL_SECONDS=1"
+  "MUTATION_WAIT_MAX_SECONDS=60"
 )
 
 # Case 1: Happy path

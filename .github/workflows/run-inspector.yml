@@ -1,5 +1,5 @@
 name: Run Inspector
-run-name: Run Inspector · cancel duplicate manual Staging
+run-name: Run Inspector · current master Staging
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  actions: write
+  actions: read
 
 jobs:
   inspect:
@@ -18,41 +18,13 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TARGET_SHA: ${{ github.event.pull_request.base.sha }}
     steps:
-      - name: Resolve duplicate canonical Staging workflow_dispatch run
-        id: resolve
+      - name: Inspect current master Staging push
         shell: bash
         run: |
           set -euo pipefail
-          runs_json="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event workflow_dispatch --limit 100 --json databaseId,status,conclusion,headSha,createdAt,url)"
-          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha and (.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "requested" or .status == "pending"))] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs_json")"
-          if [[ -z "$run_id" ]]; then
-            echo 'run_id=' >> "$GITHUB_OUTPUT"
-            echo "DUPLICATE_STAGING=NONE sha=$TARGET_SHA"
-            exit 0
-          fi
-          [[ "$run_id" =~ ^[0-9]+$ ]]
-          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
-          echo "DUPLICATE_STAGING=FOUND run_id=$run_id sha=$TARGET_SHA"
-
-      - name: Cancel duplicate workflow_dispatch Staging
-        if: ${{ steps.resolve.outputs.run_id != '' }}
-        shell: bash
-        env:
-          TARGET_RUN_ID: ${{ steps.resolve.outputs.run_id }}
-        run: |
-          set -euo pipefail
-          meta="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}")"
-          test "$(jq -r '.event' <<<"$meta")" = 'workflow_dispatch'
-          test "$(jq -r '.path' <<<"$meta")" = '.github/workflows/staging.yml'
-          test "$(jq -r '.head_sha' <<<"$meta")" = "$TARGET_SHA"
-          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}/cancel" >/dev/null
-          for attempt in $(seq 1 30); do
-            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${TARGET_RUN_ID}" --jq '.status')"
-            if [[ "$status" == 'completed' ]]; then
-              echo "DUPLICATE_STAGING=CANCELLED run_id=$TARGET_RUN_ID sha=$TARGET_SHA"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::error::Duplicate Staging did not reach completed state after cancellation"
-          exit 1
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --event push --branch master --limit 100 --json databaseId,status,conclusion,headSha,createdAt,updatedAt,url)"
+          jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' <<<"$runs"
+          run_id="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+          [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::No Staging push run for $TARGET_SHA"; exit 1; }
+          echo "CURRENT_MASTER_STAGING_RUN_ID=$run_id"
+          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,createdAt,updatedAt,jobs,url | jq -c '.'

@@ -94,13 +94,14 @@ function nvx_gtm_context_page_type(): string {
  * This deliberately excludes GTM and Google Ads conversion IDs. Site Kit and
  * the GTM container own Google tag configuration; the theme only exposes the
  * canonical HubSpot form identity required by the NUVANX event classifier.
+ * The secure bridge is the single source of truth for that form identity.
  *
  * @return array{env:string,forms:array{valoracion:string}}
  */
 function nvx_gtm_client_context(): array {
-	$valoracion_form_id = defined( 'NVX_HUBSPOT_VALORACION_FORM_ID' )
-		? (string) NVX_HUBSPOT_VALORACION_FORM_ID
-		: (string) ( getenv( 'NVX_HUBSPOT_VALORACION_FORM_ID' ) ?: '' );
+	$valoracion_form_id = function_exists( 'nvx_hubspot_secure_form_id' )
+		? nvx_hubspot_secure_form_id()
+		: '';
 
 	return array(
 		'env'   => nvx_environment_is_staging2() ? 'staging2' : 'production',
@@ -214,3 +215,6 @@ add_action( 'wp_head', 'nvx_gtm_push_context', 1 );
 
 // Load the secure HubSpot attribution bridge (Runtime Contract v2).
 require_once __DIR__ . '/nvx-hubspot-secure-attribution.php';
+
+// Load the real HubSpot V4 writer and the post-HubSpot direct-form collector relay.
+require_once __DIR__ . '/nvx-attribution-integration.php';

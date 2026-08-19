@@ -6,14 +6,14 @@
   "lead": "La laserlipólisis con tecnología DEKA —en NUVANX, Endoláser corporal— trata focos de grasa localizada con un componente de flacidez leve o moderada. No trata obesidad ni sustituye una liposucción de gran volumen. La indicación se decide en consulta.",
   "sections": [
     {
-      "h2": "1. Qué es la laserlipólisis y cómo actúa",
+      "h2": "Qué es la laserlipólisis y cómo actúa",
       "paragraphs": [
         "Es un procedimiento de remodelación corporal que utiliza una fibra láser DEKA en el tejido subcutáneo. La energía produce lipólisis selectiva en los focos planificados por el médico. En paralelo, el calor en profundidad puede favorecer la retracción de fibras de soporte, para limitar la sensación de piel vacía al reducir volumen.",
         "No es adelgazamiento general. El plan es por zonas, con criterios de inclusión y exclusión. Si el objetivo es papada u óvalo facial, la vía habitual en NUVANX es Endolift® facial. Cuando el componente predominante es dérmico y no hay un foco graso tributario de láser, puede valorarse EXION® Body."
       ]
     },
     {
-      "h2": "2. Cómo se realiza la laserlipólisis con DEKA",
+      "h2": "Cómo se realiza la laserlipólisis con DEKA",
       "paragraphs": [
         "Se realiza en clínica, de forma ambulatoria y con anestesia local tumescente. No requiere ingreso hospitalario. Tras la valoración se introduce la fibra láser DEKA por una microincisión y se trata la cuadrícula de zonas indicada.",
         "El paciente suele volver a casa el mismo día. La pauta de compresión, las revisiones y el plazo de reincorporación los marca el médico según zona, volumen y respuesta individual."
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "h2": "3. Quién puede ser candidato — y quién no",
+      "h2": "Quién puede ser candidato — y quién no",
       "paragraphs": [
         "El perfil habitual es una persona con peso estable y grasa focal resistente a dieta y ejercicio, asociada a flacidez leve o moderada. Zonas frecuentes: abdomen, flancos, muslos, brazos o rodillas, cuando hay indicación."
       ],
@@ -43,14 +43,14 @@
       ]
     },
     {
-      "h2": "4. Qué se puede esperar además de reducir volumen",
+      "h2": "Qué se puede esperar además de reducir volumen",
       "paragraphs": [
         "La utilidad clínica, cuando hay indicación, es doble: reducir focos de grasa y acompañar esa pérdida de volumen con retracción térmica. No se promete una piel tensa de catálogo ni un resultado idéntico entre pacientes.",
         "La reincorporación laboral suele situarse en 24–48 horas; el deporte de impacto y la prenda de compresión dependen de la zona. Los cambios se observan de forma progresiva en semanas y meses, no al día siguiente."
       ]
     },
     {
-      "h2": "5. Diferencias con la liposucción tradicional",
+      "h2": "Diferencias con la liposucción tradicional",
       "paragraphs": [
         "Ambas pueden reducir grasa, pero no compiten por el mismo caso. La liposucción quirúrgica permite extraer volúmenes mayores bajo un entorno operatorio. La laserlipólisis DEKA se reserva para focos seleccionados, de forma ambulatoria, cuando la piel y el volumen lo permiten."
       ]
@@ -110,7 +110,17 @@
     {
       "q": "¿El resultado es permanente?",
       "a": "Los adipocitos tratados no se regeneran. Un aumento de peso puede afectar al contorno."
+    },
+    {
+      "q": "¿Cuándo puedo hacer deporte y cómo es la prenda de compresión?",
+      "a": "La reincorporación laboral suele situarse en 24–48 horas. El deporte de impacto y el tiempo de compresión los marca el médico según zona, volumen y evolución. No hay una pauta única."
     }
+  ],
+  "bibliography": [
+    "Badin AZ et al. Laser Lipolysis: Flaccidity Under Control. Aesthetic Plastic Surgery. 2002.",
+    "Badin AZ et al. Analysis of Laser Lipolysis Effects on Human Tissue Samples Obtained from Liposuction. Aesthetic Plastic Surgery. 2005.",
+    "Kim KH, Geronemus RG. Laser Lipolysis Using a Novel 1,064 nm Nd:YAG Laser. Dermatologic Surgery. 2006.",
+    "Goldman A, Schavelzon DE, Blugerman GS. Laserlipolysis: liposuction using Nd:YAG laser. Rev Soc Bras Cir Plást. 2002;17:17–26."
   ],
   "related_fichas": [
     {

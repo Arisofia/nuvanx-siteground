@@ -177,7 +177,9 @@ const stages = [
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
 ];
 
-if (process.env.GITHUB_EVENT_NAME === 'pull_request_target') {
+const lineageEvent = process.env.GITHUB_EVENT_NAME === 'pull_request_target'
+  || (process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF_NAME === 'master');
+if (lineageEvent) {
   stages.push({ name: 'attribution-lineage-e2e', url: new URL('./attribution-lineage-e2e.mjs', import.meta.url), maxCycles: 1 });
 }
 

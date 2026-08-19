@@ -72,6 +72,24 @@
     },
     {
       "n": "04",
+      "icon": "rheology",
+      "title": "@nvx-t:Ácido hialurónico facial · Surcos y soporte",
+      "body": "@nvx-t:La valoración diferencia pérdida de soporte, surcos y transiciones que pueden mejorar con ácido hialurónico de los problemas que no se corrigen añadiendo volumen. Labios, ojeras y rinomodelación tienen ficha propia.",
+      "price": "@nvx-t:Presupuesto según zona tras valoración",
+      "core": "@nvx-t:Surcos, reposicionamiento y estructuración cuando el diagnóstico lo indica.",
+      "url": {
+        "@nvx-aesthetic-url": {
+          "primary": "acido-hialuronico-relleno-madrid",
+          "alts": [
+            "acido-hialuronico",
+            "relleno-facial",
+            "acido-hialuronico-relleno-madrid"
+          ]
+        }
+      }
+    },
+    {
+      "n": "05",
       "icon": "regen",
       "title": "@nvx-t:Bioestimulación con polinucleótidos · Calidad cutánea",
       "body": "@nvx-t:Los polinucleótidos se utilizan en protocolos orientados a la calidad cutánea. La indicación, la zona y el número de sesiones se determinan tras valoración médica; el objetivo no es aportar volumen estructural, sino trabajar la calidad del tejido dentro de un plan individualizado.",

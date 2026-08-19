@@ -1,0 +1,2 @@
+P0-A Staging2 HMAC acceptance probe.
+Base master: 28aceb501f4a8065cc61e143ab4d047739dcccec

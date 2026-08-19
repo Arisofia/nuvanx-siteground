@@ -126,16 +126,16 @@ function nvx_journal_tech_article_markup( string $slug ): string {
 			$html .= nvx_journal_laserlipo_vs_lipo_list( $section['steps'] );
 		}
 		if ( ! empty( $section['yes'] ) || ! empty( $section['no'] ) ) {
-			$yes = is_array( $section['yes'] ?? null ) ? $section['yes'] : array();
-			$no  = is_array( $section['no'] ?? null ) ? $section['no'] : array();
+			$yes = array_values( array_filter( array_map( 'strval', is_array( $section['yes'] ?? null ) ? $section['yes'] : array() ) ) );
+			$no  = array_values( array_filter( array_map( 'strval', is_array( $section['no'] ?? null ) ? $section['no'] : array() ) ) );
 			if ( function_exists( 'nvx_candidacy_markup' ) ) {
 				$html .= nvx_candidacy_markup( $yes, $no );
-			} else {
-				if ( array() !== $yes ) {
+			} elseif ( ! empty( $yes ) || ! empty( $no ) ) {
+				if ( ! empty( $yes ) ) {
 					$html .= '<h3>' . esc_html__( 'Candidato', 'nuvanx-medical' ) . '</h3>';
 					$html .= nvx_journal_laserlipo_vs_lipo_list( $yes );
 				}
-				if ( array() !== $no ) {
+				if ( ! empty( $no ) ) {
 					$html .= '<h3>' . esc_html__( 'No candidato', 'nuvanx-medical' ) . '</h3>';
 					$html .= nvx_journal_laserlipo_vs_lipo_list( $no );
 				}

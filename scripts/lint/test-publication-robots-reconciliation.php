@@ -12,8 +12,9 @@ $sitemap_selection_audit = $root . '/tools/migrations/audit-publication-sitemap-
 $sitemap_cache_invalidation = $root . '/tools/migrations/invalidate-publication-sitemap-cache.php';
 $runtime_indexables_audit = $root . '/tools/migrations/audit-publication-indexables-runtime.php';
 $seo_metadata  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
-$seo_retirement = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-legacy-retirement.php';
-$page_hygiene  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php';
+	$seo_retirement = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-legacy-retirement.php';
+	$sitemap_from_xml = $root . '/scripts/staging2/verify-publication-sitemap-from-xml.mjs';
+	$page_hygiene  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php';
 $staging       = $root . '/.github/workflows/staging.yml';
 $production    = $root . '/.github/workflows/production.yml';
 $deploy        = $root . '/tools/deploy/deploy-to-prod.sh';
@@ -50,7 +51,7 @@ foreach ( $manifest['routes'] as $route => $config ) {
 	}
 }
 
-foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $sitemap_cache_invalidation, $runtime_indexables_audit, $seo_metadata, $seo_retirement, $page_hygiene, $staging, $production, $deploy ) as $path ) {
+foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $sitemap_cache_invalidation, $runtime_indexables_audit, $seo_metadata, $seo_retirement, $sitemap_from_xml, $page_hygiene, $staging, $production, $deploy ) as $path ) {
 	if ( ! is_file( $path ) || false === file_get_contents( $path ) ) {
 		fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=unreadable_dependency\n" );
 		exit( 1 );
@@ -65,6 +66,7 @@ $sitemap_cache_invalidation_raw = file_get_contents( $sitemap_cache_invalidation
 $runtime_indexables_audit_raw = file_get_contents( $runtime_indexables_audit );
 $seo_metadata_raw = file_get_contents( $seo_metadata );
 $seo_retirement_raw = file_get_contents( $seo_retirement );
+$sitemap_from_xml_raw = file_get_contents( $sitemap_from_xml );
 $page_hygiene_raw = file_get_contents( $page_hygiene );
 $staging_raw      = file_get_contents( $staging );
 $production_raw = file_get_contents( $production );
@@ -104,6 +106,10 @@ $required = array(
 	array( $seo_retirement_raw, "add_post_metadata" ),
 	array( $seo_retirement_raw, "update_post_metadata" ),
 	array( $seo_retirement_raw, "_yoast_wpseo_canonical" ),
+	array( $sitemap_from_xml_raw, "SITEMAP_XML_CONTENT" ),
+	array( $sitemap_from_xml_raw, "SITEMAP_MANIFEST_COVERAGE=PASS" ),
+	array( $staging_raw, "verify-publication-sitemap-from-xml.mjs" ),
+	array( $staging_raw, "SITEMAP_XML_CONTENT" ),
 	array( $staging_raw, "reconcile-publication-robots.php" ),
 	array( $staging_raw, 'REMOTE_RELEASE=\'$REMOTE_RELEASE\' bash -se' ),
 	array( $staging_raw, '"$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"' ),
@@ -122,7 +128,7 @@ $required = array(
 	array( $staging_raw, "PUBLICATION_SITEMAP_CACHE_INVALIDATION=PASS" ),
 	array( $staging_raw, "audit-publication-sitemap-selection.php" ),
 	array( $staging_raw, "PUBLICATION_SITEMAP_SELECTION=PASS" ),
-	array( $staging_raw, "verify-publication-sitemap.mjs" ),
+	array( $staging_raw, "verify-publication-sitemap-from-xml.mjs" ),
 	array( $staging_raw, "STAGING_SITEMAP_MANIFEST_COVERAGE=PASS" ),
 	array( $staging_raw, "Keep Optimizer active" ),
 	array( $staging_raw, 'wp plugin is-active "$plugin_slug"' ),

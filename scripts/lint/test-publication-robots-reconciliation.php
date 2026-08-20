@@ -6,6 +6,7 @@
 $root          = dirname( __DIR__, 2 );
 $manifest_path = $root . '/wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json';
 $migration     = $root . '/tools/migrations/reconcile-publication-robots.php';
+$indexables_migration = $root . '/tools/migrations/reconcile-publication-indexables.php';
 $seo_metadata  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
 $staging       = $root . '/.github/workflows/staging.yml';
 $production    = $root . '/.github/workflows/production.yml';
@@ -43,7 +44,7 @@ foreach ( $manifest['routes'] as $route => $config ) {
 	}
 }
 
-foreach ( array( $migration, $seo_metadata, $staging, $production, $deploy ) as $path ) {
+foreach ( array( $migration, $indexables_migration, $seo_metadata, $staging, $production, $deploy ) as $path ) {
 	if ( ! is_file( $path ) || false === file_get_contents( $path ) ) {
 		fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=unreadable_dependency\n" );
 		exit( 1 );
@@ -51,6 +52,7 @@ foreach ( array( $migration, $seo_metadata, $staging, $production, $deploy ) as 
 }
 
 $migration_raw    = file_get_contents( $migration );
+$indexables_migration_raw = file_get_contents( $indexables_migration );
 $seo_metadata_raw = file_get_contents( $seo_metadata );
 $staging_raw      = file_get_contents( $staging );
 $production_raw = file_get_contents( $production );
@@ -62,6 +64,9 @@ $required = array(
 	array( $migration_raw, "delete_post_meta" ),
 	array( $migration_raw, "update_post_meta" ),
 	array( $migration_raw, "PUBLICATION_ROBOTS_RECONCILIATION=PASS" ),
+	array( $indexables_migration_raw, "PUBLICATION_INDEXABLE_RECONCILIATION=PASS" ),
+	array( $indexables_migration_raw, "build_for_id_and_type" ),
+	array( $indexables_migration_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD" ),
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
 	array( $staging_raw, "reconcile-publication-robots.php" ),
 	array( $staging_raw, 'REMOTE_RELEASE=\'$REMOTE_RELEASE\' bash -se' ),
@@ -71,10 +76,13 @@ $required = array(
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE production' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE "$original_env"' ),
 	array( $staging_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --skip-confirmation --allow-root" ),
+	array( $staging_raw, "reconcile-publication-indexables.php" ),
+	array( $staging_raw, "PUBLICATION_INDEXABLE_RECONCILIATION=PASS" ),
 	array( $staging_raw, "verify-publication-sitemap.mjs" ),
 	array( $staging_raw, "STAGING_SITEMAP_MANIFEST_COVERAGE=PASS" ),
 	array( $production_raw, "reconcile-publication-robots.php" ),
 	array( $deploy_raw, "ROBOTS_RECONCILIATION_SCRIPT" ),
+	array( $deploy_raw, "INDEXABLES_RECONCILIATION_SCRIPT" ),
 	array( $deploy_raw, "wp yoast index --reindex --skip-confirmation --allow-root" ),
 );
 foreach ( $required as $pair ) {

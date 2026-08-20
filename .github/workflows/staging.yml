@@ -514,6 +514,8 @@ jobs:
           grep -q 'YOAST_INDEXABLE_REBUILD=PASS' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           grep -q 'PUBLICATION_INDEXABLE_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
+          wp eval-file "$REMOTE_RELEASE/tools/migrations/audit-publication-sitemap-selection.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/audit-sitemap-selection-${{ github.sha }}.log"
+          grep -q 'PUBLICATION_SITEMAP_SELECTION=PASS' "$REMOTE_RELEASE/audit-sitemap-selection-${{ github.sha }}.log"
           REMOTE
 
           ssh nvx-staging2 \
@@ -1089,6 +1091,8 @@ jobs:
           grep -q 'YOAST_INDEXABLE_REBUILD=PASS' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           grep -q 'PUBLICATION_INDEXABLE_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
+          wp eval-file "$REMOTE_RELEASE/tools/migrations/audit-publication-sitemap-selection.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/audit-sitemap-selection-${{ github.sha }}.log"
+          grep -q 'PUBLICATION_SITEMAP_SELECTION=PASS' "$REMOTE_RELEASE/audit-sitemap-selection-${{ github.sha }}.log"
           REMOTE
 
           ssh nvx-staging2-pr \

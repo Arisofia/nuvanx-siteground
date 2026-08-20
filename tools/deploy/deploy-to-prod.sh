@@ -80,8 +80,9 @@ CONTENT_NORMALIZER_SCRIPT=""
 ROBOTS_RECONCILIATION_SCRIPT=""
 INDEXABLES_RECONCILIATION_SCRIPT=""
 YOAST_INDEXABLE_REBUILD_SCRIPT=""
+SITEMAP_SELECTION_AUDIT_SCRIPT=""
 for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations"; do
-  if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" && -f "$candidate_dir/reconcile-publication-robots.php" && -f "$candidate_dir/reconcile-publication-indexables.php" && -f "$candidate_dir/run-yoast-indexable-rebuild.php" ]]; then
+  if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" && -f "$candidate_dir/reconcile-publication-robots.php" && -f "$candidate_dir/reconcile-publication-indexables.php" && -f "$candidate_dir/run-yoast-indexable-rebuild.php" && -f "$candidate_dir/audit-publication-sitemap-selection.php" ]]; then
     MIGRATION_SCRIPT="$candidate_dir/content-hygiene-shared.php"
     AUDIT_SCRIPT="$candidate_dir/audit-content-divergence.php"
     BLOG_HYGIENE_SCRIPT="$candidate_dir/governed-blog-markdown-hygiene.php"
@@ -89,6 +90,7 @@ for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations";
     ROBOTS_RECONCILIATION_SCRIPT="$candidate_dir/reconcile-publication-robots.php"
     INDEXABLES_RECONCILIATION_SCRIPT="$candidate_dir/reconcile-publication-indexables.php"
     YOAST_INDEXABLE_REBUILD_SCRIPT="$candidate_dir/run-yoast-indexable-rebuild.php"
+    SITEMAP_SELECTION_AUDIT_SCRIPT="$candidate_dir/audit-publication-sitemap-selection.php"
     RULES_LIB="$candidate_dir/../../lib/nvx-content-hygiene-rules.php"
     break
   fi
@@ -100,6 +102,7 @@ done
 [[ -f "$ROBOTS_RECONCILIATION_SCRIPT" ]] || { echo "ERROR: publication robots reconciliation missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$INDEXABLES_RECONCILIATION_SCRIPT" ]] || { echo "ERROR: publication indexables reconciliation missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$YOAST_INDEXABLE_REBUILD_SCRIPT" ]] || { echo "ERROR: Yoast indexable rebuild runner missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
+[[ -f "$SITEMAP_SELECTION_AUDIT_SCRIPT" ]] || { echo "ERROR: sitemap selection audit missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$RULES_LIB" ]] || { echo "ERROR: shared content hygiene rules library missing at $RULES_LIB" >&2; exit 1; }
 
 PROD_URL='https://nuvanx.com'
@@ -528,6 +531,7 @@ echo "== Run shared production content migration and divergence audit =="
   grep -Fq 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$ROBOTS_LOG"
   NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$YOAST_INDEXABLE_REBUILD_SCRIPT" --allow-root
   NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$INDEXABLES_RECONCILIATION_SCRIPT" --allow-root
+  wp eval-file "$SITEMAP_SELECTION_AUDIT_SCRIPT" --allow-root
   wp eval-file "$AUDIT_SCRIPT" --allow-root 2>&1 | tee "$AUDIT_LOG"
   grep -Fq 'Status: AUDIT_CLEAN' "$AUDIT_LOG"
 )

@@ -508,6 +508,8 @@ jobs:
           }
           trap restore_environment EXIT
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
+          wp eval-file "$REMOTE_RELEASE/tools/migrations/audit-publication-indexables-runtime.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/audit-indexables-runtime-${{ github.sha }}.log"
+          grep -q 'PUBLICATION_INDEXABLE_RUNTIME_AUDIT=PASS' "$REMOTE_RELEASE/audit-indexables-runtime-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
@@ -1087,6 +1089,8 @@ jobs:
           }
           trap restore_environment EXIT
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
+          wp eval-file "$REMOTE_RELEASE/tools/migrations/audit-publication-indexables-runtime.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/audit-indexables-runtime-${{ github.sha }}.log"
+          grep -q 'PUBLICATION_INDEXABLE_RUNTIME_AUDIT=PASS' "$REMOTE_RELEASE/audit-indexables-runtime-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"

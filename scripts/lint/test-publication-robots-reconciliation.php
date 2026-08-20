@@ -7,6 +7,7 @@ $root          = dirname( __DIR__, 2 );
 $manifest_path = $root . '/wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json';
 $migration     = $root . '/tools/migrations/reconcile-publication-robots.php';
 $indexables_migration = $root . '/tools/migrations/reconcile-publication-indexables.php';
+$yoast_rebuild = $root . '/tools/migrations/run-yoast-indexable-rebuild.php';
 $seo_metadata  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
 $staging       = $root . '/.github/workflows/staging.yml';
 $production    = $root . '/.github/workflows/production.yml';
@@ -44,7 +45,7 @@ foreach ( $manifest['routes'] as $route => $config ) {
 	}
 }
 
-foreach ( array( $migration, $indexables_migration, $seo_metadata, $staging, $production, $deploy ) as $path ) {
+foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $seo_metadata, $staging, $production, $deploy ) as $path ) {
 	if ( ! is_file( $path ) || false === file_get_contents( $path ) ) {
 		fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=unreadable_dependency\n" );
 		exit( 1 );
@@ -53,6 +54,7 @@ foreach ( array( $migration, $indexables_migration, $seo_metadata, $staging, $pr
 
 $migration_raw    = file_get_contents( $migration );
 $indexables_migration_raw = file_get_contents( $indexables_migration );
+$yoast_rebuild_raw = file_get_contents( $yoast_rebuild );
 $seo_metadata_raw = file_get_contents( $seo_metadata );
 $staging_raw      = file_get_contents( $staging );
 $production_raw = file_get_contents( $production );
@@ -67,6 +69,9 @@ $required = array(
 	array( $indexables_migration_raw, "PUBLICATION_INDEXABLE_RECONCILIATION=PASS" ),
 	array( $indexables_migration_raw, "build_for_id_and_type" ),
 	array( $indexables_migration_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD" ),
+	array( $yoast_rebuild_raw, "YOAST_INDEXABLE_REBUILD=PASS" ),
+	array( $yoast_rebuild_raw, "WP_CLI::runcommand" ),
+	array( $yoast_rebuild_raw, "'launch'     => false" ),
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
 	array( $seo_metadata_raw, "Yoast\\\\WP\\\\SEO\\\\should_index_indexables" ),
 	array( $seo_metadata_raw, "nvx_seo_allow_controlled_yoast_indexable_rebuild" ),
@@ -77,7 +82,9 @@ $required = array(
 	array( $staging_raw, '[[ "$original_env" == \'staging\' ]]' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE production' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE "$original_env"' ),
-	array( $staging_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --skip-confirmation --allow-root" ),
+	array( $staging_raw, 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php" --allow-root' ),
+	array( $staging_raw, "run-yoast-indexable-rebuild.php" ),
+	array( $staging_raw, "YOAST_INDEXABLE_REBUILD=PASS" ),
 	array( $staging_raw, "reconcile-publication-indexables.php" ),
 	array( $staging_raw, "PUBLICATION_INDEXABLE_RECONCILIATION=PASS" ),
 	array( $staging_raw, "verify-publication-sitemap.mjs" ),
@@ -85,7 +92,8 @@ $required = array(
 	array( $production_raw, "reconcile-publication-robots.php" ),
 	array( $deploy_raw, "ROBOTS_RECONCILIATION_SCRIPT" ),
 	array( $deploy_raw, "INDEXABLES_RECONCILIATION_SCRIPT" ),
-	array( $deploy_raw, "wp yoast index --reindex --skip-confirmation --allow-root" ),
+	array( $deploy_raw, "YOAST_INDEXABLE_REBUILD_SCRIPT" ),
+	array( $deploy_raw, "run-yoast-indexable-rebuild.php" ),
 );
 foreach ( $required as $pair ) {
 	if ( false === strpos( $pair[0], $pair[1] ) ) {

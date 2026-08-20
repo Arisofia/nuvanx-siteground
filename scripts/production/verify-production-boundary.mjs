@@ -13,8 +13,6 @@ const ALLOWED_ORIGIN_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'nvx-prod-
 const baseUrl = (process.env.BASE_URL || 'https://nuvanx.com').replace(/\/$/, '');
 const expectedHost = process.env.EXPECTED_HOST || 'nuvanx.com';
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
-// EXPECTED_RUN_ID is intentionally explicit. A verification-only workflow has
-// its own GITHUB_RUN_ID, which is not the run that deployed the live release.
 const expectedRunId = (process.env.EXPECTED_RUN_ID || '').trim();
 const originSshAlias = (process.env.ORIGIN_SSH_ALIAS || 'nvx-prod').trim().toLowerCase();
 const prodRoot = process.env.PROD_ROOT || CANONICAL_PROD_ROOT;
@@ -32,6 +30,7 @@ const routes = [
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
 ];
 const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+const HUBSPOT_FORM_ID = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const META_BROWSER_FORBIDDEN = [
   ['dedupe marker', 'NVX_META_EVENT_DEDUPE_ACTIVE'],
   ['dedupe prefix', 'nvx-meta-event-dedupe-'],
@@ -80,21 +79,19 @@ function robotsTokens(value) {
 function renderedDocumentIssues(html, route) {
   const issues = [];
   const bodyMatch = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
-  if (!bodyMatch || bodyMatch[1].trim() === '') {
-    issues.push('Missing or empty <body>');
-  }
-  if (!/<main\b[^>]*>/i.test(html)) {
-    issues.push('Missing <main> landmark');
-  }
-  if (route === '/' && !html.includes('id="nvx-home-v3"')) {
-    issues.push('Missing canonical home marker nvx-home-v3');
-  }
-  if (route === '/blog/' && !html.includes('nvx-blog-index')) {
-    issues.push('Missing canonical blog archive marker nvx-blog-index');
-  }
+  if (!bodyMatch || bodyMatch[1].trim() === '') issues.push('Missing or empty <body>');
+  if (!/<main\b[^>]*>/i.test(html)) issues.push('Missing <main> landmark');
+  if (route === '/' && !html.includes('id="nvx-home-v3"')) issues.push('Missing canonical home marker nvx-home-v3');
+  if (route === '/blog/' && !html.includes('nvx-blog-index')) issues.push('Missing canonical blog archive marker nvx-blog-index');
+
   if (route === '/madrid/valoracion/') {
-    if (!/<form\b[^>]*>/i.test(html)) issues.push('Missing valoración form element');
-    if (!html.includes('nvx-valoracion-direct-form')) issues.push('Missing first-party valoración form marker');
+    if (!html.includes('id="nvx-hubspot-native-form"')) issues.push('Missing canonical HubSpot form host');
+    const frameCount = (html.match(/<div\b[^>]*class=["'][^"']*\bhs-form-frame\b[^"']*["'][^>]*>/gi) || []).length;
+    if (frameCount !== 1) issues.push(`Expected exactly one HubSpot form frame, found ${frameCount}`);
+    if (!html.includes(HUBSPOT_FORM_ID)) issues.push('Missing canonical HubSpot form ID');
+    if (html.includes('nvx-valoracion-direct-form') || /<form\b[^>]*data-nvx-direct-form/i.test(html)) {
+      issues.push('Legacy first-party valoración form still present');
+    }
   }
   return issues;
 }
@@ -130,12 +127,6 @@ function parseOriginIdentity(output) {
   };
 }
 
-/**
- * Verify the live WordPress root and origin-rendered HTML against one immutable
- * deploy stamp. Attribute order and quote style in meta tags are not part of
- * the contract; the four semantic values are.
- * @return {string} Trimmed verification output from SiteGround origin.
- */
 function verifyFromSiteGroundOrigin() {
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"
@@ -147,8 +138,6 @@ test "$(wp option get blog_public)" = '1'
 test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
 test -f 'wp-content/themes/nuvanx-medical/.nvx-deploy-stamp.json'
 
-# Read the immutable stamp file directly. A full wp-cli theme bootstrap after
-# cutover can fail or pollute stdout (plugin notices) and hide the real error.
 read_stamp() {
   php -r '
     $path = $argv[1] ?? "";
@@ -200,7 +189,15 @@ meta_tag_for() {
   tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name_re['\"]" | head -n 1 || true
 }
 
-ua='NUVANX-Production-Origin-Boundary/1.2'
+require_body() {
+  local body="$1" route="$2" marker="$3"
+  grep -Fq "$marker" "$body" || {
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string marker=$marker" >&2
+    return 1
+  }
+}
+
+ua='NUVANX-Production-Origin-Boundary/1.3'
 for route in \
   '/' \
   '/soluciones-medicas/' \
@@ -214,59 +211,29 @@ for route in \
 do
   headers="$(mktemp)"
   body="$(mktemp)"
-  # Hit the local origin, not the public edge. Public probes can trigger SiteGround
-  # anti-bot protection; origin rendering must still satisfy the full HTML contract.
+  cleanup() { rm -f "$headers" "$body"; }
   result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve "$EXPECTED_HOST:443:127.0.0.1" -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
   code="$(printf '%s' "$result" | cut -d'|' -f1)"
   effective="$(printf '%s' "$result" | cut -d'|' -f2-)"
-  if [[ "$code" != '200' ]]; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=http_code code=$code" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
+  [[ "$code" == '200' ]] || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=http_code code=$code" >&2; cleanup; exit 1; }
   case "$effective" in
     https://nuvanx.com/*|https://nuvanx.com) ;;
-    *) echo "PRODUCTION_ORIGIN_FAIL route=$route final=$effective" >&2; rm -f "$headers" "$body"; exit 1 ;;
+    *) echo "PRODUCTION_ORIGIN_FAIL route=$route final=$effective" >&2; cleanup; exit 1 ;;
   esac
-  if grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=captcha_path_in_body" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-  if grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=sg_captcha_challenge" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
+  ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=captcha_path_in_body" >&2; cleanup; exit 1; }
+  ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=sg_captcha_challenge" >&2; cleanup; exit 1; }
+  php -r '$html=@file_get_contents($argv[1]); if (!is_string($html) || !preg_match("~<body\\b[^>]*>(.*?)</body>~is", $html, $m) || trim($m[1]) === "") { exit(1); }' "$body" \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_or_empty_body" >&2; cleanup; exit 1; }
+  grep -Eiq '<main([[:space:]>])' "$body" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_main" >&2; cleanup; exit 1; }
 
-  if ! php -r '$html=@file_get_contents($argv[1]); if (!is_string($html) || !preg_match("~<body\\b[^>]*>(.*?)</body>~is", $html, $m) || trim($m[1]) === "") { exit(1); }' "$body"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_or_empty_body" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-  if ! grep -Eiq '<main([[:space:]>])' "$body"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_main" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-
-  if grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=pre_consent_meta_cookie" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
+  ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers" \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=pre_consent_meta_cookie" >&2; cleanup; exit 1; }
   for marker in 'NVX_META_EVENT_DEDUPE_ACTIVE' 'nvx-meta-event-dedupe-' '1497940655079106' 'connect.facebook.net' 'fbevents.js'; do
-    if grep -Fiq "$marker" "$body"; then
-      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_meta_owner marker=$marker" >&2
-      rm -f "$headers" "$body"
-      exit 1
-    fi
+    ! grep -Fiq "$marker" "$body" \
+      || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_meta_owner marker=$marker" >&2; cleanup; exit 1; }
   done
-  if grep -Eiq 'fbq[[:space:]]*\(' "$body"; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_fbq_owner" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
+  ! grep -Eiq 'fbq[[:space:]]*\(' "$body" \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_fbq_owner" >&2; cleanup; exit 1; }
 
   assert_meta_equals "$body" 'nvx-deploy-sha' "$stamp_sha"
   assert_meta_equals "$body" 'nvx-deploy-run-id' "$stamp_run_id"
@@ -276,61 +243,47 @@ do
   robots_meta="$(meta_tag_for "$body" 'robots')"
   xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
   combined="$robots_meta $xrobots"
-  if printf '%s' "$combined" | grep -Eiq 'noindex|nofollow'; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=noindex-or-nofollow robots=$combined" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-  if ! printf '%s' "$combined" | grep -Eiq 'index'; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_index robots=$combined" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-  if ! printf '%s' "$combined" | grep -Eiq 'follow'; then
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_follow robots=$combined" >&2
-    rm -f "$headers" "$body"
-    exit 1
-  fi
-
-  require_body() {
-    grep -Fq "$1" "$body" || {
-      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string marker=$1" >&2
-      rm -f "$headers" "$body"
-      exit 1
-    }
-  }
+  ! printf '%s' "$combined" | grep -Eiq 'noindex|nofollow' \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=noindex-or-nofollow robots=$combined" >&2; cleanup; exit 1; }
+  printf '%s' "$combined" | grep -Eiq 'index' \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_index robots=$combined" >&2; cleanup; exit 1; }
+  printf '%s' "$combined" | grep -Eiq 'follow' \
+    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_follow robots=$combined" >&2; cleanup; exit 1; }
 
   case "$route" in
     '/')
-      require_body 'id="nvx-home-v3"'
+      require_body "$body" "$route" 'id="nvx-home-v3"' || { cleanup; exit 1; }
       ;;
     '/blog/')
-      require_body 'nvx-blog-index'
+      require_body "$body" "$route" 'nvx-blog-index' || { cleanup; exit 1; }
       ;;
     '/madrid/valoracion/')
-      require_body '<form'
-      require_body 'nvx-valoracion-direct-form'
+      require_body "$body" "$route" 'id="nvx-hubspot-native-form"' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'hs-form-frame' || { cleanup; exit 1; }
+      require_body "$body" "$route" '${HUBSPOT_FORM_ID}' || { cleanup; exit 1; }
+      ! grep -Fiq 'nvx-valoracion-direct-form' "$body" \
+        || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=legacy_direct_form_marker" >&2; cleanup; exit 1; }
       ;;
     '/protocolos-signature/')
-      require_body 'nvx-brand-page nvx-brand-page--signature'
-      require_body 'Una ruta de decisión, no un paquete cerrado'
-      require_body 'Arquitecturas clínicas'
+      require_body "$body" "$route" 'nvx-brand-page nvx-brand-page--signature' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Una ruta de decisión, no un paquete cerrado' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Arquitecturas clínicas' || { cleanup; exit 1; }
       ;;
     '/remodelacion-corporal-laser-madrid/')
-      require_body 'nvx-brand-page nvx-brand-page--signature'
-      require_body 'Cómo se decide el plan corporal'
-      require_body 'Zonas de valoración'
-      require_body 'Tu primera valoración clínica'
+      require_body "$body" "$route" 'nvx-brand-page nvx-brand-page--signature' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Cómo se decide el plan corporal' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Zonas de valoración' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Tu primera valoración clínica' || { cleanup; exit 1; }
       ;;
     '/tratamiento-postparto-abdomen-contorno-corporal-madrid/')
-      require_body 'nvx-brand-page nvx-brand-page--signature'
-      require_body 'Qué se valora en postparto'
-      require_body 'Rutas relacionadas'
-      require_body 'Tu primera valoración clínica'
+      require_body "$body" "$route" 'nvx-brand-page nvx-brand-page--signature' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Qué se valora en postparto' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Rutas relacionadas' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'Tu primera valoración clínica' || { cleanup; exit 1; }
       ;;
   esac
 
-  rm -f "$headers" "$body"
+  cleanup
   echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route render_contract=pass meta_no_consent=pass"
 done
 
@@ -338,27 +291,19 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes
 `;
 
   try {
-    const output = execFileSync(
+    return execFileSync(
       '/usr/bin/ssh',
       [
         originSshAlias,
         `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
       ],
-      {
-        input: remoteScript,
-        encoding: 'utf8',
-        timeout: 180000,
-        maxBuffer: 1024 * 1024,
-      },
-    );
-    return output.trim();
+      { input: remoteScript, encoding: 'utf8', timeout: 180000, maxBuffer: 1024 * 1024 },
+    ).trim();
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     const stderr = typeof err.stderr === 'string' ? err.stderr.trim() : '';
     const stdout = typeof err.stdout === 'string' ? err.stdout.trim() : '';
-    throw new Error(
-      [err.message, stdout && `stdout: ${stdout}`, stderr && `stderr: ${stderr}`].filter(Boolean).join('\n'),
-    );
+    throw new Error([err.message, stdout && `stdout: ${stdout}`, stderr && `stderr: ${stderr}`].filter(Boolean).join('\n'));
   }
 }
 
@@ -366,14 +311,12 @@ async function fetchSameHost(url, maxRedirects = 5) {
   let current = new URL(url);
   const hops = [];
   for (let i = 0; i <= maxRedirects; i += 1) {
-    if (current.hostname !== expectedHost) {
-      throw new Error(`Refusing cross-host request: ${current.hostname} != ${expectedHost}`);
-    }
+    if (current.hostname !== expectedHost) throw new Error(`Refusing cross-host request: ${current.hostname} != ${expectedHost}`);
     const response = await fetch(current, {
       redirect: 'manual',
       signal: AbortSignal.timeout(requestTimeoutMs),
       headers: {
-        'user-agent': 'NUVANX-Production-Boundary/1.4',
+        'user-agent': 'NUVANX-Production-Boundary/1.5',
         accept: 'text/html,application/xhtml+xml',
         'cache-control': 'no-cache',
         pragma: 'no-cache',
@@ -383,15 +326,11 @@ async function fetchSameHost(url, maxRedirects = 5) {
     const location = response.headers.get('location');
     const sgCaptcha = response.headers.get('sg-captcha') || '';
     hops.push({ url: current.toString(), status, location, sgCaptcha });
-    if (status === 202 || sgCaptcha) {
-      throw new Error(`SiteGround challenge at ${current}: HTTP ${status} sg-captcha=${sgCaptcha || '(missing)'}`);
-    }
+    if (status === 202 || sgCaptcha) throw new Error(`SiteGround challenge at ${current}: HTTP ${status} sg-captcha=${sgCaptcha || '(missing)'}`);
     if (status >= 300 && status < 400) {
       if (!location) throw new Error(`Redirect ${status} without Location at ${current}`);
       const next = new URL(location, current);
-      if (next.hostname !== expectedHost) {
-        throw new Error(`Cross-host redirect detected: ${current.hostname} -> ${next.hostname}`);
-      }
+      if (next.hostname !== expectedHost) throw new Error(`Cross-host redirect detected: ${current.hostname} -> ${next.hostname}`);
       current = next;
       continue;
     }
@@ -460,22 +399,12 @@ if (report.origin.pass) {
       if (finalUrl.hostname !== expectedHost) result.issues.push(`Final hostname ${finalUrl.hostname} != ${expectedHost}`);
       result.issues.push(...renderedDocumentIssues(html, route));
       result.issues.push(...metaNoConsentIssues(html, response.headers));
-      if (tokens.has('noindex') || tokens.has('nofollow')) {
-        result.issues.push(`Production exposes noindex/nofollow: meta="${robots}" x-robots="${xRobotsTag}"`);
-      }
-      if (!tokens.has('index') || !tokens.has('follow')) {
-        result.issues.push(`Expected production robots index,follow; meta="${robots || '(missing)'}" x-robots="${xRobotsTag || '(missing)'}"`);
-      }
+      if (tokens.has('noindex') || tokens.has('nofollow')) result.issues.push(`Production exposes noindex/nofollow: meta="${robots}" x-robots="${xRobotsTag}"`);
+      if (!tokens.has('index') || !tokens.has('follow')) result.issues.push(`Expected production robots index,follow; meta="${robots || '(missing)'}" x-robots="${xRobotsTag || '(missing)'}"`);
       result.issues.push(...validateDeployIdentity(identity, { expectedSha, expectedRunId }));
-      if (identity.DEPLOY_RUN_ID !== report.origin.identity.DEPLOY_RUN_ID) {
-        result.issues.push(`Edge/origin run ID mismatch: edge=${identity.DEPLOY_RUN_ID || '(missing)'} origin=${report.origin.identity.DEPLOY_RUN_ID}`);
-      }
-      if (identity.DEPLOY_TIMESTAMP !== report.origin.identity.DEPLOY_TIMESTAMP) {
-        result.issues.push(`Edge/origin timestamp mismatch: edge=${identity.DEPLOY_TIMESTAMP || '(missing)'} origin=${report.origin.identity.DEPLOY_TIMESTAMP}`);
-      }
-      if (identity.RELEASE_ID !== report.origin.identity.RELEASE_ID) {
-        result.issues.push(`Edge/origin release ID mismatch: edge=${identity.RELEASE_ID || '(missing)'} origin=${report.origin.identity.RELEASE_ID}`);
-      }
+      if (identity.DEPLOY_RUN_ID !== report.origin.identity.DEPLOY_RUN_ID) result.issues.push(`Edge/origin run ID mismatch: edge=${identity.DEPLOY_RUN_ID || '(missing)'} origin=${report.origin.identity.DEPLOY_RUN_ID}`);
+      if (identity.DEPLOY_TIMESTAMP !== report.origin.identity.DEPLOY_TIMESTAMP) result.issues.push(`Edge/origin timestamp mismatch: edge=${identity.DEPLOY_TIMESTAMP || '(missing)'} origin=${report.origin.identity.DEPLOY_TIMESTAMP}`);
+      if (identity.RELEASE_ID !== report.origin.identity.RELEASE_ID) result.issues.push(`Edge/origin release ID mismatch: edge=${identity.RELEASE_ID || '(missing)'} origin=${report.origin.identity.RELEASE_ID}`);
 
       result.pass = result.issues.length === 0;
       if (!result.pass) report.failures.push({ route, issues: result.issues });
@@ -496,26 +425,18 @@ if (report.origin.pass) {
         failure.issues.length > 0 &&
         failure.issues.every((issue) => /SiteGround challenge .*HTTP 202 .*sg-captcha=challenge/i.test(String(issue))),
     );
-  // P0 public-delivery contract is fail-closed: an anti-bot challenge is a public
-  // availability failure, not a passing/inconclusive production certification.
   report.pass = report.origin.pass && report.external.pass;
 }
 
-await fs.writeFile(
-  path.join(outputDir, 'production-boundary.json'),
-  `${JSON.stringify(report, null, 2)}\n`,
-  'utf8',
-);
+await fs.writeFile(path.join(outputDir, 'production-boundary.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
 if (!report.pass) {
   console.error('Production boundary verification FAILED.');
-  for (const failure of report.failures) {
-    console.error(`- ${failure.route}: ${failure.issues.join('; ')}`);
-  }
+  for (const failure of report.failures) console.error(`- ${failure.route}: ${failure.issues.join('; ')}`);
   process.exit(1);
 }
 
 const verifiedRunId = report.origin.identity?.DEPLOY_RUN_ID || expectedRunId || '(unknown)';
 console.log(
-  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
+  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, canonical HubSpot landing, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
 );

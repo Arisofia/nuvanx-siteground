@@ -470,7 +470,25 @@ function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 }
 add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 20, 3 );
 
+/**
+ * Keep XML sitemaps out of SiteGround Dynamic and File-based cache.
+ *
+ * Sitemap membership is derived from the governed publication manifest and
+ * Yoast indexables during each deploy. Serving a stale XML response after
+ * that reconciliation creates a public contradiction even when page HTML is
+ * intentionally cacheable. SiteGround Optimizer exposes this filter before it
+ * emits its X-Cache-Enabled header; the route list is deliberately exact.
+ *
+ * @param mixed $urls Existing SiteGround Optimizer exclusion fragments.
+ * @return string[]
+ */
+function nvx_exclude_publication_sitemaps_from_sg_cache( $urls ): array {
+	$urls = is_array( $urls ) ? $urls : array();
+	$required = array( 'sitemap_index.xml', 'page-sitemap.xml', 'post-sitemap.xml' );
 
+	return array_values( array_unique( array_merge( $urls, $required ) ) );
+}
+add_filter( 'sgo_exclude_urls_from_cache', 'nvx_exclude_publication_sitemaps_from_sg_cache', 100 );
 
 /**
  * Rewrites absolute production URLs to the current staging host on staging2.

@@ -32,6 +32,13 @@ const routes = [
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
 ];
 const SITEGROUND_CAPTCHA_PATH = '/.well-known/sgcaptcha/';
+const META_BROWSER_FORBIDDEN = [
+  ['dedupe marker', 'NVX_META_EVENT_DEDUPE_ACTIVE'],
+  ['dedupe prefix', 'nvx-meta-event-dedupe-'],
+  ['legacy Meta Pixel ID', '1497940655079106'],
+  ['facebook loader', 'connect.facebook.net'],
+  ['facebook events library', 'fbevents.js'],
+];
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
@@ -88,6 +95,24 @@ function renderedDocumentIssues(html, route) {
   if (route === '/madrid/valoracion/') {
     if (!/<form\b[^>]*>/i.test(html)) issues.push('Missing valoración form element');
     if (!html.includes('nvx-valoracion-direct-form')) issues.push('Missing first-party valoración form marker');
+  }
+  return issues;
+}
+
+function metaNoConsentIssues(html, headers) {
+  const issues = [];
+  const setCookies = typeof headers.getSetCookie === 'function'
+    ? headers.getSetCookie()
+    : [headers.get('set-cookie')].filter(Boolean);
+  if (setCookies.some((value) => /(?:^|,\s*|;\s*)(?:_fbp|_fbc)=/i.test(value))) {
+    issues.push('Pre-consent Meta cookie _fbp/_fbc emitted');
+  }
+  if (/\bfbq\s*\(/i.test(html)) issues.push('Browser fbq() owner present');
+  if (/(?:document\.cookie|cookie\s*=)[\s\S]{0,500}(?:_fbp|_fbc)/i.test(html)) {
+    issues.push('Browser Meta cookie writer present');
+  }
+  for (const [label, marker] of META_BROWSER_FORBIDDEN) {
+    if (html.toLowerCase().includes(marker.toLowerCase())) issues.push(`${label} present`);
   }
   return issues;
 }
@@ -225,6 +250,24 @@ do
     exit 1
   fi
 
+  if grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=pre_consent_meta_cookie" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+  for marker in 'NVX_META_EVENT_DEDUPE_ACTIVE' 'nvx-meta-event-dedupe-' '1497940655079106' 'connect.facebook.net' 'fbevents.js'; do
+    if grep -Fiq "$marker" "$body"; then
+      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_meta_owner marker=$marker" >&2
+      rm -f "$headers" "$body"
+      exit 1
+    fi
+  done
+  if grep -Eiq 'fbq[[:space:]]*\(' "$body"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_fbq_owner" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+
   assert_meta_equals "$body" 'nvx-deploy-sha' "$stamp_sha"
   assert_meta_equals "$body" 'nvx-deploy-run-id' "$stamp_run_id"
   assert_meta_equals "$body" 'nvx-deploy-timestamp' "$stamp_timestamp"
@@ -288,10 +331,10 @@ do
   esac
 
   rm -f "$headers" "$body"
-  echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route render_contract=pass"
+  echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route render_contract=pass meta_no_consent=pass"
 done
 
-echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass"
+echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass meta_no_consent=pass"
 `;
 
   try {
@@ -416,6 +459,7 @@ if (report.origin.pass) {
       if (response.status !== 200) result.issues.push(`Expected HTTP 200, got ${response.status}`);
       if (finalUrl.hostname !== expectedHost) result.issues.push(`Final hostname ${finalUrl.hostname} != ${expectedHost}`);
       result.issues.push(...renderedDocumentIssues(html, route));
+      result.issues.push(...metaNoConsentIssues(html, response.headers));
       if (tokens.has('noindex') || tokens.has('nofollow')) {
         result.issues.push(`Production exposes noindex/nofollow: meta="${robots}" x-robots="${xRobotsTag}"`);
       }
@@ -473,5 +517,5 @@ if (!report.pass) {
 
 const verifiedRunId = report.origin.identity?.DEPLOY_RUN_ID || expectedRunId || '(unknown)';
 console.log(
-  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
+  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
 );

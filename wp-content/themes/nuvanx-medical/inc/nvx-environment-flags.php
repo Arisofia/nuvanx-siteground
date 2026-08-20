@@ -77,3 +77,4 @@ function nvx_environment_deploy_sha(): string {
 }
 
 require_once __DIR__ . '/nvx-document-buffer-governance.php';
+require_once __DIR__ . '/nvx-meta-browser-governance.php';

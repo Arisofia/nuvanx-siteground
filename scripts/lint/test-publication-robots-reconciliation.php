@@ -70,10 +70,12 @@ $required = array(
 	array( $staging_raw, '[[ "$original_env" == \'staging\' ]]' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE production' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE "$original_env"' ),
-	array( $staging_raw, "printf 'y\\n' | NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root" ),
+	array( $staging_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --skip-confirmation --allow-root" ),
+	array( $staging_raw, "verify-publication-sitemap.mjs" ),
+	array( $staging_raw, "STAGING_SITEMAP_MANIFEST_COVERAGE=PASS" ),
 	array( $production_raw, "reconcile-publication-robots.php" ),
 	array( $deploy_raw, "ROBOTS_RECONCILIATION_SCRIPT" ),
-	array( $deploy_raw, "wp yoast index --reindex --allow-root" ),
+	array( $deploy_raw, "wp yoast index --reindex --skip-confirmation --allow-root" ),
 );
 foreach ( $required as $pair ) {
 	if ( false === strpos( $pair[0], $pair[1] ) ) {

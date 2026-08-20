@@ -510,7 +510,7 @@ jobs:
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
-          printf 'y\n' | NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --skip-confirmation --allow-root
           REMOTE
 
           ssh nvx-staging2 \
@@ -547,6 +547,27 @@ jobs:
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
           echo "STAGING_DEPLOYED_SHA=$CANDIDATE_SHA"
           REMOTE
+
+      - name: Verify publication sitemap coverage
+        if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
+        shell: bash
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_HOST: staging2.nuvanx.com
+          SITEMAP_FETCH_RETRIES: '3'
+          SITEMAP_FETCH_RETRY_DELAY_MS: '1000'
+        run: |
+          set -euo pipefail
+          pass=0
+          for attempt in {1..12}; do
+            if node scripts/staging2/verify-publication-sitemap.mjs; then
+              pass=1
+              break
+            fi
+            sleep 10
+          done
+          test "$pass" = 1
+          echo 'STAGING_SITEMAP_MANIFEST_COVERAGE=PASS'
 
       - name: Verify public Staging2 boundary
         if: ${{ steps.ssh_preflight.outputs.connected == 'true' }}
@@ -1061,7 +1082,7 @@ jobs:
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
-          printf 'y\n' | NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --skip-confirmation --allow-root
           REMOTE
 
           ssh nvx-staging2-pr \

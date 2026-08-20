@@ -520,7 +520,7 @@ echo "== Run shared production content migration and divergence audit =="
   grep -Fq 'Status: MIGRATION_OK' "$MIGRATION_LOG"
   MIGRATION_WRITE_MARKER="$MIGRATION_WRITE_MARKER" wp eval-file "$ROBOTS_RECONCILIATION_SCRIPT" --allow-root 2>&1 | tee "$ROBOTS_LOG"
   grep -Fq 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$ROBOTS_LOG"
-  wp yoast index --reindex --allow-root
+  wp yoast index --reindex --skip-confirmation --allow-root
   wp eval-file "$AUDIT_SCRIPT" --allow-root 2>&1 | tee "$AUDIT_LOG"
   grep -Fq 'Status: AUDIT_CLEAN' "$AUDIT_LOG"
 )

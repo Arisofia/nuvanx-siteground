@@ -80,6 +80,14 @@ if (fs.existsSync(provisionerPath)) {
     '--check must fail closed on a legacy group that Forms v3 would refuse to write');
   assert.match(provisioner, /HUBSPOT_FORM_GROUP_CONTRACT=PASS/,
     'Post-apply verification must prove the canonical form is write-valid');
+  assert.match(provisioner, /verify_required_hidden_form_fields\(\)/,
+    'Post-apply verification must enforce exactly one hidden optional field per attribution property');
+  assert.match(provisioner, /HUBSPOT_FORM_HIDDEN_FIELD_CONTRACT=PASS/,
+    'Successful reconciliation must prove hidden attribution fields are unique and semantically typed');
+  assert.match(provisioner, /count=\$count hidden_count=\$hidden_count required_count=\$required_count/,
+    'Schema verification must report duplicate, visibility and required-state drift precisely');
+  assert.match(provisioner, /expected_form_field_type\(\)/,
+    'Schema verification must distinguish the native QA checkbox from string metadata fields');
   assert.match(provisioner, /NUVANX_CONFIRM:-.*yes/,
     'HubSpot mutation must continue requiring explicit NUVANX_CONFIRM=yes');
   assert.match(provisioner, /HUBSPOT_MANAGED_PROPERTY_CONTRACT=FAIL missing=/,

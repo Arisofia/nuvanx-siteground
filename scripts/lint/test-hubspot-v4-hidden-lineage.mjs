@@ -54,7 +54,7 @@ globalThis.window.HubSpotFormsV4 = {
   getFormFromEvent: () => form,
 };
 
-assert.equal(await api.syncForm(form), true, 'V4 hidden fields must synchronize successfully after typed fallback');
+assert.equal(await api.syncForm(form), true, 'V4 hidden fields must synchronize with the documented string[] type');
 
 assert.deepEqual(values.get('0-1/nvx_lead_id'), [LEAD_ID]);
 assert.equal(values.get('0-1/nvx_is_test_lead'), true);
@@ -63,12 +63,11 @@ assert.deepEqual(values.get('0-1/nvx_utm_source'), ['google']);
 assert.deepEqual(values.get('0-1/nvx_google_click_id'), ['GCLID-HIDDEN-V4']);
 
 const leadWrites = calls.filter((call) => call.name === '0-1/nvx_lead_id');
-assert.equal(leadWrites.length, 2, 'Hidden lead id must attempt scalar then documented string[] fallback');
-assert.equal(leadWrites[0].value, LEAD_ID);
-assert.deepEqual(leadWrites[1].value, [LEAD_ID]);
+assert.equal(leadWrites.length, 1, 'Hidden lead id must be written once with HubSpot’s documented string[] type');
+assert.deepEqual(leadWrites[0].value, [LEAD_ID]);
 
 const qaWrites = calls.filter((call) => call.name === '0-1/nvx_is_test_lead');
 assert.equal(qaWrites.length, 1, 'Single checkbox must remain native boolean and must not use hidden fallback');
 assert.equal(qaWrites[0].value, true);
 
-console.log('HUBSPOT_V4_HIDDEN_LINEAGE=PASS scalar_rejected=1 hidden_array_fallback=1 readback_verified=1 qa_boolean=1');
+console.log('HUBSPOT_V4_HIDDEN_LINEAGE=PASS hidden_array_direct=1 readback_verified=1 qa_boolean=1');

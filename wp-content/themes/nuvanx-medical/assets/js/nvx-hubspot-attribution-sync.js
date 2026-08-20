@@ -75,10 +75,13 @@
 	}
 
 	function hubSpotFieldValue(value) {
-		if (value === undefined || value === null) return '';
 		// HubSpot V4 Single checkbox requires a native boolean, not 'true'/'false'.
 		if (typeof value === 'boolean') return value;
-		return String(value);
+		// Every non-boolean field synchronized by this module is an attribution
+		// property configured as Hidden in the canonical form. HubSpot V4 requires
+		// the documented string[] shape for Hidden field writes.
+		if (value === undefined || value === null || value === '') return [];
+		return [String(value)];
 	}
 
 	function normalizedComparable(value) {
@@ -113,7 +116,8 @@
 	}
 
 	function hiddenFieldFallback(value) {
-		if (typeof value === 'boolean') return [value ? 'true' : 'false'];
+		if (typeof value === 'boolean') return value;
+		if (Array.isArray(value)) return value;
 		var scalar = value === undefined || value === null ? '' : String(value);
 		return scalar === '' ? [] : [scalar];
 	}

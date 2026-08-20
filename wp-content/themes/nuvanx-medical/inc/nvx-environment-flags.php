@@ -75,3 +75,5 @@ function nvx_environment_deploy_sha(): string {
 	$resolved = '';
 	return $resolved;
 }
+
+require_once __DIR__ . '/nvx-document-buffer-governance.php';

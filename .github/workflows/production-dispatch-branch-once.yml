@@ -1,5 +1,5 @@
-name: Production Dispatch Branch Once
-run-name: Production dispatch once · ${{ github.sha }}
+name: Production Payload Patch Once
+run-name: Production payload patch once · ${{ github.sha }}
 
 on:
   push:
@@ -9,108 +9,82 @@ on:
       - '.github/workflows/production-dispatch-branch-once.yml'
 
 permissions:
-  contents: read
-  actions: write
+  contents: write
 
 concurrency:
-  group: nuvanx-production-dispatch-branch-once
+  group: nuvanx-production-payload-patch-once
   cancel-in-progress: false
 
 jobs:
-  dispatch:
-    name: Wait for accepted master and dispatch production
+  patch:
+    name: Patch production migration payload
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-    env:
-      TARGET_SHA: 5c2eb95e8d5dc857678f5e9b838faf1a43276fc2
-      TARGET_TREE: 0a3493ccc4ff1c7660ca4ff5932bf9ae21df81eb
     steps:
-      - name: Verify immutable master candidate
+      - name: Check out isolated branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ops/production-dispatch-once-20260820
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Replace incomplete migration upload contract
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
-          test "$head" = "$TARGET_SHA"
-          tree="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}" --jq '.commit.tree.sha')"
-          test "$tree" = "$TARGET_TREE"
-          echo "DISPATCH_GUARD=PASS sha=$TARGET_SHA tree=$TARGET_TREE"
+          python3 - <<'PY'
+          from pathlib import Path
 
-      - name: Wait for exact-SHA Staging acceptance
-        id: accepted
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          accepted_run=''
-          for attempt in $(seq 1 180); do
-            head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
-            test "$head" = "$TARGET_SHA"
-
-            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --branch master --event push --limit 30 --json databaseId,headSha,status,conclusion)"
-            accepted_run="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha and .status == "completed" and .conclusion == "success")] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-            if [[ "$accepted_run" =~ ^[0-9]+$ ]]; then
-              break
-            fi
-
-            failed_run="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha and .status == "completed" and .conclusion != "success")] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-            if [[ "$failed_run" =~ ^[0-9]+$ ]]; then
-              echo "DISPATCH_STAGING=FAIL sha=$TARGET_SHA run_id=$failed_run" >&2
-              exit 1
-            fi
-
-            echo "DISPATCH_WAIT staging sha=$TARGET_SHA attempt=$attempt"
-            sleep 20
+          path = Path('.github/workflows/production.yml')
+          text = path.read_text()
+          old = '''          rsync -az "$CANDIDATE_ROOT/tools/migrations/audit-content-divergence.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/content-hygiene-shared.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/governed-blog-markdown-hygiene.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/content-normalizer.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          rsync -az "$CANDIDATE_ROOT/tools/migrations/reconcile-publication-robots.php" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
+'''
+          new = '''          # Keep the release payload in lockstep with deploy-to-prod.sh. The deploy
+          # script owns the exact migration set; synchronizing the whole accepted
+          # directory prevents future required migrations from being omitted here.
+          rsync -az --delete "$CANDIDATE_ROOT/tools/migrations/" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"
+          required_migrations=(
+            audit-content-divergence.php
+            content-hygiene-shared.php
+            governed-blog-markdown-hygiene.php
+            content-normalizer.php
+            reconcile-publication-robots.php
+            reconcile-publication-indexables.php
+            run-yoast-indexable-rebuild.php
+            audit-publication-sitemap-selection.php
+            invalidate-publication-sitemap-cache.php
+          )
+          for migration in "${required_migrations[@]}"; do
+            test -s "$CANDIDATE_ROOT/tools/migrations/$migration"
           done
+          ssh nvx-prod "test -s '$REMOTE_RELEASE/tools/migrations/audit-content-divergence.php' && test -s '$REMOTE_RELEASE/tools/migrations/content-hygiene-shared.php' && test -s '$REMOTE_RELEASE/tools/migrations/governed-blog-markdown-hygiene.php' && test -s '$REMOTE_RELEASE/tools/migrations/content-normalizer.php' && test -s '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' && test -s '$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php' && test -s '$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php' && test -s '$REMOTE_RELEASE/tools/migrations/audit-publication-sitemap-selection.php' && test -s '$REMOTE_RELEASE/tools/migrations/invalidate-publication-sitemap-cache.php'"
+          echo "PRODUCTION_MIGRATION_PAYLOAD=PASS required=9 exact_sha=$CANDIDATE_SHA"
+          echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
+'''
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one migration upload block, found {count}')
+          path.write_text(text.replace(old, new, 1))
+          PY
 
-          [[ "$accepted_run" =~ ^[0-9]+$ ]] || { echo 'DISPATCH_STAGING=FAIL timeout' >&2; exit 1; }
-          final_head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
-          test "$final_head" = "$TARGET_SHA"
-          echo "run_id=$accepted_run" >> "$GITHUB_OUTPUT"
-          echo "DISPATCH_STAGING=PASS sha=$TARGET_SHA run_id=$accepted_run"
+          grep -Fq 'rsync -az --delete "$CANDIDATE_ROOT/tools/migrations/" "nvx-prod:$REMOTE_RELEASE/tools/migrations/"' .github/workflows/production.yml
+          grep -Fq 'PRODUCTION_MIGRATION_PAYLOAD=PASS required=9' .github/workflows/production.yml
+          ! grep -Fq 'rsync -az "$CANDIDATE_ROOT/tools/migrations/reconcile-publication-robots.php"' .github/workflows/production.yml
+          git diff --check
+          echo 'PRODUCTION_PAYLOAD_PATCH=PASS required_migrations=9'
 
-      - name: Dispatch protected production workflow with all audits
-        id: production
+      - name: Commit isolated payload fix
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
-          test "$head" = "$TARGET_SHA"
-
-          before_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
-          gh workflow run production.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref master \
-            -f deploy=true \
-            -f candidate_sha="$TARGET_SHA" \
-            -f release_mode=release \
-            -f run_post_audits=true \
-            -f run_performance=true \
-            -f run_hubspot_e2e=true \
-            -f run_final_close_audit=true \
-            -f run_mu_plugin_forensics=true
-
-          child_id=''
-          for attempt in $(seq 1 30); do
-            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha)"
-            child_id="$(jq -r --argjson before "$before_id" --arg sha "$TARGET_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-            [[ "$child_id" =~ ^[0-9]+$ ]] && break
-            sleep 2
-          done
-          [[ "$child_id" =~ ^[0-9]+$ ]] || { echo 'DISPATCH_PRODUCTION=FAIL child_not_found' >&2; exit 1; }
-          echo "run_id=$child_id" >> "$GITHUB_OUTPUT"
-          echo "DISPATCH_PRODUCTION=PASS sha=$TARGET_SHA run_id=$child_id"
-
-      - name: Wait for production completion
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PRODUCTION_RUN_ID: ${{ steps.production.outputs.run_id }}
-        run: |
-          set -euo pipefail
-          gh run watch "$PRODUCTION_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
-          echo "PRODUCTION_RELEASE=PASS sha=$TARGET_SHA production_run_id=$PRODUCTION_RUN_ID staging_run=${{ steps.accepted.outputs.run_id }}"
+          git config user.name 'Arisofia'
+          git config user.email '246412546+Arisofia@users.noreply.github.com'
+          git add .github/workflows/production.yml
+          git diff --cached --quiet && { echo 'No payload fix to commit' >&2; exit 1; }
+          git commit -m 'fix(release): package complete production migrations'
+          git push origin HEAD:ops/production-dispatch-once-20260820
+          echo "PRODUCTION_PAYLOAD_BRANCH_PATCH=PASS sha=$(git rev-parse HEAD)"

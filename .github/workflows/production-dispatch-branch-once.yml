@@ -1,0 +1,116 @@
+name: Production Dispatch Branch Once
+run-name: Production dispatch once · ${{ github.sha }}
+
+on:
+  push:
+    branches:
+      - ops/production-dispatch-once-20260820
+    paths:
+      - '.github/workflows/production-dispatch-branch-once.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: nuvanx-production-dispatch-branch-once
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: Wait for accepted master and dispatch production
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TARGET_SHA: 5c2eb95e8d5dc857678f5e9b838faf1a43276fc2
+      TARGET_TREE: 0a3493ccc4ff1c7660ca4ff5932bf9ae21df81eb
+    steps:
+      - name: Verify immutable master candidate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          test "$head" = "$TARGET_SHA"
+          tree="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}" --jq '.commit.tree.sha')"
+          test "$tree" = "$TARGET_TREE"
+          echo "DISPATCH_GUARD=PASS sha=$TARGET_SHA tree=$TARGET_TREE"
+
+      - name: Wait for exact-SHA Staging acceptance
+        id: accepted
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          accepted_run=''
+          for attempt in $(seq 1 180); do
+            head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+            test "$head" = "$TARGET_SHA"
+
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --branch master --event push --limit 30 --json databaseId,headSha,status,conclusion)"
+            accepted_run="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha and .status == "completed" and .conclusion == "success")] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            if [[ "$accepted_run" =~ ^[0-9]+$ ]]; then
+              break
+            fi
+
+            failed_run="$(jq -r --arg sha "$TARGET_SHA" '[.[] | select(.headSha == $sha and .status == "completed" and .conclusion != "success")] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            if [[ "$failed_run" =~ ^[0-9]+$ ]]; then
+              echo "DISPATCH_STAGING=FAIL sha=$TARGET_SHA run_id=$failed_run" >&2
+              exit 1
+            fi
+
+            echo "DISPATCH_WAIT staging sha=$TARGET_SHA attempt=$attempt"
+            sleep 20
+          done
+
+          [[ "$accepted_run" =~ ^[0-9]+$ ]] || { echo 'DISPATCH_STAGING=FAIL timeout' >&2; exit 1; }
+          final_head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          test "$final_head" = "$TARGET_SHA"
+          echo "run_id=$accepted_run" >> "$GITHUB_OUTPUT"
+          echo "DISPATCH_STAGING=PASS sha=$TARGET_SHA run_id=$accepted_run"
+
+      - name: Dispatch protected production workflow with all audits
+        id: production
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          test "$head" = "$TARGET_SHA"
+
+          before_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run production.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref master \
+            -f deploy=true \
+            -f candidate_sha="$TARGET_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=true \
+            -f run_hubspot_e2e=true \
+            -f run_final_close_audit=true \
+            -f run_mu_plugin_forensics=true
+
+          child_id=''
+          for attempt in $(seq 1 30); do
+            runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha)"
+            child_id="$(jq -r --argjson before "$before_id" --arg sha "$TARGET_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            [[ "$child_id" =~ ^[0-9]+$ ]] && break
+            sleep 2
+          done
+          [[ "$child_id" =~ ^[0-9]+$ ]] || { echo 'DISPATCH_PRODUCTION=FAIL child_not_found' >&2; exit 1; }
+          echo "run_id=$child_id" >> "$GITHUB_OUTPUT"
+          echo "DISPATCH_PRODUCTION=PASS sha=$TARGET_SHA run_id=$child_id"
+
+      - name: Wait for production completion
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRODUCTION_RUN_ID: ${{ steps.production.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          gh run watch "$PRODUCTION_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          echo "PRODUCTION_RELEASE=PASS sha=$TARGET_SHA production_run_id=$PRODUCTION_RUN_ID staging_run=${{ steps.accepted.outputs.run_id }}"

@@ -340,12 +340,10 @@ if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
 		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
 		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
 
-		$direct_form = function_exists( 'nvx_valoracion_direct_form_markup' )
-			? nvx_valoracion_direct_form_markup()
-			: '';
-
+		// The published HubSpot V4 iframe is the single interactive form on this
+		// route. Rendering the first-party fallback beside it asks visitors for the
+		// same details twice and produces two consent paths.
 		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
-			. $direct_form
 			. '<p class="nvx-copy nvx-hubspot-privacy">' . esc_html__( 'Al facilitar tus datos aceptas la', 'nuvanx-medical' ) . ' <a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>.</p>';
 	}
 }

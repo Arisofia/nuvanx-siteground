@@ -192,10 +192,10 @@ assert.match(
   'Valoration bootstrap must clear the recovery guard when the scheduled attempt begins',
 );
 assert.match(managedPage, /isRenderable/, 'Valoration bootstrap must detect an actually rendered HubSpot form');
-assert.match(
+assert.doesNotMatch(
   mountGovernance,
   /nvx_valoracion_direct_form_markup/,
-  'Mount governance must render the first-party valoración form beside the HubSpot frame',
+  'Canonical HubSpot mount must not render the first-party form beside the iframe',
 );
 assert.doesNotMatch(
   managedPage,

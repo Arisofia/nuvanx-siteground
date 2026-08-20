@@ -14,6 +14,8 @@ IDENTITY_CONTRACT="$ROOT/scripts/production/test-deploy-identity-contract.mjs"
 DEPLOY="$ROOT/tools/deploy/deploy-to-prod.sh"
 WORKFLOW="$ROOT/.github/workflows/production.yml"
 BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
+VALORACION_FORM_CONTRACT="$ROOT/scripts/production/valoracion-form-contract.mjs"
+VALORACION_FORM_CONTRACT_TEST="$ROOT/scripts/production/test-valoracion-form-contract.mjs"
 ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
 DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
 LCP_CSS_CONTRACT="$ROOT/scripts/lint/test-lcp-css-delivery.mjs"
@@ -22,7 +24,7 @@ SEO_OWNERSHIP_CONTRACT="$ROOT/scripts/lint/test-seo-catalog-ownership.php"
 SEO_TOOLING_DIR="$ROOT/scripts/seo"
 THEME_DIR="$ROOT/wp-content/themes/nuvanx-medical"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$META_BROWSER_OWNER_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$VALORACION_FORM_CONTRACT" "$VALORACION_FORM_CONTRACT_TEST" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$META_BROWSER_OWNER_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -56,8 +58,13 @@ pass_assert 'workflow-identity-wiring'
 # Boundary must use the shared semantic parser/validator and explicit run ID.
 grep -Fq "from './deploy-identity-contract.mjs'" "$BOUNDARY" || fail 'boundary_shared_contract_missing'
 grep -Fq "process.env.EXPECTED_RUN_ID || ''" "$BOUNDARY" || fail 'boundary_expected_run_id_not_explicit'
+grep -Fq 'EXPECTED_HOST=${expectedHost}' "$BOUNDARY" || fail 'boundary_origin_expected_host_not_wired'
+grep -Fq "from './valoracion-form-contract.mjs'" "$BOUNDARY" || fail 'boundary_valoracion_structural_contract_not_wired'
 ! grep -Fq 'process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID' "$BOUNDARY" || fail 'boundary_current_audit_run_fallback_forbidden'
 pass_assert 'boundary-identity-semantics'
+
+node "$VALORACION_FORM_CONTRACT_TEST" || fail 'valoracion_form_structural_boundary_behavior'
+pass_assert 'valoracion-form-structural-boundary'
 
 # Shell-local variables inside the origin String.raw script must not use
 # JavaScript template interpolation syntax. Dynamic values used in ERE matches

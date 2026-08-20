@@ -9,6 +9,7 @@ $migration     = $root . '/tools/migrations/reconcile-publication-robots.php';
 $indexables_migration = $root . '/tools/migrations/reconcile-publication-indexables.php';
 $yoast_rebuild = $root . '/tools/migrations/run-yoast-indexable-rebuild.php';
 $sitemap_selection_audit = $root . '/tools/migrations/audit-publication-sitemap-selection.php';
+$sitemap_cache_invalidation = $root . '/tools/migrations/invalidate-publication-sitemap-cache.php';
 $seo_metadata  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
 $staging       = $root . '/.github/workflows/staging.yml';
 $production    = $root . '/.github/workflows/production.yml';
@@ -46,7 +47,7 @@ foreach ( $manifest['routes'] as $route => $config ) {
 	}
 }
 
-foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $seo_metadata, $staging, $production, $deploy ) as $path ) {
+foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $sitemap_cache_invalidation, $seo_metadata, $staging, $production, $deploy ) as $path ) {
 	if ( ! is_file( $path ) || false === file_get_contents( $path ) ) {
 		fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=unreadable_dependency\n" );
 		exit( 1 );
@@ -57,6 +58,7 @@ $migration_raw    = file_get_contents( $migration );
 $indexables_migration_raw = file_get_contents( $indexables_migration );
 $yoast_rebuild_raw = file_get_contents( $yoast_rebuild );
 $sitemap_selection_audit_raw = file_get_contents( $sitemap_selection_audit );
+$sitemap_cache_invalidation_raw = file_get_contents( $sitemap_cache_invalidation );
 $seo_metadata_raw = file_get_contents( $seo_metadata );
 $staging_raw      = file_get_contents( $staging );
 $production_raw = file_get_contents( $production );
@@ -80,6 +82,8 @@ $required = array(
 	array( $sitemap_selection_audit_raw, "PUBLICATION_SITEMAP_SELECTION=PASS" ),
 	array( $sitemap_selection_audit_raw, "wpseo_exclude_from_sitemap_by_post_ids" ),
 	array( $sitemap_selection_audit_raw, "wpseo_sitemap_entry" ),
+	array( $sitemap_cache_invalidation_raw, "PUBLICATION_SITEMAP_CACHE_INVALIDATION=PASS" ),
+	array( $sitemap_cache_invalidation_raw, "WPSEO_Sitemaps_Cache_Validator::invalidate_storage" ),
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
 	array( $seo_metadata_raw, "Yoast\\\\WP\\\\SEO\\\\should_index_indexables" ),
 	array( $seo_metadata_raw, "nvx_seo_allow_controlled_yoast_indexable_rebuild" ),
@@ -95,6 +99,8 @@ $required = array(
 	array( $staging_raw, "YOAST_INDEXABLE_REBUILD=PASS" ),
 	array( $staging_raw, "reconcile-publication-indexables.php" ),
 	array( $staging_raw, "PUBLICATION_INDEXABLE_RECONCILIATION=PASS" ),
+	array( $staging_raw, "invalidate-publication-sitemap-cache.php" ),
+	array( $staging_raw, "PUBLICATION_SITEMAP_CACHE_INVALIDATION=PASS" ),
 	array( $staging_raw, "audit-publication-sitemap-selection.php" ),
 	array( $staging_raw, "PUBLICATION_SITEMAP_SELECTION=PASS" ),
 	array( $staging_raw, "verify-publication-sitemap.mjs" ),
@@ -106,6 +112,8 @@ $required = array(
 	array( $deploy_raw, "run-yoast-indexable-rebuild.php" ),
 	array( $deploy_raw, "SITEMAP_SELECTION_AUDIT_SCRIPT" ),
 	array( $deploy_raw, "audit-publication-sitemap-selection.php" ),
+	array( $deploy_raw, "SITEMAP_CACHE_INVALIDATION_SCRIPT" ),
+	array( $deploy_raw, "invalidate-publication-sitemap-cache.php" ),
 );
 foreach ( $required as $pair ) {
 	if ( false === strpos( $pair[0], $pair[1] ) ) {

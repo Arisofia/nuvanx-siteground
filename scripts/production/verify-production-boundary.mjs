@@ -25,6 +25,7 @@ const routes = [
   '/soluciones-medicas/',
   '/equipo-medico/',
   '/blog/',
+  '/madrid/valoracion/',
   '/endolift-primeras-72-horas-que-esperar/',
   '/protocolos-signature/',
   '/remodelacion-corporal-laser-madrid/',
@@ -67,6 +68,28 @@ function robotsTokens(value) {
       .map((token) => token.trim())
       .filter(Boolean),
   );
+}
+
+function renderedDocumentIssues(html, route) {
+  const issues = [];
+  const bodyMatch = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
+  if (!bodyMatch || bodyMatch[1].trim() === '') {
+    issues.push('Missing or empty <body>');
+  }
+  if (!/<main\b[^>]*>/i.test(html)) {
+    issues.push('Missing <main> landmark');
+  }
+  if (route === '/' && !html.includes('id="nvx-home-v3"')) {
+    issues.push('Missing canonical home marker nvx-home-v3');
+  }
+  if (route === '/blog/' && !html.includes('nvx-blog-index')) {
+    issues.push('Missing canonical blog archive marker nvx-blog-index');
+  }
+  if (route === '/madrid/valoracion/') {
+    if (!/<form\b[^>]*>/i.test(html)) issues.push('Missing valoración form element');
+    if (!html.includes('nvx-valoracion-direct-form')) issues.push('Missing first-party valoración form marker');
+  }
+  return issues;
 }
 
 function parseOriginIdentity(output) {
@@ -152,12 +175,13 @@ meta_tag_for() {
   tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name_re['\"]" | head -n 1 || true
 }
 
-ua='NUVANX-Production-Origin-Boundary/1.1'
+ua='NUVANX-Production-Origin-Boundary/1.2'
 for route in \
   '/' \
   '/soluciones-medicas/' \
   '/equipo-medico/' \
   '/blog/' \
+  '/madrid/valoracion/' \
   '/endolift-primeras-72-horas-que-esperar/' \
   '/protocolos-signature/' \
   '/remodelacion-corporal-laser-madrid/' \
@@ -165,8 +189,8 @@ for route in \
 do
   headers="$(mktemp)"
   body="$(mktemp)"
-  # Hit the local origin, not the public edge. Five public curls trip SiteGround
-  # captcha and the sixth route fails with a silent non-200.
+  # Hit the local origin, not the public edge. Public probes can trigger SiteGround
+  # anti-bot protection; origin rendering must still satisfy the full HTML contract.
   result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve "$EXPECTED_HOST:443:127.0.0.1" -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
   code="$(printf '%s' "$result" | cut -d'|' -f1)"
   effective="$(printf '%s' "$result" | cut -d'|' -f2-)"
@@ -186,6 +210,17 @@ do
   fi
   if grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers"; then
     echo "PRODUCTION_ORIGIN_FAIL route=$route reason=sg_captcha_challenge" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+
+  if ! php -r '$html=@file_get_contents($argv[1]); if (!is_string($html) || !preg_match("~<body\\b[^>]*>(.*?)</body>~is", $html, $m) || trim($m[1]) === "") { exit(1); }' "$body"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_or_empty_body" >&2
+    rm -f "$headers" "$body"
+    exit 1
+  fi
+  if ! grep -Eiq '<main([[:space:]>])' "$body"; then
+    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_main" >&2
     rm -f "$headers" "$body"
     exit 1
   fi
@@ -216,13 +251,23 @@ do
 
   require_body() {
     grep -Fq "$1" "$body" || {
-      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string" >&2
+      echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string marker=$1" >&2
       rm -f "$headers" "$body"
       exit 1
     }
   }
 
   case "$route" in
+    '/')
+      require_body 'id="nvx-home-v3"'
+      ;;
+    '/blog/')
+      require_body 'nvx-blog-index'
+      ;;
+    '/madrid/valoracion/')
+      require_body '<form'
+      require_body 'nvx-valoracion-direct-form'
+      ;;
     '/protocolos-signature/')
       require_body 'nvx-brand-page nvx-brand-page--signature'
       require_body 'Una ruta de decisión, no un paquete cerrado'
@@ -243,10 +288,10 @@ do
   esac
 
   rm -f "$headers" "$body"
-  echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route"
+  echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route render_contract=pass"
 done
 
-echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=8 identity_fields=4"
+echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass"
 `;
 
   try {
@@ -285,7 +330,7 @@ async function fetchSameHost(url, maxRedirects = 5) {
       redirect: 'manual',
       signal: AbortSignal.timeout(requestTimeoutMs),
       headers: {
-        'user-agent': 'NUVANX-Production-Boundary/1.3',
+        'user-agent': 'NUVANX-Production-Boundary/1.4',
         accept: 'text/html,application/xhtml+xml',
         'cache-control': 'no-cache',
         pragma: 'no-cache',
@@ -370,6 +415,7 @@ if (report.origin.pass) {
 
       if (response.status !== 200) result.issues.push(`Expected HTTP 200, got ${response.status}`);
       if (finalUrl.hostname !== expectedHost) result.issues.push(`Final hostname ${finalUrl.hostname} != ${expectedHost}`);
+      result.issues.push(...renderedDocumentIssues(html, route));
       if (tokens.has('noindex') || tokens.has('nofollow')) {
         result.issues.push(`Production exposes noindex/nofollow: meta="${robots}" x-robots="${xRobotsTag}"`);
       }
@@ -406,7 +452,9 @@ if (report.origin.pass) {
         failure.issues.length > 0 &&
         failure.issues.every((issue) => /SiteGround challenge .*HTTP 202 .*sg-captcha=challenge/i.test(String(issue))),
     );
-  report.pass = report.origin.pass && (report.external.pass || report.external.inconclusiveAntiBot);
+  // P0 public-delivery contract is fail-closed: an anti-bot challenge is a public
+  // availability failure, not a passing/inconclusive production certification.
+  report.pass = report.origin.pass && report.external.pass;
 }
 
 await fs.writeFile(
@@ -424,12 +472,6 @@ if (!report.pass) {
 }
 
 const verifiedRunId = report.origin.identity?.DEPLOY_RUN_ID || expectedRunId || '(unknown)';
-if (report.external.inconclusiveAntiBot) {
-  console.log(
-    `Production boundary PASS via SiteGround origin: ${routes.length} routes are 200, index/follow, expose the exact 4-field identity for SHA ${expectedSha} / run ${verifiedRunId}, and Signature hubs match the canonical shell. External GitHub probe=INCONCLUSIVE_ANTIBOT.`,
-  );
-} else {
-  console.log(
-    `Production boundary PASS: origin and external probes agree across ${routes.length} routes; index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
-  );
-}
+console.log(
+  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
+);

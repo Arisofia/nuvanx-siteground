@@ -49,6 +49,11 @@ on:
         required: true
         default: false
         type: boolean
+      reconcile_hubspot_attribution:
+        description: Manually reconcile only the canonical HubSpot attribution schema before staging deployment. Requires HUBSPOT_ACCESS_TOKEN.
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -159,11 +164,14 @@ jobs:
           data='wp-content/themes/nuvanx-medical/inc/data/routes.json'
           if [[ -f "$schema" && -f "$data" ]]; then node scripts/lint/validate-routes-schema.mjs "$schema" "$data"; fi
           bash -n tools/deploy/deploy-to-staging2.sh
+          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
+          bash -n scripts/ci/verify-hubspot-conversations-read.sh
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
           bash -n scripts/ci/test-mutation-fifo-contract.sh
           bash -n tools/remote-compare.sh
           bash scripts/ci/test-mutation-fifo-contract.sh
+          node scripts/lint/test-attribution-contract-v2.mjs
           find scripts/staging2 -maxdepth 1 -name '*.mjs' -type f -print0 | xargs -0 -r -n1 node --check
           echo 'STATIC_GATES=PASS'
 
@@ -281,6 +289,40 @@ jobs:
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           echo "CANDIDATE_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
           echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+
+      - name: Verify HubSpot Conversations read access
+        if: ${{ steps.prior_completion.outputs.complete != 'true' && matrix.runner_attempt == 1 }}
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN repository secret}"
+          mkdir -p scripts/staging2/artifacts
+          bash scripts/ci/verify-hubspot-conversations-read.sh 2>&1 | tee scripts/staging2/artifacts/hubspot-conversations-read.log
+          grep -Fq 'HUBSPOT_CONVERSATIONS_READ=PASS' scripts/staging2/artifacts/hubspot-conversations-read.log
+
+      - name: Reconcile and verify canonical HubSpot attribution contract
+        if: ${{ steps.prior_completion.outputs.complete != 'true' && matrix.runner_attempt == 1 }}
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+          RECONCILE_HUBSPOT_ATTRIBUTION: ${{ github.event_name == 'workflow_dispatch' && inputs.reconcile_hubspot_attribution || false }}
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN repository secret}"
+          mkdir -p scripts/staging2/artifacts
+          mode='--check'
+          if [[ "$RECONCILE_HUBSPOT_ATTRIBUTION" == 'true' ]]; then
+            mode='--apply'
+            export NUVANX_CONFIRM=yes
+            echo 'HUBSPOT_ATTRIBUTION_RECONCILIATION=AUTHORIZED mode=apply canonical_form_only=1'
+          else
+            echo 'HUBSPOT_ATTRIBUTION_RECONCILIATION=VERIFY_ONLY mode=check'
+          fi
+          bash scripts/ci/provision-hubspot-attribution-contract.sh "$mode" 2>&1 | tee scripts/staging2/artifacts/hubspot-attribution-contract.log
+          grep -Fq "HUBSPOT_ATTRIBUTION_CONTRACT=PASS mode=${mode#--}" scripts/staging2/artifacts/hubspot-attribution-contract.log
+          grep -Fq 'HUBSPOT_FORM_HIDDEN_FIELD_CONTRACT=PASS' scripts/staging2/artifacts/hubspot-attribution-contract.log
 
       - name: Set up Node.js
         if: ${{ steps.prior_completion.outputs.complete != 'true' }}

@@ -81,22 +81,39 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
   });
 
-  const nativeFields = await page.evaluate(async (formId) => {
+  const readNativeFields = () => page.evaluate(async (formId) => {
     const forms = window.HubSpotFormsV4?.getForms?.() || [];
     const form = forms.find((candidate) => String(candidate?.getFormId?.() || '').toLowerCase() === formId);
     if (!form) return null;
-    await window.NUVANXHubSpotAttributionSync?.syncForm?.(form);
+    const syncChanged = await window.NUVANXHubSpotAttributionSync?.syncForm?.(form);
     const values = {};
     for (const field of await form.getFormFieldValues() || []) {
       const actual = String(field?.name || '');
       const canonical = actual.replace(/^\d+-\d+\//, '');
       if (canonical) values[canonical] = field?.value;
     }
-    return values;
+    return { values, syncChanged: Boolean(syncChanged) };
   }, consentState.formId);
+
+  let nativeFields = null;
+  let nativeSyncChanged = false;
+  const lineageDeadline = Date.now() + 7_000;
+  while (Date.now() < lineageDeadline) {
+    const nativeSnapshot = await readNativeFields();
+    nativeFields = nativeSnapshot?.values || null;
+    nativeSyncChanged = Boolean(nativeSnapshot?.syncChanged);
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(nativeFields?.nvx_lead_id || ''))) {
+      break;
+    }
+    await page.waitForTimeout(250);
+  }
 
   assert.ok(nativeFields, 'Canonical HubSpot V4 form must be discoverable after marketing consent');
   const browserLeadId = String(nativeFields.nvx_lead_id || '').toLowerCase();
+  const fieldNames = Object.keys(nativeFields).sort();
+  console.log(
+    `ATTRIBUTION_LINEAGE_DIAGNOSTIC sync_changed=${nativeSyncChanged ? 'true' : 'false'} lead_field_present=${fieldNames.includes('nvx_lead_id') ? 'true' : 'false'} lead_value_type=${Array.isArray(nativeFields.nvx_lead_id) ? 'array' : typeof nativeFields.nvx_lead_id} managed_fields_present=${['nvx_is_test_lead', 'nvx_test_run_id', 'nvx_utm_source', 'nvx_google_click_id'].filter((name) => fieldNames.includes(name)).join(',') || 'none'}`
+  );
   assert.match(browserLeadId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     'Live HubSpot V4 form must contain the browser session UUID v4');
   assert.ok(nativeFields.nvx_is_test_lead === true || String(nativeFields.nvx_is_test_lead).toLowerCase() === 'true',

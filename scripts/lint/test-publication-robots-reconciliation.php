@@ -68,6 +68,8 @@ $required = array(
 	array( $indexables_migration_raw, "build_for_id_and_type" ),
 	array( $indexables_migration_raw, "NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD" ),
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
+	array( $seo_metadata_raw, "Yoast\\\\WP\\\\SEO\\\\should_index_indexables" ),
+	array( $seo_metadata_raw, "nvx_seo_allow_controlled_yoast_indexable_rebuild" ),
 	array( $staging_raw, "reconcile-publication-robots.php" ),
 	array( $staging_raw, 'REMOTE_RELEASE=\'$REMOTE_RELEASE\' bash -se' ),
 	array( $staging_raw, '"$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"' ),

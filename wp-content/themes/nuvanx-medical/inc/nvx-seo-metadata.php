@@ -403,6 +403,23 @@ function nvx_seo_is_nonproduction_environment(): bool {
 }
 
 /**
+ * Allows Yoast to persist derived indexables only for the explicitly authorized
+ * WP-CLI reconciliation. Staging HTTP responses remain guarded by the normal
+ * noindex/nofollow policy and this filter is never enabled for web requests.
+ *
+ * @param bool $should_index Whether Yoast would create indexables.
+ * @return bool
+ */
+function nvx_seo_allow_controlled_yoast_indexable_rebuild( $should_index ): bool {
+	if ( defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' ) ) {
+		return true;
+	}
+
+	return (bool) $should_index;
+}
+add_filter( 'Yoast\\WP\\SEO\\should_index_indexables', 'nvx_seo_allow_controlled_yoast_indexable_rebuild', PHP_INT_MAX );
+
+/**
  * Current page URL without query parameters.
  */
 function nvx_seo_current_canonical_url(): string {

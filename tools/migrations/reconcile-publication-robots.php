@@ -2,9 +2,10 @@
 /**
  * Reconcile Yoast robots meta with the versioned publication manifest.
  *
- * This migration owns only the two legacy Yoast robots post-meta keys. It
- * never changes content, post status, permalinks, canonicals or any property
- * outside the declared manifest route.
+ * This migration owns the legacy Yoast robots post-meta keys and removes only
+ * stale manual canonicals from manifest routes declared indexable. It never
+ * changes content, post status, permalinks, or any property outside the
+ * declared manifest route.
  *
  * Run through WP-CLI after the theme has been deployed.
  */
@@ -55,7 +56,9 @@ $changed    = 0;
 $checked    = 0;
 $indexable  = 0;
 $noindex    = 0;
-$meta_keys  = array( '_yoast_wpseo_meta-robots-noindex', '_yoast_wpseo_meta-robots-nofollow' );
+$meta_keys      = array( '_yoast_wpseo_meta-robots-noindex', '_yoast_wpseo_meta-robots-nofollow' );
+$canonical_key  = '_yoast_wpseo_canonical';
+$canonical_cleared = 0;
 
 foreach ( $decoded['routes'] as $route => $config ) {
 	$route = $normalize_path( (string) $route );
@@ -91,13 +94,18 @@ foreach ( $decoded['routes'] as $route => $config ) {
 		++$noindex;
 	}
 
-	$current_noindex  = (string) get_post_meta( $post_id, $meta_keys[0], true );
-	$current_nofollow = (string) get_post_meta( $post_id, $meta_keys[1], true );
-	$needs_change     = $expected_index
+	$current_noindex    = (string) get_post_meta( $post_id, $meta_keys[0], true );
+	$current_nofollow   = (string) get_post_meta( $post_id, $meta_keys[1], true );
+	$current_canonical  = trim( (string) get_post_meta( $post_id, $canonical_key, true ) );
+	$expected_permalink = get_permalink( $post_id );
+	$needs_robots_change = $expected_index
 		? ( '' !== $current_noindex || '' !== $current_nofollow )
 		: ( '1' !== $current_noindex || '' !== $current_nofollow );
+	$needs_canonical_change = $expected_index
+		&& '' !== $current_canonical
+		&& untrailingslashit( $current_canonical ) !== untrailingslashit( $expected_permalink );
 
-	if ( ! $needs_change ) {
+	if ( ! $needs_robots_change && ! $needs_canonical_change ) {
 		continue;
 	}
 
@@ -106,21 +114,36 @@ foreach ( $decoded['routes'] as $route => $config ) {
 	}
 
 	if ( ! $dry_run ) {
-		if ( $expected_index ) {
-			delete_post_meta( $post_id, $meta_keys[0] );
-		} else {
-			update_post_meta( $post_id, $meta_keys[0], '1' );
+		if ( $needs_robots_change ) {
+			if ( $expected_index ) {
+				delete_post_meta( $post_id, $meta_keys[0] );
+			} else {
+				update_post_meta( $post_id, $meta_keys[0], '1' );
+			}
+			delete_post_meta( $post_id, $meta_keys[1] );
 		}
-		delete_post_meta( $post_id, $meta_keys[1] );
+		if ( $needs_canonical_change ) {
+			delete_post_meta( $post_id, $canonical_key );
+		}
 	}
 
-	++$changed;
-	echo sprintf(
-		"PUBLICATION_ROBOTS_ROUTE=%s policy=%s changed=%s\n",
-		$route,
-		$expected_index ? 'index,follow' : 'noindex,follow',
-		$dry_run ? 'would_write' : 'yes'
-	);
+	if ( $needs_robots_change ) {
+		++$changed;
+		echo sprintf(
+			"PUBLICATION_ROBOTS_ROUTE=%s policy=%s changed=%s\n",
+			$route,
+			$expected_index ? 'index,follow' : 'noindex,follow',
+			$dry_run ? 'would_write' : 'yes'
+		);
+	}
+	if ( $needs_canonical_change ) {
+		++$canonical_cleared;
+		echo sprintf(
+			"PUBLICATION_CANONICAL_ROUTE=%s policy=derived changed=%s\n",
+			$route,
+			$dry_run ? 'would_write' : 'yes'
+		);
+	}
 }
 
 if ( class_exists( 'WPSEO_Utils' ) && method_exists( 'WPSEO_Utils', 'clear_cache' ) ) {
@@ -129,10 +152,11 @@ if ( class_exists( 'WPSEO_Utils' ) && method_exists( 'WPSEO_Utils', 'clear_cache
 wp_cache_flush();
 
 printf(
-	"PUBLICATION_ROBOTS_RECONCILIATION=PASS routes=%d indexable=%d noindex=%d changed=%d mode=%s\n",
+	"PUBLICATION_ROBOTS_RECONCILIATION=PASS routes=%d indexable=%d noindex=%d robots_changed=%d canonicals_cleared=%d mode=%s\n",
 	$checked,
 	$indexable,
 	$noindex,
 	$changed,
+	$canonical_cleared,
 	$dry_run ? 'dry_run' : 'live'
 );

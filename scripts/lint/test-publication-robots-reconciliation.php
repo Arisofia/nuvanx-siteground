@@ -65,6 +65,9 @@ $deploy_raw     = file_get_contents( $deploy );
 $required = array(
 	array( $migration_raw, "_yoast_wpseo_meta-robots-noindex" ),
 	array( $migration_raw, "_yoast_wpseo_meta-robots-nofollow" ),
+	array( $migration_raw, "_yoast_wpseo_canonical" ),
+	array( $migration_raw, "PUBLICATION_CANONICAL_ROUTE" ),
+	array( $migration_raw, '&& \'\' !== $current_canonical' ),
 	array( $migration_raw, "delete_post_meta" ),
 	array( $migration_raw, "update_post_meta" ),
 	array( $migration_raw, "PUBLICATION_ROBOTS_RECONCILIATION=PASS" ),

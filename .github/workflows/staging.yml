@@ -497,9 +497,21 @@ jobs:
             "cd '$STAGING_ROOT' && \
              wp eval-file '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' \
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
-          ssh nvx-staging2 \
-            "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
-             cd '$STAGING_ROOT' && NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root"
+          ssh nvx-staging2 "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          original_env="$(wp config get WP_ENVIRONMENT_TYPE)"
+          [[ "$original_env" == 'staging' ]]
+          restore_environment() {
+            wp config set WP_ENVIRONMENT_TYPE "$original_env"
+            php -l wp-config.php >/dev/null
+          }
+          trap restore_environment EXIT
+          grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'
+          wp config set WP_ENVIRONMENT_TYPE production
+          php -l wp-config.php >/dev/null
+          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          REMOTE
 
           ssh nvx-staging2 \
             "cd '$STAGING_ROOT' && \
@@ -1036,9 +1048,21 @@ jobs:
             "cd '$STAGING_ROOT' && \
              wp eval-file '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' \
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
-          ssh nvx-staging2-pr \
-            "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
-             cd '$STAGING_ROOT' && NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root"
+          ssh nvx-staging2-pr "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          original_env="$(wp config get WP_ENVIRONMENT_TYPE)"
+          [[ "$original_env" == 'staging' ]]
+          restore_environment() {
+            wp config set WP_ENVIRONMENT_TYPE "$original_env"
+            php -l wp-config.php >/dev/null
+          }
+          trap restore_environment EXIT
+          grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'
+          wp config set WP_ENVIRONMENT_TYPE production
+          php -l wp-config.php >/dev/null
+          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          REMOTE
 
           ssh nvx-staging2-pr \
             "cd '$STAGING_ROOT' && \

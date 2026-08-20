@@ -32,8 +32,8 @@ if ( ! is_array( $manifest ) || 'nuvanx-publication-manifest' !== (string) ( $ma
 	exit( 1 );
 }
 
-$builder_class    = '\\Yoast\\WP\\SEO\\Builders\\Indexable_Builder';
-$repository_class = '\\Yoast\\WP\\SEO\\Repositories\\Indexable_Repository';
+$builder_class    = 'Yoast\\WP\\SEO\\Builders\\Indexable_Builder';
+$repository_class = 'Yoast\\WP\\SEO\\Repositories\\Indexable_Repository';
 if ( ! class_exists( $builder_class ) || ! class_exists( $repository_class ) || ! function_exists( 'YoastSEO' ) ) {
 	fwrite( STDERR, "PUBLICATION_INDEXABLE_RECONCILIATION=FAIL reason=yoast_indexable_api_unavailable\n" );
 	exit( 1 );

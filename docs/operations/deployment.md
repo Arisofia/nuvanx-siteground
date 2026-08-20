@@ -91,6 +91,14 @@ This GITHUB_TOKEN recursion invariant prevents workflow self-mutation attacks wh
 
 **Example:** The staging2 workflow file (`.github/workflows/staging.yml`) is one of the two trusted workflows that owns the complete Staging2 lifecycle. Any attempt to create a third workflow file (e.g., `staging2-helper.yml`) would be detected and rejected by the repository hygiene check.
 
+## Reconciliación del contrato de HubSpot
+
+La reconciliación del formulario canónico de valoración es una operación manual, limitada y auditable. Se ejecuta exclusivamente desde `staging.yml` mediante el input `reconcile_hubspot_attribution=true`; no se activa en los pushes ordinarios. El runner ejecuta `scripts/ci/provision-hubspot-attribution-contract.sh --apply` sólo bajo ese input, con `NUVANX_CONFIRM=yes` dentro del entorno efímero y con el secreto de repositorio `HUBSPOT_ACCESS_TOKEN`.
+
+El reconciliador puede crear únicamente las propiedades administradas por el contrato y añadir al formulario canónico los campos faltantes como ocultos. Antes de autorizar una candidata, verifica que cada campo de atribución sea único, oculto, opcional y mantenga su tipo semántico; el control QA `nvx_is_test_lead` debe conservarse como `single_checkbox`, mientras que el resto se mantiene como `single_line_text`.
+
+Tras una reconciliación manual debe completarse una nueva aceptación de Staging2 para el SHA exacto. La evidencia debe demostrar un nuevo submit QA con el mismo `nvx_lead_id` en formulario first-party, HubSpot y `public.web_lead_captures`, donde `is_test_lead = true`, `reconciliation_status = 'qa_suppressed'` y `applied_lead_id IS NULL`. No puede existir proyección a Deals, ni conversión hacia Google Data Manager, ni otra salida comercial de QA. Una reconciliación satisfactoria por sí misma nunca autoriza una promoción a producción.
+
 ## Staging2 secrets
 
 Required:
@@ -100,6 +108,10 @@ Required:
 - `STAGING2_SSH_USER`
 - `STAGING2_SSH_PRIVATE_KEY`
 - `STAGING2_SSH_KNOWN_HOSTS`
+
+Required only for the manual HubSpot reconciliation gate:
+
+- `HUBSPOT_ACCESS_TOKEN`
 
 ## Production secrets
 

@@ -206,6 +206,35 @@ form_max_group_fields() {
   jq -r '[.fieldGroups[]? | ((.fields // []) | length)] | max // 0' "$file"
 }
 
+expected_form_field_type() {
+  local property="$1"
+  if [[ "$property" == 'nvx_is_test_lead' ]]; then
+    printf 'single_checkbox\n'
+  else
+    printf 'single_line_text\n'
+  fi
+}
+
+# Every attribution field must occur exactly once in the canonical published form.
+# This prevents a stale duplicate with divergent semantics from being silently masked
+# by the client-side V4 API. Required form fields remain hidden and optional so the
+# user-facing baseline layout cannot change during schema reconciliation.
+verify_required_hidden_form_fields() {
+  local file="$1" property expected_type count hidden_count required_count types
+  for property in "${required_form_fields[@]}"; do
+    expected_type="$(expected_form_field_type "$property")"
+    count="$(jq -r --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name)] | length' "$file")"
+    hidden_count="$(jq -r --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name and (.hidden // false) == true)] | length' "$file")"
+    required_count="$(jq -r --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name and (.required // false) == true)] | length' "$file")"
+    types="$(jq -r --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name) | (.fieldType // "missing")] | unique | join(",")' "$file")"
+    if [[ "$count" != '1' || "$hidden_count" != '1' || "$required_count" != '0' || "$types" != "$expected_type" ]]; then
+      echo "HUBSPOT_FORM_HIDDEN_FIELD_CONTRACT=FAIL property=$property count=$count hidden_count=$hidden_count required_count=$required_count field_types=${types:-missing} expected_field_type=$expected_type" >&2
+      exit 1
+    fi
+  done
+  echo "HUBSPOT_FORM_HIDDEN_FIELD_CONTRACT=PASS fields=${#required_form_fields[@]} unique=1 hidden=1 optional=1"
+}
+
 # HubSpot can still return legacy forms whose historical default_group contains
 # more fields than the current Forms v3 write contract accepts. Preserve every
 # field object verbatim, but split only oversized legacy groups into one-field
@@ -385,12 +414,7 @@ for original_field in "${existing_form_fields[@]}"; do
   }
 done
 
-for property in "${required_form_fields[@]}"; do
-  jq -e --arg name "$property" '[.fieldGroups[]?.fields[]? | select(.name == $name and (.hidden // false) == true)] | length >= 1' "$verify" >/dev/null || {
-    echo "HUBSPOT_FORM_VERIFY=FAIL missing_hidden_field=$property" >&2
-    exit 1
-  }
-done
+verify_required_hidden_form_fields "$verify"
 
 for property in "${managed_properties[@]}"; do
   check_property "$property" "${property_type[$property]}" "${property_field_type[$property]}" || {

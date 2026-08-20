@@ -310,7 +310,6 @@ jobs:
           remote_tests=${remote_tests% && }
           ssh nvx-prod "$remote_tests"
           echo "PRODUCTION_MIGRATION_PAYLOAD=PASS required=${#required_migrations[@]} exact_sha=$CANDIDATE_SHA"
->>>>>>> Stashed changes
           echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
 
       - name: Execute guarded atomic production cutover

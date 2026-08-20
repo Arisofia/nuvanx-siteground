@@ -28,6 +28,14 @@ for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY"
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
+# Workflow files must never contain unresolved merge/stash conflict markers.
+# A single marker makes GitHub register the file without its declared name or
+# workflow_dispatch trigger, which can silently disable the production control plane.
+if grep -RInE '^[[:space:]]*(<<<<<<<|=======|>>>>>>>)' "$ROOT/.github/workflows" --include='*.yml' --include='*.yaml'; then
+  fail 'workflow_conflict_marker_present'
+fi
+pass_assert 'workflow-no-conflict-markers'
+
 # Bridal retirement must remain an AND condition. This assertion is textual
 # because the source depends on WordPress runtime state, but it tolerates
 # formatting changes and produces an explicit diagnostic.

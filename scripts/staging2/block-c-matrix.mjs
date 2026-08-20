@@ -285,6 +285,18 @@ async function activateLazyImages(page) {
     }
   }).catch(() => {});
   await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+  // A completed full-page scroll only starts the browser's native lazy loads.
+  // Wait for visible lazy candidates to resolve naturally before evaluating
+  // their geometry; no src/srcset attribute is mutated by this acceptance path.
+  await page.waitForFunction(() => Array.from(document.images)
+    .filter((img) => {
+      const style = getComputedStyle(img);
+      const rect = img.getBoundingClientRect();
+      const visible = style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0.01 && rect.width > 1 && rect.height > 1;
+      const lazyCandidate = Boolean(img.dataset.src || img.dataset.lazySrc || img.dataset.original || img.dataset.srcset);
+      return visible && lazyCandidate && img.naturalWidth === 0 && !img.currentSrc;
+    })
+    .length === 0, { timeout: 6000 }).catch(() => {});
   let finalScrollY = Number.POSITIVE_INFINITY;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     finalScrollY = await page.evaluate(async () => {

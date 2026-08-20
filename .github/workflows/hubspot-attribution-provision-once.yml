@@ -1,0 +1,40 @@
+name: HubSpot Attribution Provision Once
+run-name: HubSpot Attribution Provision Once · ${{ github.event.pull_request.head.sha }}
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  provision:
+    if: ${{ github.head_ref == 'ops/apply-hubspot-attribution-contract-20260820' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+      NUVANX_CONFIRM: 'yes'
+    steps:
+      - name: Check out exact same-repo candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Guard secret and provision canonical HubSpot attribution contract
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
+          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
+          set +e
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
+          before_rc=$?
+          set -e
+          echo "HUBSPOT_ATTRIBUTION_PRECHECK_RC=$before_rc"
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --apply
+          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
+          echo 'HUBSPOT_ATTRIBUTION_PROVISION_ONCE=PASS'

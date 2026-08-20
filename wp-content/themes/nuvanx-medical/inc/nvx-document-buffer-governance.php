@@ -54,4 +54,4 @@ function nvx_retire_legacy_document_buffer(): void {
 	}
 }
 
-nvx_retire_legacy_document_buffer();
+add_action( 'wp_loaded', 'nvx_retire_legacy_document_buffer', -999999 );

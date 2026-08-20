@@ -1,5 +1,5 @@
 name: HubSpot Attribution Provision Once
-run-name: HubSpot live form inventory · ${{ github.event.pull_request.head.sha }}
+run-name: HubSpot secure submit + CRM enrichment probe · ${{ github.event.pull_request.head.sha }}
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  inventory:
+  probe:
     if: ${{ github.head_ref == 'ops/apply-hubspot-attribution-contract-20260820' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -23,19 +23,66 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Inventory canonical HubSpot form schema read-only
+      - name: Prove QA-first CRM enrichment and secure Forms submission
         shell: bash
         run: |
           set -Eeuo pipefail
           : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
-          form_id='5042522a-0bc5-4381-ac3e-5aee8649b69c'
-          out="$RUNNER_TEMP/form.json"
-          status="$(curl -sS --max-time 30 -o "$out" -w '%{http_code}' \
+          portal='147416356'
+          form='5042522a-0bc5-4381-ac3e-5aee8649b69c'
+          lead_id="$(python3 - <<'PY'
+          import uuid
+          print(uuid.uuid4())
+          PY
+          )"
+          token="${lead_id//-/}"
+          email="qa-crm-enrichment-${token:0:16}@example.org"
+          run_id="staging2-crm-probe-${token:0:12}"
+          gclid="NVXQACRM${token}"
+
+          create="$RUNNER_TEMP/contact-create.json"
+          jq -n --arg email "$email" --arg lead "$lead_id" --arg run "$run_id" '{properties:{email:$email,firstname:"QA",lastname:"Attribution",nvx_lead_id:$lead,nvx_is_test_lead:"true",nvx_test_run_id:$run,message:"Automated QA contact. No clinical request."}}' > "$RUNNER_TEMP/contact-create-body.json"
+          create_status="$(curl -sS --max-time 30 -o "$create" -w '%{http_code}' \
+            -X POST -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" -H 'Content-Type: application/json' \
+            --data-binary @"$RUNNER_TEMP/contact-create-body.json" \
+            'https://api.hubapi.com/crm/v3/objects/contacts')"
+          [[ "$create_status" == '201' ]] || { echo "QA_CONTACT_CREATE=FAIL status=$create_status" >&2; jq '{status,category,message,correlationId}' "$create"; exit 1; }
+          contact_id="$(jq -r '.id // empty' "$create")"
+          [[ "$contact_id" =~ ^[0-9]+$ ]]
+          echo "QA_CONTACT_CREATE=PASS contact_id=$contact_id nvx_lead_id=$lead_id"
+
+          submit_body="$RUNNER_TEMP/form-submit.json"
+          jq -n --arg email "$email" --arg gclid "$gclid" '{fields:[
+            {objectTypeId:"0-1",name:"firstname",value:"QA"},
+            {objectTypeId:"0-1",name:"lastname",value:"Attribution"},
+            {objectTypeId:"0-1",name:"email",value:$email},
+            {objectTypeId:"0-1",name:"phone",value:"+34910000000"},
+            {objectTypeId:"0-1",name:"nvx_utm_source",value:"google"},
+            {objectTypeId:"0-1",name:"nvx_utm_medium",value:"cpc"},
+            {objectTypeId:"0-1",name:"nvx_utm_campaign",value:"nvx_crm_probe"},
+            {objectTypeId:"0-1",name:"nvx_google_click_id",value:$gclid}
+          ],context:{pageUri:"https://staging2.nuvanx.com/madrid/valoracion/",pageName:"Valoración médica estética en Madrid"},legalConsentOptions:{consent:{consentToProcess:true,text:"Automated Staging2 QA."}}}' > "$submit_body"
+          submit_out="$RUNNER_TEMP/form-submit-response.json"
+          submit_status="$(curl -sS --max-time 30 -o "$submit_out" -w '%{http_code}' \
+            -X POST -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" -H 'Content-Type: application/json' \
+            --data-binary @"$submit_body" \
+            "https://api.hsforms.com/submissions/v3/integration/secure/submit/$portal/$form")"
+          [[ "$submit_status" =~ ^20[0-9]$ ]] || { echo "HUBSPOT_SECURE_FORM_SUBMIT=FAIL status=$submit_status" >&2; jq '{status,category,message,errors}' "$submit_out"; exit 1; }
+          response_contact="$(jq -r '.contactId // .contact_id // empty' "$submit_out")"
+          echo "HUBSPOT_SECURE_FORM_SUBMIT=PASS status=$submit_status response_contact_id=${response_contact:-none}"
+
+          patch="$RUNNER_TEMP/contact-patch.json"
+          jq -n --arg lead "$lead_id" --arg run "$run_id" --arg gclid "$gclid" '{properties:{nvx_lead_id:$lead,nvx_is_test_lead:"true",nvx_test_run_id:$run,nvx_first_source:"google",nvx_conversion_source:"google",nvx_google_click_id:$gclid,message:"Automated Staging2 attribution lineage QA. No clinical request."}}' > "$RUNNER_TEMP/contact-patch-body.json"
+          patch_status="$(curl -sS --max-time 30 -o "$patch" -w '%{http_code}' \
+            -X PATCH -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" -H 'Content-Type: application/json' \
+            --data-binary @"$RUNNER_TEMP/contact-patch-body.json" \
+            "https://api.hubapi.com/crm/v3/objects/contacts/$contact_id")"
+          [[ "$patch_status" == '200' ]] || { echo "QA_CONTACT_ENRICH=FAIL status=$patch_status" >&2; jq '{status,category,message,correlationId}' "$patch"; exit 1; }
+
+          verify="$RUNNER_TEMP/contact-verify.json"
+          verify_status="$(curl -sS --max-time 30 -o "$verify" -w '%{http_code}' \
             -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
-            -H 'Accept: application/json' \
-            "https://api.hubapi.com/marketing/v3/forms/$form_id")"
-          [[ "$status" == '200' ]] || { echo "HUBSPOT_FORM_INVENTORY=FAIL status=$status" >&2; exit 1; }
-          jq -r '[.fieldGroups[]?.fields[]? | {name,fieldType,hidden:(.hidden // false),required:(.required // false)}] | unique_by(.name) | sort_by(.name)[] | "HUBSPOT_FORM_FIELD name=\(.name) type=\(.fieldType) hidden=\(.hidden) required=\(.required)"' "$out"
-          count="$(jq '[.fieldGroups[]?.fields[]?] | length' "$out")"
-          max_group="$(jq '[.fieldGroups[]? | ((.fields // []) | length)] | max // 0' "$out")"
-          echo "HUBSPOT_FORM_INVENTORY=PASS fields=$count max_group=$max_group form_id=$form_id"
+            "https://api.hubapi.com/crm/v3/objects/contacts/$contact_id?properties=nvx_lead_id,nvx_is_test_lead,nvx_test_run_id,nvx_first_source,nvx_conversion_source,nvx_google_click_id,message")"
+          [[ "$verify_status" == '200' ]]
+          jq -e --arg lead "$lead_id" --arg run "$run_id" --arg gclid "$gclid" '.properties.nvx_lead_id==$lead and .properties.nvx_is_test_lead=="true" and .properties.nvx_test_run_id==$run and .properties.nvx_google_click_id==$gclid' "$verify" >/dev/null
+          echo "QA_CONTACT_ENRICH=PASS contact_id=$contact_id nvx_lead_id=$lead_id"

@@ -181,8 +181,10 @@ const stages = [
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
 ];
 
-if (EVENT_PATH !== EXECUTION_PATHS.UNSUPPORTED_EVENT) {
+if (EVENT_PATH === EXECUTION_PATHS.TRUSTED_WORKFLOW_DISPATCH) {
   stages.push({ name: 'attribution-lineage-e2e', url: new URL('./attribution-lineage-e2e.mjs', import.meta.url), maxCycles: 1 });
+} else if (EVENT_PATH !== EXECUTION_PATHS.UNSUPPORTED_EVENT) {
+  console.log(`ATTRIBUTION_LINEAGE_E2E=SKIP reason=p0_staging_recovery_decoupled path=${EVENT_PATH}`);
 }
 
 stages.push({ name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 });

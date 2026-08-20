@@ -65,6 +65,13 @@ foreach ( $manifest['routes'] as $route => $config ) {
 		continue;
 	}
 
+	// Yoast places the static front page and posts page through
+	// get_first_links(), outside the generic post selector audited below.
+	if ( in_array( $post_id, array_filter( array( $front_page, $posts_page ) ), true ) ) {
+		++$eligible;
+		continue;
+	}
+
 	$permalink        = get_permalink( $post );
 	$robots_noindex   = (string) WPSEO_Meta::get_value( 'meta-robots-noindex', $post_id );
 	$canonical        = (string) WPSEO_Meta::get_value( 'canonical', $post_id );

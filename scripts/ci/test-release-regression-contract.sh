@@ -56,6 +56,7 @@ pass_assert 'workflow-identity-wiring'
 # Boundary must use the shared semantic parser/validator and explicit run ID.
 grep -Fq "from './deploy-identity-contract.mjs'" "$BOUNDARY" || fail 'boundary_shared_contract_missing'
 grep -Fq "process.env.EXPECTED_RUN_ID || ''" "$BOUNDARY" || fail 'boundary_expected_run_id_not_explicit'
+grep -Fq 'EXPECTED_HOST=${expectedHost}' "$BOUNDARY" || fail 'boundary_origin_expected_host_not_wired'
 ! grep -Fq 'process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID' "$BOUNDARY" || fail 'boundary_current_audit_run_fallback_forbidden'
 pass_assert 'boundary-identity-semantics'
 

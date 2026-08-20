@@ -77,12 +77,14 @@ MIGRATION_SCRIPT=""
 AUDIT_SCRIPT=""
 BLOG_HYGIENE_SCRIPT=""
 CONTENT_NORMALIZER_SCRIPT=""
+ROBOTS_RECONCILIATION_SCRIPT=""
 for candidate_dir in "$SCRIPT_DIR/tools/migrations" "$SCRIPT_DIR/../migrations"; do
-  if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" ]]; then
+  if [[ -f "$candidate_dir/content-hygiene-shared.php" && -f "$candidate_dir/audit-content-divergence.php" && -f "$candidate_dir/reconcile-publication-robots.php" ]]; then
     MIGRATION_SCRIPT="$candidate_dir/content-hygiene-shared.php"
     AUDIT_SCRIPT="$candidate_dir/audit-content-divergence.php"
     BLOG_HYGIENE_SCRIPT="$candidate_dir/governed-blog-markdown-hygiene.php"
     CONTENT_NORMALIZER_SCRIPT="$candidate_dir/content-normalizer.php"
+    ROBOTS_RECONCILIATION_SCRIPT="$candidate_dir/reconcile-publication-robots.php"
     RULES_LIB="$candidate_dir/../../lib/nvx-content-hygiene-rules.php"
     break
   fi
@@ -91,6 +93,7 @@ done
 [[ -f "$AUDIT_SCRIPT" ]] || { echo "ERROR: content divergence audit missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$BLOG_HYGIENE_SCRIPT" ]] || { echo "ERROR: governed blog markdown hygiene missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$CONTENT_NORMALIZER_SCRIPT" ]] || { echo "ERROR: content normalizer missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
+[[ -f "$ROBOTS_RECONCILIATION_SCRIPT" ]] || { echo "ERROR: publication robots reconciliation missing under $SCRIPT_DIR/tools/migrations or $SCRIPT_DIR/../migrations" >&2; exit 1; }
 [[ -f "$RULES_LIB" ]] || { echo "ERROR: shared content hygiene rules library missing at $RULES_LIB" >&2; exit 1; }
 
 PROD_URL='https://nuvanx.com'
@@ -117,6 +120,7 @@ BACKUP_DIR="$BACKUP_ROOT/pre-prod-${RUN_TOKEN}-${SHA:0:12}"
 # database dump is not HTTP-addressable by construction.
 MIGRATION_LOG="$BACKUP_DIR/migration-production.log"
 AUDIT_LOG="$BACKUP_DIR/migration-audit-production.log"
+ROBOTS_LOG="$BACKUP_DIR/migration-robots-production.log"
 MIGRATION_WRITE_MARKER="$BACKUP_DIR/.migration-write-marker"
 SWAPPED=0
 PREVIOUS_MOVED=0
@@ -514,11 +518,15 @@ echo "== Run shared production content migration and divergence audit =="
   cd "$PROD_ROOT"
   MIGRATION_WRITE_MARKER="$MIGRATION_WRITE_MARKER" wp eval-file "$MIGRATION_SCRIPT" --allow-root 2>&1 | tee "$MIGRATION_LOG"
   grep -Fq 'Status: MIGRATION_OK' "$MIGRATION_LOG"
+  MIGRATION_WRITE_MARKER="$MIGRATION_WRITE_MARKER" wp eval-file "$ROBOTS_RECONCILIATION_SCRIPT" --allow-root 2>&1 | tee "$ROBOTS_LOG"
+  grep -Fq 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$ROBOTS_LOG"
+  wp yoast index --reindex --allow-root
   wp eval-file "$AUDIT_SCRIPT" --allow-root 2>&1 | tee "$AUDIT_LOG"
   grep -Fq 'Status: AUDIT_CLEAN' "$AUDIT_LOG"
 )
-echo 'PRODUCTION_CONTENT_MIGRATION=PASS audit=clean'
+echo 'PRODUCTION_CONTENT_MIGRATION=PASS audit=clean robots=reconciled'
 echo 'SHARED_MIGRATION=PASS audit=clean'
+echo 'PRODUCTION_ROBOTS_RECONCILIATION=PASS'
 
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$SHA" ]]
 

@@ -143,6 +143,7 @@ jobs:
           find wp-content/themes/nuvanx-medical -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l >/dev/null
           find tools/migrations lib -name '*.php' -type f -print0 | xargs -0 -r -n1 php -l >/dev/null
           php scripts/lint/test-seo-governed-metadata.php
+          php scripts/lint/test-publication-robots-reconciliation.php
           php scripts/lint/test-governed-blog-request-contract.php
           php scripts/lint/test-priority-landing-contract.php
           php scripts/lint/test-valoracion-direct-form-contract.php
@@ -491,6 +492,14 @@ jobs:
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-staging-only-${{ github.sha }}.log'"
           ssh nvx-staging2 \
             "grep -q 'Status: MIGRATION_OK' '$REMOTE_RELEASE/migration-staging-only-${{ github.sha }}.log'" || exit 1
+
+          ssh nvx-staging2 \
+            "cd '$STAGING_ROOT' && \
+             wp eval-file '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' \
+             --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
+          ssh nvx-staging2 \
+            "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
+             cd '$STAGING_ROOT' && wp yoast index --reindex --allow-root"
 
           ssh nvx-staging2 \
             "cd '$STAGING_ROOT' && \
@@ -1022,6 +1031,14 @@ jobs:
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-staging-only-${{ github.sha }}.log'"
           ssh nvx-staging2-pr \
             "grep -q 'Status: MIGRATION_OK' '$REMOTE_RELEASE/migration-staging-only-${{ github.sha }}.log'" || exit 1
+
+          ssh nvx-staging2-pr \
+            "cd '$STAGING_ROOT' && \
+             wp eval-file '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' \
+             --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
+          ssh nvx-staging2-pr \
+            "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
+             cd '$STAGING_ROOT' && wp yoast index --reindex --allow-root"
 
           ssh nvx-staging2-pr \
             "cd '$STAGING_ROOT' && \

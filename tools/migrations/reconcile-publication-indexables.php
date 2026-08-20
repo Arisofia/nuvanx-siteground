@@ -40,7 +40,7 @@ if ( ! class_exists( $builder_class ) || ! class_exists( $repository_class ) || 
 }
 
 $container = YoastSEO();
-if ( ! is_object( $container ) || ! method_exists( $container, 'classes' ) || ! is_object( $container->classes ) || ! method_exists( $container->classes, 'get' ) ) {
+if ( ! is_object( $container ) || ! isset( $container->classes ) || ! is_object( $container->classes ) || ! method_exists( $container->classes, 'get' ) ) {
 	fwrite( STDERR, "PUBLICATION_INDEXABLE_RECONCILIATION=FAIL reason=yoast_container_unavailable\n" );
 	exit( 1 );
 }

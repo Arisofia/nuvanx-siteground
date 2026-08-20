@@ -295,7 +295,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes
       '/usr/bin/ssh',
       [
         originSshAlias,
-        `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
+        `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
       ],
       { input: remoteScript, encoding: 'utf8', timeout: 180000, maxBuffer: 1024 * 1024 },
     ).trim();

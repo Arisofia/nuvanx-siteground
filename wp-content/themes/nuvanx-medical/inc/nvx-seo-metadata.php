@@ -365,6 +365,14 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
  * @return bool `true` for staging, local, configured non-production, or unrecognized environments; `false` only when `NVX_ENV` is set to `production`.
  */
 function nvx_seo_is_nonproduction_environment(): bool {
+	// The only exception is a guarded WP-CLI reindex operation. It constructs
+	// Yoast indexables for sitemap-contract verification; it never runs in an
+	// HTTP request, does not change blog_public, and therefore cannot make
+	// staging2 indexable to search engines.
+	if ( defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' ) ) {
+		return false;
+	}
+
 	// Staging2 must always be treated as non-production regardless of host or WP_ENVIRONMENT_TYPE.
 	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
 		return true;

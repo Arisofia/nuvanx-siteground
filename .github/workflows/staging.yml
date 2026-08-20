@@ -499,7 +499,7 @@ jobs:
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
           ssh nvx-staging2 \
             "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
-             cd '$STAGING_ROOT' && wp yoast index --reindex --allow-root"
+             cd '$STAGING_ROOT' && NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root"
 
           ssh nvx-staging2 \
             "cd '$STAGING_ROOT' && \
@@ -1038,7 +1038,7 @@ jobs:
              --allow-root 2>&1 | tee '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log'"
           ssh nvx-staging2-pr \
             "grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' '$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log' && \
-             cd '$STAGING_ROOT' && wp yoast index --reindex --allow-root"
+             cd '$STAGING_ROOT' && NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root"
 
           ssh nvx-staging2-pr \
             "cd '$STAGING_ROOT' && \

@@ -165,6 +165,7 @@ jobs:
           if [[ -f "$schema" && -f "$data" ]]; then node scripts/lint/validate-routes-schema.mjs "$schema" "$data"; fi
           bash -n tools/deploy/deploy-to-staging2.sh
           bash -n scripts/ci/provision-hubspot-attribution-contract.sh
+          bash -n scripts/ci/verify-hubspot-conversations-read.sh
           bash -n scripts/ci/wait-for-environment-mutation-turn.sh
           bash -n scripts/ci/verify-staging-acceptance.sh
           bash -n scripts/ci/test-mutation-fifo-contract.sh
@@ -288,6 +289,18 @@ jobs:
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           echo "CANDIDATE_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
           echo "EXPECTED_SHA=$CANDIDATE_SHA" >> "$GITHUB_ENV"
+
+      - name: Verify HubSpot Conversations read access
+        if: ${{ steps.prior_completion.outputs.complete != 'true' && matrix.runner_attempt == 1 }}
+        shell: bash
+        env:
+          HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN repository secret}"
+          mkdir -p scripts/staging2/artifacts
+          bash scripts/ci/verify-hubspot-conversations-read.sh 2>&1 | tee scripts/staging2/artifacts/hubspot-conversations-read.log
+          grep -Fq 'HUBSPOT_CONVERSATIONS_READ=PASS' scripts/staging2/artifacts/hubspot-conversations-read.log
 
       - name: Reconcile and verify canonical HubSpot attribution contract
         if: ${{ steps.prior_completion.outputs.complete != 'true' && matrix.runner_attempt == 1 }}

@@ -1,4 +1,4 @@
-name: Production dispatch d687 once
+name: Production dispatch 474c once
 
 on:
   push:
@@ -35,8 +35,9 @@ jobs:
           test "$(jq -r '.head_sha' <<<"$staging")" = "$EXPECTED_SHA"
           test "$(jq -r '.path' <<<"$staging")" = '.github/workflows/staging.yml'
 
-          runs_before="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha,status)"
-          duplicate_count="$(jq -r --arg sha "$EXPECTED_SHA" '[.[] | select(.headSha == $sha)] | length' <<<"$runs_before")"
+          runs_before="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha,status,inputs)"
+          # Exclude verification/audit runs (deploy=false) from duplicate guard - only count actual deployments
+          duplicate_count="$(jq -r --arg sha "$EXPECTED_SHA" '[.[] | select(.headSha == $sha and .inputs.deploy == "true")] | length' <<<"$runs_before")"
           test "$duplicate_count" = '0'
           before="$(jq -r '[.[].databaseId] | max // 0' <<<"$runs_before")"
 

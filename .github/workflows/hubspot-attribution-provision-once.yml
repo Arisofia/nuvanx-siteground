@@ -1,5 +1,5 @@
 name: HubSpot Attribution Provision Once
-run-name: First-party HubSpot submission probe · ${{ github.event.pull_request.head.sha }}
+run-name: HubSpot live form inventory · ${{ github.event.pull_request.head.sha }}
 
 on:
   pull_request:
@@ -10,10 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  probe:
+  inventory:
     if: ${{ github.head_ref == 'ops/apply-hubspot-attribution-contract-20260820' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
     steps:
       - name: Check out exact same-repo candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -21,70 +23,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Probe real first-party Staging2 submit with QA identity
+      - name: Inventory canonical HubSpot form schema read-only
         shell: bash
         run: |
           set -Eeuo pipefail
-          base='https://staging2.nuvanx.com'
-          page="$RUNNER_TEMP/valoracion.html"
-          cookies="$RUNNER_TEMP/cookies.txt"
-          headers="$RUNNER_TEMP/submit.headers"
-          qa_uuid="$(python3 - <<'PY'
-          import uuid
-          print(uuid.uuid4())
-          PY
-          )"
-          qa_token="${qa_uuid//-/}"
-          email="qa-first-party-${qa_token:0:16}@example.org"
-          gclid="NVXQAPROBE${qa_token}"
-
-          curl -fsS --max-time 30 \
-            -A 'Mozilla/5.0 NUVANX-Staging-QA' \
-            -H 'Cache-Control: no-cache' \
-            -c "$cookies" \
-            "$base/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=nvx_direct_probe&gclid=$gclid" \
-            -o "$page"
-
-          nonce="$(python3 - "$page" <<'PY'
-          import html, re, sys
-          text=open(sys.argv[1],encoding='utf-8').read()
-          m=re.search(r'name=["\x27]nvx_valoracion_nonce["\x27][^>]*value=["\x27]([^"\x27]+)', text)
-          if not m:
-              m=re.search(r'value=["\x27]([^"\x27]+)["\x27][^>]*name=["\x27]nvx_valoracion_nonce["\x27]', text)
-          if not m:
-              raise SystemExit('nonce_not_found')
-          print(html.unescape(m.group(1)))
-          PY
-          )"
-          [[ -n "$nonce" ]]
-
-          status="$(curl -sS --max-time 30 \
-            -A 'Mozilla/5.0 NUVANX-Staging-QA' \
-            -H "Referer: $base/madrid/valoracion/" \
-            -b "$cookies" -c "$cookies" \
-            -D "$headers" -o /dev/null \
-            -w '%{http_code}' \
-            --data-urlencode 'nvx_valoracion_submit=1' \
-            --data-urlencode "nvx_valoracion_nonce=$nonce" \
-            --data-urlencode 'firstname=QA' \
-            --data-urlencode 'lastname=Attribution' \
-            --data-urlencode 'phone=+34910000000' \
-            --data-urlencode "email=$email" \
-            --data-urlencode 'message=Automated Staging2 first-party lineage QA. No clinical request.' \
-            --data-urlencode 'privacy=1' \
-            --data-urlencode "nvx_lead_id=$qa_uuid" \
-            --data-urlencode 'nvx_marketing_consent=1' \
-            --data-urlencode "gclid=$gclid" \
-            --data-urlencode 'utm_source=google' \
-            --data-urlencode 'utm_medium=cpc' \
-            --data-urlencode 'utm_campaign=nvx_direct_probe' \
-            "$base/madrid/valoracion/")"
-
-          location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]+:[[:space:]]*/,""); sub(/\r$/,""); print; exit}' "$headers")"
-          echo "FIRST_PARTY_SUBMIT_PROBE status=$status location=$location nvx_lead_id=$qa_uuid"
-          [[ "$status" =~ ^30[12378]$ ]]
-          [[ "$location" == "$base/gracias/" || "$location" == '/gracias/' ]] || {
-            echo "FIRST_PARTY_SUBMIT_PROBE=FAIL expected_gracias actual=$location" >&2
-            exit 1
-          }
-          echo "FIRST_PARTY_SUBMIT_PROBE=PASS nvx_lead_id=$qa_uuid"
+          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
+          form_id='5042522a-0bc5-4381-ac3e-5aee8649b69c'
+          out="$RUNNER_TEMP/form.json"
+          status="$(curl -sS --max-time 30 -o "$out" -w '%{http_code}' \
+            -H "Authorization: Bearer $HUBSPOT_ACCESS_TOKEN" \
+            -H 'Accept: application/json' \
+            "https://api.hubapi.com/marketing/v3/forms/$form_id")"
+          [[ "$status" == '200' ]] || { echo "HUBSPOT_FORM_INVENTORY=FAIL status=$status" >&2; exit 1; }
+          jq -r '[.fieldGroups[]?.fields[]? | {name,fieldType,hidden:(.hidden // false),required:(.required // false)}] | unique_by(.name) | sort_by(.name)[] | "HUBSPOT_FORM_FIELD name=\(.name) type=\(.fieldType) hidden=\(.hidden) required=\(.required)"' "$out"
+          count="$(jq '[.fieldGroups[]?.fields[]?] | length' "$out")"
+          max_group="$(jq '[.fieldGroups[]? | ((.fields // []) | length)] | max // 0' "$out")"
+          echo "HUBSPOT_FORM_INVENTORY=PASS fields=$count max_group=$max_group form_id=$form_id"

@@ -31,9 +31,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
           test "$head" = "$TARGET_SHA"
-          tree="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}" --jq '.commit.tree.sha')"
+          tree="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}" --jq '.commit.tree.sha')"
           test "$tree" = "$TARGET_TREE"
           echo "DISPATCH_GUARD=PASS sha=$TARGET_SHA tree=$TARGET_TREE"
 
@@ -46,7 +46,7 @@ jobs:
           set -euo pipefail
           accepted_run=''
           for attempt in $(seq 1 180); do
-            head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+            head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
             test "$head" = "$TARGET_SHA"
 
             runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow staging.yml --branch master --event push --limit 30 --json databaseId,headSha,status,conclusion)"
@@ -66,7 +66,7 @@ jobs:
           done
 
           [[ "$accepted_run" =~ ^[0-9]+$ ]] || { echo 'DISPATCH_STAGING=FAIL timeout' >&2; exit 1; }
-          final_head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          final_head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
           test "$final_head" = "$TARGET_SHA"
           echo "run_id=$accepted_run" >> "$GITHUB_OUTPUT"
           echo "DISPATCH_STAGING=PASS sha=$TARGET_SHA run_id=$accepted_run"
@@ -78,7 +78,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          head="$(gh api --repo "$GITHUB_REPOSITORY" "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
+          head="$(gh api "/repos/${GITHUB_REPOSITORY}/branches/master" --jq '.commit.sha')"
           test "$head" = "$TARGET_SHA"
 
           before_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"

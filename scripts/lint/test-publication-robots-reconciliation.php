@@ -64,6 +64,8 @@ $required = array(
 	array( $migration_raw, "PUBLICATION_ROBOTS_RECONCILIATION=PASS" ),
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
 	array( $staging_raw, "reconcile-publication-robots.php" ),
+	array( $staging_raw, 'REMOTE_RELEASE=\'$REMOTE_RELEASE\' bash -se' ),
+	array( $staging_raw, '"$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"' ),
 	array( $staging_raw, 'original_env="$(wp config get WP_ENVIRONMENT_TYPE)"' ),
 	array( $staging_raw, '[[ "$original_env" == \'staging\' ]]' ),
 	array( $staging_raw, 'wp config set WP_ENVIRONMENT_TYPE production' ),

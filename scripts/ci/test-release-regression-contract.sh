@@ -17,11 +17,12 @@ BOUNDARY="$ROOT/scripts/production/verify-production-boundary.mjs"
 ENV_FLAGS="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php"
 DEPLOY_STAMP="$ROOT/wp-content/themes/nuvanx-medical/inc/nvx-deploy-stamp.php"
 LCP_CSS_CONTRACT="$ROOT/scripts/lint/test-lcp-css-delivery.mjs"
+META_BROWSER_OWNER_CONTRACT="$ROOT/scripts/lint/test-meta-browser-owner-retirement.php"
 SEO_OWNERSHIP_CONTRACT="$ROOT/scripts/lint/test-seo-catalog-ownership.php"
 SEO_TOOLING_DIR="$ROOT/scripts/seo"
 THEME_DIR="$ROOT/wp-content/themes/nuvanx-medical"
 
-for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
+for required in "$BRIDAL" "$IDENTITY_CONTRACT" "$DEPLOY" "$WORKFLOW" "$BOUNDARY" "$ENV_FLAGS" "$DEPLOY_STAMP" "$LCP_CSS_CONTRACT" "$META_BROWSER_OWNER_CONTRACT" "$SEO_OWNERSHIP_CONTRACT" "$SEO_TOOLING_DIR/package-lock.json" "$THEME_DIR/composer.lock"; do
   [[ -s "$required" ]] || fail "missing_file:$required"
 done
 
@@ -79,6 +80,12 @@ grep -Fq "function_exists( 'nvx_environment_deploy_sha' )" "$DEPLOY_STAMP" || fa
 grep -Fq "nvx_environment_deploy_sha()" "$DEPLOY_STAMP" || fail 'deploy_stamp_environment_fallback_missing'
 grep -Fq "add_action( 'wp_head', 'nvx_render_deploy_stamp_meta', 1 );" "$DEPLOY_STAMP" || fail 'canonical_deploy_stamp_head_owner_missing'
 pass_assert 'single-deploy-sha-head-owner'
+
+# Browser Meta ownership is intentionally absent. The source-scoped retirement
+# contract must remain blocking so an unversioned production MU owner cannot
+# silently restore pre-consent _fbp/_fbc, Pixel or browser dedupe behavior.
+php "$META_BROWSER_OWNER_CONTRACT" || fail 'meta_browser_owner_retirement_contract'
+pass_assert 'meta-browser-owner-retirement'
 
 # LCP delivery rules are part of the release contract, not an optional lint.
 # The canonical test protects the inlined foundation, blocking structural CSS,

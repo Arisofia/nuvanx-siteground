@@ -298,10 +298,19 @@ jobs:
             invalidate-publication-sitemap-cache.php
           )
           for migration in "${required_migrations[@]}"; do
-            test -s "$CANDIDATE_ROOT/tools/migrations/$migration"
+            if ! test -s "$CANDIDATE_ROOT/tools/migrations/$migration"; then
+              echo "PRODUCTION_MIGRATION_PAYLOAD=FAIL reason=missing_local_migration file=$migration" >&2
+              exit 1
+            fi
           done
-          ssh nvx-prod "test -s '$REMOTE_RELEASE/tools/migrations/audit-content-divergence.php' && test -s '$REMOTE_RELEASE/tools/migrations/content-hygiene-shared.php' && test -s '$REMOTE_RELEASE/tools/migrations/governed-blog-markdown-hygiene.php' && test -s '$REMOTE_RELEASE/tools/migrations/content-normalizer.php' && test -s '$REMOTE_RELEASE/tools/migrations/reconcile-publication-robots.php' && test -s '$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php' && test -s '$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php' && test -s '$REMOTE_RELEASE/tools/migrations/audit-publication-sitemap-selection.php' && test -s '$REMOTE_RELEASE/tools/migrations/invalidate-publication-sitemap-cache.php'"
-          echo "PRODUCTION_MIGRATION_PAYLOAD=PASS required=9 exact_sha=$CANDIDATE_SHA"
+          remote_tests=""
+          for migration in "${required_migrations[@]}"; do
+            remote_tests+="test -s '$REMOTE_RELEASE/tools/migrations/$migration' && "
+          done
+          remote_tests=${remote_tests% && }
+          ssh nvx-prod "$remote_tests"
+          echo "PRODUCTION_MIGRATION_PAYLOAD=PASS required=${#required_migrations[@]} exact_sha=$CANDIDATE_SHA"
+>>>>>>> Stashed changes
           echo "PRODUCTION_PAYLOAD=PASS exact_sha=$CANDIDATE_SHA"
 
       - name: Execute guarded atomic production cutover

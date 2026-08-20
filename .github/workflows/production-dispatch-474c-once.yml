@@ -1,9 +1,11 @@
-name: Production dispatch 474c once
+name: Production dispatch d687 once
 
 on:
   push:
     branches:
       - ops/production-dispatch-474c-20260820
+    paths:
+      - .github/workflows/production-dispatch-474c-once.yml
 
 permissions:
   actions: write
@@ -19,8 +21,8 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          EXPECTED_SHA: 474c6175b2fa7dececfc168d978e9c2b2efd7c14
-          ACCEPTED_STAGING_RUN: '32399770431'
+          EXPECTED_SHA: d687087f456da3ad54d1546e8d848567632dc9b3
+          ACCEPTED_STAGING_RUN: '32405805439'
         run: |
           set -euo pipefail
           current="$(gh api repos/Arisofia/nuvanx-siteground/branches/master --jq '.commit.sha')"
@@ -33,7 +35,10 @@ jobs:
           test "$(jq -r '.head_sha' <<<"$staging")" = "$EXPECTED_SHA"
           test "$(jq -r '.path' <<<"$staging")" = '.github/workflows/staging.yml'
 
-          before="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          runs_before="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha,status)"
+          duplicate_count="$(jq -r --arg sha "$EXPECTED_SHA" '[.[] | select(.headSha == $sha)] | length' <<<"$runs_before")"
+          test "$duplicate_count" = '0'
+          before="$(jq -r '[.[].databaseId] | max // 0' <<<"$runs_before")"
 
           gh workflow run production.yml \
             --repo Arisofia/nuvanx-siteground \

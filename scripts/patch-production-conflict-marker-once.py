@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 
 workflow = Path('.github/workflows/production.yml')
@@ -31,9 +32,10 @@ if ctext.count(anchor) != 1:
 ctext = ctext.replace(anchor, insert, 1)
 contract.write_text(ctext, encoding='utf-8')
 
+marker_re = re.compile(r'^\s*(?:<<<<<<<|=======|>>>>>>>)')
 for path in Path('.github/workflows').glob('*.y*ml'):
-    body = path.read_text(encoding='utf-8')
-    if any(token in body for token in ('<<<<<<<', '=======', '>>>>>>>')):
-        raise SystemExit(f'unresolved conflict marker remains in {path}')
+    for lineno, line in enumerate(path.read_text(encoding='utf-8').splitlines(), start=1):
+        if marker_re.match(line):
+            raise SystemExit(f'unresolved conflict marker remains in {path}:{lineno}')
 
 print('PRODUCTION_WORKFLOW_CONFLICT_REPAIR=PASS files=2')

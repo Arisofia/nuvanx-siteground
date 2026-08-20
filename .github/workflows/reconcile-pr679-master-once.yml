@@ -1,0 +1,42 @@
+name: Reconcile PR679 with current master once
+
+on:
+  push:
+    branches:
+      - fix/production-boundary-structural-valoracion-20260820
+    paths:
+      - .github/workflows/reconcile-pr679-master-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/production-boundary-structural-valoracion-20260820
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Merge exact current master and validate structural release contract
+        shell: bash
+        env:
+          EXPECTED_MASTER: a40b963e8e6f3175a29c973400092438d98e0f73
+        run: |
+          set -euo pipefail
+          git fetch origin master
+          current="$(git rev-parse origin/master)"
+          test "$current" = "$EXPECTED_MASTER"
+          git config user.name 'Arisofia'
+          git config user.email '246412546+Arisofia@users.noreply.github.com'
+          git merge --no-edit "$EXPECTED_MASTER"
+          node --check scripts/production/valoracion-form-contract.mjs
+          node --check scripts/production/test-valoracion-form-contract.mjs
+          node --check scripts/production/verify-production-boundary.mjs
+          node scripts/production/test-valoracion-form-contract.mjs
+          bash -n scripts/ci/test-release-regression-contract.sh
+          bash scripts/ci/test-release-regression-contract.sh
+          git diff --check "$EXPECTED_MASTER"...HEAD
+          git push origin HEAD:fix/production-boundary-structural-valoracion-20260820
+          echo "PR679_RECONCILE=PASS master=$EXPECTED_MASTER head=$(git rev-parse HEAD)"

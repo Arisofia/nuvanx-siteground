@@ -510,7 +510,7 @@ jobs:
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
-          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          printf 'y\n' | NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
           REMOTE
 
           ssh nvx-staging2 \
@@ -1061,7 +1061,7 @@ jobs:
           grep -q 'PUBLICATION_ROBOTS_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"
           wp config set WP_ENVIRONMENT_TYPE production
           php -l wp-config.php >/dev/null
-          NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
+          printf 'y\n' | NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp yoast index --reindex --allow-root
           REMOTE
 
           ssh nvx-staging2-pr \

@@ -118,6 +118,8 @@ $required = array(
 	array( $staging_raw, "PUBLICATION_SITEMAP_SELECTION=PASS" ),
 	array( $staging_raw, "verify-publication-sitemap.mjs" ),
 	array( $staging_raw, "STAGING_SITEMAP_MANIFEST_COVERAGE=PASS" ),
+	array( $staging_raw, "Keep Optimizer active" ),
+	array( $staging_raw, 'wp plugin is-active "$plugin_slug"' ),
 	array( $production_raw, "reconcile-publication-robots.php" ),
 	array( $deploy_raw, "ROBOTS_RECONCILIATION_SCRIPT" ),
 	array( $deploy_raw, "INDEXABLES_RECONCILIATION_SCRIPT" ),
@@ -134,6 +136,7 @@ foreach ( $required as $pair ) {
 		exit( 1 );
 	}
 }
+
 
 printf(
 	"PUBLICATION_ROBOTS_RECONCILIATION_STATIC=PASS routes=%d indexable=%d noindex=%d\n",

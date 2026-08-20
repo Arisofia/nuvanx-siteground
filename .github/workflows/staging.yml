@@ -542,8 +542,9 @@ jobs:
           plugin_slug='sg-cachepress'
           if ! wp plugin is-active "$plugin_slug"; then wp plugin activate "$plugin_slug" --quiet; fi
           wp sg purge
-          wp plugin deactivate "$plugin_slug" --quiet
-          ! wp plugin is-active "$plugin_slug"
+          # Keep Optimizer active: the theme's versioned sitemap exclusions rely
+          # on its response-header integration to prevent stale XML delivery.
+          wp plugin is-active "$plugin_slug"
           rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
           wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
           test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$CANDIDATE_SHA"
@@ -1116,8 +1117,9 @@ jobs:
           plugin_slug='sg-cachepress'
           if ! wp plugin is-active "$plugin_slug"; then wp plugin activate "$plugin_slug" --quiet; fi
           wp sg purge
-          wp plugin deactivate "$plugin_slug" --quiet
-          ! wp plugin is-active "$plugin_slug"
+          # Keep Optimizer active: the theme's versioned sitemap exclusions rely
+          # on its response-header integration to prevent stale XML delivery.
+          wp plugin is-active "$plugin_slug"
           rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
           wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
           test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$PR_PREVIEW_SHA"

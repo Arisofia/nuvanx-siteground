@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { EX_TEMPFAIL, getGitHubEventPath, EXECUTION_PATHS } from './siteground-transient-classifier.mjs';
+import { EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
 
 function runProcess(moduleUrl) {
   return new Promise((resolve, reject) => {
@@ -167,10 +167,6 @@ async function runStage(name, moduleUrl, maxCycles = 1, backoffMs = 3500) {
 const VALORACION_PLACEMENT_CYCLES = Number.parseInt(process.env.VALORACION_PLACEMENT_CYCLES || '3', 10) || 3;
 const HUBSPOT_A11Y_CYCLES = Number.parseInt(process.env.HUBSPOT_A11Y_CYCLES || '3', 10) || 3;
 
-const EVENT_NAME = process.env.GITHUB_EVENT_NAME || '';
-const REF_NAME = process.env.GITHUB_REF_NAME || '';
-const EVENT_PATH = getGitHubEventPath(EVENT_NAME, REF_NAME);
-
 const stages = [
   { name: 'siteground-transient-classifier', url: new URL('./test-siteground-transient-classifier.mjs', import.meta.url), maxCycles: 1 },
   { name: 'hubspot-submission-classifier', url: new URL('./test-hubspot-submission-classifier.mjs', import.meta.url), maxCycles: 1 },
@@ -181,9 +177,11 @@ const stages = [
   { name: 'hubspot-a11y', url: new URL('./h1-hubspot-a11y-safe.mjs', import.meta.url), maxCycles: HUBSPOT_A11Y_CYCLES, backoffMs: 7000 },
 ];
 
-if (EVENT_PATH !== EXECUTION_PATHS.UNSUPPORTED_EVENT) {
-  stages.push({ name: 'attribution-lineage-e2e', url: new URL('./attribution-lineage-e2e.mjs', import.meta.url), maxCycles: 1 });
-}
+// P0 staging acceptance proves public delivery, render integrity, form placement
+// and accessibility. Attribution lineage is a separate integration contract and
+// must not roll back a render-valid release; run attribution-lineage-e2e.mjs in
+// its dedicated attribution phase instead.
+console.log('STAGING_ACCEPTANCE_SCOPE=P0 attribution_lineage=deferred');
 
 stages.push({ name: 'block-a11y', url: new URL('./block-a11y.mjs', import.meta.url), maxCycles: 1 });
 

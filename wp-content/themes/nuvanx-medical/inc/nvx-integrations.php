@@ -370,15 +370,37 @@ add_filter(
 						$buffer = $cleaned;
 					}
 
-					// Implement Delay Script Execution for GTM and analytics scripts to improve TBT on Home
-					$has_delayed = false;
+					// Implement Delay Script Execution for GTM container scripts to improve TBT.
+				// IMPORTANT: gtag.js (GT- / AW- loader) and Consent Mode scripts must NOT be
+				// delayed — Google Consent Mode v2 requires ad_storage/ad_user_data to be set
+				// synchronously on page load, before any user interaction. Delaying them causes
+				// conversion tags to miss users who bounce before scroll/click (5 s timeout).
+				// Only the GTM *container* script (gtm.js?id=GTM-) is safe to defer.
+				$has_delayed = false;
 				$buffer      = preg_replace_callback(
 					'/<script([^>]*)>(.*?)<\/script>/is',
 					function ( $matches ) use ( &$has_delayed ) {
 						$attrs   = $matches[1];
 						$content = $matches[2];
-						$is_gtm  = ( strpos( $attrs, 'googletagmanager.com' ) !== false || strpos( $content, 'googletagmanager.com' ) !== false );
-						if ( $is_gtm ) {
+
+						// Only target the GTM container loader (gtm.js?id=GTM-).
+						$is_gtm_container = (
+							strpos( $attrs, 'gtm.js' ) !== false ||
+							strpos( $content, 'gtm.js' ) !== false
+						);
+
+						// Never delay: gtag.js loader, dataLayer inits, Consent Mode scripts.
+						// These must execute synchronously for Consent Mode v2 compliance.
+						$is_consent_critical = (
+							strpos( $attrs, 'gtag/js' ) !== false ||
+							strpos( $content, 'gtag/js' ) !== false ||
+							strpos( $content, "gtag('consent'" ) !== false ||
+							strpos( $content, 'gtag("consent"' ) !== false ||
+							strpos( $content, 'cmplz_gcm' ) !== false ||
+							strpos( $content, 'dataLayer' ) !== false
+						);
+
+						if ( $is_gtm_container && ! $is_consent_critical ) {
 							$has_delayed = true;
 							if ( strpos( $attrs, 'type=' ) !== false ) {
 								$attrs = preg_replace( '/type=[\'"][^\'"]*[\'"]/', 'type="text/delayed"', $attrs );

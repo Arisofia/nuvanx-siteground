@@ -381,12 +381,14 @@ function nvx_noindex_page_ids() {
 		$ids = array_merge( $ids, nvx_retired_strategy_page_ids() );
 	}
 
-	// Casos de pacientes: keep the published route reachable, but only index it
-	// after explicit editorial approval of real patient evidence.
+	// Casos de pacientes remains reachable only as an editorial holding route.
+	// A mutable WordPress meta flag cannot authorize its indexation: each procedure
+	// needs five validated clinical sequences and explicit consent before a
+	// repository-reviewed release may remove this safeguard.
 	$cases_id = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'casos-de-pacientes' )
 		: 0;
-	if ( $cases_id > 0 && '1' !== (string) get_post_meta( $cases_id, '_nvx_cases_publication_ready', true ) ) {
+	if ( $cases_id > 0 ) {
 		$ids[] = $cases_id;
 	}
 

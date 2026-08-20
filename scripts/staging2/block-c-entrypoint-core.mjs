@@ -37,6 +37,7 @@ async function prepareTrustedPagesPreload() {
     id: Number(page.id),
     link: String(page.link || ''),
     slug: String(page.slug || ''),
+    post_type: page.post_type === 'post' ? 'post' : 'page',
     title: {
       rendered: typeof page.title === 'string' ? page.title : String(page.title?.rendered || ''),
     },
@@ -44,11 +45,11 @@ async function prepareTrustedPagesPreload() {
 
   for (const page of normalizedPages) {
     if (!page.link) {
-      throw new Error(`Trusted WordPress page ${page.id} has empty link field`);
+      throw new Error(`Trusted WordPress content ${page.id} has empty link field`);
     }
     const url = new URL(page.link);
     if (url.hostname !== new URL(baseUrl).hostname) {
-      throw new Error(`Trusted WordPress page ${page.id} points outside staging: ${page.link}`);
+      throw new Error(`Trusted WordPress content ${page.id} points outside staging: ${page.link}`);
     }
   }
 
@@ -56,16 +57,18 @@ async function prepareTrustedPagesPreload() {
   assertCanonicalPublishedPaths(
     normalizedPages.map((page) => new URL(page.link).pathname),
     manifest,
-    'Trusted WordPress page inventory'
+    'Trusted WordPress published-content inventory'
   );
 
-  const payload = JSON.stringify(normalizedPages);
+  const pagePayload = JSON.stringify(normalizedPages.filter((page) => page.post_type === 'page'));
+  const postPayload = JSON.stringify(normalizedPages.filter((page) => page.post_type === 'post'));
   const pagesEndpoint = `${baseUrl}/wp-json/wp/v2/pages`;
-  const source = `const nativeFetch = globalThis.fetch.bind(globalThis);\nconst pagesEndpoint = ${JSON.stringify(pagesEndpoint)};\nconst pagesPayload = ${JSON.stringify(payload)};\nglobalThis.fetch = async (input, init) => {\n  const rawUrl = typeof input === 'string' ? input : (input && typeof input.url === 'string' ? input.url : String(input));\n  if (rawUrl.startsWith(pagesEndpoint)) {\n    return new Response(pagesPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli' } });\n  }\n  return nativeFetch(input, init);\n};\n`;
+  const postsEndpoint = `${baseUrl}/wp-json/wp/v2/posts`;
+  const source = `const nativeFetch = globalThis.fetch.bind(globalThis);\nconst pagesEndpoint = ${JSON.stringify(pagesEndpoint)};\nconst postsEndpoint = ${JSON.stringify(postsEndpoint)};\nconst pagesPayload = ${JSON.stringify(pagePayload)};\nconst postsPayload = ${JSON.stringify(postPayload)};\nglobalThis.fetch = async (input, init) => {\n  const rawUrl = typeof input === 'string' ? input : (input && typeof input.url === 'string' ? input.url : String(input));\n  if (rawUrl.startsWith(pagesEndpoint)) {\n    return new Response(pagesPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli' } });\n  }\n  if (rawUrl.startsWith(postsEndpoint)) {\n    return new Response(postsPayload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'x-nvx-inventory-source': 'trusted-wp-cli' } });\n  }\n  return nativeFetch(input, init);\n};\n`;
 
   await fs.mkdir(preloadDir, { recursive: true });
   await fs.writeFile(preloadUrl, source, 'utf8');
-  console.log(`BLOCK_C_INVENTORY_SOURCE=trusted-wp-cli pages=${normalizedPages.length}`);
+  console.log(`BLOCK_C_INVENTORY_SOURCE=trusted-wp-cli pages=${JSON.parse(pagePayload).length} posts=${JSON.parse(postPayload).length}`);
   return preloadUrl.href;
 }
 

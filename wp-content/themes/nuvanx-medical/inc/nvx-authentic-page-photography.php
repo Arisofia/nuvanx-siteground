@@ -177,9 +177,21 @@ function nvx_authentic_page_photo_markup( array $data ): string {
 	$items = '';
 
 	foreach ( $data['images'] as $image ) {
+		$attachment_id = (int) $image['id'];
+		$source_path   = get_attached_file( $attachment_id );
+
+		// Historic media metadata can survive after a file is removed. Do not emit
+		// a derivative or fallback for an unavailable asset: the page stays
+		// editorially complete with the remaining approved photographs.
+		if ( ! is_string( $source_path ) || '' === $source_path || ! is_readable( $source_path ) ) {
+			continue;
+		}
+
+		// Use the available source attachment rather than a historic WordPress
+		// derivative, which may no longer exist on the media filesystem.
 		$markup = wp_get_attachment_image(
-			(int) $image['id'],
-			'large',
+			$attachment_id,
+			'full',
 			false,
 			array(
 				'class'    => 'nvx-authentic-photo-grid__image',

@@ -33,53 +33,18 @@ fail() {
   exit 1
 }
 
-provision_staging_hubspot_runtime_credential() {
-  local secret_file
-  local prod_hash
-  local staging_hash
+verify_staging_hubspot_embed_contract() {
+  local modal_file="$SOURCE_THEME/inc/nvx-valoracion-modal.php"
 
-  secret_file="$(mktemp)" || fail 'mktemp failed: unable to create temporary file for credential provisioning'
-  chmod 600 "$secret_file"
-
-  if ! (
-    cd "$PROD_ROOT"
-    wp eval 'if (!defined("NVX_HUBSPOT_ACCESS_TOKEN") || !is_string(NVX_HUBSPOT_ACCESS_TOKEN) || strlen(NVX_HUBSPOT_ACCESS_TOKEN) < 20) { exit(3); } echo NVX_HUBSPOT_ACCESS_TOKEN;' > "$secret_file"
-  ); then
-    rm -f "$secret_file"
-    fail 'production HubSpot runtime credential is unavailable; Staging2 QA cannot be provisioned'
-  fi
-  [[ -s "$secret_file" ]] || { rm -f "$secret_file"; fail 'production HubSpot runtime credential resolved empty'; }
-
-  # Use extracted PHP script for credential provisioning
-  local php_script="$SCRIPT_DIR/provision-hubspot-credential.php"
-  [[ -f "$php_script" ]] || { rm -f "$secret_file"; fail 'HubSpot credential provisioning script not found'; }
-
-  if ! PROD_SECRET_FILE="$secret_file" STAGING_CONFIG="$WP_ROOT/wp-config.php" php "$php_script"; then
-    local php_exit_code=$?
-    rm -f "$secret_file"
-    case "$php_exit_code" in
-      2) fail 'Staging HubSpot credential provisioning prerequisites failed (secret too short or config missing)' ;;
-      3) fail 'Staging wp-config insertion anchor not found (tried: existing define, stop editing comment, wp-settings.php require)' ;;
-      4) fail 'Staging wp-config credential update failed' ;;
-      5) fail 'Staging wp-config atomic credential update failed' ;;
-      *) fail "Staging HubSpot credential provisioning failed with exit code $php_exit_code" ;;
-    esac
-  fi
-
-  php -l "$WP_ROOT/wp-config.php" >/dev/null || { rm -f "$secret_file"; fail 'Staging2 wp-config failed syntax validation after credential provisioning'; }
-  prod_hash="$(sha256sum "$secret_file" | awk '{print $1}')"
-  staging_hash="$(cd "$WP_ROOT" && wp eval 'if (!defined("NVX_HUBSPOT_ACCESS_TOKEN") || !is_string(NVX_HUBSPOT_ACCESS_TOKEN)) { exit(3); } echo hash("sha256", NVX_HUBSPOT_ACCESS_TOKEN);')"
-  staging_status=$?
-  rm -f "$secret_file"
-
-  if [[ "$staging_status" -eq 3 || -z "$staging_hash" ]]; then
-    fail 'Staging2 HubSpot runtime credential check failed: NVX_HUBSPOT_ACCESS_TOKEN missing or invalid in Staging2 wp-config'
-  elif [[ "$staging_status" -ne 0 ]]; then
-    fail 'Staging2 HubSpot runtime credential check failed: wp eval error'
-  fi
-
-  [[ -n "$prod_hash" && "$staging_hash" == "$prod_hash" ]] || fail 'Staging2 HubSpot runtime credential parity check failed'
-  echo 'STAGING_HUBSPOT_CREDENTIAL=PASS source=production-readonly value_exposed=0'
+  # The HubSpot iframe is configured with its public portal/form identifiers.
+  # A deployment must never copy a private credential from production or write a
+  # secret into staging wp-config.php: that bypasses repository provenance and
+  # makes staging availability depend on production configuration.
+  [[ -f "$modal_file" ]] || fail 'HubSpot modal source is missing from the immutable theme payload'
+  grep -Fq "NVX_VALORACION_HS_FRAME_PORTAL_ID" "$modal_file" || fail 'HubSpot portal identifier contract is missing'
+  grep -Fq "NVX_VALORACION_HS_FRAME_FORM_ID" "$modal_file" || fail 'HubSpot form identifier contract is missing'
+  grep -Fq "js-eu1.hsforms.net/forms/embed/" "$modal_file" || fail 'HubSpot public embed contract is missing'
+  echo 'STAGING_HUBSPOT_EMBED=PASS mode=public-embed credential-transfer=disabled'
 }
 
 purge_siteground_cache_if_available() {
@@ -238,8 +203,8 @@ echo '== Guard production read-only source identity =='
   [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]] || fail 'unexpected production active theme'
 )
 
-echo '== Provision Staging2 HubSpot runtime credential from production read-only source =='
-provision_staging_hubspot_runtime_credential
+echo '== Verify Staging2 HubSpot public embed contract =='
+verify_staging_hubspot_embed_contract
 
 echo '== Validate source PHP =='
 PHP_LINT_LOG="$(mktemp)"

@@ -7,6 +7,8 @@
  */
 declare(strict_types=1);
 
+// Trigger staging deployment
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

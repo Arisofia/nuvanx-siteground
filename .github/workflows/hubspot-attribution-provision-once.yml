@@ -1,5 +1,5 @@
 name: HubSpot Attribution Provision Once
-run-name: HubSpot Attribution Provision Once · ${{ github.event.pull_request.head.sha }}
+run-name: First-party HubSpot submission probe · ${{ github.event.pull_request.head.sha }}
 
 on:
   pull_request:
@@ -10,13 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  provision:
+  probe:
     if: ${{ github.head_ref == 'ops/apply-hubspot-attribution-contract-20260820' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
-      NUVANX_CONFIRM: 'yes'
     steps:
       - name: Check out exact same-repo candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,17 +21,70 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Guard secret and provision canonical HubSpot attribution contract
+      - name: Probe real first-party Staging2 submit with QA identity
         shell: bash
         run: |
           set -Eeuo pipefail
-          : "${HUBSPOT_ACCESS_TOKEN:?Missing HUBSPOT_ACCESS_TOKEN}"
-          bash -n scripts/ci/provision-hubspot-attribution-contract.sh
-          set +e
-          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
-          before_rc=$?
-          set -e
-          echo "HUBSPOT_ATTRIBUTION_PRECHECK_RC=$before_rc"
-          bash scripts/ci/provision-hubspot-attribution-contract.sh --apply
-          bash scripts/ci/provision-hubspot-attribution-contract.sh --check
-          echo 'HUBSPOT_ATTRIBUTION_PROVISION_ONCE=PASS'
+          base='https://staging2.nuvanx.com'
+          page="$RUNNER_TEMP/valoracion.html"
+          cookies="$RUNNER_TEMP/cookies.txt"
+          headers="$RUNNER_TEMP/submit.headers"
+          qa_uuid="$(python3 - <<'PY'
+          import uuid
+          print(uuid.uuid4())
+          PY
+          )"
+          qa_token="${qa_uuid//-/}"
+          email="qa-first-party-${qa_token:0:16}@example.org"
+          gclid="NVXQAPROBE${qa_token}"
+
+          curl -fsS --max-time 30 \
+            -A 'Mozilla/5.0 NUVANX-Staging-QA' \
+            -H 'Cache-Control: no-cache' \
+            -c "$cookies" \
+            "$base/madrid/valoracion/?utm_source=google&utm_medium=cpc&utm_campaign=nvx_direct_probe&gclid=$gclid" \
+            -o "$page"
+
+          nonce="$(python3 - "$page" <<'PY'
+          import html, re, sys
+          text=open(sys.argv[1],encoding='utf-8').read()
+          m=re.search(r'name=["\x27]nvx_valoracion_nonce["\x27][^>]*value=["\x27]([^"\x27]+)', text)
+          if not m:
+              m=re.search(r'value=["\x27]([^"\x27]+)["\x27][^>]*name=["\x27]nvx_valoracion_nonce["\x27]', text)
+          if not m:
+              raise SystemExit('nonce_not_found')
+          print(html.unescape(m.group(1)))
+          PY
+          )"
+          [[ -n "$nonce" ]]
+
+          status="$(curl -sS --max-time 30 \
+            -A 'Mozilla/5.0 NUVANX-Staging-QA' \
+            -H "Referer: $base/madrid/valoracion/" \
+            -b "$cookies" -c "$cookies" \
+            -D "$headers" -o /dev/null \
+            -w '%{http_code}' \
+            --data-urlencode 'nvx_valoracion_submit=1' \
+            --data-urlencode "nvx_valoracion_nonce=$nonce" \
+            --data-urlencode 'firstname=QA' \
+            --data-urlencode 'lastname=Attribution' \
+            --data-urlencode 'phone=+34910000000' \
+            --data-urlencode "email=$email" \
+            --data-urlencode 'message=Automated Staging2 first-party lineage QA. No clinical request.' \
+            --data-urlencode 'privacy=1' \
+            --data-urlencode "nvx_lead_id=$qa_uuid" \
+            --data-urlencode 'nvx_marketing_consent=1' \
+            --data-urlencode "gclid=$gclid" \
+            --data-urlencode 'utm_source=google' \
+            --data-urlencode 'utm_medium=cpc' \
+            --data-urlencode 'utm_campaign=nvx_direct_probe' \
+            "$base/madrid/valoracion/")"
+
+          location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]+:[[:space:]]*/,""); sub(/\r$/,""); print; exit}' "$headers")"
+          echo "FIRST_PARTY_SUBMIT_PROBE status=$status location=$location nvx_lead_id=$qa_uuid"
+          [[ "$status" =~ ^30[12378]$ ]]
+          [[ "$location" == "$base/gracias/" || "$location" == '/gracias/' ]] || {
+            echo "FIRST_PARTY_SUBMIT_PROBE=FAIL expected_gracias actual=$location" >&2
+            exit 1
+          }
+          echo "FIRST_PARTY_SUBMIT_PROBE=PASS nvx_lead_id=$qa_uuid"

@@ -13,6 +13,73 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Identifies indexable publication-manifest routes whose Yoast canonical must
+ * remain derived from the permalink. The whitelist is configuration-led: a
+ * manual canonical cannot be restored for an indexable route by a plugin,
+ * snippet, cron callback, or page-save hook outside this repository.
+ */
+function nvx_seo_retirement_is_indexable_manifest_post( int $post_id ): bool {
+	static $indexable_ids = null;
+
+	if ( null === $indexable_ids ) {
+		$indexable_ids = array();
+		$manifest_path = __DIR__ . '/data/publication-manifest.json';
+		$decoded       = is_readable( $manifest_path )
+			? json_decode( (string) file_get_contents( $manifest_path ), true )
+			: null;
+
+		if ( is_array( $decoded ) && is_array( $decoded['routes'] ?? null ) ) {
+			foreach ( $decoded['routes'] as $config ) {
+				if ( ! is_array( $config ) || 'publish' !== (string) ( $config['status'] ?? '' ) || true !== ( $config['robots']['index'] ?? null ) ) {
+					continue;
+				}
+				$id = (int) ( $config['post_id'] ?? 0 );
+				if ( $id > 0 ) {
+					$indexable_ids[ $id ] = true;
+				}
+			}
+		}
+	}
+
+	return isset( $indexable_ids[ $post_id ] );
+}
+
+/**
+ * Stops a late runtime writer from recreating a manual Yoast canonical that
+ * differs from the current permalink of an indexable manifest route.
+ *
+ * Returning a non-null value from WordPress's metadata short-circuit filters
+ * marks the rejected write as handled, while blank and derived values remain
+ * valid for the controlled reconciliation pipeline.
+ *
+ * @param mixed  $check      Short-circuit value from WordPress.
+ * @param int    $post_id    Post receiving the metadata write.
+ * @param string $meta_key   Metadata key.
+ * @param mixed  $meta_value Proposed metadata value.
+ * @return mixed
+ */
+function nvx_seo_retirement_block_divergent_canonical_persistence( $check, $post_id, $meta_key, $meta_value ) {
+	if ( '_yoast_wpseo_canonical' !== (string) $meta_key || ! nvx_seo_retirement_is_indexable_manifest_post( (int) $post_id ) ) {
+		return $check;
+	}
+
+	$canonical = trim( (string) $meta_value );
+	if ( '' === $canonical ) {
+		return $check;
+	}
+
+	$permalink = get_permalink( (int) $post_id );
+	if ( ! is_string( $permalink ) || '' === $permalink || untrailingslashit( $canonical ) === untrailingslashit( $permalink ) ) {
+		return $check;
+	}
+
+	error_log( sprintf( '[nuvanx] Rejected divergent Yoast canonical persistence for manifest post %d.', (int) $post_id ) );
+	return true;
+}
+add_filter( 'add_post_metadata', 'nvx_seo_retirement_block_divergent_canonical_persistence', PHP_INT_MAX, 4 );
+add_filter( 'update_post_metadata', 'nvx_seo_retirement_block_divergent_canonical_persistence', PHP_INT_MAX, 5 );
+
 /** Remove legacy text-metadata filters once every theme module is registered. */
 add_action(
     'wp_loaded',

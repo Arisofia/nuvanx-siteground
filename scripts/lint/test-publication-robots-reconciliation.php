@@ -12,6 +12,7 @@ $sitemap_selection_audit = $root . '/tools/migrations/audit-publication-sitemap-
 $sitemap_cache_invalidation = $root . '/tools/migrations/invalidate-publication-sitemap-cache.php';
 $runtime_indexables_audit = $root . '/tools/migrations/audit-publication-indexables-runtime.php';
 $seo_metadata  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
+$seo_retirement = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-legacy-retirement.php';
 $page_hygiene  = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php';
 $staging       = $root . '/.github/workflows/staging.yml';
 $production    = $root . '/.github/workflows/production.yml';
@@ -49,7 +50,7 @@ foreach ( $manifest['routes'] as $route => $config ) {
 	}
 }
 
-foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $sitemap_cache_invalidation, $runtime_indexables_audit, $seo_metadata, $page_hygiene, $staging, $production, $deploy ) as $path ) {
+foreach ( array( $migration, $indexables_migration, $yoast_rebuild, $sitemap_selection_audit, $sitemap_cache_invalidation, $runtime_indexables_audit, $seo_metadata, $seo_retirement, $page_hygiene, $staging, $production, $deploy ) as $path ) {
 	if ( ! is_file( $path ) || false === file_get_contents( $path ) ) {
 		fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=unreadable_dependency\n" );
 		exit( 1 );
@@ -63,6 +64,7 @@ $sitemap_selection_audit_raw = file_get_contents( $sitemap_selection_audit );
 $sitemap_cache_invalidation_raw = file_get_contents( $sitemap_cache_invalidation );
 $runtime_indexables_audit_raw = file_get_contents( $runtime_indexables_audit );
 $seo_metadata_raw = file_get_contents( $seo_metadata );
+$seo_retirement_raw = file_get_contents( $seo_retirement );
 $page_hygiene_raw = file_get_contents( $page_hygiene );
 $staging_raw      = file_get_contents( $staging );
 $production_raw = file_get_contents( $production );
@@ -98,6 +100,10 @@ $required = array(
 	array( $seo_metadata_raw, "defined( 'WP_CLI' ) && WP_CLI && '1' === getenv( 'NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD' )" ),
 	array( $seo_metadata_raw, "Yoast\\\\WP\\\\SEO\\\\should_index_indexables" ),
 	array( $seo_metadata_raw, "nvx_seo_allow_controlled_yoast_indexable_rebuild" ),
+	array( $seo_retirement_raw, "nvx_seo_retirement_block_divergent_canonical_persistence" ),
+	array( $seo_retirement_raw, "add_post_metadata" ),
+	array( $seo_retirement_raw, "update_post_metadata" ),
+	array( $seo_retirement_raw, "_yoast_wpseo_canonical" ),
 	array( $staging_raw, "reconcile-publication-robots.php" ),
 	array( $staging_raw, 'REMOTE_RELEASE=\'$REMOTE_RELEASE\' bash -se' ),
 	array( $staging_raw, '"$REMOTE_RELEASE/migration-robots-${{ github.sha }}.log"' ),

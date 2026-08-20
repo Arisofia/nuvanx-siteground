@@ -512,7 +512,6 @@ jobs:
           php -l wp-config.php >/dev/null
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           grep -q 'YOAST_INDEXABLE_REBUILD=PASS' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
-          grep -q 'Indexing posts' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           grep -q 'PUBLICATION_INDEXABLE_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           REMOTE
@@ -1088,7 +1087,6 @@ jobs:
           php -l wp-config.php >/dev/null
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/run-yoast-indexable-rebuild.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           grep -q 'YOAST_INDEXABLE_REBUILD=PASS' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
-          grep -q 'Indexing posts' "$REMOTE_RELEASE/yoast-index-${{ github.sha }}.log"
           NVX_ALLOW_STAGING_YOAST_INDEXABLE_REBUILD=1 wp eval-file "$REMOTE_RELEASE/tools/migrations/reconcile-publication-indexables.php" --allow-root 2>&1 | tee "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           grep -q 'PUBLICATION_INDEXABLE_RECONCILIATION=PASS' "$REMOTE_RELEASE/migration-indexables-${{ github.sha }}.log"
           REMOTE

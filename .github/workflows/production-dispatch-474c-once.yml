@@ -1,0 +1,60 @@
+name: Production dispatch 474c once
+
+on:
+  push:
+    branches:
+      - ops/production-dispatch-474c-20260820
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    name: Dispatch exact accepted SHA to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify immutable authorization and dispatch canonical production workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: 474c6175b2fa7dececfc168d978e9c2b2efd7c14
+          ACCEPTED_STAGING_RUN: '32399770431'
+        run: |
+          set -euo pipefail
+          current="$(gh api repos/Arisofia/nuvanx-siteground/branches/master --jq '.commit.sha')"
+          test "$current" = "$EXPECTED_SHA"
+
+          staging="$(gh api repos/Arisofia/nuvanx-siteground/actions/runs/$ACCEPTED_STAGING_RUN)"
+          test "$(jq -r '.status' <<<"$staging")" = 'completed'
+          test "$(jq -r '.conclusion' <<<"$staging")" = 'success'
+          test "$(jq -r '.head_branch' <<<"$staging")" = 'master'
+          test "$(jq -r '.head_sha' <<<"$staging")" = "$EXPECTED_SHA"
+          test "$(jq -r '.path' <<<"$staging")" = '.github/workflows/staging.yml'
+
+          before="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+
+          gh workflow run production.yml \
+            --repo Arisofia/nuvanx-siteground \
+            --ref master \
+            -f deploy=true \
+            -f candidate_sha="$EXPECTED_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=true \
+            -f run_hubspot_e2e=true \
+            -f run_final_close_audit=true \
+            -f run_mu_plugin_forensics=true
+
+          child=''
+          for attempt in $(seq 1 30); do
+            runs="$(gh run list --repo Arisofia/nuvanx-siteground --workflow production.yml --branch master --event workflow_dispatch --limit 20 --json databaseId,headSha,status)"
+            child="$(jq -r --argjson before "$before" --arg sha "$EXPECTED_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            if [[ -n "$child" ]]; then
+              break
+            fi
+            sleep 2
+          done
+          [[ "$child" =~ ^[0-9]+$ ]]
+          echo "PRODUCTION_DISPATCH=PASS candidate=$EXPECTED_SHA staging_run=$ACCEPTED_STAGING_RUN production_run=$child"

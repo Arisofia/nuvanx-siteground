@@ -74,7 +74,9 @@
   font-weight: var(--nvx-fw-regular);
   line-height: 1;
   color: var(--nvx-ink);
-  opacity: 0.06;
+  /* Large decorative numeral: retain a subdued appearance while meeting the
+   * 3:1 WCAG AA threshold for large text against --nvx-surface-base. */
+  opacity: 0.48;
   pointer-events: none;
   user-select: none;
 }

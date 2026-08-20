@@ -7,6 +7,7 @@ import {
   validGitHubRunId,
   validateDeployIdentity,
 } from './deploy-identity-contract.mjs';
+import { hasLegacyValoracionDirectForm } from './valoracion-form-contract.mjs';
 
 const CANONICAL_PROD_ROOT = '/home/customer/www/nuvanx.com/public_html';
 const ALLOWED_ORIGIN_ALIASES = new Set(['nvx-prod', 'nvx-prod-audit', 'nvx-prod-hubspot', 'production-siteground']);
@@ -89,7 +90,7 @@ function renderedDocumentIssues(html, route) {
     const frameCount = (html.match(/<div\b[^>]*class=["'][^"']*\bhs-form-frame\b[^"']*["'][^>]*>/gi) || []).length;
     if (frameCount !== 1) issues.push(`Expected exactly one HubSpot form frame, found ${frameCount}`);
     if (!html.includes(HUBSPOT_FORM_ID)) issues.push('Missing canonical HubSpot form ID');
-    if (html.includes('nvx-valoracion-direct-form') || /<form\b[^>]*data-nvx-direct-form/i.test(html)) {
+    if (hasLegacyValoracionDirectForm(html)) {
       issues.push('Legacy first-party valoración form still present');
     }
   }
@@ -197,6 +198,25 @@ require_body() {
   }
 }
 
+legacy_valoracion_direct_form_count() {
+  local body="$1"
+  php -r '
+    $html = @file_get_contents($argv[1]);
+    if (!is_string($html)) { fwrite(STDERR, "legacy_form_body_unreadable\n"); exit(2); }
+    $html = preg_replace("~<script\b[^>]*>.*?</script\s*>|<style\b[^>]*>.*?</style\s*>~is", "", $html);
+    if (!is_string($html)) { fwrite(STDERR, "legacy_form_strip_failed\n"); exit(2); }
+    preg_match_all("~<form\b[^>]*>~i", $html, $forms);
+    $count = 0;
+    foreach ($forms[0] as $tag) {
+      if (preg_match("~(?:^|[^a-z0-9_-])nvx-valoracion-direct-form(?:[^a-z0-9_-]|$)~i", $tag)
+          || preg_match("~\bdata-nvx-direct-form(?:\s*=|\s|/?>)~i", $tag)) {
+        ++$count;
+      }
+    }
+    echo $count;
+  ' -- "$body"
+}
+
 ua='NUVANX-Production-Origin-Boundary/1.3'
 for route in \
   '/' \
@@ -261,8 +281,9 @@ do
       require_body "$body" "$route" 'id="nvx-hubspot-native-form"' || { cleanup; exit 1; }
       require_body "$body" "$route" 'hs-form-frame' || { cleanup; exit 1; }
       require_body "$body" "$route" '${HUBSPOT_FORM_ID}' || { cleanup; exit 1; }
-      ! grep -Fiq 'nvx-valoracion-direct-form' "$body" \
-        || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=legacy_direct_form_marker" >&2; cleanup; exit 1; }
+      legacy_direct_forms="$(legacy_valoracion_direct_form_count "$body")"
+      [[ "$legacy_direct_forms" == '0' ]] \
+        || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=legacy_direct_form count=$legacy_direct_forms" >&2; cleanup; exit 1; }
       ;;
     '/protocolos-signature/')
       require_body "$body" "$route" 'nvx-brand-page nvx-brand-page--signature' || { cleanup; exit 1; }

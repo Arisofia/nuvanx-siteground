@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   retire:
@@ -94,7 +95,6 @@ jobs:
 
           cd "$PROD_ROOT"
           wp cache flush >/dev/null || true
-
           plugin='sg-cachepress'
           activated_temporarily=0
           if wp help sg >/dev/null 2>&1; then
@@ -117,10 +117,16 @@ jobs:
           fi
           REMOTE
 
-      - name: Verify public no-consent boundary after retirement
+      - name: Verify origin no-consent boundary after retirement
         shell: bash
         run: |
           set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_PARENT='$PROD_PARENT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          src="$PROD_ROOT/wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php"
+          backup="$PROD_PARENT/.nvx-backups/retired-mu/nuvanx-meta-dedupe-event-id.php"
+          test ! -e "$src"
+          test -s "$backup"
           routes=(
             '/'
             '/soluciones-medicas/'
@@ -135,29 +141,49 @@ jobs:
           for route in "${routes[@]}"; do
             headers="$(mktemp)"
             body="$(mktemp)"
-            url="https://nuvanx.com${route}?nvx_mu_retire_check=${GITHUB_RUN_ID}-${RANDOM}"
-            code="$(curl -sS -L --max-time 30 -A 'NUVANX-Meta-MU-Retirement/1.0' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}' "$url")"
-            test "$code" = 200
-            ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers"
-            python3 - "$body" <<'PY'
-          import re, sys
-          html = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
-          checks = [
-              r'\bfbq\s*\(',
-              r'connect\.facebook\.net',
-              r'fbevents\.js',
-              r'(?:document\.cookie|cookie\s*=)[\s\S]{0,500}(?:_fbp|_fbc)',
-              r'NVX_META_EVENT_DEDUPE_ACTIVE',
-              r'nvx-meta-event-dedupe-',
-          ]
-          for pattern in checks:
-              if re.search(pattern, html, re.I):
-                  raise SystemExit(f'forbidden browser Meta owner marker: {pattern}')
-          PY
-            rm -f "$headers" "$body"
-            echo "META_MU_PUBLIC_ROUTE=PASS route=$route"
+            cleanup() { rm -f "$headers" "$body"; }
+            result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve 'nuvanx.com:443:127.0.0.1' -A 'NUVANX-Meta-MU-Origin/1.0' -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "https://nuvanx.com${route}")"
+            code="${result%%|*}"
+            test "$code" = 200 || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route code=$code" >&2; cleanup; exit 30; }
+            ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=meta_cookie" >&2; cleanup; exit 31; }
+            ! grep -Eiq 'fbq[[:space:]]*\(' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=fbq" >&2; cleanup; exit 32; }
+            ! grep -Fiq 'connect.facebook.net' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=facebook_loader" >&2; cleanup; exit 33; }
+            ! grep -Fiq 'fbevents.js' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=fbevents" >&2; cleanup; exit 34; }
+            ! grep -Fiq 'NVX_META_EVENT_DEDUPE_ACTIVE' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=dedupe_marker" >&2; cleanup; exit 35; }
+            ! grep -Fiq 'nvx-meta-event-dedupe-' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=dedupe_prefix" >&2; cleanup; exit 36; }
+            php -r '$h=@file_get_contents($argv[1]); if (!is_string($h)) exit(2); if (preg_match("~(?:document\\.cookie|cookie\\s*=)[\\s\\S]{0,500}(?:_fbp|_fbc)~i", $h)) exit(1);' -- "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=cookie_writer" >&2; cleanup; exit 37; }
+            cleanup
+            echo "META_MU_ORIGIN_ROUTE=PASS route=$route"
           done
-          echo "META_MU_PUBLIC_BOUNDARY=PASS routes=${#routes[@]}"
+          echo "META_MU_ORIGIN_BOUNDARY=PASS routes=${#routes[@]} active_owner=absent backup=present"
+          REMOTE
+
+      - name: Dispatch fresh immutable production release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          before="$(gh run list --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run production.yml \
+            --ref master \
+            -f deploy=true \
+            -f candidate_sha="$EXPECTED_MASTER_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=false \
+            -f run_hubspot_e2e=false \
+            -f run_final_close_audit=false \
+            -f run_mu_plugin_forensics=false
+          new_id=''
+          for attempt in $(seq 1 20); do
+            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 10 --json databaseId,headSha)"
+            new_id="$(jq -r --argjson before "$before" --arg sha "$EXPECTED_MASTER_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            [[ "$new_id" =~ ^[0-9]+$ ]] && break
+            sleep 2
+          done
+          [[ "$new_id" =~ ^[0-9]+$ ]]
+          echo "META_MU_PRODUCTION_DISPATCH=PASS sha=$EXPECTED_MASTER_SHA run_id=$new_id"
 
       - name: Cleanup SSH material
         if: always()

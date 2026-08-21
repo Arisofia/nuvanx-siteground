@@ -1,0 +1,165 @@
+name: Retire legacy Meta MU owner once
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  retire:
+    if: github.head_ref == 'ops/retire-meta-mu-owner-20260821'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      PROD_PARENT: /home/customer/www/nuvanx.com
+      EXPECTED_MASTER_SHA: 79cea21ac3e6e8b64a4c48ae8137f0b0ddca23c8
+    steps:
+      - name: Check out exact operational branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Assert release candidate has not moved
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master
+          test "$(git rev-parse origin/master)" = "$EXPECTED_MASTER_SHA"
+          echo "META_MU_RELEASE_GATE=PASS sha=$EXPECTED_MASTER_SHA"
+
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod
+          NVX_SSH_KEY_BASENAME: prod_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
+
+      - name: Backup and retire production-only Meta MU owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_PARENT='$PROD_PARENT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          src="$PROD_ROOT/wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php"
+          backup_dir="$PROD_PARENT/.nvx-backups/retired-mu"
+          backup="$backup_dir/nuvanx-meta-dedupe-event-id.php"
+          mkdir -p "$backup_dir"
+          chmod 700 "$backup_dir"
+
+          if test -f "$src"; then
+            src_hash="$(sha256sum "$src" | awk '{print $1}')"
+            if test -f "$backup"; then
+              backup_hash="$(sha256sum "$backup" | awk '{print $1}')"
+              test "$src_hash" = "$backup_hash" || {
+                echo 'META_MU_BACKUP_GATE=FAIL reason=existing_backup_hash_mismatch' >&2
+                exit 20
+              }
+            else
+              tmp="$backup.tmp.$$"
+              cp -p "$src" "$tmp"
+              chmod 600 "$tmp"
+              test "$(sha256sum "$tmp" | awk '{print $1}')" = "$src_hash"
+              mv "$tmp" "$backup"
+            fi
+            test -s "$backup"
+            php -l "$backup" >/dev/null
+            test "$(sha256sum "$backup" | awk '{print $1}')" = "$src_hash"
+            echo "META_MU_BACKUP_GATE=PASS sha256=${src_hash:0:16} location=outside_public_html"
+            rm -f "$src"
+          elif test -s "$backup"; then
+            php -l "$backup" >/dev/null
+            echo 'META_MU_BACKUP_GATE=PASS state=already_retired location=outside_public_html'
+          else
+            echo 'META_MU_BACKUP_GATE=FAIL reason=source_and_backup_missing' >&2
+            exit 21
+          fi
+
+          test ! -e "$src"
+          test -s "$backup"
+          echo 'META_MU_RETIREMENT=PASS active_owner=absent backup=present'
+
+          cd "$PROD_ROOT"
+          wp cache flush >/dev/null || true
+
+          plugin='sg-cachepress'
+          activated_temporarily=0
+          if wp help sg >/dev/null 2>&1; then
+            wp sg purge >/dev/null
+            echo 'META_MU_CACHE_GATE=PASS mode=existing-command'
+          elif wp plugin is-installed "$plugin" >/dev/null 2>&1; then
+            if ! wp plugin is-active "$plugin" >/dev/null 2>&1; then
+              wp plugin activate "$plugin" --quiet
+              activated_temporarily=1
+            fi
+            wp help sg >/dev/null 2>&1
+            wp sg purge >/dev/null
+            if test "$activated_temporarily" = 1; then
+              wp plugin deactivate "$plugin" --quiet
+              ! wp plugin is-active "$plugin" >/dev/null 2>&1
+            fi
+            echo 'META_MU_CACHE_GATE=PASS mode=transient-plugin-activation'
+          else
+            echo 'META_MU_CACHE_GATE=PASS mode=wp-cache-only sg_command_unavailable=1'
+          fi
+          REMOTE
+
+      - name: Verify public no-consent boundary after retirement
+        shell: bash
+        run: |
+          set -euo pipefail
+          routes=(
+            '/'
+            '/soluciones-medicas/'
+            '/equipo-medico/'
+            '/blog/'
+            '/madrid/valoracion/'
+            '/endolift-primeras-72-horas-que-esperar/'
+            '/protocolos-signature/'
+            '/remodelacion-corporal-laser-madrid/'
+            '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'
+          )
+          for route in "${routes[@]}"; do
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            url="https://nuvanx.com${route}?nvx_mu_retire_check=${GITHUB_RUN_ID}-${RANDOM}"
+            code="$(curl -sS -L --max-time 30 -A 'NUVANX-Meta-MU-Retirement/1.0' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}' "$url")"
+            test "$code" = 200
+            ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers"
+            python3 - "$body" <<'PY'
+          import re, sys
+          html = open(sys.argv[1], encoding='utf-8', errors='ignore').read()
+          checks = [
+              r'\bfbq\s*\(',
+              r'connect\.facebook\.net',
+              r'fbevents\.js',
+              r'(?:document\.cookie|cookie\s*=)[\s\S]{0,500}(?:_fbp|_fbc)',
+              r'NVX_META_EVENT_DEDUPE_ACTIVE',
+              r'nvx-meta-event-dedupe-',
+          ]
+          for pattern in checks:
+              if re.search(pattern, html, re.I):
+                  raise SystemExit(f'forbidden browser Meta owner marker: {pattern}')
+          PY
+            rm -f "$headers" "$body"
+            echo "META_MU_PUBLIC_ROUTE=PASS route=$route"
+          done
+          echo "META_MU_PUBLIC_BOUNDARY=PASS routes=${#routes[@]}"
+
+      - name: Cleanup SSH material
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

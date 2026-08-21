@@ -88,6 +88,15 @@ grep -Fq 'report.external.inconclusiveAntiBot && report.sitegroundPublicEdge.pas
 ! grep -Fq 'report.external.pass || report.external.inconclusiveAntiBot' "$BOUNDARY" || fail 'siteground_challenge_direct_pass_forbidden'
 pass_assert 'siteground-antibot-public-edge-fallback'
 
+# IndexNow public-key check must not treat a GitHub-runner HTTP 202 as a
+# public-edge PASS. It may only continue when the SiteGround host already
+# verified the same public URL (non-loopback) during cutover.
+grep -Fq 'source=siteground-public-edge github_runner_status=' "$WORKFLOW" || fail 'indexnow_github_202_public_edge_evidence_missing'
+grep -Fq 'accept_siteground_public_edge_evidence' "$WORKFLOW" || fail 'indexnow_siteground_public_edge_helper_missing'
+grep -Fq 'INDEXNOW_KEY_PUBLIC=FAIL reason=http_status status=$http_code' "$WORKFLOW" || fail 'indexnow_non_challenge_http_still_fails'
+! grep -Fq 'INDEXNOW_KEY_PUBLIC=PASS source=public-edge github_runner_status=202' "$WORKFLOW" || fail 'indexnow_github_202_direct_public_edge_pass_forbidden'
+pass_assert 'indexnow-github-202-siteground-public-edge'
+
 node "$VALORACION_FORM_CONTRACT_TEST" || fail 'valoracion_form_structural_boundary_behavior'
 pass_assert 'valoracion-form-structural-boundary'
 

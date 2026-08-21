@@ -1,4 +1,4 @@
-name: Retire legacy Meta MU owner once
+name: Locate residual Meta browser writer once
 
 on:
   pull_request:
@@ -6,31 +6,28 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
-  retire:
+  locate:
     if: github.head_ref == 'ops/retire-meta-mu-owner-20260821'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       PROD_ROOT: /home/customer/www/nuvanx.com/public_html
-      PROD_PARENT: /home/customer/www/nuvanx.com
       EXPECTED_MASTER_SHA: 79cea21ac3e6e8b64a4c48ae8137f0b0ddca23c8
     steps:
-      - name: Check out exact operational branch
+      - name: Check out operational branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Assert release candidate has not moved
+      - name: Assert master unchanged
         shell: bash
         run: |
           set -euo pipefail
           git fetch --no-tags origin master
           test "$(git rev-parse origin/master)" = "$EXPECTED_MASTER_SHA"
-          echo "META_MU_RELEASE_GATE=PASS sha=$EXPECTED_MASTER_SHA"
 
       - name: Configure strict production SSH
         shell: bash
@@ -49,46 +46,46 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: bash scripts/production/configure-siteground-ssh.sh
 
-      - name: Confirm retired MU owner and verified backup
+      - name: Locate residual browser Meta writer owners read-only
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_PARENT='$PROD_PARENT' bash -se" <<'REMOTE'
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
           set -Eeuo pipefail
-          src="$PROD_ROOT/wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php"
-          backup="$PROD_PARENT/.nvx-backups/retired-mu/nuvanx-meta-dedupe-event-id.php"
-          test ! -e "$src"
-          test -s "$backup"
-          php -l "$backup" >/dev/null
-          echo 'META_MU_RETIREMENT_GATE=PASS active_owner=absent backup=present location=outside_public_html'
-          REMOTE
+          cd "$PROD_ROOT"
+          echo 'META_OWNER_SCAN=START'
+          find wp-content/mu-plugins wp-content/plugins wp-content/themes -type f \( -name '*.php' -o -name '*.js' -o -name '*.html' \) -size -3M -print0 2>/dev/null \
+            | xargs -0 -r grep -IlE '(document\.cookie|cookie[[:space:]]*=|_fbp|_fbc|NVX_META_EVENT_DEDUPE_ACTIVE|nvx-meta-event-dedupe-)' 2>/dev/null \
+            | sort -u \
+            | while IFS= read -r file; do
+                labels=''
+                grep -Eq 'document\.cookie|cookie[[:space:]]*=' "$file" && labels="${labels}cookie_api," || true
+                grep -Eq '_fbp' "$file" && labels="${labels}fbp," || true
+                grep -Eq '_fbc' "$file" && labels="${labels}fbc," || true
+                grep -Fq 'NVX_META_EVENT_DEDUPE_ACTIVE' "$file" && labels="${labels}dedupe_marker," || true
+                grep -Fq 'nvx-meta-event-dedupe-' "$file" && labels="${labels}dedupe_prefix," || true
+                printf 'META_OWNER_FILE path=%s patterns=%s\n' "$file" "${labels%,}"
+              done
 
-      - name: Dispatch fresh immutable production release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          before="$(gh run list --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
-          gh workflow run production.yml \
-            --ref master \
-            -f deploy=true \
-            -f candidate_sha="$EXPECTED_MASTER_SHA" \
-            -f release_mode=release \
-            -f run_post_audits=true \
-            -f run_performance=false \
-            -f run_hubspot_e2e=false \
-            -f run_final_close_audit=false \
-            -f run_mu_plugin_forensics=false
-          new_id=''
-          for attempt in $(seq 1 20); do
-            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 10 --json databaseId,headSha)"
-            new_id="$(jq -r --argjson before "$before" --arg sha "$EXPECTED_MASTER_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
-            [[ "$new_id" =~ ^[0-9]+$ ]] && break
-            sleep 2
-          done
-          [[ "$new_id" =~ ^[0-9]+$ ]]
-          echo "META_MU_PRODUCTION_DISPATCH=PASS sha=$EXPECTED_MASTER_SHA run_id=$new_id"
+          wp eval '
+          global $wpdb;
+          $table = $wpdb->prefix . "snippets";
+          $rows = $wpdb->get_results("SELECT id,name,active,code FROM {$table}", ARRAY_A);
+          foreach ($rows as $row) {
+            $code = (string)($row["code"] ?? "");
+            $patterns = array();
+            if (preg_match("~document\\.cookie|cookie\\s*=~i", $code)) $patterns[] = "cookie_api";
+            if (stripos($code, "_fbp") !== false) $patterns[] = "fbp";
+            if (stripos($code, "_fbc") !== false) $patterns[] = "fbc";
+            if (strpos($code, "NVX_META_EVENT_DEDUPE_ACTIVE") !== false) $patterns[] = "dedupe_marker";
+            if (strpos($code, "nvx-meta-event-dedupe-") !== false) $patterns[] = "dedupe_prefix";
+            if ($patterns) {
+              printf("META_OWNER_SNIPPET id=%d active=%d name=%s patterns=%s\n", (int)$row["id"], (int)$row["active"], preg_replace("~[^A-Za-z0-9 _.-]~", "", (string)$row["name"]), implode(",", $patterns));
+            }
+          }
+          ' --skip-themes --allow-root
+          echo 'META_OWNER_SCAN=END'
+          REMOTE
 
       - name: Cleanup SSH material
         if: always()

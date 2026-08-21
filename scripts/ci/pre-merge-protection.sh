@@ -120,6 +120,9 @@ fi
 # === 10. HubSpot ===
 echo ""
 echo "=== HUBSPOT ==="
+if [[ -f "scripts/staging2/test-functional-consent-host-contract.mjs" ]]; then
+  run_check "Functional consent host marker" "node scripts/staging2/test-functional-consent-host-contract.mjs"
+fi
 if [[ -f "scripts/staging2/test-hubspot-specific-gate.mjs" ]]; then
   # Only run if agent-browser is available
   if command -v agent-browser &> /dev/null; then

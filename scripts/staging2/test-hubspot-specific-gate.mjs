@@ -3,6 +3,29 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const AGENT_BROWSER = 'agent-browser';
+export const NVX_VALORACION_FORM_HOST_ID = 'nvx-hubspot-native-form';
+
+/**
+ * True only when #nvx-hubspot-native-form itself carries data-nvx-consent="functional".
+ * Attribute order on that opening tag does not matter. A stray marker elsewhere does not pass.
+ */
+export function hasFunctionalConsentOnNativeFormHost(html) {
+  if (typeof html !== 'string' || html === '') {
+    return false;
+  }
+
+  const hostOpen = html.match(
+    new RegExp(
+      `<div\\b(?=[^>]*\\bid=["']${NVX_VALORACION_FORM_HOST_ID}["'])[^>]*>`,
+      'i'
+    )
+  );
+  if (!hostOpen) {
+    return false;
+  }
+
+  return /\bdata-nvx-consent=["']functional["']/i.test(hostOpen[0]);
+}
 
 function runAgentBrowser(args) {
   const result = spawnSync(AGENT_BROWSER, args, { encoding: 'utf8', timeout: 30000 });
@@ -41,7 +64,7 @@ async function validateHubSpotIframe(url) {
     // when marketing consent is denied; this marker is the deployment contract.
     const requiresFunctionalConsentMarker = /\/madrid\/valoracion\/?$/i.test(new URL(url).pathname)
       || process.env.REQUIRE_FUNCTIONAL_CONSENT_MARKER === '1';
-    checks.functionalConsentMarker = /<div(?=[^>]*\bid=["']nvx-hubspot-native-form["'])(?=[^>]*\bdata-nvx-consent=["']functional["'])[^>]*>/i.test(html);
+    checks.functionalConsentMarker = hasFunctionalConsentOnNativeFormHost(html);
     if (requiresFunctionalConsentMarker && !checks.functionalConsentMarker) {
       issues.push('Functional consent marker missing from the valuation form host');
     }

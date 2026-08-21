@@ -55,13 +55,13 @@ if ( ! str_contains( $exilite_json, 'manchas y rojeces' )
 	$fail( 'EXILITE transactional page must expose candidacy/reservation/tariff hydration' );
 }
 
-if ( ! str_contains( $blog_meta, '"canonical_path": "/btl-exilite-ipl-madrid/"' )
+if ( str_contains( $blog_meta, '"canonical_path": "/btl-exilite-ipl-madrid/"' )
 	|| ! str_contains( $blog_php, 'tratamiento IPL médico en Madrid' )
 	|| ! str_contains( $blog_php, 'guía completa del Endolift® facial en Madrid' )
 	|| ! str_contains( $blog_php, 'ficha completa del tratamiento' )
 	|| ! str_contains( $blog_php, 'function nvx_theme_wrap_top1_commercial_mentions' )
 	|| ! str_contains( $blog_runtime, 'function nvx_governed_blog_html_canonical_url' ) ) {
-	$fail( 'IPL Journal article must canonical to EXILITE and Top-1 articles must link their commercial fichas' );
+	$fail( 'IPL Journal article must remain self-canonical and Top-1 articles must link their commercial fichas' );
 }
 
 $valoracion_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-valoracion-managed-page.php' );

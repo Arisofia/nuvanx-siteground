@@ -178,7 +178,7 @@ ob_start();
 								'alt'      => (string) ( $photo['alt'] ?? '' ),
 								'loading'  => 'lazy',
 								'decoding' => 'async',
-								'sizes'    => '(min-width: 1024px) 25vw, (min-width: 641px) 50vw, 100vw',
+								'sizes'    => '(min-width: 1024px) 50vw, (min-width: 641px) 50vw, 100vw',
 							)
 						);
 						if ( '' === $image ) {

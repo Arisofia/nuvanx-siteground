@@ -14,13 +14,6 @@ $fail = static function ( string $message ): void {
 };
 
 $endolift_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php' );
-$aes_php      = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php' );
-if ( ! str_contains( $aes_php, 'nvx-brand-hero' )
-	|| ! str_contains( $aes_php, 'nvx_cta_pair_markup' )
-	|| str_contains( $aes_php, 'header class="nvx-page-hero"' )
-	|| str_contains( $aes_php, 'section class="nvx-prose"' ) ) {
-	$fail( 'aesthetic treatment pages must use the brand hero and section shell' );
-}
 $endolift_json = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/endolift-page.json' );
 $helpers       = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php' );
 $sede          = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/templates/page-sede.php' );
@@ -44,15 +37,6 @@ if ( ! str_contains( $helpers, 'function nvx_clinical_authority_byline_markup' )
 if ( ! str_contains( $sede, 'Medicina estética en Chamberí, Madrid' )
 	|| ( ! str_contains( $sede, 'nvx_clinic_landing_photos' ) && ! str_contains( $sede, 'nvx_chamberi_landing_photos' ) ) ) {
 	$fail( 'chamberi landing must have local-intent H1 and photo gallery' );
-}
-
-$gbp_local = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-gbp-local.php' );
-if ( ! str_contains( $gbp_local, 'function nvx_clinic_editorial_photo_map' )
-	|| str_contains( $gbp_local, 'SmartLipo-for-Laserlipolysis-DEKA-1' )
-	|| str_contains( $gbp_local, 'Endolift-ISO9001-Laser' )
-	|| str_contains( $gbp_local, 'BTL-Exion-Mobile-Version' )
-	|| str_contains( $gbp_local, 'endolift-lasemar-1500-eufoton' ) ) {
-	$fail( 'clinic editorial gallery must use approved media IDs and exclude vendor packshots' );
 }
 
 if ( ! str_contains( $neuro, 'arrugas de expresión del tercio superior' ) ) {

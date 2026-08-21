@@ -15,6 +15,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/nvx-page-render-helpers.php';
 
 /**
+ * Authorized CO₂ facial photo. Always use the original 760×510 file as src.
+ */
+function nvx_co2_authorized_hero_media_markup(): string {
+	$attachment_id = 2086;
+	$file          = get_attached_file( $attachment_id );
+	$url           = wp_get_attachment_url( $attachment_id );
+	if ( ! is_string( $file ) || ! is_readable( $file ) || ! is_string( $url ) || '' === $url ) {
+		return '';
+	}
+
+	$srcset = array( esc_url( $url ) . ' 760w' );
+	$medium = preg_replace( '/nvx-co2-hero-760\.webp$/i', 'nvx-co2-hero-760-300x201.webp', $url );
+	if ( is_string( $medium ) && $medium !== $url && function_exists( 'nvx_local_upload_url_exists' ) && nvx_local_upload_url_exists( $medium ) ) {
+		$srcset[] = esc_url( $medium ) . ' 300w';
+	}
+
+	$img  = '<img class="nvx-media nvx-media--hero" src="' . esc_url( $url ) . '"';
+	$img .= ' width="760" height="510"';
+	$img .= ' alt="' . esc_attr__( 'NUVANX — Láser CO₂ fraccionado — tratamiento facial', 'nuvanx-medical' ) . '"';
+	$img .= ' srcset="' . esc_attr( implode( ', ', $srcset ) ) . '"';
+	$img .= ' sizes="(min-width: 48rem) 50vw, 100vw"';
+	$img .= ' loading="eager" decoding="async" fetchpriority="high">';
+
+	return '<figure class="nvx-brand-hero__media nvx-brand-hero__media--authorized">' . $img . '</figure>';
+}
+
+/**
  * Singular context for CO₂ rewrite.
  */
 function nvx_co2_is_singular_context(): bool {
@@ -176,33 +203,16 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		return $content;
 	}
 
-	$media = nvx_page_extract_brand_hero_media( $content );
-	$reject_collage = ( false !== strpos( $media, 'laser-co2-fraccionado-madrid-textura' )
-		|| false !== strpos( $media, 'wp-image-3074' )
-		|| false !== strpos( $media, 'Deka.webp' )
-		|| false !== strpos( $media, 'laser-medico-nuvanx-madrid' ) );
-	if ( '' === $media || $reject_collage ) {
-		$co2_id   = 2086;
-		$co2_file = get_attached_file( $co2_id );
-		if ( is_string( $co2_file ) && is_readable( $co2_file ) ) {
-			$img = wp_get_attachment_image(
-				$co2_id,
-				'full',
-				false,
-				array(
-					'alt'           => __( 'NUVANX — Láser CO₂ fraccionado — tratamiento facial', 'nuvanx-medical' ),
-					'loading'       => 'eager',
-					'decoding'      => 'async',
-					'fetchpriority' => 'high',
-					'sizes'         => '(min-width: 900px) 50vw, 100vw',
-				)
-			);
-			if ( '' !== $img ) {
-				$media = '<figure class="nvx-brand-hero__media nvx-brand-hero__media--authorized">' . $img . '</figure>';
-			} elseif ( $reject_collage ) {
-				$media = '';
-			}
-		} elseif ( $reject_collage ) {
+	// Always emit the authorized original (760×510). wp_get_attachment_image +
+	// the responsive rewriter otherwise promote nvx-co2-hero-760-150x150.webp.
+	$media = nvx_co2_authorized_hero_media_markup();
+	if ( '' === $media ) {
+		$media          = nvx_page_extract_brand_hero_media( $content );
+		$reject_collage = ( false !== strpos( $media, 'laser-co2-fraccionado-madrid-textura' )
+			|| false !== strpos( $media, 'wp-image-3074' )
+			|| false !== strpos( $media, 'Deka.webp' )
+			|| false !== strpos( $media, 'laser-medico-nuvanx-madrid' ) );
+		if ( $reject_collage ) {
 			$media = '';
 		}
 	}

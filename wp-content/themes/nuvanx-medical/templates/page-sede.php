@@ -205,6 +205,10 @@ ob_start();
 		</section>
 			<?php
 		endif;
+
+		if ( 'goya' === $clinic_key && function_exists( 'nvx_goya_clinical_team_markup' ) ) {
+			echo nvx_goya_clinical_team_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+		}
 		?>
 
 		<?php

@@ -347,6 +347,29 @@ function nvx_upload_responsive_candidates( string $url ): array {
 		$out[ $width ] = $base_url . basename( $file );
 	}
 
+	// Prefer the uncropped original (stem.webp), not getimagesize() of a
+	// -WIDTHxHEIGHT thumbnail that may already be $local.
+	$original_found = false;
+	foreach ( array( 'webp', 'jpg', 'jpeg', 'png' ) as $ext ) {
+		$original_file = $dir . '/' . $stem . '.' . $ext;
+		if ( ! is_readable( $original_file ) ) {
+			continue;
+		}
+		$size = @getimagesize( $original_file );
+		if ( is_array( $size ) && (int) $size[0] > 0 ) {
+			$out[ (int) $size[0] ] = $base_url . basename( $original_file );
+			$original_found        = true;
+		}
+		break;
+	}
+
+	if ( ! $original_found ) {
+		$original_size = @getimagesize( $local );
+		if ( is_array( $original_size ) && (int) $original_size[0] > 0 ) {
+			$out[ (int) $original_size[0] ] = $url;
+		}
+	}
+
 	return $out;
 }
 
@@ -388,6 +411,7 @@ function nvx_known_image_intrinsics(): array {
 		'Espalda-novias'                                 => array( 941, 1672 ),
 		'Papada-novias'                                  => array( 1536, 1024 ),
 		'Protocolo-Endolift-Thermage-Morpheus8-ultherapy' => array( 383, 558 ),
+		'nvx-co2-hero-760'                               => array( 760, 510 ),
 	);
 }
 
@@ -438,7 +462,7 @@ function nvx_image_dimensions_for_url( string $url ): array {
  * Add srcset, sizes, dimensions and a modern src to a body/content img.
  */
 function nvx_content_enhance_img_tag_attrs( string $attrs ): string {
-	if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero/i', $attrs ) ) {
+	if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero|nvx-brand-hero__media|fetchpriority/i', $attrs ) ) {
 		return $attrs;
 	}
 

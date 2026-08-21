@@ -146,6 +146,130 @@ function nvx_clinic_landing_photos( string $clinic_key ): array {
 	return $photos;
 }
 
+/**
+ * Vendor packshot stems that must not appear on sede landings.
+ *
+ * Tech copy and Chamberí YouTube links stay; only product-shot files go.
+ *
+ * @return string
+ */
+function nvx_clinic_vendor_packshot_regex(): string {
+	return '/SmartLipo-for-Laserlipolysis-DEKA|Endolift-ISO9001-Laser|BTL-Exion-Mobile-Version|endolift-lasemar-1500-eufoton/i';
+}
+
+function nvx_clinic_html_contains_vendor_packshot( string $html ): bool {
+	return (bool) preg_match( nvx_clinic_vendor_packshot_regex(), $html );
+}
+
+/**
+ * Drop vendor packshot figures from Chamberí/Goya rendered content.
+ */
+function nvx_clinic_strip_vendor_packshots( string $content ): string {
+	if ( is_admin() || '' === $content ) {
+		return $content;
+	}
+	if ( ! function_exists( 'nvxIsSedeTemplate' ) || ! nvxIsSedeTemplate() ) {
+		return $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<figure\b[^>]*>[\s\S]*?<\/figure>/iu',
+		static function ( array $match ): string {
+			return nvx_clinic_html_contains_vendor_packshot( $match[0] ) ? '' : $match[0];
+		},
+		$content
+	);
+	if ( ! is_string( $updated ) ) {
+		$updated = $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<img\b[^>]*>/iu',
+		static function ( array $match ): string {
+			return nvx_clinic_html_contains_vendor_packshot( $match[0] ) ? '' : $match[0];
+		},
+		$updated
+	);
+	if ( ! is_string( $updated ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace( '/<div class="nvx-brand-grid[^"]*">\s*<\/div>/iu', '', $updated );
+
+	return is_string( $updated ) ? $updated : $content;
+}
+add_filter( 'the_content', 'nvx_clinic_strip_vendor_packshots', 199 );
+
+/**
+ * Goya-only clinical portraits. Never used on Equipo Médico or Chamberí.
+ *
+ * @return array<int,array{id:int,name:string,role:string,alt:string}>
+ */
+function nvx_goya_clinical_team_map(): array {
+	return array(
+		array(
+			'id'   => 3101,
+			'name' => __( 'Gosia', 'nuvanx-medical' ),
+			'role' => __( 'Equipo clínico · Salamanca–Goya', 'nuvanx-medical' ),
+			'alt'  => __( 'Gosia — equipo clínico NUVANX en Salamanca–Goya', 'nuvanx-medical' ),
+		),
+		array(
+			'id'   => 3100,
+			'name' => __( 'Eva', 'nuvanx-medical' ),
+			'role' => __( 'Equipo clínico · Salamanca–Goya', 'nuvanx-medical' ),
+			'alt'  => __( 'Eva — equipo clínico NUVANX en Salamanca–Goya', 'nuvanx-medical' ),
+		),
+	);
+}
+
+/** Readable Goya team cards, or empty when both attachments are missing. */
+function nvx_goya_clinical_team_markup(): string {
+	$cards = '';
+
+	foreach ( nvx_goya_clinical_team_map() as $member ) {
+		$attachment_id = (int) $member['id'];
+		$source_path   = get_attached_file( $attachment_id );
+		if ( ! is_string( $source_path ) || '' === $source_path || ! is_readable( $source_path ) ) {
+			continue;
+		}
+
+		$image = wp_get_attachment_image(
+			$attachment_id,
+			'full',
+			false,
+			array(
+				'class'    => 'nvx-media nvx-media--doctor',
+				'alt'      => (string) $member['alt'],
+				'loading'  => 'lazy',
+				'decoding' => 'async',
+				'sizes'    => '(min-width: 981px) 28vw, (min-width: 641px) 45vw, 100vw',
+			)
+		);
+		if ( ! is_string( $image ) || '' === $image ) {
+			continue;
+		}
+
+		$cards .= '<article class="nvx-brand-card nvx-brand-card--team">';
+		$cards .= '<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $image . '</figure>';
+		$cards .= '<h3 class="nvx-brand-card__title">' . esc_html( (string) $member['name'] ) . '</h3>';
+		$cards .= '<p class="nvx-brand-card__body">' . esc_html( (string) $member['role'] ) . '</p>';
+		$cards .= '</article>';
+	}
+
+	if ( '' === $cards ) {
+		return '';
+	}
+
+	$html  = '<section class="nvx-brand-section nvx-clinic-team" aria-labelledby="nvx-goya-team-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo en Goya', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-goya-team-title" class="nvx-brand-title">' . esc_html__( 'Quién te recibe en Salamanca–Goya', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-equipo-staff-grid">' . $cards . '</div>';
+	$html .= '</div></section>';
+
+	return $html;
+}
+
 /** Backward-compatible Chamberí helper used by schema. */
 function nvx_chamberi_landing_photos(): array {
 	return nvx_clinic_landing_photos( 'chamberi' );

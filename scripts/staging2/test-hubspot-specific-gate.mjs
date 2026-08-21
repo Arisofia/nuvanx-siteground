@@ -39,8 +39,10 @@ async function validateHubSpotIframe(url) {
 
     // The valuation form is intentionally functional so it must remain available
     // when marketing consent is denied; this marker is the deployment contract.
-    checks.functionalConsentMarker = /data-nvx-consent=["']functional["']/i.test(html);
-    if (!checks.functionalConsentMarker) {
+    const requiresFunctionalConsentMarker = /\/madrid\/valoracion\/?$/i.test(new URL(url).pathname)
+      || process.env.REQUIRE_FUNCTIONAL_CONSENT_MARKER === '1';
+    checks.functionalConsentMarker = /<div(?=[^>]*\bid=["']nvx-hubspot-native-form["'])(?=[^>]*\bdata-nvx-consent=["']functional["'])[^>]*>/i.test(html);
+    if (requiresFunctionalConsentMarker && !checks.functionalConsentMarker) {
       issues.push('Functional consent marker missing from the valuation form host');
     }
 

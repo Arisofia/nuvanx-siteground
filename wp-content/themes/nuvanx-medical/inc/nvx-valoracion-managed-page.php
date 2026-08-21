@@ -107,17 +107,18 @@ function nvx_valoracion_hubspot_bootstrap_markup(): string {
 		// The valuation form is a functional lead-request channel. Its HubSpot embed
 		// must remain available when marketing cookies are declined; attribution and
 		// other marketing scripts continue to require Complianz marketing consent.
-		return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';var recoveryTimer=0;'
+		return '<script id="nvx-valoracion-form-eager">(function(){"use strict";var cfg=' . $config . ';var recoveryTimer=0;var formHost=null;'
 			. 'function hostMatches(hostname,domain){hostname=String(hostname||"").toLowerCase();return hostname===domain||hostname.slice(-(domain.length+1))==="."+domain;}'
 			. 'function isAllowedHubSpotHost(hostname){return hostMatches(hostname,"hsforms.net")||hostMatches(hostname,"hsforms.com")||hostMatches(hostname,"hubspot.com");}'
-			. 'function hasMarketingConsent(){if(typeof window.cmplz_has_consent!=="function"){return false;}try{return window.cmplz_has_consent("marketing")===true;}catch(e){return false;}}' . 'function hasFormAccess(){var host=document.getElementById("nvx-hubspot-native-form");if(host&&host.getAttribute("data-nvx-consent")==="functional"){return true;}return hasMarketingConsent();}'
+			. 'function getFormHost(){if(formHost&&document.documentElement.contains(formHost)){return formHost;}formHost=document.getElementById("nvx-hubspot-native-form");return formHost;}'
+			. 'function hasMarketingConsent(){if(typeof window.cmplz_has_consent!=="function"){return false;}try{return window.cmplz_has_consent("marketing")===true;}catch(e){return false;}}' . 'function hasFormAccess(){var host=getFormHost();if(host&&host.getAttribute("data-nvx-consent")==="functional"){return true;}return hasMarketingConsent();}'
 		. 'function iframeIsHubSpot(iframe){if(!iframe){return false;}var src=(iframe.getAttribute("src")||"").trim();if(!src||src==="about:blank"){return false;}try{return isAllowedHubSpotHost(new URL(src,window.location.href).hostname);}catch(e){return false;}}'
 		. 'function hasUsableHubSpotIframe(root){if(!root||!hasFormAccess()){return false;}var iframes=root.querySelectorAll("iframe");for(var i=0;i<iframes.length;i++){if(iframeIsHubSpot(iframes[i])){return true;}}return false;}'
 		. 'function isRenderable(root){if(!root||!hasFormAccess()){return false;}if(root.querySelector(".hbspt-form input,.hbspt-form textarea,.hs-form input")){return true;}return hasUsableHubSpotIframe(root);}'
 		. 'function formIsDirty(form){if(!form){return false;}var els=form.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=checkbox]),textarea");for(var i=0;i<els.length;i++){if(String(els[i].value||"").trim()){return true;}}return false;}'
 		. 'function sync(host,frame){if(!host){return;}var live=isRenderable(host)||isRenderable(frame);var form=host.querySelector("[data-nvx-direct-form]");if(live&&!formIsDirty(form)){host.classList.add("nvx-hubspot-is-live");}else{host.classList.remove("nvx-hubspot-is-live");}}'
 		. 'function hasActiveEmbed(){var scripts=document.querySelectorAll("#nvx-hubspot-forms-runtime,script[data-nvx-hubspot-canonical=\\"1\\"],script[src*=\\"/forms/embed/\\"]");for(var i=0;i<scripts.length;i++){var type=(scripts[i].getAttribute("type")||"text/javascript").toLowerCase();if(type==="text/plain"){continue;}return true;}return false;}'
-		. 'function boot(){var host=document.getElementById("nvx-hubspot-native-form");if(!host){return;}'
+		. 'function boot(){var host=getFormHost();if(!host){return;}'
 		. 'var frames=host.querySelectorAll(".hs-form-frame");var frame=null;var i;'
 		. 'for(i=0;i<frames.length;i++){if(hasUsableHubSpotIframe(frames[i])||isRenderable(frames[i])){frame=frames[i];break;}}'
 		. 'if(!frame){frame=frames[0]||null;}'

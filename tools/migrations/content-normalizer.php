@@ -5,7 +5,6 @@
  * @package NVX\Migrations
  */
 
-declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
     fwrite( STDERR, "CONTENT_NORMALIZER=FAIL reason=wordpress_not_loaded\n" );

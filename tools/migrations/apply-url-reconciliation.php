@@ -12,7 +12,6 @@
  * @package NVX\Migrations
  */
 
-declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
 	fwrite( STDERR, "ERROR: must run inside WordPress via wp eval \"require '...';\".\n" );

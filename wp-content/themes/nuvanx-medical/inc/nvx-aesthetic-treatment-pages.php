@@ -219,12 +219,29 @@ function nvx_aesthetic_treatment_list( array $items ): string {
 	if ( empty( $items ) ) {
 		return '';
 	}
-	$html = '<ul class="nvx-treatment-page__list">';
+	$html = '<ul class="nvx-brand-list" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
 	$html .= '</ul>';
 	return $html;
+}
+
+/**
+ * Open a brand section with a canonical H2.
+ */
+function nvx_aesthetic_treatment_section_open( string $heading_id, string $title ): string {
+	$heading = '<h2 id="' . esc_attr( $heading_id ) . '" class="nvx-brand-title">' . esc_html( $title ) . '</h2>';
+	if ( function_exists( 'nvx_page_brand_section_open_markup' ) ) {
+		return nvx_page_brand_section_open_markup( '', $heading_id ) . $heading;
+	}
+
+	return '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $heading_id ) . '"><div class="nvx-brand-section__inner">' . $heading;
+}
+
+/** Close a brand section opened by nvx_aesthetic_treatment_section_open(). */
+function nvx_aesthetic_treatment_section_close(): string {
+	return '</div></section>';
 }
 
 /**
@@ -237,7 +254,10 @@ function nvx_aesthetic_treatment_copy_section( string $title, string $copy ): st
 	if ( '' === trim( $copy ) ) {
 		return '';
 	}
-	return '<section class="nvx-treatment-page__section"><h2>' . esc_html( $title ) . '</h2><p>' . esc_html( $copy ) . '</p></section>';
+	$id = 'nvx-treatment-' . sanitize_title( $title );
+	return nvx_aesthetic_treatment_section_open( $id, $title )
+		. '<p class="nvx-body">' . esc_html( $copy ) . '</p>'
+		. nvx_aesthetic_treatment_section_close();
 }
 
 /**
@@ -267,40 +287,48 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 	$sessions   = (string) ( $page['sessions'] ?? $protocol['sessions'] ?? $schema['sessions'] ?? '' );
 	$downtime   = (string) ( $page['downtime'] ?? $protocol['downtime'] ?? $schema['downtime'] ?? '' );
 	?>
-	<article class="nvx-page nvx-page__content" data-nvx-treatment-page>
-		<header class="nvx-page-hero">
-			<div class="nvx-page-hero__copy">
-				<p class="nvx-kicker"><?php echo esc_html( (string) $page['kicker'] ); ?></p>
-				<h1><?php echo esc_html( (string) $page['h1'] ); ?></h1>
+	<div class="nvx-treatment-editorial" data-nvx-treatment-page>
+		<section class="nvx-brand-hero" aria-labelledby="nvx-treatment-h1">
+			<div class="nvx-brand-hero__inner">
 				<?php
-				if ( function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
-					echo nvx_clinical_authority_byline_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
-				}
+				echo nvx_brand_hero_copy_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+					array(
+						'kicker'             => (string) $page['kicker'],
+						'h1_id'              => 'nvx-treatment-h1',
+						'h1'                 => (string) $page['h1'],
+						'byline'             => true,
+						'lead'               => (string) $page['lead'],
+						'cta_fallback_label' => __( 'Solicitar valoración médica', 'nuvanx-medical' ),
+						'meta'               => __( 'Chamberí (CS20144) · Salamanca–Goya (CS20073)', 'nuvanx-medical' ),
+					)
+				);
 				?>
-				<p class="nvx-lead"><?php echo esc_html( (string) $page['lead'] ); ?></p>
-				<a class="nvx-button nvx-button--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
 			</div>
-		</header>
+		</section>
 
-		<section class="nvx-prose"><h2><?php esc_html_e( 'Diagnóstico médico', 'nuvanx-medical' ); ?></h2><p><?php echo esc_html( (string) $page['diagnosis'] ); ?></p></section>
-		<section class="nvx-prose"><h2><?php esc_html_e( 'Cuándo puede estar indicado', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['indications'] ) ); ?></section>
+		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Diagnóstico médico', 'nuvanx-medical' ), (string) $page['diagnosis'] ) ); ?>
 		<?php
+		echo wp_kses_post(
+			nvx_aesthetic_treatment_section_open( 'nvx-treatment-indications', __( 'Cuándo puede estar indicado', 'nuvanx-medical' ) )
+			. nvx_aesthetic_treatment_list( (array) $page['indications'] )
+			. nvx_aesthetic_treatment_section_close()
+		);
 		$yes = array_values( array_filter( array_map( 'strval', (array) ( $page['indications'] ?? array() ) ) ) );
 		$no  = array_values( array_filter( array_map( 'strval', (array) ( $page['precautions'] ?? array() ) ) ) );
-		if ( function_exists( 'nvx_candidacy_markup' ) && ( array() !== $yes || array() !== $no ) ) :
-			?>
-		<section class="nvx-prose" aria-labelledby="nvx-treatment-candidacy">
-			<h2 id="nvx-treatment-candidacy"><?php esc_html_e( 'Quién es candidato y quién no', 'nuvanx-medical' ); ?></h2>
-			<?php echo nvx_candidacy_markup( $yes, $no ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes. ?>
-		</section>
-		<?php endif; ?>
-		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo actúa', 'nuvanx-medical' ), (string) $page['mechanism'] ) ); ?>
-		<section class="nvx-prose"><h2><?php esc_html_e( 'Cómo es el tratamiento', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['process'] ) ); ?></section>
-		<?php echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Evolución esperable', 'nuvanx-medical' ), (string) $page['evolution'] ) ); ?>
-		<?php
+		if ( function_exists( 'nvx_candidacy_markup' ) && ( array() !== $yes || array() !== $no ) ) {
+			echo wp_kses_post( nvx_aesthetic_treatment_section_open( 'nvx-treatment-candidacy', __( 'Quién es candidato y quién no', 'nuvanx-medical' ) ) );
+			echo nvx_candidacy_markup( $yes, $no ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+			echo wp_kses_post( nvx_aesthetic_treatment_section_close() );
+		}
+		echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Cómo actúa', 'nuvanx-medical' ), (string) $page['mechanism'] ) );
+		echo wp_kses_post(
+			nvx_aesthetic_treatment_section_open( 'nvx-treatment-process', __( 'Cómo es el tratamiento', 'nuvanx-medical' ) )
+			. nvx_aesthetic_treatment_list( (array) $page['process'] )
+			. nvx_aesthetic_treatment_section_close()
+		);
+		echo wp_kses_post( nvx_aesthetic_treatment_copy_section( __( 'Evolución esperable', 'nuvanx-medical' ), (string) $page['evolution'] ) );
 		if ( 'neuromoduladores-faciales-madrid' === (string) ( $page['slug'] ?? '' ) && function_exists( 'nvx_recovery_table_markup' ) ) {
-			echo '<section class="nvx-prose" aria-labelledby="nvx-neuro-recovery">';
-			echo '<h2 id="nvx-neuro-recovery">' . esc_html__( 'Recuperación y vuelta a la actividad', 'nuvanx-medical' ) . '</h2>';
+			echo wp_kses_post( nvx_aesthetic_treatment_section_open( 'nvx-neuro-recovery', __( 'Recuperación y vuelta a la actividad', 'nuvanx-medical' ) ) );
 			echo nvx_recovery_table_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
 				array(
 					array(
@@ -326,50 +354,56 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 				),
 				__( 'Recuperación orientativa de neuromoduladores', 'nuvanx-medical' )
 			);
-			echo '</section>';
+			echo wp_kses_post( nvx_aesthetic_treatment_section_close() );
+		}
+
+		if ( $price || $duration || $session || $anesthesia || $sessions || $downtime || $brands || $techniques ) {
+			echo wp_kses_post( nvx_aesthetic_treatment_section_open( 'nvx-treatment-facts', __( 'Datos orientativos', 'nuvanx-medical' ) ) );
+			echo '<ul class="nvx-brand-list" role="list">';
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Precio orientativo', 'nuvanx-medical' ), $price ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Duración del resultado', 'nuvanx-medical' ), $duration ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Tiempo de sesión', 'nuvanx-medical' ), $session ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Anestesia', 'nuvanx-medical' ), $anesthesia ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Sesiones', 'nuvanx-medical' ), $sessions ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Recuperación', 'nuvanx-medical' ), $downtime ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Marcas / productos', 'nuvanx-medical' ), implode( ', ', $brands ) ) );
+			echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Técnicas', 'nuvanx-medical' ), implode( ', ', $techniques ) ) );
+			echo '</ul>';
+			echo wp_kses_post( nvx_aesthetic_treatment_section_close() );
+		}
+
+		echo wp_kses_post(
+			nvx_aesthetic_treatment_section_open( 'nvx-treatment-safety', __( 'Seguridad y valoración', 'nuvanx-medical' ) )
+			. nvx_aesthetic_treatment_list( (array) $page['precautions'] )
+			. nvx_aesthetic_treatment_section_close()
+		);
+		echo wp_kses_post(
+			nvx_aesthetic_treatment_section_open( 'nvx-treatment-risks', __( 'Riesgos y efectos adversos', 'nuvanx-medical' ) )
+			. nvx_aesthetic_treatment_list( (array) $page['risks'] )
+			. nvx_aesthetic_treatment_section_close()
+		);
+
+		if ( ! empty( $page['combinations'] ) ) {
+			echo wp_kses_post(
+				nvx_aesthetic_treatment_section_open( 'nvx-treatment-combinations', __( 'Combinaciones posibles', 'nuvanx-medical' ) )
+				. nvx_aesthetic_treatment_list( (array) $page['combinations'] )
+				. nvx_aesthetic_treatment_section_close()
+			);
+		}
+
+		if ( ! empty( $page['faqs'] ) ) {
+			echo wp_kses_post( nvx_aesthetic_treatment_section_open( 'nvx-treatment-faqs', __( 'Preguntas frecuentes', 'nuvanx-medical' ) ) );
+			if ( function_exists( 'nvx_faq_direct_answer_markup' ) ) {
+				echo nvx_faq_direct_answer_markup( (array) $page['faqs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+			} else {
+				foreach ( (array) $page['faqs'] as $faq ) {
+					echo '<details><summary>' . esc_html( (string) ( $faq['q'] ?? '' ) ) . '</summary><p class="nvx-body">' . esc_html( (string) ( $faq['a'] ?? '' ) ) . '</p></details>';
+				}
+			}
+			echo wp_kses_post( nvx_aesthetic_treatment_section_close() );
 		}
 		?>
-
-		<?php if ( $price || $duration || $session || $anesthesia || $sessions || $downtime || $brands || $techniques ) : ?>
-			<section class="nvx-prose" aria-label="<?php esc_attr_e( 'Datos orientativos', 'nuvanx-medical' ); ?>">
-				<h2><?php esc_html_e( 'Datos orientativos', 'nuvanx-medical' ); ?></h2>
-				<ul>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Precio orientativo', 'nuvanx-medical' ), $price ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Duración del resultado', 'nuvanx-medical' ), $duration ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Tiempo de sesión', 'nuvanx-medical' ), $session ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Anestesia', 'nuvanx-medical' ), $anesthesia ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Sesiones', 'nuvanx-medical' ), $sessions ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Recuperación', 'nuvanx-medical' ), $downtime ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Marcas / productos', 'nuvanx-medical' ), implode( ', ', $brands ) ) ); ?>
-					<?php echo wp_kses_post( nvx_aesthetic_treatment_data_row( __( 'Técnicas', 'nuvanx-medical' ), implode( ', ', $techniques ) ) ); ?>
-				</ul>
-			</section>
-		<?php endif; ?>
-
-		<section class="nvx-prose"><h2><?php esc_html_e( 'Seguridad y valoración', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['precautions'] ) ); ?></section>
-		<section class="nvx-prose"><h2><?php esc_html_e( 'Riesgos y efectos adversos', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['risks'] ) ); ?></section>
-
-		<?php if ( ! empty( $page['combinations'] ) ) : ?>
-			<section class="nvx-prose"><h2><?php esc_html_e( 'Combinaciones posibles', 'nuvanx-medical' ); ?></h2><?php echo wp_kses_post( nvx_aesthetic_treatment_list( (array) $page['combinations'] ) ); ?></section>
-		<?php endif; ?>
-
-		<?php if ( ! empty( $page['faqs'] ) ) : ?>
-			<section class="nvx-prose" aria-label="<?php esc_attr_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?>">
-				<h2><?php esc_html_e( 'Preguntas frecuentes', 'nuvanx-medical' ); ?></h2>
-				<?php
-				if ( function_exists( 'nvx_faq_direct_answer_markup' ) ) {
-					echo nvx_faq_direct_answer_markup( (array) $page['faqs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
-				} else {
-					foreach ( (array) $page['faqs'] as $faq ) :
-						?>
-					<details><summary><?php echo esc_html( (string) ( $faq['q'] ?? '' ) ); ?></summary><p><?php echo esc_html( (string) ( $faq['a'] ?? '' ) ); ?></p></details>
-						<?php
-					endforeach;
-				}
-				?>
-			</section>
-		<?php endif; ?>
-	</article>
+	</div>
 	<?php
 }
 

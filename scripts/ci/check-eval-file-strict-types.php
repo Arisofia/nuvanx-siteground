@@ -26,7 +26,12 @@ $iterator = new RecursiveIteratorIterator(
 foreach ($iterator as $file) {
     if ($file->isFile() && $file->getExtension() === 'php') {
         $content = file_get_contents($file->getPathname());
-        if (preg_match($pattern, $content)) {
+        // Strip block comments (/* ... */) and line comments (// ...) before
+        // matching so that declare() appearing only inside doc-blocks does not
+        // trigger a false positive.
+        $stripped = preg_replace('!/\*.*?\*/!s', '', $content);   // block comments
+        $stripped = preg_replace('!//.*$!m', '', $stripped);       // line comments
+        if (preg_match($pattern, $stripped)) {
             echo "ERROR: Found declare(strict_types=1) in {$file->getPathname()}\n";
             echo "       This will cause fatal errors when executed via wp eval-file.\n";
             $exitCode = 1;

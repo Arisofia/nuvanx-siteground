@@ -124,20 +124,12 @@ function nvx_authentic_page_photo_registry(): array {
 		'medicina-estetica-chamberi' => array(
 			'eyebrow' => 'Chamberí',
 			'title'   => 'Una clínica real en el centro de Madrid',
-			'images'  => array(
-				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí', 'caption' => 'Fachada' ),
-				array( 'id' => 1632, 'alt' => 'Recepción de NUVANX Chamberí', 'caption' => 'Recepción' ),
-				array( 'id' => 1630, 'alt' => 'Box de tratamiento de NUVANX Chamberí', 'caption' => 'Box clínico' ),
-			),
+			'images'  => function_exists( 'nvx_clinic_editorial_photo_map' ) ? nvx_clinic_editorial_photo_map( 'chamberi' ) : array(),
 		),
 		'medicina-estetica-goya-barrio-salamanca' => array(
 			'eyebrow' => 'Salamanca–Goya',
 			'title'   => 'La misma práctica, en nuestra sede de Goya',
-			'images'  => array(
-				array( 'id' => 2071, 'alt' => 'Fachada de NUVANX Goya', 'caption' => 'Fachada' ),
-				array( 'id' => 1080, 'alt' => 'Recepción de NUVANX Goya', 'caption' => 'Recepción' ),
-				array( 'id' => 1078, 'alt' => 'Box y tecnología de NUVANX Goya', 'caption' => 'Box clínico' ),
-			),
+			'images'  => function_exists( 'nvx_clinic_editorial_photo_map' ) ? nvx_clinic_editorial_photo_map( 'goya' ) : array(),
 		),
 		'clinicas-de-medicina-estetica-nuvanx' => array(
 			'eyebrow' => 'Nuestras clínicas',
@@ -153,7 +145,7 @@ function nvx_authentic_page_photo_registry(): array {
 			'eyebrow' => 'Equipo médico',
 			'title'   => 'Profesionales que acompañan cada decisión',
 			'images'  => array(
-				array( 'id' => 2896, 'alt' => 'Retrato del Dr. Javier Rivera', 'caption' => 'Dirección médica' ),
+				array( 'id' => 2381, 'alt' => 'Javier Rivera — valoración médica NUVANX', 'caption' => 'Dirección médica' ),
 				array( 'id' => 1840, 'alt' => 'Retrato de la Dra. Ivon en NUVANX', 'caption' => 'Medicina preventiva' ),
 				array( 'id' => 2897, 'alt' => 'Retrato de un profesional del equipo NUVANX', 'caption' => 'Equipo NUVANX' ),
 			),
@@ -235,6 +227,10 @@ function nvx_append_authentic_page_photography( string $content ): string {
 	}
 
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	// Sede landings own a single editorial gallery in page-sede.php.
+	if ( in_array( $slug, array( 'medicina-estetica-chamberi', 'medicina-estetica-goya-barrio-salamanca' ), true ) ) {
+		return $content;
+	}
 	$data = nvx_authentic_page_photo_registry()[ $slug ] ?? null;
 	if ( ! is_array( $data ) ) {
 		return $content;

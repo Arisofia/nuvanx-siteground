@@ -7,7 +7,6 @@
  * @package NVX\Migrations
  */
 
-declare( strict_types = 1 );
 
 if ( ! defined( 'ABSPATH' ) ) {
     fwrite( STDERR, "[BLOG MARKDOWN FAIL] WordPress is not loaded.\n" );

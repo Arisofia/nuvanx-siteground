@@ -15,6 +15,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/nvx-page-render-helpers.php';
 
 /**
+ * Authorized CO₂ facial photo. Always use the original 760×510 file as src.
+ */
+function nvx_co2_authorized_hero_media_markup(): string {
+	$attachment_id = 2086;
+	$file          = get_attached_file( $attachment_id );
+	$url           = wp_get_attachment_url( $attachment_id );
+	if ( ! is_string( $file ) || ! is_readable( $file ) || ! is_string( $url ) || '' === $url ) {
+		return '';
+	}
+
+	$srcset = array( esc_url( $url ) . ' 760w' );
+	$medium = preg_replace( '/nvx-co2-hero-760\.webp$/i', 'nvx-co2-hero-760-300x201.webp', $url );
+	if ( is_string( $medium ) && $medium !== $url && function_exists( 'nvx_local_upload_url_exists' ) && nvx_local_upload_url_exists( $medium ) ) {
+		$srcset[] = esc_url( $medium ) . ' 300w';
+	}
+
+	$img  = '<img class="nvx-media nvx-media--hero" src="' . esc_url( $url ) . '"';
+	$img .= ' width="760" height="510"';
+	$img .= ' alt="' . esc_attr__( 'NUVANX — Láser CO₂ fraccionado — tratamiento facial', 'nuvanx-medical' ) . '"';
+	$img .= ' srcset="' . esc_attr( implode( ', ', $srcset ) ) . '"';
+	$img .= ' sizes="(min-width: 48rem) 50vw, 100vw"';
+	$img .= ' loading="eager" decoding="async" fetchpriority="high">';
+
+	return '<figure class="nvx-brand-hero__media nvx-brand-hero__media--authorized">' . $img . '</figure>';
+}
+
+/**
  * Singular context for CO₂ rewrite.
  */
 function nvx_co2_is_singular_context(): bool {
@@ -82,35 +109,30 @@ function nvx_co2_hero_copy_markup(): string {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
+	$byline_html  = '<div class="nvx-medical-byline">';
+	$byline_html .= '<div class="nvx-medical-byline__text">';
+	$byline_html .= '<strong>' . esc_html( $data['byline_author'] ?? '' ) . '</strong><br>';
+	$byline_html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline_title'] ?? '' ) . '</span>';
+	$byline_html .= '</div></div>';
 
-	// E-E-A-T Medical Authority Byline
-	$html .= '<div class="nvx-medical-byline">';
-	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html( $data['byline_author'] ?? '' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline_title'] ?? '' ) . '</span>';
-	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ?? '' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
-		sprintf(
-			/* translators: %s: medical license number */
-			$data['description'] ?? '',
-			$colegiado
+	return nvx_brand_hero_copy_markup(
+		array(
+			'kicker'             => (string) ( $data['kicker'] ?? '' ),
+			'h1_id'              => 'nvx-co2-h1',
+			'h1'                 => (string) ( $data['h1'] ?? '' ),
+			'byline_html'        => $byline_html,
+			'lead'               => (string) ( $data['lead'] ?? '' ),
+			'description_html'   => esc_html(
+				sprintf(
+					/* translators: %s: medical license number */
+					$data['description'] ?? '',
+					$colegiado
+				)
+			),
+			'cta_fallback_label' => __( 'Reservar valoración médica', 'nuvanx-medical' ),
+			'meta'               => (string) ( $data['meta'] ?? '' ),
 		)
-	) . '</p>';
-
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
-	} else {
-		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
-	}
-
-	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';
-	$html .= '</div>';
-
-	return $html;
+	);
 }
 
 /**
@@ -176,13 +198,35 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		return $content;
 	}
 
-	$media = nvx_page_extract_brand_hero_media( $content );
+	// Always emit the authorized original (760×510). wp_get_attachment_image +
+	// the responsive rewriter otherwise promote nvx-co2-hero-760-150x150.webp.
+	$media = nvx_co2_authorized_hero_media_markup();
+	if ( '' === $media ) {
+		$media          = nvx_page_extract_brand_hero_media( $content );
+		$reject_collage = ( false !== strpos( $media, 'laser-co2-fraccionado-madrid-textura' )
+			|| false !== strpos( $media, 'wp-image-3074' )
+			|| false !== strpos( $media, 'Deka.webp' )
+			|| false !== strpos( $media, 'laser-medico-nuvanx-madrid' ) );
+		if ( $reject_collage ) {
+			$media = '';
+		}
+	}
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-co2-h1">';
-	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= nvx_co2_hero_copy_markup();
-	$hero .= $media;
-	$hero .= '</div></section>';
+	if ( '' !== $media && false !== strpos( $media, 'nvx-co2-hero-760' ) && false === strpos( $media, 'nvx-brand-hero__media--authorized' ) ) {
+		$media = preg_replace(
+			'/\bclass="nvx-brand-hero__media"/',
+			'class="nvx-brand-hero__media nvx-brand-hero__media--authorized"',
+			$media,
+			1
+		) ?? $media;
+	}
+
+	$hero_class = '' !== $media ? 'nvx-brand-hero nvx-brand-hero--has-media' : 'nvx-brand-hero';
+	$hero       = '<section class="' . esc_attr( $hero_class ) . '" aria-labelledby="nvx-co2-h1">';
+	$hero      .= '<div class="nvx-brand-hero__inner">';
+	$hero      .= nvx_co2_hero_copy_markup();
+	$hero      .= $media;
+	$hero      .= '</div></section>';
 
 	$body = nvx_co2_editorial_body_markup();
 

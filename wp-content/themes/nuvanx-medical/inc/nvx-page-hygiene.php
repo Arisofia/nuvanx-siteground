@@ -141,6 +141,7 @@ add_action( 'template_redirect', 'nvx_redirect_goya_alias', 1 );
 function nvx_unpublished_public_route_redirects(): array {
 	return array(
 		'intrusismo-tratamientos-inyectables-riesgos' => '/blog/',
+		'acido-hialuronico-relleno-madrid'            => '/medicina-estetica/',
 	);
 }
 

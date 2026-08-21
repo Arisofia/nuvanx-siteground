@@ -87,6 +87,7 @@ function renderedDocumentIssues(html, route) {
 
   if (route === '/madrid/valoracion/') {
     if (!html.includes('id="nvx-hubspot-native-form"')) issues.push('Missing canonical HubSpot form host');
+    if (!html.includes('data-nvx-consent="functional"')) issues.push('Missing functional-consent valuation marker');
     const frameCount = (html.match(/<div\b[^>]*class=["'][^"']*\bhs-form-frame\b[^"']*["'][^>]*>/gi) || []).length;
     if (frameCount !== 1) issues.push(`Expected exactly one HubSpot form frame, found ${frameCount}`);
     if (!html.includes(HUBSPOT_FORM_ID)) issues.push('Missing canonical HubSpot form ID');
@@ -136,7 +137,7 @@ function verifyFromSiteGroundProbe(probeMode = 'origin') {
   if (!['origin', 'public-edge'].includes(probeMode)) throw new Error(`Unsupported SiteGround probe mode: ${probeMode}`);
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"
-probe_mode="${PROBE_MODE:-origin}"
+probe_mode="$PROBE_MODE"
 case "$probe_mode" in origin|public-edge) ;; *) echo "PRODUCTION_PROBE_FAIL reason=invalid_probe_mode mode=$probe_mode" >&2; exit 1 ;; esac
 if [[ "$probe_mode" == 'public-edge' ]]; then
   identity_label='PRODUCTION_PUBLIC_EDGE_IDENTITY'
@@ -180,7 +181,7 @@ test "$stamp_sha" = "$EXPECTED_SHA"
 if [[ -n "$EXPECTED_RUN_ID" ]]; then test "$stamp_run_id" = "$EXPECTED_RUN_ID"; fi
 php -r '$v=$argv[1]; $d=DateTimeImmutable::createFromFormat("Y-m-d\\TH:i:s\\Z", $v, new DateTimeZone("UTC")); if ($d === false || $d->format("Y-m-d\\TH:i:s\\Z") !== $v) { exit(1); }' "$stamp_timestamp"
 [[ "$stamp_release" =~ ^[A-Za-z0-9_-]+$ ]]
-echo "${identity_label}=PASS sha=$stamp_sha run_id=$stamp_run_id timestamp=$stamp_timestamp release_id=$stamp_release"
+echo "$identity_label=PASS sha=$stamp_sha run_id=$stamp_run_id timestamp=$stamp_timestamp release_id=$stamp_release"
 
 escape_ere() {
   printf '%s' "$1" | sed 's/[][\\.^$*+?(){}|]/\\&/g'
@@ -249,13 +250,11 @@ do
   headers="$(mktemp)"
   body="$(mktemp)"
   cleanup() { rm -f "$headers" "$body"; }
-  curl_args=(-sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}|%{remote_ip}')
   if [[ "$probe_mode" == 'origin' ]]; then
-    curl_args+=(-k --resolve "$EXPECTED_HOST:443:127.0.0.1")
+    result="$(curl -sS -L --max-redirs 5 --max-time 30 -k --resolve "$EXPECTED_HOST:443:127.0.0.1" -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}|%{remote_ip}' "$BASE_URL$route")"
   else
-    curl_args+=(--proto '=https' --proto-redir '=https')
+    result="$(curl -sS -L --max-redirs 5 --max-time 30 --proto '=https' --proto-redir '=https' -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}|%{remote_ip}' "$BASE_URL$route")"
   fi
-  result="$(curl "${curl_args[@]}" "$BASE_URL$route")"
   code="$(printf '%s' "$result" | cut -d'|' -f1)"
   effective="$(printf '%s' "$result" | cut -d'|' -f2)"
   remote_ip="$(printf '%s' "$result" | cut -d'|' -f3)"
@@ -266,7 +265,7 @@ do
   esac
   if [[ "$probe_mode" == 'public-edge' ]]; then
     [[ -n "$remote_ip" && "$remote_ip" != '127.0.0.1' && "$remote_ip" != '::1' ]] \
-      || { echo "PRODUCTION_PROBE_FAIL route=$route reason=public_edge_loopback remote_ip=${remote_ip:-missing}" >&2; cleanup; exit 1; }
+      || { echo "PRODUCTION_PROBE_FAIL route=$route reason=public_edge_loopback remote_ip=$remote_ip" >&2; cleanup; exit 1; }
   fi
   ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body" || { echo "PRODUCTION_PROBE_FAIL route=$route reason=captcha_path_in_body mode=$probe_mode" >&2; cleanup; exit 1; }
   ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers" || { echo "PRODUCTION_PROBE_FAIL route=$route reason=sg_captcha_challenge mode=$probe_mode" >&2; cleanup; exit 1; }
@@ -334,10 +333,12 @@ do
   esac
 
   cleanup
-  echo "${route_label}=PASS route=$route render_contract=pass meta_no_consent=pass remote_ip=${remote_ip:-local}"
+  reported_remote_ip="$remote_ip"
+  [[ -n "$reported_remote_ip" ]] || reported_remote_ip='local'
+  echo "$route_label=PASS route=$route render_contract=pass meta_no_consent=pass remote_ip=$reported_remote_ip"
 done
 
-echo "${boundary_label}=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass meta_no_consent=pass mode=$probe_mode"
+echo "$boundary_label=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass meta_no_consent=pass mode=$probe_mode"
 `;
 
   try {
@@ -519,10 +520,10 @@ if (!report.pass) {
 const verifiedRunId = report.origin.identity?.DEPLOY_RUN_ID || expectedRunId || '(unknown)';
 if (report.external.pass) {
   console.log(
-    `Production boundary PASS: origin and GitHub-runner external probes agree across ${routes.length} routes; public render, canonical HubSpot landing, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
+    `Production boundary PASS: origin and GitHub-runner external probes agree across ${routes.length} routes; public render, canonical functional HubSpot landing, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
   );
 } else {
   console.log(
-    `Production boundary PASS: GitHub-runner edge returned only SiteGround 202 challenges across ${routes.length} routes; localhost origin and non-loopback SiteGround public-host probe both independently verified exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId}, public render, canonical functional HubSpot landing, no-consent Meta boundary and index/follow.`,
+    `Production boundary PASS: GitHub-runner edge returned only SiteGround 202 challenges across ${routes.length} routes; localhost origin and non-loopback SiteGround public-host probe both verified exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId}, public render, canonical functional HubSpot landing, no-consent Meta boundary and index/follow.`,
   );
 }

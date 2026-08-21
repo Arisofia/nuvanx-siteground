@@ -61,52 +61,16 @@ function nvx_gbp_review_url( string $clinic_key ): string {
  * @return array<int,array{id:int,alt:string,caption:string}>
  */
 function nvx_clinic_editorial_photo_map( string $clinic_key ): array {
-	if ( 'goya' === $clinic_key ) {
-		return array(
-			array(
-				'id'      => 2071,
-				'alt'     => __( 'Fachada de NUVANX Salamanca–Goya, Madrid', 'nuvanx-medical' ),
-				'caption' => __( 'Fachada', 'nuvanx-medical' ),
-			),
-			array(
-				'id'      => 1077,
-				'alt'     => __( 'Sala clínica NUVANX — Salamanca–Goya, Madrid', 'nuvanx-medical' ),
-				'caption' => __( 'Sala clínica', 'nuvanx-medical' ),
-			),
-			array(
-				'id'      => 1078,
-				'alt'     => __( 'Box clínico de NUVANX Salamanca–Goya', 'nuvanx-medical' ),
-				'caption' => __( 'Box clínico', 'nuvanx-medical' ),
-			),
-			array(
-				'id'      => 2892,
-				'alt'     => __( 'Consulta médica y valoración en NUVANX', 'nuvanx-medical' ),
-				'caption' => __( 'Valoración médica', 'nuvanx-medical' ),
-			),
-		);
-	}
+	$is_goya = 'goya' === $clinic_key;
+	$facade  = $is_goya ? array( 2071, __( 'Fachada de NUVANX Salamanca–Goya, Madrid', 'nuvanx-medical' ) ) : array( 2796, __( 'Fachada de NUVANX Chamberí, Madrid', 'nuvanx-medical' ) );
+	$waiting = $is_goya ? array( 1077, __( 'Sala clínica NUVANX — Salamanca–Goya, Madrid', 'nuvanx-medical' ), __( 'Sala clínica', 'nuvanx-medical' ) ) : array( 1632, __( 'Sala de espera de NUVANX Chamberí', 'nuvanx-medical' ), __( 'Sala', 'nuvanx-medical' ) );
+	$box     = $is_goya ? array( 1078, __( 'Box clínico de NUVANX Salamanca–Goya', 'nuvanx-medical' ) ) : array( 1630, __( 'Sala clínica NUVANX — Chamberí, Madrid', 'nuvanx-medical' ) );
 
 	return array(
-		array(
-			'id'      => 2796,
-			'alt'     => __( 'Fachada de NUVANX Chamberí, Madrid', 'nuvanx-medical' ),
-			'caption' => __( 'Fachada', 'nuvanx-medical' ),
-		),
-		array(
-			'id'      => 1632,
-			'alt'     => __( 'Sala de espera de NUVANX Chamberí', 'nuvanx-medical' ),
-			'caption' => __( 'Sala', 'nuvanx-medical' ),
-		),
-		array(
-			'id'      => 1630,
-			'alt'     => __( 'Sala clínica NUVANX — Chamberí, Madrid', 'nuvanx-medical' ),
-			'caption' => __( 'Sala clínica', 'nuvanx-medical' ),
-		),
-		array(
-			'id'      => 2892,
-			'alt'     => __( 'Consulta médica y valoración en NUVANX', 'nuvanx-medical' ),
-			'caption' => __( 'Valoración médica', 'nuvanx-medical' ),
-		),
+		array( 'id' => $facade[0], 'alt' => $facade[1], 'caption' => __( 'Fachada', 'nuvanx-medical' ) ),
+		array( 'id' => $waiting[0], 'alt' => $waiting[1], 'caption' => $waiting[2] ),
+		array( 'id' => $box[0], 'alt' => $box[1], 'caption' => __( 'Box clínico', 'nuvanx-medical' ) ),
+		array( 'id' => 2892, 'alt' => __( 'Consulta médica y valoración en NUVANX', 'nuvanx-medical' ), 'caption' => __( 'Valoración médica', 'nuvanx-medical' ) ),
 	);
 }
 

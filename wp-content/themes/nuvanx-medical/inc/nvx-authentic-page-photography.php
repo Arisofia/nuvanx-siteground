@@ -124,22 +124,12 @@ function nvx_authentic_page_photo_registry(): array {
 		'medicina-estetica-chamberi' => array(
 			'eyebrow' => 'Chamberí',
 			'title'   => 'Una clínica real en el centro de Madrid',
-			'images'  => array(
-				array( 'id' => 2796, 'alt' => 'Fachada de NUVANX Chamberí, Madrid', 'caption' => 'Fachada' ),
-				array( 'id' => 1632, 'alt' => 'Sala de espera de NUVANX Chamberí', 'caption' => 'Sala' ),
-				array( 'id' => 1630, 'alt' => 'Box clínico de NUVANX Chamberí', 'caption' => 'Box clínico' ),
-				array( 'id' => 2892, 'alt' => 'Consulta médica y valoración en NUVANX', 'caption' => 'Valoración médica' ),
-			),
+			'images'  => function_exists( 'nvx_clinic_editorial_photo_map' ) ? nvx_clinic_editorial_photo_map( 'chamberi' ) : array(),
 		),
 		'medicina-estetica-goya-barrio-salamanca' => array(
 			'eyebrow' => 'Salamanca–Goya',
 			'title'   => 'La misma práctica, en nuestra sede de Goya',
-			'images'  => array(
-				array( 'id' => 2071, 'alt' => 'Fachada de NUVANX Salamanca–Goya, Madrid', 'caption' => 'Fachada' ),
-				array( 'id' => 1080, 'alt' => 'Sala clínica de NUVANX Salamanca–Goya', 'caption' => 'Sala clínica' ),
-				array( 'id' => 1078, 'alt' => 'Box clínico de NUVANX Salamanca–Goya', 'caption' => 'Box clínico' ),
-				array( 'id' => 2892, 'alt' => 'Consulta médica y valoración en NUVANX', 'caption' => 'Valoración médica' ),
-			),
+			'images'  => function_exists( 'nvx_clinic_editorial_photo_map' ) ? nvx_clinic_editorial_photo_map( 'goya' ) : array(),
 		),
 		'clinicas-de-medicina-estetica-nuvanx' => array(
 			'eyebrow' => 'Nuestras clínicas',

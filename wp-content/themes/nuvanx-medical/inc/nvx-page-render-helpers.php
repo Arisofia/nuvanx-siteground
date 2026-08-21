@@ -129,7 +129,10 @@ function nvx_brand_hero_copy_markup( array $config ): string {
 
 	$html .= '<h1 class="nvx-brand-hero__title" id="' . esc_attr( (string) ( $config['h1_id'] ?? '' ) ) . '">' . esc_html( (string) ( $config['h1'] ?? '' ) ) . '</h1>';
 
-	if ( ! empty( $config['byline'] ) && function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
+	$byline_html = (string) ( $config['byline_html'] ?? '' );
+	if ( '' !== $byline_html ) {
+		$html .= $byline_html;
+	} elseif ( ! empty( $config['byline'] ) && function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
 		$html .= nvx_clinical_authority_byline_markup();
 	}
 

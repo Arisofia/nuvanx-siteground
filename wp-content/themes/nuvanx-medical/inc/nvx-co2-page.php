@@ -109,35 +109,30 @@ function nvx_co2_hero_copy_markup(): string {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
+	$byline_html  = '<div class="nvx-medical-byline">';
+	$byline_html .= '<div class="nvx-medical-byline__text">';
+	$byline_html .= '<strong>' . esc_html( $data['byline_author'] ?? '' ) . '</strong><br>';
+	$byline_html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline_title'] ?? '' ) . '</span>';
+	$byline_html .= '</div></div>';
 
-	// E-E-A-T Medical Authority Byline
-	$html .= '<div class="nvx-medical-byline">';
-	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html( $data['byline_author'] ?? '' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline_title'] ?? '' ) . '</span>';
-	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ?? '' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
-		sprintf(
-			/* translators: %s: medical license number */
-			$data['description'] ?? '',
-			$colegiado
+	return nvx_brand_hero_copy_markup(
+		array(
+			'kicker'             => (string) ( $data['kicker'] ?? '' ),
+			'h1_id'              => 'nvx-co2-h1',
+			'h1'                 => (string) ( $data['h1'] ?? '' ),
+			'byline_html'        => $byline_html,
+			'lead'               => (string) ( $data['lead'] ?? '' ),
+			'description_html'   => esc_html(
+				sprintf(
+					/* translators: %s: medical license number */
+					$data['description'] ?? '',
+					$colegiado
+				)
+			),
+			'cta_fallback_label' => __( 'Reservar valoración médica', 'nuvanx-medical' ),
+			'meta'               => (string) ( $data['meta'] ?? '' ),
 		)
-	) . '</p>';
-
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
-	} else {
-		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
-	}
-
-	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';
-	$html .= '</div>';
-
-	return $html;
+	);
 }
 
 /**

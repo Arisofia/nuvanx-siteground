@@ -115,11 +115,11 @@ function metaNoConsentIssues(html, headers) {
   return issues;
 }
 
-function parseOriginIdentity(output) {
+function parseProbeIdentity(output) {
   const match = output.match(
-    /PRODUCTION_ORIGIN_IDENTITY=PASS sha=([0-9a-f]{40}) run_id=(\d+) timestamp=(\S+) release_id=([A-Za-z0-9_-]+)/,
+    /PRODUCTION_(?:ORIGIN|PUBLIC_EDGE)_IDENTITY=PASS sha=([0-9a-f]{40}) run_id=(\d+) timestamp=(\S+) release_id=([A-Za-z0-9_-]+)/,
   );
-  if (!match) throw new Error('Origin verification did not emit a parseable four-field deploy identity.');
+  if (!match) throw new Error('Production probe did not emit a parseable four-field deploy identity.');
   return {
     DEPLOY_SHA: match[1],
     DEPLOY_RUN_ID: match[2],
@@ -128,9 +128,26 @@ function parseOriginIdentity(output) {
   };
 }
 
-function verifyFromSiteGroundOrigin() {
+function sameIdentity(left, right) {
+  return ['DEPLOY_SHA', 'DEPLOY_RUN_ID', 'DEPLOY_TIMESTAMP', 'RELEASE_ID'].every((key) => left?.[key] === right?.[key]);
+}
+
+function verifyFromSiteGroundProbe(probeMode = 'origin') {
+  if (!['origin', 'public-edge'].includes(probeMode)) throw new Error(`Unsupported SiteGround probe mode: ${probeMode}`);
   const remoteScript = String.raw`set -Eeuo pipefail
 cd "$PROD_ROOT"
+probe_mode="${PROBE_MODE:-origin}"
+case "$probe_mode" in origin|public-edge) ;; *) echo "PRODUCTION_PROBE_FAIL reason=invalid_probe_mode mode=$probe_mode" >&2; exit 1 ;; esac
+if [[ "$probe_mode" == 'public-edge' ]]; then
+  identity_label='PRODUCTION_PUBLIC_EDGE_IDENTITY'
+  route_label='PRODUCTION_PUBLIC_EDGE_ROUTE'
+  boundary_label='PRODUCTION_PUBLIC_EDGE_BOUNDARY'
+else
+  identity_label='PRODUCTION_ORIGIN_IDENTITY'
+  route_label='PRODUCTION_ORIGIN_ROUTE'
+  boundary_label='PRODUCTION_ORIGIN_BOUNDARY'
+fi
+
 test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
 test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
 test "$(wp option get home)" = 'https://nuvanx.com'
@@ -163,7 +180,7 @@ test "$stamp_sha" = "$EXPECTED_SHA"
 if [[ -n "$EXPECTED_RUN_ID" ]]; then test "$stamp_run_id" = "$EXPECTED_RUN_ID"; fi
 php -r '$v=$argv[1]; $d=DateTimeImmutable::createFromFormat("Y-m-d\\TH:i:s\\Z", $v, new DateTimeZone("UTC")); if ($d === false || $d->format("Y-m-d\\TH:i:s\\Z") !== $v) { exit(1); }' "$stamp_timestamp"
 [[ "$stamp_release" =~ ^[A-Za-z0-9_-]+$ ]]
-echo "PRODUCTION_ORIGIN_IDENTITY=PASS sha=$stamp_sha run_id=$stamp_run_id timestamp=$stamp_timestamp release_id=$stamp_release"
+echo "${identity_label}=PASS sha=$stamp_sha run_id=$stamp_run_id timestamp=$stamp_timestamp release_id=$stamp_release"
 
 escape_ere() {
   printf '%s' "$1" | sed 's/[][\\.^$*+?(){}|]/\\&/g'
@@ -175,11 +192,11 @@ assert_meta_equals() {
   expected_re="$(escape_ere "$expected")"
   tag="$(tr '\r\n' '  ' < "$body" | grep -Eio '<meta[[:space:]][^>]*>' | grep -Ei "name[[:space:]]*=[[:space:]]*['\"]$name_re['\"]" | head -n 1 || true)"
   if [[ -z "$tag" ]]; then
-    echo "PRODUCTION_ORIGIN_FAIL reason=missing_meta name=$name" >&2
+    echo "PRODUCTION_PROBE_FAIL reason=missing_meta name=$name mode=$probe_mode" >&2
     return 1
   fi
   if ! printf '%s' "$tag" | grep -Eq "content[[:space:]]*=[[:space:]]*['\"]$expected_re['\"]"; then
-    echo "PRODUCTION_ORIGIN_FAIL reason=meta_mismatch name=$name expected=$expected tag=$tag" >&2
+    echo "PRODUCTION_PROBE_FAIL reason=meta_mismatch name=$name expected=$expected mode=$probe_mode tag=$tag" >&2
     return 1
   fi
 }
@@ -193,7 +210,7 @@ meta_tag_for() {
 require_body() {
   local body="$1" route="$2" marker="$3"
   grep -Fq "$marker" "$body" || {
-    echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_string marker=$marker" >&2
+    echo "PRODUCTION_PROBE_FAIL route=$route reason=missing_string marker=$marker mode=$probe_mode" >&2
     return 1
   }
 }
@@ -217,7 +234,7 @@ legacy_valoracion_direct_form_count() {
   ' -- "$body"
 }
 
-ua='NUVANX-Production-Origin-Boundary/1.3'
+ua='NUVANX-Production-Boundary/1.6'
 for route in \
   '/' \
   '/soluciones-medicas/' \
@@ -232,28 +249,39 @@ do
   headers="$(mktemp)"
   body="$(mktemp)"
   cleanup() { rm -f "$headers" "$body"; }
-  result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve "$EXPECTED_HOST:443:127.0.0.1" -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "$BASE_URL$route")"
+  curl_args=(-sS -L --max-redirs 5 --max-time 30 -A "$ua" -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}|%{remote_ip}')
+  if [[ "$probe_mode" == 'origin' ]]; then
+    curl_args+=(-k --resolve "$EXPECTED_HOST:443:127.0.0.1")
+  else
+    curl_args+=(--proto '=https' --proto-redir '=https')
+  fi
+  result="$(curl "${curl_args[@]}" "$BASE_URL$route")"
   code="$(printf '%s' "$result" | cut -d'|' -f1)"
-  effective="$(printf '%s' "$result" | cut -d'|' -f2-)"
-  [[ "$code" == '200' ]] || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=http_code code=$code" >&2; cleanup; exit 1; }
+  effective="$(printf '%s' "$result" | cut -d'|' -f2)"
+  remote_ip="$(printf '%s' "$result" | cut -d'|' -f3)"
+  [[ "$code" == '200' ]] || { echo "PRODUCTION_PROBE_FAIL route=$route reason=http_code code=$code mode=$probe_mode" >&2; cleanup; exit 1; }
   case "$effective" in
     https://nuvanx.com/*|https://nuvanx.com) ;;
-    *) echo "PRODUCTION_ORIGIN_FAIL route=$route final=$effective" >&2; cleanup; exit 1 ;;
+    *) echo "PRODUCTION_PROBE_FAIL route=$route final=$effective mode=$probe_mode" >&2; cleanup; exit 1 ;;
   esac
-  ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=captcha_path_in_body" >&2; cleanup; exit 1; }
-  ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=sg_captcha_challenge" >&2; cleanup; exit 1; }
+  if [[ "$probe_mode" == 'public-edge' ]]; then
+    [[ -n "$remote_ip" && "$remote_ip" != '127.0.0.1' && "$remote_ip" != '::1' ]] \
+      || { echo "PRODUCTION_PROBE_FAIL route=$route reason=public_edge_loopback remote_ip=${remote_ip:-missing}" >&2; cleanup; exit 1; }
+  fi
+  ! grep -Fq '${SITEGROUND_CAPTCHA_PATH}' "$body" || { echo "PRODUCTION_PROBE_FAIL route=$route reason=captcha_path_in_body mode=$probe_mode" >&2; cleanup; exit 1; }
+  ! grep -Eiq '^sg-captcha:[[:space:]]*challenge' "$headers" || { echo "PRODUCTION_PROBE_FAIL route=$route reason=sg_captcha_challenge mode=$probe_mode" >&2; cleanup; exit 1; }
   php -r '$html=@file_get_contents($argv[1]); if (!is_string($html) || !preg_match("~<body\\b[^>]*>(.*?)</body>~is", $html, $m) || trim($m[1]) === "") { exit(1); }' "$body" \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_or_empty_body" >&2; cleanup; exit 1; }
-  grep -Eiq '<main([[:space:]>])' "$body" || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_main" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=missing_or_empty_body mode=$probe_mode" >&2; cleanup; exit 1; }
+  grep -Eiq '<main([[:space:]>])' "$body" || { echo "PRODUCTION_PROBE_FAIL route=$route reason=missing_main mode=$probe_mode" >&2; cleanup; exit 1; }
 
   ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers" \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=pre_consent_meta_cookie" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=pre_consent_meta_cookie mode=$probe_mode" >&2; cleanup; exit 1; }
   for marker in 'NVX_META_EVENT_DEDUPE_ACTIVE' 'nvx-meta-event-dedupe-' '1497940655079106' 'connect.facebook.net' 'fbevents.js'; do
     ! grep -Fiq "$marker" "$body" \
-      || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_meta_owner marker=$marker" >&2; cleanup; exit 1; }
+      || { echo "PRODUCTION_PROBE_FAIL route=$route reason=browser_meta_owner marker=$marker mode=$probe_mode" >&2; cleanup; exit 1; }
   done
   ! grep -Eiq 'fbq[[:space:]]*\(' "$body" \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=browser_fbq_owner" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=browser_fbq_owner mode=$probe_mode" >&2; cleanup; exit 1; }
 
   assert_meta_equals "$body" 'nvx-deploy-sha' "$stamp_sha"
   assert_meta_equals "$body" 'nvx-deploy-run-id' "$stamp_run_id"
@@ -264,11 +292,11 @@ do
   xrobots="$(grep -Ei '^x-robots-tag:' "$headers" | tail -n 1 || true)"
   combined="$robots_meta $xrobots"
   ! printf '%s' "$combined" | grep -Eiq 'noindex|nofollow' \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=noindex-or-nofollow robots=$combined" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=noindex-or-nofollow mode=$probe_mode robots=$combined" >&2; cleanup; exit 1; }
   printf '%s' "$combined" | grep -Eiq 'index' \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_index robots=$combined" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=missing_index mode=$probe_mode robots=$combined" >&2; cleanup; exit 1; }
   printf '%s' "$combined" | grep -Eiq 'follow' \
-    || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=missing_follow robots=$combined" >&2; cleanup; exit 1; }
+    || { echo "PRODUCTION_PROBE_FAIL route=$route reason=missing_follow mode=$probe_mode robots=$combined" >&2; cleanup; exit 1; }
 
   case "$route" in
     '/')
@@ -279,11 +307,12 @@ do
       ;;
     '/madrid/valoracion/')
       require_body "$body" "$route" 'id="nvx-hubspot-native-form"' || { cleanup; exit 1; }
+      require_body "$body" "$route" 'data-nvx-consent="functional"' || { cleanup; exit 1; }
       require_body "$body" "$route" 'hs-form-frame' || { cleanup; exit 1; }
       require_body "$body" "$route" '${HUBSPOT_FORM_ID}' || { cleanup; exit 1; }
       legacy_direct_forms="$(legacy_valoracion_direct_form_count "$body")"
       [[ "$legacy_direct_forms" == '0' ]] \
-        || { echo "PRODUCTION_ORIGIN_FAIL route=$route reason=legacy_direct_form count=$legacy_direct_forms" >&2; cleanup; exit 1; }
+        || { echo "PRODUCTION_PROBE_FAIL route=$route reason=legacy_direct_form count=$legacy_direct_forms mode=$probe_mode" >&2; cleanup; exit 1; }
       ;;
     '/protocolos-signature/')
       require_body "$body" "$route" 'nvx-brand-page nvx-brand-page--signature' || { cleanup; exit 1; }
@@ -305,10 +334,10 @@ do
   esac
 
   cleanup
-  echo "PRODUCTION_ORIGIN_ROUTE=PASS route=$route render_contract=pass meta_no_consent=pass"
+  echo "${route_label}=PASS route=$route render_contract=pass meta_no_consent=pass remote_ip=${remote_ip:-local}"
 done
 
-echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass meta_no_consent=pass"
+echo "${boundary_label}=PASS sha=$stamp_sha run_id=$stamp_run_id routes=9 identity_fields=4 render_contract=pass meta_no_consent=pass mode=$probe_mode"
 `;
 
   try {
@@ -316,7 +345,7 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes
       '/usr/bin/ssh',
       [
         originSshAlias,
-        `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} bash -se`,
+        `PROD_ROOT=${prodRoot} BASE_URL=${baseUrl} EXPECTED_HOST=${expectedHost} EXPECTED_SHA=${expectedSha} EXPECTED_RUN_ID=${expectedRunId} SITEGROUND_CAPTCHA_PATH=${SITEGROUND_CAPTCHA_PATH} PROD_DB_NAME=${prodDbName} PROBE_MODE=${probeMode} bash -se`,
       ],
       { input: remoteScript, encoding: 'utf8', timeout: 180000, maxBuffer: 1024 * 1024 },
     ).trim();
@@ -328,6 +357,14 @@ echo "PRODUCTION_ORIGIN_BOUNDARY=PASS sha=$stamp_sha run_id=$stamp_run_id routes
   }
 }
 
+function verifyFromSiteGroundOrigin() {
+  return verifyFromSiteGroundProbe('origin');
+}
+
+function verifyFromSiteGroundPublicEdge() {
+  return verifyFromSiteGroundProbe('public-edge');
+}
+
 async function fetchSameHost(url, maxRedirects = 5) {
   let current = new URL(url);
   const hops = [];
@@ -337,7 +374,7 @@ async function fetchSameHost(url, maxRedirects = 5) {
       redirect: 'manual',
       signal: AbortSignal.timeout(requestTimeoutMs),
       headers: {
-        'user-agent': 'NUVANX-Production-Boundary/1.5',
+        'user-agent': 'NUVANX-Production-Boundary/1.6',
         accept: 'text/html,application/xhtml+xml',
         'cache-control': 'no-cache',
         pragma: 'no-cache',
@@ -370,6 +407,7 @@ const report = {
   requestTimeoutMs,
   origin: { pass: false, output: '', issue: '', identity: null },
   external: { pass: false, inconclusiveAntiBot: false },
+  sitegroundPublicEdge: { attempted: false, pass: false, output: '', issue: '', identity: null },
   routes: [],
   failures: [],
   pass: false,
@@ -377,7 +415,7 @@ const report = {
 
 try {
   report.origin.output = verifyFromSiteGroundOrigin();
-  report.origin.identity = parseOriginIdentity(report.origin.output);
+  report.origin.identity = parseProbeIdentity(report.origin.output);
   report.origin.pass = true;
   console.log(report.origin.output);
 } catch (error) {
@@ -439,14 +477,35 @@ if (report.origin.pass) {
   const externalFailures = report.failures.filter((failure) => failure.route !== 'origin');
   report.external.pass = externalFailures.length === 0;
   report.external.inconclusiveAntiBot =
-    externalFailures.length > 0 &&
+    externalFailures.length === routes.length &&
     externalFailures.every(
       (failure) =>
         Array.isArray(failure.issues) &&
-        failure.issues.length > 0 &&
+        failure.issues.length === 1 &&
         failure.issues.every((issue) => /SiteGround challenge .*HTTP 202 .*sg-captcha=challenge/i.test(String(issue))),
     );
-  report.pass = report.origin.pass && report.external.pass;
+
+  if (report.external.inconclusiveAntiBot) {
+    report.sitegroundPublicEdge.attempted = true;
+    try {
+      report.sitegroundPublicEdge.output = verifyFromSiteGroundPublicEdge();
+      report.sitegroundPublicEdge.identity = parseProbeIdentity(report.sitegroundPublicEdge.output);
+      if (!sameIdentity(report.origin.identity, report.sitegroundPublicEdge.identity)) {
+        throw new Error('SiteGround public-edge identity does not exactly match the localhost origin identity.');
+      }
+      report.sitegroundPublicEdge.pass = true;
+      console.log(report.sitegroundPublicEdge.output);
+      console.log('PRODUCTION_EDGE_CHALLENGE=PASS classification=github-runner-specific siteground_public_edge=pass');
+    } catch (error) {
+      report.sitegroundPublicEdge.issue = error instanceof Error ? error.message : String(error);
+      report.failures.push({ route: 'siteground-public-edge', issues: [report.sitegroundPublicEdge.issue] });
+    }
+  }
+
+  report.pass = report.origin.pass && (
+    report.external.pass ||
+    (report.external.inconclusiveAntiBot && report.sitegroundPublicEdge.pass)
+  );
 }
 
 await fs.writeFile(path.join(outputDir, 'production-boundary.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
@@ -458,6 +517,12 @@ if (!report.pass) {
 }
 
 const verifiedRunId = report.origin.identity?.DEPLOY_RUN_ID || expectedRunId || '(unknown)';
-console.log(
-  `Production boundary PASS: origin and external probes agree across ${routes.length} routes; public render, canonical HubSpot landing, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
-);
+if (report.external.pass) {
+  console.log(
+    `Production boundary PASS: origin and GitHub-runner external probes agree across ${routes.length} routes; public render, canonical HubSpot landing, no-consent Meta boundary, index/follow and exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId} verified.`,
+  );
+} else {
+  console.log(
+    `Production boundary PASS: GitHub-runner edge returned only SiteGround 202 challenges across ${routes.length} routes; localhost origin and non-loopback SiteGround public-host probe both independently verified exact 4-field identity SHA ${expectedSha} / run ${verifiedRunId}, public render, canonical functional HubSpot landing, no-consent Meta boundary and index/follow.`,
+  );
+}

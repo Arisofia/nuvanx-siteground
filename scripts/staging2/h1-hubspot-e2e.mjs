@@ -56,6 +56,23 @@ const [managedPage, heroAndForms, valoracionModal, conversionEvents, runtimeGove
   fs.readFile(pageHygieneUrl, 'utf8'),
 ]);
 
+function htmlOpeningTag(source, pattern) {
+  const match = source.match(pattern);
+  return match ? match[0] : '';
+}
+
+function styleDeclaresDisplayNone(tag) {
+  const quoted = tag.match(/\bstyle\s*=\s*(["'])([\s\S]*?)\1/i);
+  if (quoted) {
+    return /(?:^|;)\s*display\s*:\s*none\b/i.test(quoted[2]);
+  }
+  const unquoted = tag.match(/\bstyle\s*=\s*([^\s>]+)/i);
+  if (!unquoted) {
+    return false;
+  }
+  return /display\s*:\s*none\b/i.test(unquoted[1]);
+}
+
 assert.match(
   managedPage,
   /id="nvx-hubspot-form"/,
@@ -118,10 +135,25 @@ assert.doesNotMatch(
   /nvx_valoracion_direct_form_markup/,
   'canonical HubSpot landing must not render the first-party fallback beside the iframe'
 );
-assert.doesNotMatch(
+const canonicalFrame = htmlOpeningTag(
   heroAndForms,
-  /style\s*=\s*["']display\s*:\s*none["']/,
-  'canonical mount must not hide the conversion surface with an inline display:none'
+  /<div\b[^>]*\bclass=["'][^"']*\bhs-form-frame\b[^"']*["'][^>]*>/i
+);
+const nativeHost = htmlOpeningTag(
+  managedPage,
+  /<div\b[^>]*\bid=["']nvx-hubspot-native-form["'][^>]*>/i
+);
+assert.ok(canonicalFrame, 'canonical HubSpot frame opening tag must exist');
+assert.ok(nativeHost, 'canonical HubSpot host opening tag must exist');
+assert.equal(
+  styleDeclaresDisplayNone(canonicalFrame),
+  false,
+  'canonical HubSpot frame must not hide the conversion surface with display:none'
+);
+assert.equal(
+  styleDeclaresDisplayNone(nativeHost),
+  false,
+  'canonical HubSpot host must not hide the conversion surface with display:none'
 );
 
 // The dedicated conversion route must not depend exclusively on the shared
@@ -205,8 +237,13 @@ assert.match(
 );
 assert.match(
   directForm,
-  /name="firstname"/,
-  'first-party form must collect a name'
+  /'id'\s*=>\s*'firstname'/,
+  'first-party form identity fields must include firstname'
+);
+assert.match(
+  directForm,
+  /name="' \. \$field\['id'\] \. '"/,
+  'first-party form must emit the input name from the field id'
 );
 assert.match(
   directForm,

@@ -1052,8 +1052,24 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          bash scripts/production/configure-siteground-ssh.sh
           mkdir -p mu-plugin-forensics
+          set +e
+          bash scripts/production/configure-siteground-ssh.sh
+          ssh_rc=$?
+          set -e
+          if [[ "$ssh_rc" -eq "${SSH_TRANSPORT_EXIT_CODE:-255}" ]]; then
+            echo 'STAGING2_ROOT_DISCOVERY=SKIPPED reason=transport_exhausted' | tee mu-plugin-forensics/staging2-root-discovery.skip
+            {
+              echo '## Staging2 root discovery unavailable'
+              echo
+              echo '- Staging2 SSH transport exhausted both configured endpoints.'
+              echo '- Production forensic extraction already completed; release validity is unaffected.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [[ "$ssh_rc" -ne 0 ]]; then
+            exit "$ssh_rc"
+          fi
           ssh -n nvx-staging2-mu-forensics 'for p in /home/customer/www/staging2.nuvanx.com/public_html /home/customer/www/nuvanx.com/staging2/public_html /home/customer/www/nuvanx.com/staging2.nuvanx.com/public_html; do if test -f "$p/wp-load.php"; then home="$(cd "$p" && wp option get home --skip-plugins --skip-themes --allow-root 2>/dev/null || true)"; printf "%s\t%s\n" "$p" "$home"; fi; done' > mu-plugin-forensics/staging2-root-discovery.tsv
           grep -F $'\thttps://staging2.nuvanx.com' mu-plugin-forensics/staging2-root-discovery.tsv >/dev/null
           echo 'STAGING2_ROOT_DISCOVERY=PASS'

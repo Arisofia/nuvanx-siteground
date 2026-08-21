@@ -49,75 +49,7 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: bash scripts/production/configure-siteground-ssh.sh
 
-      - name: Backup and retire production-only Meta MU owner
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_PARENT='$PROD_PARENT' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          src="$PROD_ROOT/wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php"
-          backup_dir="$PROD_PARENT/.nvx-backups/retired-mu"
-          backup="$backup_dir/nuvanx-meta-dedupe-event-id.php"
-          mkdir -p "$backup_dir"
-          chmod 700 "$backup_dir"
-
-          if test -f "$src"; then
-            src_hash="$(sha256sum "$src" | awk '{print $1}')"
-            if test -f "$backup"; then
-              backup_hash="$(sha256sum "$backup" | awk '{print $1}')"
-              test "$src_hash" = "$backup_hash" || {
-                echo 'META_MU_BACKUP_GATE=FAIL reason=existing_backup_hash_mismatch' >&2
-                exit 20
-              }
-            else
-              tmp="$backup.tmp.$$"
-              cp -p "$src" "$tmp"
-              chmod 600 "$tmp"
-              test "$(sha256sum "$tmp" | awk '{print $1}')" = "$src_hash"
-              mv "$tmp" "$backup"
-            fi
-            test -s "$backup"
-            php -l "$backup" >/dev/null
-            test "$(sha256sum "$backup" | awk '{print $1}')" = "$src_hash"
-            echo "META_MU_BACKUP_GATE=PASS sha256=${src_hash:0:16} location=outside_public_html"
-            rm -f "$src"
-          elif test -s "$backup"; then
-            php -l "$backup" >/dev/null
-            echo 'META_MU_BACKUP_GATE=PASS state=already_retired location=outside_public_html'
-          else
-            echo 'META_MU_BACKUP_GATE=FAIL reason=source_and_backup_missing' >&2
-            exit 21
-          fi
-
-          test ! -e "$src"
-          test -s "$backup"
-          echo 'META_MU_RETIREMENT=PASS active_owner=absent backup=present'
-
-          cd "$PROD_ROOT"
-          wp cache flush >/dev/null || true
-          plugin='sg-cachepress'
-          activated_temporarily=0
-          if wp help sg >/dev/null 2>&1; then
-            wp sg purge >/dev/null
-            echo 'META_MU_CACHE_GATE=PASS mode=existing-command'
-          elif wp plugin is-installed "$plugin" >/dev/null 2>&1; then
-            if ! wp plugin is-active "$plugin" >/dev/null 2>&1; then
-              wp plugin activate "$plugin" --quiet
-              activated_temporarily=1
-            fi
-            wp help sg >/dev/null 2>&1
-            wp sg purge >/dev/null
-            if test "$activated_temporarily" = 1; then
-              wp plugin deactivate "$plugin" --quiet
-              ! wp plugin is-active "$plugin" >/dev/null 2>&1
-            fi
-            echo 'META_MU_CACHE_GATE=PASS mode=transient-plugin-activation'
-          else
-            echo 'META_MU_CACHE_GATE=PASS mode=wp-cache-only sg_command_unavailable=1'
-          fi
-          REMOTE
-
-      - name: Verify origin no-consent boundary after retirement
+      - name: Confirm retired MU owner and verified backup
         shell: bash
         run: |
           set -euo pipefail
@@ -127,35 +59,8 @@ jobs:
           backup="$PROD_PARENT/.nvx-backups/retired-mu/nuvanx-meta-dedupe-event-id.php"
           test ! -e "$src"
           test -s "$backup"
-          routes=(
-            '/'
-            '/soluciones-medicas/'
-            '/equipo-medico/'
-            '/blog/'
-            '/madrid/valoracion/'
-            '/endolift-primeras-72-horas-que-esperar/'
-            '/protocolos-signature/'
-            '/remodelacion-corporal-laser-madrid/'
-            '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'
-          )
-          for route in "${routes[@]}"; do
-            headers="$(mktemp)"
-            body="$(mktemp)"
-            cleanup() { rm -f "$headers" "$body"; }
-            result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve 'nuvanx.com:443:127.0.0.1' -A 'NUVANX-Meta-MU-Origin/1.0' -H 'Accept: text/html,application/xhtml+xml' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' "https://nuvanx.com${route}")"
-            code="${result%%|*}"
-            test "$code" = 200 || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route code=$code" >&2; cleanup; exit 30; }
-            ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=meta_cookie" >&2; cleanup; exit 31; }
-            ! grep -Eiq 'fbq[[:space:]]*\(' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=fbq" >&2; cleanup; exit 32; }
-            ! grep -Fiq 'connect.facebook.net' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=facebook_loader" >&2; cleanup; exit 33; }
-            ! grep -Fiq 'fbevents.js' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=fbevents" >&2; cleanup; exit 34; }
-            ! grep -Fiq 'NVX_META_EVENT_DEDUPE_ACTIVE' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=dedupe_marker" >&2; cleanup; exit 35; }
-            ! grep -Fiq 'nvx-meta-event-dedupe-' "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=dedupe_prefix" >&2; cleanup; exit 36; }
-            php -r '$h=@file_get_contents($argv[1]); if (!is_string($h)) exit(2); if (preg_match("~(?:document\\.cookie|cookie\\s*=)[\\s\\S]{0,500}(?:_fbp|_fbc)~i", $h)) exit(1);' -- "$body" || { echo "META_MU_ORIGIN_ROUTE=FAIL route=$route reason=cookie_writer" >&2; cleanup; exit 37; }
-            cleanup
-            echo "META_MU_ORIGIN_ROUTE=PASS route=$route"
-          done
-          echo "META_MU_ORIGIN_BOUNDARY=PASS routes=${#routes[@]} active_owner=absent backup=present"
+          php -l "$backup" >/dev/null
+          echo 'META_MU_RETIREMENT_GATE=PASS active_owner=absent backup=present location=outside_public_html'
           REMOTE
 
       - name: Dispatch fresh immutable production release

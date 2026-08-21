@@ -110,11 +110,13 @@ assert.doesNotMatch(
 
 const consentFnStart = managedPage.indexOf('function hasMarketingConsent()');
 const iframeFnStart = managedPage.indexOf('function iframeIsHubSpot(iframe)');
+const formAccessFnStart = managedPage.indexOf('function hasFormAccess()');
 const usableIframeFnStart = managedPage.indexOf('function hasUsableHubSpotIframe(root)');
 const renderableFnStart = managedPage.indexOf('function isRenderable(root)');
 const formDirtyFnStart = managedPage.indexOf('function formIsDirty(form)');
 assert.ok(consentFnStart >= 0, 'HubSpot recovery must expose a dedicated marketing-consent gate');
-assert.ok(iframeFnStart > consentFnStart, 'Marketing-consent helper must be isolated before iframe detection');
+assert.ok(formAccessFnStart > consentFnStart, 'Functional form-access helper must follow the marketing-consent helper');
+assert.ok(iframeFnStart > formAccessFnStart, 'Form-access helper must be isolated before iframe detection');
 assert.ok(usableIframeFnStart > iframeFnStart, 'Bootstrap must retain a dedicated usable-iframe detector');
 assert.ok(renderableFnStart > usableIframeFnStart, 'Bootstrap must retain a dedicated renderability detector');
 assert.ok(formDirtyFnStart > renderableFnStart, 'Renderability detector must remain isolated from form-dirty logic');
@@ -125,35 +127,41 @@ const renderableFnBody = managedPage.slice(renderableFnStart, formDirtyFnStart);
 assert.match(
   consentFnBody,
   /window\.cmplz_has_consent\("marketing"\)===true/,
-  'HubSpot recovery must require explicit Complianz marketing consent',
+  'Marketing attribution must require explicit Complianz marketing consent',
+);
+const formAccessFnBody = managedPage.slice(formAccessFnStart, usableIframeFnStart);
+assert.match(
+  formAccessFnBody,
+  /data-nvx-consent.*functional/,
+  'Valoration form must declare its functional-consent exception explicitly',
 );
 assert.ok(
-  usableIframeFnBody.includes('hasMarketingConsent()'),
-  'A HubSpot iframe must not count as usable before marketing consent',
+  usableIframeFnBody.includes('hasFormAccess()'),
+  'A HubSpot iframe must count as usable through the functional form-access gate',
 );
 assert.ok(
-  renderableFnBody.includes('hasMarketingConsent()'),
-  'HubSpot form controls must not count as renderable before marketing consent',
+  renderableFnBody.includes('hasFormAccess()'),
+  'HubSpot form controls must count as renderable through the functional form-access gate',
 );
 assert.ok(
   renderableFnBody.includes('hasUsableHubSpotIframe(root)'),
   'A consented allowlisted HubSpot iframe inside the canonical host must be sufficient render evidence',
 );
 
-const firstConsentGate = managedPage.indexOf('if(!hasMarketingConsent()){return;}');
+const firstConsentGate = managedPage.indexOf('if(!hasFormAccess()){return;}');
 const focusRecovery = managedPage.indexOf('host.dispatchEvent(new Event("focusin"');
-assert.ok(firstConsentGate >= 0, 'Bootstrap must contain a fail-closed marketing consent gate');
+assert.ok(firstConsentGate >= 0, 'Bootstrap must contain a form-access gate that preserves the functional exception');
 assert.ok(focusRecovery >= 0, 'Bootstrap must retain focus-triggered recovery');
 assert.ok(
   firstConsentGate < focusRecovery,
-  'Marketing consent must be checked before focus-triggered HubSpot recovery',
+  'Form access must be checked before focus-triggered HubSpot recovery',
 );
 
 const timerStart = managedPage.indexOf('recoveryTimer=window.setTimeout(function(){');
-const timerConsentGate = managedPage.indexOf('if(!hasMarketingConsent()){return;}', timerStart);
+const timerConsentGate = managedPage.indexOf('if(!hasFormAccess()){return;}', timerStart);
 const scriptAppend = managedPage.indexOf('document.head.appendChild(script)', timerStart);
 assert.ok(timerStart >= 0, 'Bootstrap must retain its deferred recovery timer');
-assert.ok(timerConsentGate > timerStart, 'Deferred recovery must re-check marketing consent');
+assert.ok(timerConsentGate > timerStart, 'Deferred recovery must re-check form access');
 assert.ok(scriptAppend > timerConsentGate, 'Deferred recovery must verify consent before injecting HubSpot');
 
 assert.doesNotMatch(

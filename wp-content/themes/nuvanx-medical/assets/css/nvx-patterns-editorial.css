@@ -84,6 +84,38 @@ figure.nvx-hero__media {
   display: none;
 }
 
+/* Authorized CO₂ facial photo: unhide media only when the page opts in. */
+.nvx-brand-hero.nvx-brand-hero--has-media > .nvx-brand-hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 48rem) {
+  .nvx-brand-hero.nvx-brand-hero--has-media > .nvx-brand-hero__inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: stretch;
+  }
+}
+.nvx-brand-hero.nvx-brand-hero--has-media .nvx-brand-hero__media,
+.nvx-brand-hero.nvx-brand-hero--has-media figure.nvx-brand-hero__media,
+.nvx-brand-hero figure.nvx-brand-hero__media--authorized {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 16rem;
+  margin: 0;
+  overflow: hidden;
+}
+.nvx-brand-hero.nvx-brand-hero--has-media .nvx-brand-hero__media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+}
+
 /* Eliminar cualquier elemento vacío o transparente en heroes */
 .nvx-brand-hero__inner:empty,
 .nvx-page-hero__inner:empty,

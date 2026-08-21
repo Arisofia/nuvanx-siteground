@@ -53,41 +53,94 @@ function nvx_gbp_review_url( string $clinic_key ): string {
 }
 
 /**
- * Theme-owned gallery for a clinic landing. Only files that exist on disk.
+ * Approved editorial photographs for a clinic landing (max 4).
  *
- * @return array<int,array{file:string,alt:string,caption:string}>
+ * Missing files are skipped rather than replaced with vendor packshots or
+ * unverified theme JPEGs.
+ *
+ * @return array<int,array{id:int,alt:string,caption:string}>
+ */
+function nvx_clinic_editorial_photo_map( string $clinic_key ): array {
+	if ( 'goya' === $clinic_key ) {
+		return array(
+			array(
+				'id'      => 2071,
+				'alt'     => __( 'Fachada de NUVANX Salamanca–Goya, Madrid', 'nuvanx-medical' ),
+				'caption' => __( 'Fachada', 'nuvanx-medical' ),
+			),
+			array(
+				'id'      => 1077,
+				'alt'     => __( 'Sala clínica NUVANX — Salamanca–Goya, Madrid', 'nuvanx-medical' ),
+				'caption' => __( 'Sala clínica', 'nuvanx-medical' ),
+			),
+			array(
+				'id'      => 1078,
+				'alt'     => __( 'Box clínico de NUVANX Salamanca–Goya', 'nuvanx-medical' ),
+				'caption' => __( 'Box clínico', 'nuvanx-medical' ),
+			),
+			array(
+				'id'      => 2892,
+				'alt'     => __( 'Consulta médica y valoración en NUVANX', 'nuvanx-medical' ),
+				'caption' => __( 'Valoración médica', 'nuvanx-medical' ),
+			),
+		);
+	}
+
+	return array(
+		array(
+			'id'      => 2796,
+			'alt'     => __( 'Fachada de NUVANX Chamberí, Madrid', 'nuvanx-medical' ),
+			'caption' => __( 'Fachada', 'nuvanx-medical' ),
+		),
+		array(
+			'id'      => 1632,
+			'alt'     => __( 'Sala de espera de NUVANX Chamberí', 'nuvanx-medical' ),
+			'caption' => __( 'Sala', 'nuvanx-medical' ),
+		),
+		array(
+			'id'      => 1630,
+			'alt'     => __( 'Sala clínica NUVANX — Chamberí, Madrid', 'nuvanx-medical' ),
+			'caption' => __( 'Sala clínica', 'nuvanx-medical' ),
+		),
+		array(
+			'id'      => 2892,
+			'alt'     => __( 'Consulta médica y valoración en NUVANX', 'nuvanx-medical' ),
+			'caption' => __( 'Valoración médica', 'nuvanx-medical' ),
+		),
+	);
+}
+
+/**
+ * Theme-owned gallery for a clinic landing. Only readable attachments.
+ *
+ * @return array<int,array{id:int,file:string,alt:string,caption:string}>
  */
 function nvx_clinic_landing_photos( string $clinic_key ): array {
 	$clinic_key = 'goya' === $clinic_key ? 'goya' : 'chamberi';
-	$prefix     = 'assets/images/clinics/' . $clinic_key . '/';
-	$place      = 'goya' === $clinic_key ? __( 'Salamanca–Goya, Madrid', 'nuvanx-medical' ) : __( 'Chamberí, Madrid', 'nuvanx-medical' );
+	$photos     = array();
 
-	$items = array(
-		array( '01-interior.jpg', __( 'Interior de la clínica NUVANX', 'nuvanx-medical' ), __( 'Interior', 'nuvanx-medical' ) ),
-		array( '01-fachada.jpg', __( 'Fachada de NUVANX Salamanca–Goya', 'nuvanx-medical' ), __( 'Fachada', 'nuvanx-medical' ) ),
-		array( '02-sala.jpg', __( 'Sala de tratamiento NUVANX Madrid', 'nuvanx-medical' ), __( 'Sala de tratamiento', 'nuvanx-medical' ) ),
-		array( '03-consulta-rivera.jpg', __( 'Dr. Javier Rivera Tejeda en consulta en NUVANX', 'nuvanx-medical' ), __( 'Consulta médica', 'nuvanx-medical' ) ),
-		array( '04-endolift.jpg', __( 'Equipo Endolift® Eufoton en NUVANX', 'nuvanx-medical' ), __( 'Equipo Endolift®', 'nuvanx-medical' ) ),
-		array( '05-laser-detalle.jpg', __( 'Detalle de plataforma láser en NUVANX Madrid', 'nuvanx-medical' ), __( 'Plataforma láser', 'nuvanx-medical' ) ),
-		array( '06-retrato-rivera.jpg', __( 'Dr. Javier Rivera Tejeda, director médico NUVANX', 'nuvanx-medical' ), __( 'Director médico', 'nuvanx-medical' ) ),
-		array( '07-sala-vertical.jpg', __( 'Sala clínica NUVANX Madrid', 'nuvanx-medical' ), __( 'Sala clínica', 'nuvanx-medical' ) ),
-		array( '08-lifestyle.jpg', __( 'Espacio clínico NUVANX en Madrid', 'nuvanx-medical' ), __( 'Espacio clínico', 'nuvanx-medical' ) ),
-		array( '09-retrato-corporativo.jpg', __( 'Retrato corporativo del equipo médico NUVANX', 'nuvanx-medical' ), __( 'Equipo médico', 'nuvanx-medical' ) ),
-		array( '10-laser-piel.jpg', __( 'Tratamiento láser de calidad de piel en NUVANX', 'nuvanx-medical' ), __( 'Láser de piel', 'nuvanx-medical' ) ),
-	);
-
-	$photos = array();
-	$root   = get_template_directory();
-	foreach ( $items as $item ) {
-		$relative = $prefix . $item[0];
-		if ( ! is_readable( $root . '/' . $relative ) ) {
+	foreach ( nvx_clinic_editorial_photo_map( $clinic_key ) as $item ) {
+		$attachment_id = (int) $item['id'];
+		$source_path   = get_attached_file( $attachment_id );
+		if ( ! is_string( $source_path ) || '' === $source_path || ! is_readable( $source_path ) ) {
 			continue;
 		}
+
+		$url = wp_get_attachment_url( $attachment_id );
+		if ( ! is_string( $url ) || '' === $url ) {
+			continue;
+		}
+
 		$photos[] = array(
-			'file'    => $relative,
-			'alt'     => $item[1] . ' — ' . $place,
-			'caption' => $item[2],
+			'id'      => $attachment_id,
+			'file'    => $url,
+			'alt'     => (string) $item['alt'],
+			'caption' => (string) $item['caption'],
 		);
+
+		if ( count( $photos ) >= 4 ) {
+			break;
+		}
 	}
 
 	return $photos;
@@ -106,7 +159,10 @@ function nvx_chamberi_landing_photos(): array {
 function nvx_clinic_schema_image_urls( string $clinic_key ): array {
 	$urls = array();
 	foreach ( nvx_clinic_landing_photos( $clinic_key ) as $photo ) {
-		$urls[] = trailingslashit( get_template_directory_uri() ) . ltrim( (string) $photo['file'], '/' );
+		$url = isset( $photo['id'] ) ? wp_get_attachment_url( (int) $photo['id'] ) : '';
+		if ( is_string( $url ) && '' !== $url ) {
+			$urls[] = $url;
+		}
 	}
 	return $urls;
 }

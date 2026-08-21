@@ -177,12 +177,51 @@ function nvx_content_restructure_co2_page( string $content ): string {
 	}
 
 	$media = nvx_page_extract_brand_hero_media( $content );
+	$reject_collage = ( false !== strpos( $media, 'laser-co2-fraccionado-madrid-textura' )
+		|| false !== strpos( $media, 'wp-image-3074' )
+		|| false !== strpos( $media, 'Deka.webp' )
+		|| false !== strpos( $media, 'laser-medico-nuvanx-madrid' ) );
+	if ( '' === $media || $reject_collage ) {
+		$co2_id   = 2086;
+		$co2_file = get_attached_file( $co2_id );
+		if ( is_string( $co2_file ) && is_readable( $co2_file ) ) {
+			$img = wp_get_attachment_image(
+				$co2_id,
+				'full',
+				false,
+				array(
+					'alt'           => __( 'NUVANX — Láser CO₂ fraccionado — tratamiento facial', 'nuvanx-medical' ),
+					'loading'       => 'eager',
+					'decoding'      => 'async',
+					'fetchpriority' => 'high',
+					'sizes'         => '(min-width: 900px) 50vw, 100vw',
+				)
+			);
+			if ( '' !== $img ) {
+				$media = '<figure class="nvx-brand-hero__media nvx-brand-hero__media--authorized">' . $img . '</figure>';
+			} elseif ( $reject_collage ) {
+				$media = '';
+			}
+		} elseif ( $reject_collage ) {
+			$media = '';
+		}
+	}
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-co2-h1">';
-	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= nvx_co2_hero_copy_markup();
-	$hero .= $media;
-	$hero .= '</div></section>';
+	if ( '' !== $media && false !== strpos( $media, 'nvx-co2-hero-760' ) && false === strpos( $media, 'nvx-brand-hero__media--authorized' ) ) {
+		$media = preg_replace(
+			'/\bclass="nvx-brand-hero__media"/',
+			'class="nvx-brand-hero__media nvx-brand-hero__media--authorized"',
+			$media,
+			1
+		) ?? $media;
+	}
+
+	$hero_class = '' !== $media ? 'nvx-brand-hero nvx-brand-hero--has-media' : 'nvx-brand-hero';
+	$hero       = '<section class="' . esc_attr( $hero_class ) . '" aria-labelledby="nvx-co2-h1">';
+	$hero      .= '<div class="nvx-brand-hero__inner">';
+	$hero      .= nvx_co2_hero_copy_markup();
+	$hero      .= $media;
+	$hero      .= '</div></section>';
 
 	$body = nvx_co2_editorial_body_markup();
 

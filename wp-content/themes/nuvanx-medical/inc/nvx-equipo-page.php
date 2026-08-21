@@ -669,6 +669,24 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['rivera'] ?? array();
+	$authorized_consultation = 2381;
+	$consultation_file       = get_attached_file( $authorized_consultation );
+	if ( is_string( $consultation_file ) && is_readable( $consultation_file ) ) {
+		$consultation = wp_get_attachment_image(
+			$authorized_consultation,
+			'full',
+			false,
+			array(
+				'alt'      => __( 'Javier Rivera — valoración médica NUVANX', 'nuvanx-medical' ),
+				'loading'  => 'eager',
+				'decoding' => 'async',
+				'sizes'    => '(min-width: 900px) 28vw, 100vw',
+			)
+		);
+		if ( '' !== $consultation ) {
+			$rivera_media = $consultation;
+		}
+	}
 
 	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';

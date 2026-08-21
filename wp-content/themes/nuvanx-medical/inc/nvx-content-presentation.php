@@ -862,9 +862,11 @@ function nvx_content_normalize_interior_hero_shells( string $content ): string {
 				if ( '' === $token ) {
 					continue;
 				}
-				// Drop BEM modifiers on the brand hero.
+				// Drop BEM modifiers on the brand hero, except the authorized media opt-in.
 				if ( preg_match( '/^nvx-brand-hero--/u', $token ) ) {
-					continue;
+					if ( 'nvx-brand-hero--has-media' !== $token ) {
+						continue;
+					}
 				}
 				// Drop page-specific hero skins and copy modifiers.
 				if ( preg_match( '/^nvx-(?:endolift|endolaser|co2|aes|equipo|nosotros|ipl|btl|exilite|laser)(?:-hero(?:-copy)?|--copy-only)?$/u', $token ) ) {

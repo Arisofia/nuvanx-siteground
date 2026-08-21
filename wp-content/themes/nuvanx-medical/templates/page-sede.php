@@ -161,17 +161,32 @@ ob_start();
 		<section class="nvx-brand-section nvx-clinic-gallery" aria-labelledby="nvx-clinic-gallery-title">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'La sede', 'nuvanx-medical' ); ?></p>
-				<h2 id="nvx-clinic-gallery-title" class="nvx-brand-title"><?php esc_html_e( 'Fachada, salas, equipos y equipo médico', 'nuvanx-medical' ); ?></h2>
+				<h2 id="nvx-clinic-gallery-title" class="nvx-brand-title"><?php esc_html_e( 'Fachada, salas y consulta', 'nuvanx-medical' ); ?></h2>
 				<div class="nvx-clinic-gallery__grid">
 					<?php foreach ( $clinic_photos as $photo ) : ?>
 						<?php
-						$src = trailingslashit( get_template_directory_uri() ) . ltrim( (string) ( $photo['file'] ?? '' ), '/' );
-						if ( '' === (string) ( $photo['file'] ?? '' ) ) {
+						$attachment_id = (int) ( $photo['id'] ?? 0 );
+						if ( $attachment_id < 1 ) {
+							continue;
+						}
+						$image = wp_get_attachment_image(
+							$attachment_id,
+							'full',
+							false,
+							array(
+								'class'    => 'nvx-clinic-gallery__image',
+								'alt'      => (string) ( $photo['alt'] ?? '' ),
+								'loading'  => 'lazy',
+								'decoding' => 'async',
+								'sizes'    => '(min-width: 1024px) 25vw, (min-width: 641px) 50vw, 100vw',
+							)
+						);
+						if ( '' === $image ) {
 							continue;
 						}
 						?>
 						<figure class="nvx-clinic-gallery__item">
-							<img src="<?php echo esc_url( $src ); ?>" alt="<?php echo esc_attr( (string) ( $photo['alt'] ?? '' ) ); ?>" width="1200" height="628" loading="lazy" decoding="async" />
+							<?php echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_get_attachment_image escapes. ?>
 							<figcaption><?php echo esc_html( (string) ( $photo['caption'] ?? '' ) ); ?></figcaption>
 						</figure>
 					<?php endforeach; ?>

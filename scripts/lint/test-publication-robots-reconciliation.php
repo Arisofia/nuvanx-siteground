@@ -5,6 +5,7 @@
 
 $root          = dirname( __DIR__, 2 );
 $manifest_path = $root . '/wp-content/themes/nuvanx-medical/inc/data/publication-manifest.json';
+$blog_metadata_path = $root . '/wp-content/themes/nuvanx-medical/inc/data/seo-blog-post-metadata.json';
 $migration     = $root . '/tools/migrations/reconcile-publication-robots.php';
 $indexables_migration = $root . '/tools/migrations/reconcile-publication-indexables.php';
 $yoast_rebuild = $root . '/tools/migrations/run-yoast-indexable-rebuild.php';
@@ -23,6 +24,13 @@ $manifest_raw = file_get_contents( $manifest_path );
 $manifest     = false === $manifest_raw ? null : json_decode( $manifest_raw, true );
 if ( ! is_array( $manifest ) || 'nuvanx-publication-manifest' !== (string) ( $manifest['schema'] ?? '' ) || ! is_array( $manifest['routes'] ?? null ) ) {
 	fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=manifest_invalid\n" );
+	exit( 1 );
+}
+
+$blog_metadata_raw = file_get_contents( $blog_metadata_path );
+$blog_metadata     = false === $blog_metadata_raw ? null : json_decode( $blog_metadata_raw, true );
+if ( ! is_array( $blog_metadata ) ) {
+	fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=blog_metadata_invalid\n" );
 	exit( 1 );
 }
 
@@ -48,6 +56,20 @@ foreach ( $manifest['routes'] as $route => $config ) {
 		++$indexable;
 	} else {
 		++$noindex;
+	}
+
+	if ( true === $config['robots']['index'] && 'post' === (string) ( $config['post_type'] ?? '' ) ) {
+		$slug = (string) ( $config['slug'] ?? '' );
+		if ( '' !== $slug && isset( $blog_metadata[ $slug ] ) && is_array( $blog_metadata[ $slug ] ) ) {
+			$canonical_path = trim( (string) ( $blog_metadata[ $slug ]['canonical_path'] ?? '' ) );
+			if ( '' !== $canonical_path ) {
+				$canonical_route = '/' . trim( $canonical_path, '/' ) . '/';
+				if ( $canonical_route !== $route ) {
+					fwrite( STDERR, "PUBLICATION_ROBOTS_RECONCILIATION_STATIC=FAIL reason=indexable_cross_canonical route={$route} canonical={$canonical_route}\n" );
+					exit( 1 );
+				}
+			}
+		}
 	}
 }
 
@@ -148,7 +170,6 @@ foreach ( $required as $pair ) {
 		exit( 1 );
 	}
 }
-
 
 printf(
 	"PUBLICATION_ROBOTS_RECONCILIATION_STATIC=PASS routes=%d indexable=%d noindex=%d\n",

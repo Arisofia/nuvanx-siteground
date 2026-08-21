@@ -21,6 +21,7 @@ async function validateHubSpotIframe(url) {
     iframeBoundingBox: null,
     formIntersectsViewport: false,
     oversizedBlankContainer: false,
+    functionalConsentMarker: false,
     duplicateLoader: false,
   };
 
@@ -35,6 +36,13 @@ async function validateHubSpotIframe(url) {
 
     // Get HTML for detailed analysis
     const html = runAgentBrowser(['read']);
+
+    // The valuation form is intentionally functional so it must remain available
+    // when marketing consent is denied; this marker is the deployment contract.
+    checks.functionalConsentMarker = /data-nvx-consent=["']functional["']/i.test(html);
+    if (!checks.functionalConsentMarker) {
+      issues.push('Functional consent marker missing from the valuation form host');
+    }
 
     // Count mounts (HubSpot mount points)
     const mountRegex = /data-hs-cos|hubspot-form|hs-form/gi;

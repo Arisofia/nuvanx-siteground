@@ -25,6 +25,10 @@ const heroAndFormsUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php',
   import.meta.url
 );
+const valoracionModalUrl = new URL(
+  '../../wp-content/themes/nuvanx-medical/inc/nvx-valoracion-modal.php',
+  import.meta.url
+);
 const conversionEventsUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js',
   import.meta.url
@@ -33,7 +37,6 @@ const runtimeGovernanceUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js',
   import.meta.url
 );
-
 const directFormUrl = new URL(
   '../../wp-content/themes/nuvanx-medical/inc/nvx-valoracion-direct-form.php',
   import.meta.url
@@ -43,14 +46,32 @@ const pageHygieneUrl = new URL(
   import.meta.url
 );
 
-const [managedPage, heroAndForms, conversionEvents, runtimeGovernance, directForm, pageHygiene] = await Promise.all([
+const [managedPage, heroAndForms, valoracionModal, conversionEvents, runtimeGovernance, directForm, pageHygiene] = await Promise.all([
   fs.readFile(managedPageUrl, 'utf8'),
   fs.readFile(heroAndFormsUrl, 'utf8'),
+  fs.readFile(valoracionModalUrl, 'utf8'),
   fs.readFile(conversionEventsUrl, 'utf8'),
   fs.readFile(runtimeGovernanceUrl, 'utf8'),
   fs.readFile(directFormUrl, 'utf8'),
   fs.readFile(pageHygieneUrl, 'utf8'),
 ]);
+
+function htmlOpeningTag(source, pattern) {
+  const match = source.match(pattern);
+  return match ? match[0] : '';
+}
+
+function styleDeclaresDisplayNone(tag) {
+  const quoted = tag.match(/\bstyle\s*=\s*(["'])([\s\S]*?)\1/i);
+  if (quoted) {
+    return /(?:^|;)\s*display\s*:\s*none\b/i.test(quoted[2]);
+  }
+  const unquoted = tag.match(/\bstyle\s*=\s*([^\s>]+)/i);
+  if (!unquoted) {
+    return false;
+  }
+  return /display\s*:\s*none\b/i.test(unquoted[1]);
+}
 
 assert.match(
   managedPage,
@@ -108,6 +129,31 @@ assert.match(
   heroAndForms,
   /data-nvx-hubspot-lazy="1"/,
   'canonical HubSpot mount must have the lazy attribute for governance'
+);
+assert.doesNotMatch(
+  heroAndForms,
+  /nvx_valoracion_direct_form_markup/,
+  'canonical HubSpot landing must not render the first-party fallback beside the iframe'
+);
+const canonicalFrame = htmlOpeningTag(
+  heroAndForms,
+  /<div\b[^>]*\bclass=["'][^"']*\bhs-form-frame\b[^"']*["'][^>]*>/i
+);
+const nativeHost = htmlOpeningTag(
+  managedPage,
+  /<div\b[^>]*\bid=["']nvx-hubspot-native-form["'][^>]*>/i
+);
+assert.ok(canonicalFrame, 'canonical HubSpot frame opening tag must exist');
+assert.ok(nativeHost, 'canonical HubSpot host opening tag must exist');
+assert.equal(
+  styleDeclaresDisplayNone(canonicalFrame),
+  false,
+  'canonical HubSpot frame must not hide the conversion surface with display:none'
+);
+assert.equal(
+  styleDeclaresDisplayNone(nativeHost),
+  false,
+  'canonical HubSpot host must not hide the conversion surface with display:none'
 );
 
 // The dedicated conversion route must not depend exclusively on the shared
@@ -182,21 +228,22 @@ assert.match(
   'runtime must retry the HubSpot embed after Complianz consent'
 );
 
+// The first-party form is retained as the modal fallback, not as a second form
+// on the canonical /madrid/valoracion/ conversion surface.
 assert.match(
-  heroAndForms,
+  valoracionModal,
   /nvx_valoracion_direct_form_markup/,
-  'canonical mount must render the first-party valoración form'
+  'site-wide valoración modal must retain the first-party fallback form'
 );
-assert.doesNotMatch(
-  heroAndForms,
-  /style="display:none;"/,
-  'canonical mount must not hide the conversion surface with an inline display:none'
-);
-
 assert.match(
   directForm,
-  /name="firstname"/,
-  'first-party form must collect a name'
+  /'id'\s*=>\s*'firstname'/,
+  'first-party form identity fields must include firstname'
+);
+assert.match(
+  directForm,
+  /name="' \. \$field\['id'\] \. '"/,
+  'first-party form must emit the input name from the field id'
 );
 assert.match(
   directForm,
@@ -222,7 +269,7 @@ assert.match(
 assert.match(
   pageHygiene,
   /cmplz_whitelisted_script_tags/,
-  'Complianz must whitelist HubSpot form scripts so the embed can render without marketing consent'
+  'Complianz must retain explicit HubSpot script governance'
 );
 assert.match(
   pageHygiene,
@@ -234,6 +281,6 @@ console.log(`EXPECTED_SHA=${expectedSha}`);
 console.log(`HUBSPOT_FORM_ID=${formId}`);
 console.log(`HUBSPOT_PORTAL_ID=${portalId}`);
 console.log('HUBSPOT_PRODUCTION_CONTRACT_MODE=ZERO_SUBMIT');
-console.log('HUBSPOT_VALORACION_RECOVERY_BOOTSTRAP=PASS single_frame=1 single_loader=1');
+console.log('HUBSPOT_VALORACION_RECOVERY_BOOTSTRAP=PASS single_frame=1 single_loader=1 direct_fallback_surface=modal_only');
 console.log('H1_BROWSER_E2E=PASS mode=zero-submit-static-contract');
 console.log('PRODUCTION_HUBSPOT_CONTRACT=PASS zero_submit=1 javascript_executed=0 contact_created=0');

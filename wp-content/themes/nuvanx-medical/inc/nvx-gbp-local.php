@@ -172,13 +172,9 @@ function nvx_clinic_strip_vendor_packshots( string $content ): string {
 		return $content;
 	}
 
-	$updated = preg_replace_callback(
-		'/<figure\b[^>]*>[\s\S]*?<\/figure>/iu',
-		static function ( array $match ): string {
-			return nvx_clinic_html_contains_vendor_packshot( $match[0] ) ? '' : $match[0];
-		},
-		$content
-	);
+	// Sede photo set is the theme gallery (max 4). CMS figures are vendor
+	// packshots or duplicate clinic shots and must not add to the count.
+	$updated = preg_replace( '/<figure\b[^>]*>[\s\S]*?<\/figure>/iu', '', $content );
 	if ( ! is_string( $updated ) ) {
 		$updated = $content;
 	}

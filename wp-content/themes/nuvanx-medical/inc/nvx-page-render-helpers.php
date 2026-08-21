@@ -112,6 +112,55 @@ function nvx_page_brand_section_heading_markup(
 }
 
 /**
+ * Shared brand-hero copy used by treatment landings.
+ *
+ * Callers keep their own h1 ids, fallback CTA labels and optional description.
+ * Output is escaped except description_html, which the caller must already escape.
+ *
+ * @param array<string,mixed> $config Copy fields.
+ */
+function nvx_brand_hero_copy_markup( array $config ): string {
+	$html = '<div class="nvx-brand-hero__copy">';
+
+	$kicker = trim( (string) ( $config['kicker'] ?? '' ) );
+	if ( '' !== $kicker ) {
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
+	}
+
+	$html .= '<h1 class="nvx-brand-hero__title" id="' . esc_attr( (string) ( $config['h1_id'] ?? '' ) ) . '">' . esc_html( (string) ( $config['h1'] ?? '' ) ) . '</h1>';
+
+	if ( ! empty( $config['byline'] ) && function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
+		$html .= nvx_clinical_authority_byline_markup();
+	}
+
+	$lead = (string) ( $config['lead'] ?? '' );
+	if ( '' !== $lead ) {
+		$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $lead ) . '</p>';
+	}
+
+	$description_html = (string) ( $config['description_html'] ?? '' );
+	if ( '' !== $description_html ) {
+		$html .= '<p class="nvx-brand-hero__description">' . $description_html . '</p>';
+	}
+
+	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
+		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
+	} else {
+		$fallback = (string) ( $config['cta_fallback_label'] ?? __( 'Reservar valoración médica', 'nuvanx-medical' ) );
+		$html    .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html( $fallback ) . '</a></div>';
+	}
+
+	$meta = (string) ( $config['meta'] ?? '' );
+	if ( '' !== $meta ) {
+		$html .= '<p class="nvx-brand-meta">' . esc_html( $meta ) . '</p>';
+	}
+
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
  * Resolve a same-host WordPress uploads URL to its local filesystem path.
  *
  * Returns an empty string for external/CDN URLs or URLs that cannot be mapped

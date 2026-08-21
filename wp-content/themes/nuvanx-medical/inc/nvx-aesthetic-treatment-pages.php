@@ -290,24 +290,19 @@ function nvx_aesthetic_treatment_render( array $page ): void {
 	<div class="nvx-treatment-editorial" data-nvx-treatment-page>
 		<section class="nvx-brand-hero" aria-labelledby="nvx-treatment-h1">
 			<div class="nvx-brand-hero__inner">
-				<div class="nvx-brand-hero__copy">
-					<p class="nvx-brand-kicker"><?php echo esc_html( (string) $page['kicker'] ); ?></p>
-					<h1 id="nvx-treatment-h1" class="nvx-brand-hero__title"><?php echo esc_html( (string) $page['h1'] ); ?></h1>
-					<?php
-					if ( function_exists( 'nvx_clinical_authority_byline_markup' ) ) {
-						echo nvx_clinical_authority_byline_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
-					}
-					?>
-					<p class="nvx-brand-hero__lead"><?php echo esc_html( (string) $page['lead'] ); ?></p>
-					<?php
-					if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-						echo nvx_cta_pair_markup( 'nvx-brand-actions' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
-					} else {
-						echo '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div>';
-					}
-					?>
-					<p class="nvx-brand-meta"><?php esc_html_e( 'Chamberí (CS20144) · Salamanca–Goya (CS20073)', 'nuvanx-medical' ); ?></p>
-				</div>
+				<?php
+				echo nvx_brand_hero_copy_markup( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
+					array(
+						'kicker'             => (string) $page['kicker'],
+						'h1_id'              => 'nvx-treatment-h1',
+						'h1'                 => (string) $page['h1'],
+						'byline'             => true,
+						'lead'               => (string) $page['lead'],
+						'cta_fallback_label' => __( 'Solicitar valoración médica', 'nuvanx-medical' ),
+						'meta'               => __( 'Chamberí (CS20144) · Salamanca–Goya (CS20073)', 'nuvanx-medical' ),
+					)
+				);
+				?>
 			</div>
 		</section>
 

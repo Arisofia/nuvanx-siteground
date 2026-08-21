@@ -101,31 +101,24 @@ function nvx_endolift_hero_copy_markup(): string {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	$html .= function_exists( 'nvx_clinical_authority_byline_markup' )
-		? nvx_clinical_authority_byline_markup()
-		: '';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ?? '' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
-		sprintf(
-			/* translators: %s: medical license number */
-			$data['description'] ?? '',
-			$colegiado
+	return nvx_brand_hero_copy_markup(
+		array(
+			'kicker'             => (string) ( $data['kicker'] ?? '' ),
+			'h1_id'              => 'nvx-endolift-h1',
+			'h1'                 => (string) ( $data['h1'] ?? '' ),
+			'byline'             => true,
+			'lead'               => (string) ( $data['lead'] ?? '' ),
+			'description_html'   => esc_html(
+				sprintf(
+					/* translators: %s: medical license number */
+					(string) ( $data['description'] ?? '' ),
+					$colegiado
+				)
+			),
+			'cta_fallback_label' => __( 'Reservar valoración médica', 'nuvanx-medical' ),
+			'meta'               => (string) ( $data['meta'] ?? '' ),
 		)
-	) . '</p>';
-
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
-	} else {
-		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
-	}
-
-	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';
-	$html .= '</div>';
-
-	return $html;
+	);
 }
 
 

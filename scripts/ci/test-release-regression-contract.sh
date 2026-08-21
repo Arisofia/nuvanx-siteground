@@ -71,6 +71,23 @@ grep -Fq "from './valoracion-form-contract.mjs'" "$BOUNDARY" || fail 'boundary_v
 ! grep -Fq 'process.env.EXPECTED_RUN_ID || process.env.GITHUB_RUN_ID' "$BOUNDARY" || fail 'boundary_current_audit_run_fallback_forbidden'
 pass_assert 'boundary-identity-semantics'
 
+# SiteGround may challenge GitHub-hosted runner egress with HTTP 202. That may
+# only become a release PASS when every external route failed with the exact
+# challenge signature and a second, non-loopback HTTPS public-host probe from
+# SiteGround verifies the same four-field identity and full route contract.
+grep -Fq 'verifyFromSiteGroundPublicEdge' "$BOUNDARY" || fail 'siteground_public_edge_fallback_missing'
+grep -Fq "verifyFromSiteGroundProbe('public-edge')" "$BOUNDARY" || fail 'siteground_public_edge_mode_missing'
+grep -Fq 'PROBE_MODE=${probeMode}' "$BOUNDARY" || fail 'siteground_probe_mode_not_wired'
+grep -Fq 'externalFailures.length === routes.length' "$BOUNDARY" || fail 'siteground_challenge_all_routes_guard_missing'
+grep -Fq 'failure.issues.length === 1' "$BOUNDARY" || fail 'siteground_challenge_single_issue_guard_missing'
+grep -Fq 'HTTP 202 .*sg-captcha=challenge' "$BOUNDARY" || fail 'siteground_exact_challenge_signature_missing'
+grep -Fq "curl_args+=(--proto '=https' --proto-redir '=https')" "$BOUNDARY" || fail 'siteground_public_edge_https_only_missing'
+grep -Fq 'reason=public_edge_loopback' "$BOUNDARY" || fail 'siteground_public_edge_loopback_guard_missing'
+grep -Fq 'data-nvx-consent=\"functional\"' "$BOUNDARY" || fail 'siteground_public_edge_functional_form_contract_missing'
+grep -Fq 'report.external.inconclusiveAntiBot && report.sitegroundPublicEdge.pass' "$BOUNDARY" || fail 'siteground_public_edge_quorum_missing'
+! grep -Fq 'report.external.pass || report.external.inconclusiveAntiBot' "$BOUNDARY" || fail 'siteground_challenge_direct_pass_forbidden'
+pass_assert 'siteground-antibot-public-edge-fallback'
+
 node "$VALORACION_FORM_CONTRACT_TEST" || fail 'valoracion_form_structural_boundary_behavior'
 pass_assert 'valoracion-form-structural-boundary'
 

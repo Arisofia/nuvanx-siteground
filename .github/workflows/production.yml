@@ -639,24 +639,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          public_url="$BASE_URL/$INDEXNOW_KEY.txt"
-          response_file="$RUNNER_TEMP/indexnow-public-key.txt"
-          transport_error="$RUNNER_TEMP/indexnow-public-key.err"
-          rm -f "$response_file" "$transport_error"
-          set +e
-          http_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 5 --max-time 15 --proto '=https' --proto-redir '=https' -o "$response_file" -w '%{http_code}' "$public_url" 2>"$transport_error")"
-          curl_rc=$?
-          set -e
-          if (( curl_rc == 0 )); then
-            [[ "$http_code" == '200' ]] || { echo "INDEXNOW_KEY_PUBLIC=FAIL reason=http_status status=$http_code" >&2; exit 1; }
-            [[ "$(tr -d '\r\n' < "$response_file")" == "$INDEXNOW_KEY" ]] || { echo 'INDEXNOW_KEY_PUBLIC=FAIL reason=content_mismatch' >&2; exit 1; }
-            echo 'INDEXNOW_KEY_PUBLIC=PASS source=public-edge'
-          else
-            origin_log='scripts/production/artifacts/indexnow-submit.log'
-            [[ -s "$origin_log" ]] || { echo 'INDEXNOW_KEY_PUBLIC=FAIL reason=transport origin_evidence=missing' >&2; exit 1; }
+          # GitHub-hosted runners can receive SiteGround Anti-Bot HTTP 202
+          # (sg-captcha=challenge) on the public hostname. That is not a PASS
+          # by itself. The cutover already curls the same public URL from the
+          # SiteGround host (non-loopback). Reuse that public-edge evidence.
+          accept_siteground_public_edge_evidence() {
+            local origin_log='scripts/production/artifacts/indexnow-submit.log'
+            [[ -s "$origin_log" ]] || { echo "INDEXNOW_KEY_PUBLIC=FAIL reason=$1 origin_evidence=missing" >&2; exit 1; }
             grep -Fq "PASS INDEXNOW_KEY_FILE path=/$INDEXNOW_KEY.txt" "$origin_log"
             grep -Fq 'INDEXNOW_SUBMIT=PASS' "$origin_log"
+          }
+          public_url="$BASE_URL/$INDEXNOW_KEY.txt"
+          response_file="$RUNNER_TEMP/indexnow-public-key.txt"
+          header_file="$RUNNER_TEMP/indexnow-public-key.headers"
+          transport_error="$RUNNER_TEMP/indexnow-public-key.err"
+          rm -f "$response_file" "$header_file" "$transport_error"
+          set +e
+          http_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 45 --connect-timeout 5 --max-time 15 --proto '=https' --proto-redir '=https' -D "$header_file" -o "$response_file" -w '%{http_code}' "$public_url" 2>"$transport_error")"
+          curl_rc=$?
+          set -e
+          sg_captcha="$(awk 'BEGIN{IGNORECASE=1} /^sg-captcha:/{print $2; exit}' "$header_file" 2>/dev/null | tr -d '\r')"
+          if (( curl_rc == 0 )) && [[ "$http_code" == '200' ]]; then
+            [[ "$(tr -d '\r\n' < "$response_file")" == "$INDEXNOW_KEY" ]] || { echo 'INDEXNOW_KEY_PUBLIC=FAIL reason=content_mismatch' >&2; exit 1; }
+            echo 'INDEXNOW_KEY_PUBLIC=PASS source=public-edge'
+          elif (( curl_rc == 0 )) && { [[ "$http_code" == '202' ]] || [[ "${sg_captcha,,}" == 'challenge' ]]; }; then
+            accept_siteground_public_edge_evidence "github_runner_challenge status=$http_code sg-captcha=${sg_captcha:-none}"
+            echo "INDEXNOW_KEY_PUBLIC=PASS source=siteground-public-edge github_runner_status=$http_code"
+          elif (( curl_rc != 0 )); then
+            accept_siteground_public_edge_evidence "transport curl_rc=$curl_rc"
             echo 'INDEXNOW_KEY_PUBLIC=UNVERIFIED_TRANSPORT origin_evidence=PASS'
+          else
+            echo "INDEXNOW_KEY_PUBLIC=FAIL reason=http_status status=$http_code" >&2
+            exit 1
           fi
 
       - name: Upload production audit evidence

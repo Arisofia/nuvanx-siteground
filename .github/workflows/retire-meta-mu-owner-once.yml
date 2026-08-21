@@ -1,4 +1,4 @@
-name: Classify residual Meta MU owner once
+name: Retire residual Meta browser owner and release once
 
 on:
   pull_request:
@@ -6,14 +6,16 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
-  classify:
+  retire-and-release:
     if: github.head_ref == 'ops/retire-meta-mu-owner-20260821'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      PROD_PARENT: /home/customer/www/nuvanx.com
       EXPECTED_MASTER_SHA: 79cea21ac3e6e8b64a4c48ae8137f0b0ddca23c8
     steps:
       - name: Check out operational branch
@@ -28,6 +30,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin master
           test "$(git rev-parse origin/master)" = "$EXPECTED_MASTER_SHA"
+          echo "META_RESIDUAL_RELEASE_GATE=PASS sha=$EXPECTED_MASTER_SHA"
 
       - name: Configure strict production SSH
         shell: bash
@@ -46,39 +49,121 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: bash scripts/production/configure-siteground-ssh.sh
 
-      - name: Classify production-only match-quality MU source read-only
+      - name: Backup and retire residual Meta match-quality MU owner
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' php -r '"'"'
-            $p = getenv("PROD_ROOT") . "/wp-content/mu-plugins/nuvanx-meta-match-quality.php";
-            if (!is_file($p)) { fwrite(STDERR, "META_MATCH_QUALITY=ABSENT\n"); exit(2); }
-            $s = file_get_contents($p);
-            if (!is_string($s)) exit(3);
-            $checks = [
-              "document_cookie" => preg_match("~document\\.cookie~i", $s),
-              "cookie_assignment" => preg_match("~cookie\\s*=~i", $s),
-              "fbp" => stripos($s, "_fbp") !== false,
-              "fbc" => stripos($s, "_fbc") !== false,
-              "script_literal" => stripos($s, "<script") !== false,
-              "echo_or_print" => preg_match("~\\b(?:echo|print)\\b~i", $s),
-              "wp_head" => stripos($s, "wp_head") !== false,
-              "wp_footer" => stripos($s, "wp_footer") !== false,
-              "inline_script" => stripos($s, "wp_add_inline_script") !== false,
-              "setcookie" => preg_match("~\\bsetcookie\\s*\\(~i", $s),
-              "cookie_superglobal" => strpos($s, "$_COOKIE") !== false,
-              "consent_terms" => preg_match("~consent|marketing|statistics|cmplz|wp_consent~i", $s),
-              "capi_terms" => preg_match("~conversions.?api|capi|event_id|user_data~i", $s),
-            ];
-            printf("META_MATCH_QUALITY path=%s bytes=%d sha256=%s\n", basename($p), strlen($s), substr(hash("sha256", $s), 0, 16));
-            foreach ($checks as $k => $v) printf("META_MATCH_QUALITY_FEATURE %s=%s\n", $k, $v ? "true" : "false");
-            if (preg_match_all("~function\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\(~", $s, $m)) {
-              foreach (array_unique($m[1]) as $name) printf("META_MATCH_QUALITY_FUNCTION name=%s\n", $name);
-            }
-            if (preg_match_all("~add_(action|filter)\\s*\\(\\s*[\\x27\\x22]([^\\x27\\x22]+)[\\x27\\x22]~", $s, $m, PREG_SET_ORDER)) {
-              foreach ($m as $row) printf("META_MATCH_QUALITY_HOOK type=%s hook=%s\n", $row[1], $row[2]);
-            }
-          '"'"''"
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_PARENT='$PROD_PARENT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          backup_dir="$PROD_PARENT/.nvx-backups/retired-mu"
+          mkdir -p "$backup_dir"
+          chmod 700 "$backup_dir"
+
+          retire_one() {
+            local name="$1" src="$PROD_ROOT/wp-content/mu-plugins/$1" backup="$backup_dir/$1"
+            if test -f "$src"; then
+              local src_hash backup_hash tmp
+              src_hash="$(sha256sum "$src" | awk '{print $1}')"
+              if test -f "$backup"; then
+                backup_hash="$(sha256sum "$backup" | awk '{print $1}')"
+                test "$src_hash" = "$backup_hash" || { echo "META_MU_BACKUP=FAIL file=$name reason=hash_mismatch" >&2; exit 20; }
+              else
+                tmp="$backup.tmp.$$"
+                cp -p "$src" "$tmp"
+                chmod 600 "$tmp"
+                test "$(sha256sum "$tmp" | awk '{print $1}')" = "$src_hash"
+                mv "$tmp" "$backup"
+              fi
+              test -s "$backup"
+              php -l "$backup" >/dev/null
+              test "$(sha256sum "$backup" | awk '{print $1}')" = "$src_hash"
+              rm -f "$src"
+              echo "META_MU_RETIRE=PASS file=$name sha256=${src_hash:0:16} backup=verified"
+            elif test -s "$backup"; then
+              php -l "$backup" >/dev/null
+              echo "META_MU_RETIRE=PASS file=$name state=already_retired backup=verified"
+            else
+              echo "META_MU_RETIRE=FAIL file=$name reason=source_and_backup_missing" >&2
+              exit 21
+            fi
+            test ! -e "$src"
+            test -s "$backup"
+          }
+
+          retire_one 'nuvanx-meta-dedupe-event-id.php'
+          retire_one 'nuvanx-meta-match-quality.php'
+
+          cd "$PROD_ROOT"
+          wp cache flush >/dev/null || true
+          plugin='sg-cachepress'
+          activated_temporarily=0
+          if wp help sg >/dev/null 2>&1; then
+            wp sg purge >/dev/null
+            echo 'META_RESIDUAL_CACHE_GATE=PASS mode=existing-command'
+          elif wp plugin is-installed "$plugin" >/dev/null 2>&1; then
+            if ! wp plugin is-active "$plugin" >/dev/null 2>&1; then
+              wp plugin activate "$plugin" --quiet
+              activated_temporarily=1
+            fi
+            wp help sg >/dev/null 2>&1
+            wp sg purge >/dev/null
+            if test "$activated_temporarily" = 1; then
+              wp plugin deactivate "$plugin" --quiet
+              ! wp plugin is-active "$plugin" >/dev/null 2>&1
+            fi
+            echo 'META_RESIDUAL_CACHE_GATE=PASS mode=transient-plugin-activation'
+          else
+            echo 'META_RESIDUAL_CACHE_GATE=PASS mode=wp-cache-only'
+          fi
+          REMOTE
+
+      - name: Verify old production boundary is free of residual Meta writer
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          cleanup() { rm -f "$headers" "$body"; }
+          trap cleanup EXIT
+          result="$(curl -kS -L --max-redirs 5 --max-time 30 --resolve 'nuvanx.com:443:127.0.0.1' -A 'NUVANX-Meta-Residual-Origin/1.0' -H 'Cache-Control: no-cache' -D "$headers" -o "$body" -w '%{http_code}|%{url_effective}' 'https://nuvanx.com/')"
+          code="${result%%|*}"
+          test "$code" = 200
+          ! grep -Eiq '^set-cookie:[[:space:]]*(_fbp|_fbc)=' "$headers" || { echo 'META_RESIDUAL_BOUNDARY=FAIL reason=meta_cookie'; exit 31; }
+          ! grep -Eiq 'fbq[[:space:]]*\(' "$body" || { echo 'META_RESIDUAL_BOUNDARY=FAIL reason=fbq'; exit 32; }
+          ! grep -Fiq 'connect.facebook.net' "$body" || { echo 'META_RESIDUAL_BOUNDARY=FAIL reason=facebook_loader'; exit 33; }
+          ! grep -Fiq 'fbevents.js' "$body" || { echo 'META_RESIDUAL_BOUNDARY=FAIL reason=fbevents'; exit 34; }
+          php -r '$h=@file_get_contents($argv[1]); if (!is_string($h)) exit(2); if (preg_match("~(?:document\\.cookie|cookie\\s*=)[\\s\\S]{0,500}(?:_fbp|_fbc)~i", $h)) exit(1);' -- "$body" || { echo 'META_RESIDUAL_BOUNDARY=FAIL reason=browser_cookie_writer'; exit 35; }
+          echo 'META_RESIDUAL_BOUNDARY=PASS meta_cookie=0 browser_writer=0'
+          REMOTE
+
+      - name: Dispatch fresh immutable production release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          before="$(gh run list --workflow production.yml --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // 0')"
+          gh workflow run production.yml \
+            --ref master \
+            -f deploy=true \
+            -f candidate_sha="$EXPECTED_MASTER_SHA" \
+            -f release_mode=release \
+            -f run_post_audits=true \
+            -f run_performance=false \
+            -f run_hubspot_e2e=false \
+            -f run_final_close_audit=false \
+            -f run_mu_plugin_forensics=false
+          new_id=''
+          for attempt in $(seq 1 20); do
+            runs="$(gh run list --workflow production.yml --branch master --event workflow_dispatch --limit 10 --json databaseId,headSha)"
+            new_id="$(jq -r --argjson before "$before" --arg sha "$EXPECTED_MASTER_SHA" '[.[] | select(.databaseId > $before and .headSha == $sha)] | sort_by(.databaseId) | last | .databaseId // empty' <<<"$runs")"
+            [[ "$new_id" =~ ^[0-9]+$ ]] && break
+            sleep 2
+          done
+          [[ "$new_id" =~ ^[0-9]+$ ]]
+          echo "META_RESIDUAL_PRODUCTION_DISPATCH=PASS sha=$EXPECTED_MASTER_SHA run_id=$new_id"
 
       - name: Cleanup SSH material
         if: always()

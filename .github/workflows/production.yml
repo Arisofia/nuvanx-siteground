@@ -45,7 +45,7 @@ on:
         default: false
         type: boolean
       run_mu_plugin_forensics:
-        description: Extract private MU-plugin forensic evidence in read-only mode. No deployment or runtime mutation is performed.
+        description: Extract private MU-plugin forensic evidence in read-only mode. SSH transport exhaustion is reported as unavailable and does not invalidate a successful release.
         required: true
         default: false
         type: boolean
@@ -962,6 +962,7 @@ jobs:
           echo 'MU_PLUGIN_FORENSICS_TOOLING=PASS mode=read_only_private'
 
       - name: Configure strict production forensic SSH
+        id: forensic_ssh
         shell: bash
         env:
           NVX_SSH_ALIAS: nvx-prod-mu-forensics
@@ -976,9 +977,35 @@ jobs:
           FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
           FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
-        run: bash scripts/production/configure-siteground-ssh.sh
+        run: |
+          set +e
+          bash scripts/production/configure-siteground-ssh.sh
+          rc=$?
+          set -e
+          if (( rc == 0 )); then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+            echo 'MU_PLUGIN_FORENSICS_SSH=PASS'
+            exit 0
+          fi
+          if (( rc == SSH_TRANSPORT_EXIT_CODE )); then
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+            mkdir -p mu-plugin-forensics
+            printf '{"mode":"not_executed","reason":"ssh_transport_exhausted","exit_code":%d,"release_validity":"unaffected"}\n' "$rc" > mu-plugin-forensics/transport-status.json
+            {
+              echo '## MU-plugin forensics unavailable'
+              echo
+              echo '- SiteGround SSH transport exhausted both configured endpoints.'
+              echo '- This forensic is read-only and runs after the release gate; production validity is unaffected.'
+              echo '- No source evidence was fabricated or inferred.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "MU_PLUGIN_FORENSICS_SSH=UNAVAILABLE_TRANSPORT exit=$rc"
+            exit 0
+          fi
+          echo "MU_PLUGIN_FORENSICS_SSH=FAIL exit=$rc" >&2
+          exit "$rc"
 
       - name: Assert production origin before source extraction
+        if: steps.forensic_ssh.outputs.available == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -987,6 +1014,7 @@ jobs:
           echo 'MU_PLUGIN_FORENSICS_ORIGIN=PASS host=nuvanx.com'
 
       - name: Extract private production MU-plugin evidence
+        if: steps.forensic_ssh.outputs.available == 'true'
         shell: bash
         env:
           SSH_ALIAS: nvx-prod-mu-forensics
@@ -1007,6 +1035,7 @@ jobs:
           echo "MU_PLUGIN_FORENSICS_EXTRACTION=PASS sources=$(jq '.entries | length' "$REPORT_DIR/mu-plugins-production-manifest.json") secrets=0"
 
       - name: Discover Staging2 document root read-only
+        if: steps.forensic_ssh.outputs.available == 'true'
         shell: bash
         env:
           NVX_SSH_ALIAS: nvx-staging2-mu-forensics
@@ -1035,7 +1064,7 @@ jobs:
         with:
           name: private-mu-plugin-forensics-${{ github.run_id }}-attempt-${{ github.run_attempt }}
           path: mu-plugin-forensics/
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Cleanup forensic SSH identities

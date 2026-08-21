@@ -117,21 +117,11 @@ jobs:
           done < <(git ls-files)
 
           mapfile -t workflows < <(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -printf '%f\n' | sort)
-          # Allow operational maintenance workflows
-          canonical_workflows=()
-          operational_workflows=()
-          for w in "${workflows[@]}"; do
-            if [[ "$w" =~ ^(production\.yml|staging\.yml)$ ]]; then
-              canonical_workflows+=("$w")
-            elif [[ "$w" =~ ^(retire-.*\.yml)$ ]]; then
-              operational_workflows+=("$w")
-            fi
-          done
-          if [[ "${#canonical_workflows[@]}" -lt 2 ]]; then
-            printf 'At least two canonical workflows are required; found: %s\n' "${canonical_workflows[*]}" >&2
+          if [[ "${workflows[*]}" != 'production.yml staging.yml' ]]; then
+            printf 'Exactly two canonical workflows are required; found: %s\n' "${workflows[*]}" >&2
             exit 1
           fi
-          echo 'REPOSITORY_HYGIENE=PASS canonical='"${#canonical_workflows[@]}"' operational='"${#operational_workflows[@]}"
+          echo 'REPOSITORY_HYGIENE=PASS workflows=2'
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

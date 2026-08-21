@@ -1,4 +1,4 @@
-name: Locate residual Meta browser writer once
+name: Classify residual Meta MU owner once
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ permissions:
   contents: read
 
 jobs:
-  locate:
+  classify:
     if: github.head_ref == 'ops/retire-meta-mu-owner-20260821'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       PROD_ROOT: /home/customer/www/nuvanx.com/public_html
       EXPECTED_MASTER_SHA: 79cea21ac3e6e8b64a4c48ae8137f0b0ddca23c8
@@ -46,46 +46,39 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: bash scripts/production/configure-siteground-ssh.sh
 
-      - name: Locate residual browser Meta writer owners read-only
+      - name: Classify production-only match-quality MU source read-only
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          cd "$PROD_ROOT"
-          echo 'META_OWNER_SCAN=START'
-          find wp-content/mu-plugins wp-content/plugins wp-content/themes -type f \( -name '*.php' -o -name '*.js' -o -name '*.html' \) -size -3M -print0 2>/dev/null \
-            | xargs -0 -r grep -IlE '(document\.cookie|cookie[[:space:]]*=|_fbp|_fbc|NVX_META_EVENT_DEDUPE_ACTIVE|nvx-meta-event-dedupe-)' 2>/dev/null \
-            | sort -u \
-            | while IFS= read -r file; do
-                labels=''
-                grep -Eq 'document\.cookie|cookie[[:space:]]*=' "$file" && labels="${labels}cookie_api," || true
-                grep -Eq '_fbp' "$file" && labels="${labels}fbp," || true
-                grep -Eq '_fbc' "$file" && labels="${labels}fbc," || true
-                grep -Fq 'NVX_META_EVENT_DEDUPE_ACTIVE' "$file" && labels="${labels}dedupe_marker," || true
-                grep -Fq 'nvx-meta-event-dedupe-' "$file" && labels="${labels}dedupe_prefix," || true
-                printf 'META_OWNER_FILE path=%s patterns=%s\n' "$file" "${labels%,}"
-              done
-
-          wp eval '
-          global $wpdb;
-          $table = $wpdb->prefix . "snippets";
-          $rows = $wpdb->get_results("SELECT id,name,active,code FROM {$table}", ARRAY_A);
-          foreach ($rows as $row) {
-            $code = (string)($row["code"] ?? "");
-            $patterns = array();
-            if (preg_match("~document\\.cookie|cookie\\s*=~i", $code)) $patterns[] = "cookie_api";
-            if (stripos($code, "_fbp") !== false) $patterns[] = "fbp";
-            if (stripos($code, "_fbc") !== false) $patterns[] = "fbc";
-            if (strpos($code, "NVX_META_EVENT_DEDUPE_ACTIVE") !== false) $patterns[] = "dedupe_marker";
-            if (strpos($code, "nvx-meta-event-dedupe-") !== false) $patterns[] = "dedupe_prefix";
-            if ($patterns) {
-              printf("META_OWNER_SNIPPET id=%d active=%d name=%s patterns=%s\n", (int)$row["id"], (int)$row["active"], preg_replace("~[^A-Za-z0-9 _.-]~", "", (string)$row["name"]), implode(",", $patterns));
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' php -r '"'"'
+            $p = getenv("PROD_ROOT") . "/wp-content/mu-plugins/nuvanx-meta-match-quality.php";
+            if (!is_file($p)) { fwrite(STDERR, "META_MATCH_QUALITY=ABSENT\n"); exit(2); }
+            $s = file_get_contents($p);
+            if (!is_string($s)) exit(3);
+            $checks = [
+              "document_cookie" => preg_match("~document\\.cookie~i", $s),
+              "cookie_assignment" => preg_match("~cookie\\s*=~i", $s),
+              "fbp" => stripos($s, "_fbp") !== false,
+              "fbc" => stripos($s, "_fbc") !== false,
+              "script_literal" => stripos($s, "<script") !== false,
+              "echo_or_print" => preg_match("~\\b(?:echo|print)\\b~i", $s),
+              "wp_head" => stripos($s, "wp_head") !== false,
+              "wp_footer" => stripos($s, "wp_footer") !== false,
+              "inline_script" => stripos($s, "wp_add_inline_script") !== false,
+              "setcookie" => preg_match("~\\bsetcookie\\s*\\(~i", $s),
+              "cookie_superglobal" => strpos($s, "$_COOKIE") !== false,
+              "consent_terms" => preg_match("~consent|marketing|statistics|cmplz|wp_consent~i", $s),
+              "capi_terms" => preg_match("~conversions.?api|capi|event_id|user_data~i", $s),
+            ];
+            printf("META_MATCH_QUALITY path=%s bytes=%d sha256=%s\n", basename($p), strlen($s), substr(hash("sha256", $s), 0, 16));
+            foreach ($checks as $k => $v) printf("META_MATCH_QUALITY_FEATURE %s=%s\n", $k, $v ? "true" : "false");
+            if (preg_match_all("~function\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\(~", $s, $m)) {
+              foreach (array_unique($m[1]) as $name) printf("META_MATCH_QUALITY_FUNCTION name=%s\n", $name);
             }
-          }
-          ' --skip-themes --allow-root
-          echo 'META_OWNER_SCAN=END'
-          REMOTE
+            if (preg_match_all("~add_(action|filter)\\s*\\(\\s*[\\x27\\x22]([^\\x27\\x22]+)[\\x27\\x22]~", $s, $m, PREG_SET_ORDER)) {
+              foreach ($m as $row) printf("META_MATCH_QUALITY_HOOK type=%s hook=%s\n", $row[1], $row[2]);
+            }
+          '"'"''"
 
       - name: Cleanup SSH material
         if: always()

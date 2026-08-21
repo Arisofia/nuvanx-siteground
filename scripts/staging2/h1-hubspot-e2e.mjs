@@ -120,7 +120,7 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(
   heroAndForms,
-  /style="display:none;"/,
+  /style\s*=\s*["']display\s*:\s*none["']/,
   'canonical mount must not hide the conversion surface with an inline display:none'
 );
 

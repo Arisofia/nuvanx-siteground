@@ -106,7 +106,7 @@ function nvx_endolift_hero_copy_markup(): string {
 			'kicker'             => (string) ( $data['kicker'] ?? '' ),
 			'h1_id'              => 'nvx-endolift-h1',
 			'h1'                 => (string) ( $data['h1'] ?? '' ),
-			'byline'             => true,
+			'byline'             => function_exists( 'nvx_clinical_authority_byline_markup' ),
 			'lead'               => (string) ( $data['lead'] ?? '' ),
 			'description_html'   => esc_html(
 				sprintf(

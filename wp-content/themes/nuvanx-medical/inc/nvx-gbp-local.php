@@ -126,6 +126,129 @@ function nvx_clinic_html_contains_vendor_packshot( string $html ): bool {
 }
 
 /**
+ * Vendor product/logo stems in image URLs and lazy-load attributes.
+ * Technological copy outside img/source attributes is not a block.
+ */
+function nvx_public_vendor_image_url_regex(): string {
+	return '/deka|btl[_-]|btl-exilite|exion|eufoton|endolift|lasemar|smartlipo|exilite/i';
+}
+
+/** Vendor brand tokens in image alt text (logo, equipment or packshot). */
+function nvx_public_vendor_image_alt_regex(): string {
+	return '/\b(?:deka|btl|exion|eufoton|endolift|lasemar|smartlipo|exilite)\b/iu';
+}
+
+/**
+ * True when an img/source node (or wrapping markup) carries a vendor image signal.
+ */
+function nvx_public_html_is_vendor_image( string $html ): bool {
+	if ( '' === $html || ! preg_match_all( '/<(?:img|source)\b([^>]*)>/iu', $html, $tags ) ) {
+		return false;
+	}
+
+	foreach ( $tags[1] as $attrs ) {
+		if ( ! is_string( $attrs ) || '' === $attrs ) {
+			continue;
+		}
+		if ( ! preg_match_all( '/\b(src|srcset|data-src|data-srcset|data-lazy-src|data-lazy-srcset|data-original|alt)\s*=\s*(["\'])(.*?)\2/iu', $attrs, $hits, PREG_SET_ORDER ) ) {
+			continue;
+		}
+		foreach ( $hits as $hit ) {
+			$attr  = strtolower( (string) $hit[1] );
+			$value = (string) $hit[3];
+			if ( 'alt' === $attr ) {
+				if ( preg_match( nvx_public_vendor_image_alt_regex(), $value ) ) {
+					return true;
+				}
+				continue;
+			}
+			if ( preg_match( nvx_public_vendor_image_url_regex(), $value ) ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Drop vendor logos, packshots and lazy clones from public HTML.
+ * Original Media Library files are not deleted.
+ */
+function nvx_public_strip_vendor_images( string $content ): string {
+	if ( is_admin() || '' === $content ) {
+		return $content;
+	}
+
+	$omit = static function ( string $html ): bool {
+		return nvx_public_html_is_vendor_image( $html ) || nvx_public_html_is_abdomen_asset_off_intent( $html );
+	};
+
+	$updated = preg_replace_callback(
+		'/<picture\b[^>]*>[\s\S]*?<\/picture>/iu',
+		static function ( array $match ) use ( $omit ): string {
+			return $omit( $match[0] ) ? '' : $match[0];
+		},
+		$content
+	);
+	if ( ! is_string( $updated ) ) {
+		$updated = $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<figure\b[^>]*>[\s\S]*?<\/figure>/iu',
+		static function ( array $match ) use ( $omit ): string {
+			return $omit( $match[0] ) ? '' : $match[0];
+		},
+		$updated
+	);
+	if ( ! is_string( $updated ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<(?:img|source)\b[^>]*>/iu',
+		static function ( array $match ) use ( $omit ): string {
+			return $omit( $match[0] ) ? '' : $match[0];
+		},
+		$updated
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+add_filter( 'the_content', 'nvx_public_strip_vendor_images', 198 );
+
+/**
+ * Featured images inherit the post title as alt in several templates.
+ * If that title or the file name is a vendor signal, omit the image.
+ */
+function nvx_public_html_is_abdomen_asset_off_intent( string $html ): bool {
+	if ( ! preg_match( '/laser-medico-nuvanx-madrid/i', $html ) ) {
+		return false;
+	}
+
+	$path = '';
+	if ( function_exists( 'nvx_schema_current_path' ) ) {
+		$path = (string) nvx_schema_current_path( (int) get_queried_object_id() );
+	}
+
+	return 1 !== preg_match( '/endolaser|remodelacion-corporal|grasa-localizada|laserlipolisis|lipolisis/i', $path );
+}
+
+function nvx_public_filter_vendor_post_thumbnail( string $html ): string {
+	if ( is_admin() || '' === $html ) {
+		return $html;
+	}
+
+	if ( nvx_public_html_is_vendor_image( $html ) || nvx_public_html_is_abdomen_asset_off_intent( $html ) ) {
+		return '';
+	}
+
+	return $html;
+}
+add_filter( 'post_thumbnail_html', 'nvx_public_filter_vendor_post_thumbnail', 20 );
+
+/**
  * Drop vendor packshot figures from Chamberí/Goya rendered content.
  */
 function nvx_clinic_strip_vendor_packshots( string $content ): string {

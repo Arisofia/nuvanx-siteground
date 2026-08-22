@@ -34,6 +34,10 @@ function nvx_hero_featured_media_figure(): string {
 		return '';
 	}
 
+	if ( function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $thumb ) ) {
+		return '';
+	}
+
 	return '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
 }
 

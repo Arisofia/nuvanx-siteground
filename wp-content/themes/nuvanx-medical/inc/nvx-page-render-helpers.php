@@ -53,11 +53,18 @@ function nvx_page_extract_brand_hero_div( string $content ): string {
 
 /** Preserve the existing canonical hero media slot when rebuilding a page. */
 function nvx_page_extract_brand_hero_media( string $content ): string {
+	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $matches ) ) {
-		return $matches[0];
+		$media = $matches[0];
+	} else {
+		$media = nvx_page_extract_brand_hero_div( $content );
 	}
 
-	return nvx_page_extract_brand_hero_div( $content );
+	if ( '' !== $media && function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $media ) ) {
+		return '';
+	}
+
+	return $media;
 }
 
 /**

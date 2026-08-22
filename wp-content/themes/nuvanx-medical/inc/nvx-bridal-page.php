@@ -59,13 +59,6 @@ function nvx_bridal_gallery_markup(): string {
 	$html .= '</div>';
 
 	$html .= '<div class="nvx-bridal-studio__spread nvx-brand-section__inner">';
-	$html .= nvx_bridal_figure(
-		'Protocolo-Endolift-Thermage-Morpheus8-ultherapy.png',
-		__( 'Collage de novia: mangas, espalda, cintura y piernas como motivos de consulta', 'nuvanx-medical' ),
-		__( 'Preocupaciones que llegan a consulta', 'nuvanx-medical' ),
-		'nvx-bridal-studio__plate--mood',
-		'(max-width: 680px) calc(100vw - 48px), 520px'
-	);
 	$html .= '<div class="nvx-bridal-studio__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Antes de elegir tecnología', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h3 class="nvx-brand-subtitle">' . esc_html__( 'El vestido marca el calendario, no la indicación', 'nuvanx-medical' ) . '</h3>';

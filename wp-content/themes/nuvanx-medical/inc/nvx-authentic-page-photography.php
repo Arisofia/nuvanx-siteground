@@ -19,30 +19,24 @@ function nvx_authentic_page_photo_registry(): array {
 			'eyebrow' => 'La práctica',
 			'title'   => 'Tecnología aplicada con criterio médico',
 			'images'  => array(
-				array( 'id' => 2470, 'alt' => 'Valoración clínica de la zona mandibular en NUVANX', 'caption' => 'Diagnóstico facial' ),
 				array( 'id' => 2471, 'alt' => 'Valoración corporal personalizada en consulta NUVANX', 'caption' => 'Valoración corporal' ),
 				array( 'id' => 2472, 'alt' => 'Tratamiento de energía en entorno clínico NUVANX', 'caption' => 'Tecnología en consulta' ),
-				array( 'id' => 2432, 'alt' => 'Tecnología DEKA preparada en la clínica NUVANX', 'caption' => 'Aparatología clínica' ),
 			),
 		),
 		'tratamientos' => array(
 			'eyebrow' => 'Tratamientos',
 			'title'   => 'La tecnología forma parte del acto médico',
 			'images'  => array(
-				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift en entorno clínico NUVANX', 'caption' => 'Endolift en contexto clínico' ),
-				array( 'id' => 2115, 'alt' => 'Procedimiento corporal láser realizado por el equipo NUVANX', 'caption' => 'Procedimiento corporal' ),
 				array( 'id' => 2472, 'alt' => 'Tecnología de energía en una sesión clínica NUVANX', 'caption' => 'Tecnología facial' ),
-				array( 'id' => 2432, 'alt' => 'Equipo médico DEKA en una sala de NUVANX', 'caption' => 'Tecnología certificada' ),
+				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración médica' ),
 			),
 		),
 		'medicina-estetica-laser' => array(
 			'eyebrow' => 'Medicina estética láser',
 			'title'   => 'Tecnología real, indicada de forma individual',
 			'images'  => array(
-				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift en un box clínico NUVANX', 'caption' => 'Endolift' ),
-				array( 'id' => 2115, 'alt' => 'Tratamiento corporal láser en NUVANX', 'caption' => 'Endoláser corporal' ),
 				array( 'id' => 2472, 'alt' => 'Procedimiento facial con tecnología de energía NUVANX', 'caption' => 'Láser y energía' ),
-				array( 'id' => 2432, 'alt' => 'Aparatología láser disponible en NUVANX', 'caption' => 'Equipamiento médico' ),
+				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración médica' ),
 			),
 		),
 		'medicina-estetica' => array(
@@ -72,18 +66,16 @@ function nvx_authentic_page_photo_registry(): array {
 			),
 		),
 		'endolift-facial-papada-mandibula' => array(
-			'eyebrow' => 'Endolift',
+			'eyebrow' => 'Planificación',
 			'title'   => 'La planificación es tan importante como la tecnología',
 			'images'  => array(
-				array( 'id' => 2113, 'alt' => 'Procedimiento Endolift para rostro y cuello en NUVANX', 'caption' => 'Procedimiento en contexto clínico' ),
-				array( 'id' => 2892, 'alt' => 'Consulta médica antes de un tratamiento Endolift', 'caption' => 'Valoración previa' ),
+				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración previa' ),
 			),
 		),
 		'papada-definicion-mandibular-madrid' => array(
 			'eyebrow' => 'Diagnóstico facial',
 			'title'   => 'El abordaje se define en consulta',
 			'images'  => array(
-				array( 'id' => 2113, 'alt' => 'Procedimiento clínico Endolift en NUVANX', 'caption' => 'Tecnología en consulta' ),
 				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Plan individualizado' ),
 			),
 		),
@@ -195,6 +187,9 @@ function nvx_authentic_page_photo_markup( array $data ): string {
 		);
 
 		if ( ! is_string( $markup ) || '' === $markup ) {
+			continue;
+		}
+		if ( function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $markup ) ) {
 			continue;
 		}
 

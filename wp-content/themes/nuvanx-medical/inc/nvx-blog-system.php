@@ -81,114 +81,82 @@ function nvx_blog_archive_card_format( int $index, bool $has_media ): string {
 function nvx_blog_named_image_catalog(): array {
 	return array(
 		array(
-			'id'   => 'endolift-iso',
-			'keys' => array( 'endolift' ),
-			'stem' => 'Endolift-ISO9001-Laser',
-		),
-		array(
-			'id'   => 'endolift-lasemar',
-			'keys' => array( 'endolift', 'lasemar', 'eufoton' ),
-			'stem' => 'endolift-lasemar-1500-eufoton',
-		),
-		array(
-			'id'   => 'endolift-clinic',
-			'keys' => array( 'endolift' ),
-			'file' => 'assets/images/clinics/chamberi/04-endolift.jpg',
-		),
-		array(
-			'id'   => 'exion',
-			'keys' => array( 'exion', 'exilite' ),
-			'stem' => 'BTL-Exion-Mobile-Version-1024x956-1',
-		),
-		array(
-			'id'   => 'smartlipo',
-			'keys' => array( 'smartlipo', 'lipolisis', 'liposucci', 'endolaser', 'endoláser', 'corporal' ),
-			'stem' => 'SmartLipo-for-Laserlipolysis-DEKA-1',
-		),
-		array(
 			'id'   => 'laser-detalle',
 			'keys' => array( 'laser', 'láser', 'co2', 'co₂', 'fraccionad' ),
 			'file' => 'assets/images/clinics/chamberi/05-laser-detalle.jpg',
+			'alt'  => 'Detalle de un procedimiento láser en consulta NUVANX',
 		),
 		array(
 			'id'   => 'laser-piel',
 			'keys' => array( 'laser', 'láser', 'piel', 'mancha', 'cicatriz' ),
 			'file' => 'assets/images/clinics/chamberi/10-laser-piel.jpg',
+			'alt'  => 'Aplicación láser sobre la piel en NUVANX',
 		),
 		array(
 			'id'   => 'consulta',
 			'keys' => array( 'consulta', 'valoracion', 'valoración', 'diagnost', 'bioestimul', 'colageno', 'colágeno' ),
 			'stem' => 'consulta-medica-personalizada-nuvanx-madrid',
-		),
-		array(
-			'id'   => 'consulta-rivera',
-			'keys' => array( 'consulta', 'rivera', 'equipo', 'medico', 'médico' ),
-			'file' => 'assets/images/clinics/chamberi/03-consulta-rivera.jpg',
-		),
-		array(
-			'id'   => 'retrato-rivera',
-			'keys' => array( 'rivera', 'equipo', 'director', 'ojera', 'rino' ),
-			'file' => 'assets/images/clinics/chamberi/06-retrato-rivera.jpg',
-		),
-		array(
-			'id'   => 'retrato-corp',
-			'keys' => array( 'equipo', 'labio', 'hialuron', 'relleno' ),
-			'file' => 'assets/images/clinics/chamberi/09-retrato-corporativo.jpg',
+			'alt'  => 'Consulta médica personalizada en NUVANX',
 		),
 		array(
 			'id'   => 'ojeras',
 			'keys' => array( 'ojera', 'lagrimal', 'surco' ),
 			'file' => 'assets/images/clinics/chamberi/08-lifestyle.jpg',
+			'alt'  => 'Retrato clínico en consulta NUVANX',
 		),
 		array(
 			'id'   => 'novias-papada',
 			'keys' => array( 'novia', 'bridal', 'papada', 'cuello' ),
 			'stem' => 'Papada-novias',
+			'alt'  => 'Papada y contorno cervical en un plan de novia NUVANX',
 		),
 		array(
 			'id'   => 'novias-brazos',
 			'keys' => array( 'novia', 'brazo', 'manga' ),
 			'stem' => 'Brazos-novias',
+			'alt'  => 'Zona de brazos en un vestido de manga corta',
 		),
 		array(
 			'id'   => 'novias-espalda',
 			'keys' => array( 'novia', 'espalda', 'escote' ),
 			'stem' => 'Espalda-novias',
+			'alt'  => 'Espalda y escote de un vestido de novia',
 		),
 		array(
 			'id'   => 'novias-box',
 			'keys' => array( 'novia', 'box', 'protocolo' ),
 			'stem' => 'Box-Clinica-Novias',
-		),
-		array(
-			'id'   => 'protocolo-endolift',
-			'keys' => array( 'protocolo', 'thermage', 'morpheus', 'ultherapy' ),
-			'stem' => 'Protocolo-Endolift-Thermage-Morpheus8-ultherapy',
+			'alt'  => 'Box de consulta en clínica NUVANX',
 		),
 		array(
 			'id'   => 'sala-nuvanx',
 			'keys' => array( 'clinica', 'clínica', 'chamber', 'sala', 'sede' ),
 			'stem' => 'Sala-Nuvanx',
+			'alt'  => 'Sala clínica de NUVANX Chamberí',
 		),
 		array(
 			'id'   => 'interior-chamberi',
 			'keys' => array( 'chamber', 'interior', 'clinica', 'clínica' ),
 			'file' => 'assets/images/clinics/chamberi/01-interior.jpg',
+			'alt'  => 'Interior de la clínica NUVANX Chamberí',
 		),
 		array(
 			'id'   => 'fachada-goya',
 			'keys' => array( 'goya', 'salamanca', 'fachada' ),
 			'stem' => 'nvx-fachada-goya-900',
+			'alt'  => 'Fachada de NUVANX Salamanca–Goya',
 		),
 		array(
 			'id'   => 'medicina-1',
 			'keys' => array( 'medicina', 'estetica', 'estética' ),
 			'stem' => 'nuvanx-medicina-estetica1',
+			'alt'  => 'Sala clínica de NUVANX Salamanca–Goya',
 		),
 		array(
 			'id'   => 'medicina-2',
 			'keys' => array( 'medicina', 'nuvanx' ),
 			'stem' => 'nuvanx-medicina-2',
+			'alt'  => 'Interior de clínica NUVANX en Madrid',
 		),
 	);
 }
@@ -247,13 +215,18 @@ function nvx_blog_match_named_image( string $haystack, array $catalog, array &$u
 /**
  * Build <img> markup from a named theme asset.
  *
- * @param array{id:string,keys:string[],stem?:string,file?:string} $asset Asset.
+ * @param array{id:string,keys:string[],stem?:string,file?:string,alt?:string} $asset Asset.
  * @param array{priority?:bool,sizes?:string}                     $args  Flags.
  */
 function nvx_blog_named_image_html( array $asset, array $args = array() ): string {
+	$alt = trim( (string) ( $asset['alt'] ?? '' ) );
+	if ( '' === $alt ) {
+		return '';
+	}
+
 	$priority = ! empty( $args['priority'] );
 	$sizes    = isset( $args['sizes'] ) ? (string) $args['sizes'] : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw';
-	$extra    = 'class="nvx-blog-card__image" loading="' . ( $priority ? 'eager' : 'lazy' ) . '" decoding="async" sizes="' . esc_attr( $sizes ) . '"';
+	$extra    = 'class="nvx-blog-card__image" loading="' . ( $priority ? 'eager' : 'lazy' ) . '" decoding="async" alt="' . esc_attr( $alt ) . '" sizes="' . esc_attr( $sizes ) . '"';
 	if ( $priority ) {
 		$extra .= ' fetchpriority="high"';
 	}
@@ -293,7 +266,11 @@ function nvx_blog_named_image_html( array $asset, array $args = array() ): strin
 			? ' width="' . (int) $size[0] . '" height="' . (int) $size[1] . '"'
 			: '';
 
-		return '<img src="' . esc_url( $src ) . '" srcset="' . esc_attr( implode( ', ', $srcset ) ) . '"' . $dimensions . ' alt="" ' . $extra . '>';
+		$html = '<img src="' . esc_url( $src ) . '" srcset="' . esc_attr( implode( ', ', $srcset ) ) . '"' . $dimensions . ' ' . $extra . '>';
+		if ( function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $html ) ) {
+			return '';
+		}
+		return $html;
 	}
 
 	if ( isset( $asset['file'] ) && is_string( $asset['file'] ) && '' !== $asset['file'] ) {
@@ -301,8 +278,12 @@ function nvx_blog_named_image_html( array $asset, array $args = array() ): strin
 		if ( ! is_readable( get_template_directory() . '/' . $relative ) ) {
 			return '';
 		}
-		$src = trailingslashit( get_template_directory_uri() ) . $relative;
-		return '<img src="' . esc_url( $src ) . '" alt="" ' . $extra . '>';
+		$src  = trailingslashit( get_template_directory_uri() ) . $relative;
+		$html = '<img src="' . esc_url( $src ) . '" ' . $extra . '>';
+		if ( function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $html ) ) {
+			return '';
+		}
+		return $html;
 	}
 
 	return '';
@@ -320,19 +301,24 @@ function nvx_blog_archive_card_image( array $args = array() ): string {
 	$sizes    = isset( $args['sizes'] ) ? (string) $args['sizes'] : '(min-width: 1024px) 33vw, (min-width: 641px) 50vw, 100vw';
 
 	if ( has_post_thumbnail() ) {
-		$attr = array(
+		$thumb_id = (int) get_post_thumbnail_id();
+		$alt      = trim( (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) );
+		$attr     = array(
 			'class'    => 'nvx-blog-card__image',
 			'loading'  => $priority ? 'eager' : 'lazy',
 			'decoding' => 'async',
-			'alt'      => '',
+			'alt'      => $alt,
 			'sizes'    => $sizes,
 		);
 		if ( $priority ) {
 			$attr['fetchpriority'] = 'high';
 		}
 
-		$html = get_the_post_thumbnail( null, 'large', $attr );
-		if ( is_string( $html ) && '' !== $html && 1 !== preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $html ) ) {
+		$html = '' !== $alt ? get_the_post_thumbnail( null, 'large', $attr ) : '';
+		if ( is_string( $html ) && '' !== $html
+			&& 1 !== preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $html )
+			&& ( ! function_exists( 'nvx_public_html_is_vendor_image' ) || ! nvx_public_html_is_vendor_image( $html ) )
+		) {
 			return $html;
 		}
 	}

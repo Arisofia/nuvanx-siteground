@@ -82,18 +82,27 @@ while ( have_posts() ) :
 					</div>
 				</div>
 
-				<?php if ( has_post_thumbnail() ) : ?>
+				<?php
+				$nvx_thumb_alt = '';
+				$nvx_thumb_id  = (int) get_post_thumbnail_id();
+				if ( $nvx_thumb_id > 0 ) {
+					$nvx_thumb_alt = trim( (string) get_post_meta( $nvx_thumb_id, '_wp_attachment_image_alt', true ) );
+				}
+				$nvx_thumb_html = ( $nvx_thumb_id > 0 && '' !== $nvx_thumb_alt )
+					? get_the_post_thumbnail(
+						null,
+						'full',
+						array(
+							'loading'       => 'eager',
+							'fetchpriority' => 'high',
+							'alt'           => $nvx_thumb_alt,
+						)
+					)
+					: '';
+				if ( is_string( $nvx_thumb_html ) && '' !== $nvx_thumb_html ) :
+					?>
 					<figure class="nvx-blog-hero__media">
-						<?php
-						the_post_thumbnail(
-							'full',
-							array(
-								'loading'       => 'eager',
-								'fetchpriority' => 'high',
-								'alt'           => the_title_attribute( array( 'echo' => false ) ),
-							)
-						);
-						?>
+						<?php echo $nvx_thumb_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WP thumbnail HTML. ?>
 					</figure>
 				<?php endif; ?>
 			</div>

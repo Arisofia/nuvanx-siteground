@@ -1,0 +1,283 @@
+#!/usr/bin/env python3
+"""Audit the 70 editorial URLs from page-sitemap.xml + post-sitemap.xml.
+
+Inspects img/source attributes for vendor signals and empty alts.
+Does not treat technological copy, links or auxiliary JSON as vendor images.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import ssl
+import sys
+import urllib.error
+import urllib.request
+from html.parser import HTMLParser
+from typing import Any
+from urllib.parse import urljoin, urlparse
+
+IMAGE_ATTRS = (
+    "src",
+    "srcset",
+    "data-src",
+    "data-srcset",
+    "data-lazy-src",
+    "data-lazy-srcset",
+    "data-original",
+)
+VENDOR_URL_RE = re.compile(
+    r"deka|btl[_-]|btl-exilite|exion|eufoton|endolift|lasemar|smartlipo|exilite",
+    re.I,
+)
+VENDOR_ALT_RE = re.compile(
+    r"\b(?:deka|btl|exion|eufoton|endolift|lasemar|smartlipo|exilite)\b",
+    re.I,
+)
+LOGO_RE = re.compile(r"logo-nuvanx|nuvanx-web\.webp|/logo[-_]|nvx-logo|site-logo|custom-logo", re.I)
+CO2_HERO_RE = re.compile(r"nvx-co2-hero-760", re.I)
+ABDOMEN_RE = re.compile(r"laser-medico-nuvanx-madrid", re.I)
+GOSIA_RE = re.compile(r"gosia", re.I)
+EVA_RE = re.compile(r"/eva(?:-|\.|$)|eva\.webp", re.I)
+GALLERY_IMG_RE = re.compile(r"nvx-clinic-gallery__image", re.I)
+
+
+class ImageParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.nodes: list[dict[str, str]] = []
+        self.gallery_imgs = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        data = {k: (v or "") for k, v in attrs}
+        classes = data.get("class", "")
+        if tag in {"img", "source"}:
+            rec = {"tag": tag, **data}
+            self.nodes.append(rec)
+            if tag == "img" and GALLERY_IMG_RE.search(classes):
+                self.gallery_imgs += 1
+
+
+def fetch(url: str, timeout: int = 25) -> tuple[int, dict[str, str], str]:
+    ctx = ssl.create_default_context()
+    req = urllib.request.Request(url, headers={"User-Agent": "nvx-editorial-70-audit"})
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8", "replace")
+            headers = {k.lower(): v for k, v in resp.headers.items()}
+            return int(resp.status), headers, body
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", "replace") if exc.fp else ""
+        headers = {k.lower(): v for k, v in (exc.headers.items() if exc.headers else [])}
+        return int(exc.code), headers, body
+
+
+def sitemap_locs(xml: str, base_host: str) -> list[str]:
+    locs: list[str] = []
+    for raw in re.findall(r"<loc>\s*([^<]+)\s*</loc>", xml, flags=re.I):
+        url = raw.replace("&amp;", "&").strip()
+        parsed = urlparse(url)
+        if parsed.hostname != base_host:
+            continue
+        if "/wp-content/uploads/" in parsed.path:
+            continue
+        if parsed.path.endswith(".xml"):
+            continue
+        locs.append(url)
+    return locs
+
+
+def collect_urls(base_url: str) -> list[str]:
+    origin = base_url.rstrip("/")
+    host = urlparse(origin).hostname or ""
+    seen: list[str] = []
+    for name in ("page-sitemap.xml", "post-sitemap.xml"):
+        status, _, xml = fetch(f"{origin}/{name}")
+        if status != 200:
+            raise RuntimeError(f"sitemap {name} HTTP {status}")
+        for url in sitemap_locs(xml, host):
+            if url not in seen:
+                seen.append(url)
+    return seen
+
+
+def image_vendor_hits(node: dict[str, str]) -> list[str]:
+    hits: list[str] = []
+    alt = node.get("alt", "")
+    if alt and VENDOR_ALT_RE.search(alt):
+        hits.append(f"alt:{alt[:120]}")
+    for attr in IMAGE_ATTRS:
+        value = node.get(attr, "")
+        if value and VENDOR_URL_RE.search(value):
+            hits.append(f"{attr}:{value[:180]}")
+    return hits
+
+
+def is_logo(node: dict[str, str]) -> bool:
+    blob = " ".join(node.values())
+    return bool(LOGO_RE.search(blob))
+
+
+def meta_content(html: str, name: str) -> str:
+    match = re.search(
+        rf'<meta[^>]+(?:name|property)=["\']{re.escape(name)}["\'][^>]*content=["\']([^"\']*)["\']',
+        html,
+        flags=re.I,
+    )
+    if match:
+        return match.group(1)
+    match = re.search(
+        rf'<meta[^>]+content=["\']([^"\']*)["\'][^>]*(?:name|property)=["\']{re.escape(name)}["\']',
+        html,
+        flags=re.I,
+    )
+    return match.group(1) if match else ""
+
+
+def canonical(html: str) -> str:
+    match = re.search(r'rel=["\']canonical["\'][^>]*href=["\']([^"\']+)["\']', html, flags=re.I)
+    if match:
+        return match.group(1)
+    match = re.search(r'href=["\']([^"\']+)["\'][^>]*rel=["\']canonical["\']', html, flags=re.I)
+    return match.group(1) if match else ""
+
+
+def path_of(url: str) -> str:
+    path = urlparse(url).path or "/"
+    return path if path.endswith("/") else path + "/"
+
+
+def audit_page(url: str, staging: bool) -> dict[str, Any]:
+    status, headers, html = fetch(url)
+    parser = ImageParser()
+    try:
+        parser.feed(html)
+    except Exception:
+        pass
+    path = path_of(url)
+    robots_meta = meta_content(html, "robots").lower()
+    x_robots = headers.get("x-robots-tag", "").lower()
+    issues: list[str] = []
+    vendor: list[dict[str, Any]] = []
+    empty_alt: list[dict[str, str]] = []
+    images: list[dict[str, Any]] = []
+
+    if status != 200:
+        issues.append(f"http_{status}")
+
+    canon = canonical(html)
+    if not canon:
+        issues.append("canonical_missing")
+    elif path_of(canon) != path:
+        issues.append(f"canonical_mismatch:{canon}")
+
+    if staging:
+        if "noindex" not in robots_meta and "noindex" not in x_robots:
+            issues.append("robots_expected_noindex")
+    else:
+        if "noindex" in robots_meta or "noindex" in x_robots:
+            issues.append("robots_expected_index")
+
+    if re.search(r'class=["\'][^"\']*\bnvx-page-hero\b', html):
+        issues.append("nvx-page-hero_class")
+    if re.search(r'class=["\'][^"\']*\bnvx-page-hero\b', html) and re.search(
+        r'class=["\'][^"\']*\bnvx-brand-hero\b', html
+    ):
+        issues.append("mixed_hero_shell")
+
+    if path.startswith("/laser-co2-fraccionado"):
+        if not CO2_HERO_RE.search(html):
+            issues.append("co2_hero_760_missing")
+        if ABDOMEN_RE.search(html):
+            issues.append("co2_uses_laser_medico_abdomen")
+        if re.search(r"150x150", html) and CO2_HERO_RE.search(html) is None:
+            issues.append("co2_thumbnail_src")
+
+    goya = "goya" in path or "salamanca" in path
+    for node in parser.nodes:
+        blob = " ".join(f"{k}={v}" for k, v in node.items() if v)
+        src = node.get("src") or node.get("data-src") or node.get("srcset") or ""
+        rec = {"tag": node.get("tag", ""), "src": src[:220], "alt": node.get("alt", "")}
+        images.append(rec)
+        hits = image_vendor_hits(node)
+        if hits:
+            vendor.append({"src": src[:220], "alt": node.get("alt", ""), "hits": hits})
+            issues.append("vendor_image")
+        if node.get("tag") == "img" and not is_logo(node) and node.get("alt", "") == "":
+            empty_alt.append(rec)
+            if path == "/blog/":
+                issues.append("blog_empty_alt")
+        if not goya and (GOSIA_RE.search(blob) or EVA_RE.search(blob)):
+            issues.append("gosia_eva_outside_goya")
+
+    if parser.gallery_imgs > 4 and ("chamberi" in path or "goya" in path or "salamanca" in path):
+        issues.append(f"gallery_over_4:{parser.gallery_imgs}")
+
+    return {
+        "url": url,
+        "path": path,
+        "http": status,
+        "canonical": canon,
+        "robots_meta": robots_meta,
+        "x_robots": x_robots,
+        "deploy_sha": meta_content(html, "nvx-deploy-sha"),
+        "img_count": sum(1 for n in parser.nodes if n.get("tag") == "img"),
+        "source_count": sum(1 for n in parser.nodes if n.get("tag") == "source"),
+        "gallery_imgs": parser.gallery_imgs,
+        "vendor_images": vendor,
+        "empty_alt_non_logo": empty_alt,
+        "issues": sorted(set(issues)),
+        "images": images,
+    }
+
+
+def summarize(pages: list[dict[str, Any]]) -> dict[str, Any]:
+    issue_pages = [p for p in pages if p["issues"]]
+    vendor_pages = [p["path"] for p in pages if p["vendor_images"]]
+    return {
+        "url_count": len(pages),
+        "http_200": sum(1 for p in pages if p["http"] == 200),
+        "canonical_ok": sum(1 for p in pages if p["canonical"] and "canonical_mismatch" not in p["issues"] and "canonical_missing" not in p["issues"]),
+        "vendor_image_pages": vendor_pages,
+        "blog_empty_alt": any(p["path"] == "/blog/" and "blog_empty_alt" in p["issues"] for p in pages),
+        "issue_count": sum(len(p["issues"]) for p in pages),
+        "failing_paths": [p["path"] for p in issue_pages],
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", required=True)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    base = args.base_url.rstrip("/")
+    staging = "staging2." in urlparse(base).hostname or ""
+    urls = collect_urls(base)
+    pages = [audit_page(url, staging=bool(staging)) for url in urls]
+    report = {
+        "schema": "nvx-editorial-70/v1",
+        "base_url": base,
+        "expected_count": 70,
+        "summary": summarize(pages),
+        "pages": pages,
+    }
+    report["summary"]["count_is_70"] = len(urls) == 70
+    with open(args.output, "w", encoding="utf-8") as handle:
+        json.dump(report, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    summary = report["summary"]
+    print(f"URLS={len(urls)}")
+    print(f"HTTP_200={summary['http_200']}")
+    print(f"CANONICAL_OK={summary['canonical_ok']}")
+    print(f"VENDOR_PAGES={len(summary['vendor_image_pages'])}")
+    print(f"ISSUES={summary['issue_count']}")
+    print(f"OUTPUT={args.output}")
+    if len(urls) != 70:
+        print(f"COUNT_MISMATCH expected=70 got={len(urls)}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

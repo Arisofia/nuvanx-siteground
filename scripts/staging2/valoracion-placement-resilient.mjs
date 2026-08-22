@@ -153,6 +153,14 @@ async function collectMountState(page) {
     const embeddedRect = embedded?.getBoundingClientRect();
     const rogueLegacy = Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((el) => !section?.contains(el)).length;
     const rogueIframes = Array.from(document.querySelectorAll('iframe[data-test-id^="embedded-form-"]')).filter((el) => !section?.contains(el)).length;
+    const nativeFunctionalHost = section?.querySelector('#nvx-hubspot-native-form[data-nvx-hubspot-native="1"][data-nvx-consent="functional"]');
+    const canonicalBootstrapPresent = Array.from(document.scripts).some((script) => {
+      const inline = script.textContent || '';
+      return script.id === 'nvx-valoracion-form-eager'
+        && inline.includes(`"portalId":"${portalId}"`)
+        && inline.includes(`"formId":"${formId}"`)
+        && inline.includes('nvx-hubspot-forms-runtime');
+    });
     return {
       embedded: Boolean(embedded),
       embeddedSrc,
@@ -168,6 +176,8 @@ async function collectMountState(page) {
       canonicalMountCount: canonicalMounts.length,
       embeddedIframeCount: embeddedIframes.length,
       rogueMounts: rogueLegacy + rogueIframes,
+      nativeFunctionalHostPresent: Boolean(nativeFunctionalHost),
+      canonicalBootstrapPresent,
     };
   }, { formId: expectedFormId, portalId: expectedPortalId, frameSelector: HUBSPOT_FRAME_CONTAINER_SELECTOR });
 }
@@ -309,18 +319,33 @@ async function validateAttempt(context, viewport, attempt) {
       // The route, page structure and identity can be correct while HubSpot's
       // third-party iframe is temporarily unavailable. Retry that isolated
       // condition instead of certifying it or misclassifying it as a theme defect.
+      // A zero-frame state is transient only when the functional native host and
+      // its exact portal/form bootstrap are still present; it never certifies a
+      // run without the canonical frame, expected iframe and live controls.
+      const onlyMissingPageFrame = placementIssues.length === 1
+        && placementIssues[0] === 'HubSpot page frame is missing';
       const hubSpotIframeTemporarilyUnavailable =
-        placementIssues.length === 0 &&
         !mounted &&
-        mountState.canonicalMountCount === 1 &&
         mountState.embeddedIframeCount === 0 &&
-        mountState.rogueMounts === 0;
+        mountState.rogueMounts === 0 &&
+        (
+          (placementIssues.length === 0 && mountState.canonicalMountCount === 1)
+          || (
+            onlyMissingPageFrame
+            && mountState.canonicalMountCount === 0
+            && mountState.nativeFunctionalHostPresent
+            && mountState.canonicalBootstrapPresent
+          )
+        );
       if (hubSpotIframeTemporarilyUnavailable) {
         await saveScreenshot(page, viewport.key, attempt, true);
+        const deferredBootstrap = mountState.canonicalMountCount === 0;
         return createTransientResult(
           status,
           page.url(),
-          'HubSpot iframe did not mount despite an otherwise valid canonical host; retrying the external embed.',
+          deferredBootstrap
+            ? 'HubSpot canonical bootstrap host is present but did not create a frame; retrying the external embed.'
+            : 'HubSpot iframe did not mount despite an otherwise valid canonical host; retrying the external embed.',
           placement,
           mounted,
           mountState,

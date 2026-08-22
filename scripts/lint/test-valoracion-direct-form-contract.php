@@ -143,13 +143,18 @@ $assert( false === $result['ok'] && 'hubspot_http' === $result['reason'] && 503 
 $assert( 1 === count( $GLOBALS['nvx_test_http_requests'] ), 'NO_RETRY_AFTER_5XX_ONCE' );
 
 $source = (string) file_get_contents( $real );
+$required_log_calls = array(
+	"/nvx_valoracion_log_outcome\\(\\s*'FAILURE'\\s*,\\s*'nonce'\\s*,\\s*0\\s*,\\s*array\\(\\)\\s*\\);/",
+	"/nvx_valoracion_log_outcome\\(\\s*'FAILURE'\\s*,\\s*'rate_limit'\\s*,\\s*0\\s*,\\s*array\\(\\)\\s*\\);/",
+	"/nvx_valoracion_log_outcome\\(\\s*'FAILURE'\\s*,\\s*'validation'\\s*,\\s*0\\s*,\\s*array\\(\\)\\s*\\);/",
+	'~nvx_valoracion_log_outcome\\(\\s*\'SUCCESS\'\\s*,\\s*\'\'\\s*,\\s*\\$result\\[\'status\'\\]\\s*,\\s*\\$qa_context\\s*\\);~',
+	'~nvx_valoracion_log_outcome\\(\\s*\'FAILURE\'\\s*,\\s*\\$result\\[\'reason\'\\]\\s*,\\s*\\$result\\[\'status\'\\]\\s*,\\s*\\$qa_context\\s*\\);~',
+);
+foreach ( $required_log_calls as $index => $pattern ) {
+	$assert( 1 === preg_match( $pattern, $source ), 'HANDLER_LOG_CALL_' . $index );
+}
 foreach (
 	array(
-		"nvx_valoracion_log_outcome( 'FAILURE', 'nonce'",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit'",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'validation'",
-		"nvx_valoracion_log_outcome( 'SUCCESS', '',",
-		"nvx_valoracion_log_outcome( 'FAILURE', \$result['reason'],",
 		"wp_safe_redirect( home_url( '/gracias/' ) )",
 		"nvx_valoracion_name_length( \$lastname )",
 	) as $index => $required

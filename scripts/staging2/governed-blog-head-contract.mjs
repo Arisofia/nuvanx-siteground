@@ -49,7 +49,12 @@ async function gotoStable(page, url) {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
       lastResponse = response;
       lastError = null;
-      const status = Number(response?.status() || 0);
+      if (!response) {
+        lastError = new Error(`Navigation completed without an HTTP response for ${url}`);
+        if (attempt < 4) await page.waitForTimeout(2200 * attempt);
+        continue;
+      }
+      const status = Number(response.status());
       const headers = response?.headers() || {};
       const currentUrl = page.url() || url;
 
@@ -72,6 +77,7 @@ async function gotoStable(page, url) {
   const finalHeaders = lastResponse?.headers() || {};
   const finalUrl = page.url() || url;
   const isTransient =
+    !lastResponse ||
     isSiteGroundTransientResponse(finalStatus, finalHeaders, finalUrl) ||
     (lastError ? isSiteGroundCaptchaInterruption(lastError, finalUrl) : false);
 

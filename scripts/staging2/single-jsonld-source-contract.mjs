@@ -129,7 +129,7 @@ export async function runSingleJsonLdSourceContract(options = {}) {
   const report = { schema: 2, checkedAt: new Date().toISOString(), host, sha, routes: [], issues: [] };
   for (const route of routes) {
     try {
-      const html = fetchOriginHtml(route, host, alias);
+      const html = await fetchOriginHtml(route, host, alias);
       const actualSha = deploySha(html);
       const blocks = jsonLdBlocks(html);
       const blockSummaries = blocks.map((block, index) => summarizeJsonLdBlock(block, index));

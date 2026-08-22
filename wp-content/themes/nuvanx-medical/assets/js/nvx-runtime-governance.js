@@ -609,6 +609,41 @@
       syncConversionSurfaces();
     }
 
+    function loadHubSpotGlobalTracking() {
+      // Load HubSpot global tracking script (js.hs-scripts.com/147416356.js)
+      // Only when marketing consent is granted and only once
+      if (!hasMarketingConsent()) {
+        return Promise.resolve();
+      }
+
+      const trackingScriptId = 'nvx-hubspot-tracking-runtime';
+      const existing = document.getElementById(trackingScriptId);
+      if (existing) {
+        return Promise.resolve();
+      }
+
+      const portalId = config.hubspotPortalId || '147416356';
+      const trackingUrl = 'https://js.hs-scripts.com/' + portalId + '.js';
+
+      return new Promise(function (resolve, reject) {
+        const script = document.createElement('script');
+        script.id = trackingScriptId;
+        script.src = trackingUrl;
+        script.async = true;
+        script.addEventListener('load', function () {
+          script.dataset.nvxLoaded = '1';
+          resolve();
+        }, { once: true });
+        script.addEventListener('error', function () {
+          script.remove();
+          // Global tracking failure should not block form loading
+          console.warn('HubSpot global tracking script failed to load');
+          resolve();
+        }, { once: true });
+        document.head.appendChild(script);
+      });
+    }
+
     function loadHubSpot() {
       // The legacy v2 factory created window.hbspt.forms, but the new portal embed
       // (forms/embed/{portalId}.js) does not. Only short-circuit if we have the
@@ -754,11 +789,13 @@
     syncConversionSurfaces();
     document.addEventListener('cmplz_enable_category', function () {
       promise = null;
+      loadHubSpotGlobalTracking();
       loadHubSpot();
       syncConversionSurfaces();
     });
     document.addEventListener('cmplz_status_change', function () {
       promise = null;
+      loadHubSpotGlobalTracking();
       loadHubSpot();
       syncConversionSurfaces();
     });

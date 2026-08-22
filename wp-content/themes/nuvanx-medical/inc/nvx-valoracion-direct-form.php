@@ -195,7 +195,7 @@ function nvx_valoracion_has_marketing_consent(): bool {
 /**
  * Emit a bounded operational event without personal data.
  */
-function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $status = 0 ): void {
+function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $status = 0, array $qa_context = array() ): void {
 	$allowed_outcomes = array( 'FAILURE', 'SUCCESS' );
 	$allowed_reasons  = array( 'nonce', 'rate_limit', 'validation', 'hubspot_transport', 'hubspot_http' );
 	$outcome          = strtoupper( $outcome );
@@ -208,6 +208,14 @@ function nvx_valoracion_log_outcome( string $outcome, string $reason = '', int $
 	}
 	if ( $status > 0 ) {
 		$line .= ' status=' . (int) $status;
+	}
+	// Add QA context without personal data
+	if ( ! empty( $qa_context ) ) {
+		$line .= ' form_id=' . (string) ( $qa_context['form_id'] ?? 'unknown' );
+		$line .= ' pageUri_hash=' . (string) ( $qa_context['pageUri_hash'] ?? 'unknown' );
+		$line .= ' consent=' . (string) ( $qa_context['consent'] ?? 'unknown' );
+		$line .= ' hutk_present=' . (string) ( $qa_context['hutk_present'] ?? 'unknown' );
+		$line .= ' test_id=' . (string) ( $qa_context['test_id'] ?? 'unknown' );
 	}
 	error_log( $line );
 }
@@ -225,7 +233,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	$fail    = add_query_arg( 'valoracion', 'error', $back );
 
 	if ( ! isset( $_POST['nvx_valoracion_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( (string) $_POST['nvx_valoracion_nonce'] ) ), 'nvx_valoracion_submit' ) ) {
-		nvx_valoracion_log_outcome( 'FAILURE', 'nonce' );
+		nvx_valoracion_log_outcome( 'FAILURE', 'nonce', 0, array() );
 		wp_safe_redirect( $fail );
 		exit;
 	}
@@ -240,7 +248,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	$rate_key = 'nvx_val_rl_' . hash( 'sha256', $ip );
 	$hits     = (int) get_transient( $rate_key );
 	if ( $hits >= 5 ) {
-		nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit' );
+		nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit', 0, array() );
 		wp_safe_redirect( $fail );
 		exit;
 	}
@@ -254,7 +262,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 	$privacy   = ! empty( $_POST['privacy'] );
 
 	if ( ! $privacy || ! is_email( $email ) || nvx_valoracion_name_length( $firstname ) < 2 || nvx_valoracion_name_length( $lastname ) < 2 || strlen( $phone ) < 7 || nvx_valoracion_name_length( $message ) < 10 ) {
-		nvx_valoracion_log_outcome( 'FAILURE', 'validation' );
+		nvx_valoracion_log_outcome( 'FAILURE', 'validation', 0, array() );
 		wp_safe_redirect( $fail );
 		exit;
 	}
@@ -314,25 +322,57 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 		}
 	}
 
+	// Validate and normalize pageUri context with strict allowlist
+	$current_url = wp_get_referer();
+	if ( ! $current_url ) {
+		$current_url = home_url( '/madrid/valoracion/' );
+	}
+	$parsed_url = wp_parse_url( $current_url );
+	$allowed_hosts = array( 'nuvanx.com', 'www.nuvanx.com' );
+	$host = isset( $parsed_url['host'] ) ? strtolower( $parsed_url['host'] ) : '';
+	$is_allowed = in_array( $host, $allowed_hosts, true );
+
+	$page_uri = $is_allowed ? $current_url : home_url( '/madrid/valoracion/' );
+	$page_name = is_singular() ? get_the_title() : 'Valoración médica estética en Madrid';
+
 	$context = array(
-		'pageUri'  => home_url( '/madrid/valoracion/' ),
-		'pageName' => 'Valoración médica estética en Madrid',
+		'pageUri'  => $page_uri,
+		'pageName' => $page_name,
 	);
+
+	// Include hutk only when marketing consent is granted and cookie exists
+	$hutk_present = 'no';
 	if ( $marketing_consent && isset( $_COOKIE['hubspotutk'] ) ) {
 		$hutk = sanitize_text_field( wp_unslash( (string) $_COOKIE['hubspotutk'] ) );
 		if ( '' !== $hutk ) {
 			$context['hutk'] = $hutk;
+			$hutk_present = 'yes';
 		}
 	}
 
+	// QA context for logging (no personal data)
+	$portal = function_exists( 'nvx_hubspot_secure_portal_id' )
+		? nvx_hubspot_secure_portal_id()
+		: ( defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? (string) NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356' );
+	$form = function_exists( 'nvx_hubspot_secure_form_id' )
+		? nvx_hubspot_secure_form_id()
+		: ( defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c' );
+	$qa_context = array(
+		'form_id' => $form,
+		'pageUri_hash' => substr( md5( $page_uri ), 0, 8 ),
+		'consent' => $marketing_consent ? 'granted' : 'denied',
+		'hutk_present' => $hutk_present,
+		'test_id' => function_exists( 'wp_generate_uuid4' ) ? substr( wp_generate_uuid4(), 0, 8 ) : 'unknown',
+	);
+
 	$result = nvx_valoracion_forward_to_hubspot( $fields, $context );
 	if ( $result['ok'] ) {
-		nvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'] );
+		nvx_valoracion_log_outcome( 'SUCCESS', '', $result['status'], $qa_context );
 		wp_safe_redirect( home_url( '/gracias/' ) );
 		exit;
 	}
 
-	nvx_valoracion_log_outcome( 'FAILURE', $result['reason'], $result['status'] );
+	nvx_valoracion_log_outcome( 'FAILURE', $result['reason'], $result['status'], $qa_context );
 	wp_safe_redirect( $fail );
 	exit;
 }

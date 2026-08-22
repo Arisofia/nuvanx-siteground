@@ -836,13 +836,6 @@
     }
 
     syncConversionSurfaces();
-    // Load global tracking on consent events (runs on all pages)
-    document.addEventListener('cmplz_enable_category', function () {
-      loadHubSpotGlobalTracking();
-    });
-    document.addEventListener('cmplz_status_change', function () {
-      loadHubSpotGlobalTracking();
-    });
     window.addEventListener('hs-form-event:on-ready', markHubSpotReady);
     window.addEventListener('message', function (event) {
       // Security: Verify message origin to prevent potential XSS attacks

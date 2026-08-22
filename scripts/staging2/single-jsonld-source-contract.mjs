@@ -2,9 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-const execFileAsync = promisify(execFile);
 import { DEFAULT_ROUTES } from './shared-routes.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
@@ -33,11 +30,17 @@ async function fetchOriginHtml(route, host, alias) {
     'curl -kS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Single-JSONLD-Contract/1.0\' -w "\\nNVX_HTTP_STATUS:%{http_code}\\n" "$url"',
   ].join('\n');
   const remoteCommand = `EXPECTED_HOST='${host}' ROUTE='${route}' bash -se`;
-  const { stdout } = await execFileAsync(
+  const result = spawnSync(
     SSH_BIN,
     ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', '-o', 'ConnectionAttempts=1', '--', alias, remoteCommand],
     { input: remoteScript, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 }
   );
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    const detail = String(result.stderr || '').trim();
+    throw new Error(`Origin fetch command failed for ${route}: ${detail || `exit=${result.status}`}`);
+  }
+  const stdout = String(result.stdout || '');
 
   const httpStatusMatch = stdout.match(/NVX_HTTP_STATUS:(\d{3})/);
   const httpStatus = httpStatusMatch ? parseInt(httpStatusMatch[1], 10) : 0;

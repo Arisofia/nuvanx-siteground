@@ -16,7 +16,7 @@ import urllib.error
 import urllib.request
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 IMAGE_ATTRS = (
     "src",
@@ -71,6 +71,8 @@ def fetch(url: str, timeout: int = 25) -> tuple[int, dict[str, str], str]:
         body = exc.read().decode("utf-8", "replace") if exc.fp else ""
         headers = {k.lower(): v for k, v in (exc.headers.items() if exc.headers else [])}
         return int(exc.code), headers, body
+    except (urllib.error.URLError, TimeoutError, OSError, ssl.SSLError) as exc:
+        return 0, {"x-nvx-fetch-error": str(exc)[:300]}, ""
 
 
 def sitemap_locs(xml: str, base_host: str) -> list[str]:
@@ -253,7 +255,33 @@ def main() -> int:
     args = parser.parse_args()
     base = args.base_url.rstrip("/")
     staging = "staging2." in urlparse(base).hostname or ""
-    urls = collect_urls(base)
+    try:
+        urls = collect_urls(base)
+    except RuntimeError as exc:
+        report = {
+            "schema": "nvx-editorial-70/v1",
+            "base_url": base,
+            "expected_count": 70,
+            "summary": {
+                "url_count": 0,
+                "http_200": 0,
+                "canonical_ok": 0,
+                "vendor_image_pages": [],
+                "blog_empty_alt": False,
+                "issue_count": 1,
+                "failing_paths": [],
+                "count_is_70": False,
+                "sitemap_error": str(exc),
+            },
+            "pages": [],
+        }
+        with open(args.output, "w", encoding="utf-8") as handle:
+            json.dump(report, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        print(f"SITEMAP_FAIL {exc}", file=sys.stderr)
+        print(f"OUTPUT={args.output}")
+        return 1
+
     pages = [audit_page(url, staging=bool(staging)) for url in urls]
     report = {
         "schema": "nvx-editorial-70/v1",
@@ -277,6 +305,7 @@ def main() -> int:
         print(f"COUNT_MISMATCH expected=70 got={len(urls)}", file=sys.stderr)
         return 2
     if summary["issue_count"] != 0:
+        print("FAILING_PATHS=" + ",".join(summary["failing_paths"]), file=sys.stderr)
         return 1
     return 0
 

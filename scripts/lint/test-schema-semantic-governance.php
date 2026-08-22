@@ -1,9 +1,9 @@
 <?php
+declare(strict_types=1);
+
 const PHYSICIAN_ID = 'https://example.test/#physician';
 
 /** Standalone contract test for final Schema.org semantic governance. */
-
-declare(strict_types=1);
 
 define( 'ABSPATH', __DIR__ );
 

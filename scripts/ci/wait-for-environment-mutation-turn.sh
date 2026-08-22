@@ -275,7 +275,7 @@ while :; do
   fi
 
   if [[ -n "$blockers" ]]; then
-    unique_blockers="$(printf '%b' "$blockers" | grep -v '^[[:space:]]*$' | sort -u -k1,1)"
+    unique_blockers="$(printf '%s' "$blockers" | grep -v '^[[:space:]]*$' | sort -u -k1,1)"
     blocker_count="$(printf '%s\n' "$unique_blockers" | grep -c . || true)"
   else
     unique_blockers=""

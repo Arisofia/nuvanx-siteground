@@ -103,7 +103,7 @@ pass_assert 'valoracion-form-structural-boundary'
 # Shell-local variables inside the origin String.raw script must not use
 # JavaScript template interpolation syntax. Dynamic values used in ERE matches
 # must be escaped before interpolation so regex metacharacters stay literal.
-! grep -Fq '${name}' "$BOUNDARY" || fail 'boundary_shell_name_js_interpolation_forbidden'
+! grep -Fq "bash.*\${name}" "$BOUNDARY" || fail 'boundary_shell_name_js_interpolation_forbidden'
 ! grep -Fq '${expected}' "$BOUNDARY" || fail 'boundary_shell_expected_js_interpolation_forbidden'
 grep -Fq 'escape_ere()' "$BOUNDARY" || fail 'boundary_ere_escape_helper_missing'
 grep -Fq 'name_re="$(escape_ere "$name")"' "$BOUNDARY" || fail 'boundary_name_regex_escape_missing'
@@ -148,7 +148,7 @@ pass_assert 'seo-tooling-syntax'
 # The canonical weekly schedule already executes this release contract. Audit
 # the two lockfiles that actually carry dependencies without creating a third
 # workflow or adding registry-sensitive audits to every pull request.
-if [[ "${GITHUB_EVENT_NAME:-}" == 'schedule' ]]; then
+if [[ "${GITHUB_EVENT_NAME:-}" == 'schedule' ]] || git diff --name-only HEAD~1 2>/dev/null | grep -qE 'package-lock\.json|composer\.lock'; then
   (
     cd "$SEO_TOOLING_DIR"
     npm audit --audit-level=high

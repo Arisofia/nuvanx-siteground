@@ -20,7 +20,7 @@ if (EVENT_PATH === EXECUTION_PATHS.UNSUPPORTED_EVENT) {
 
 console.log(`ATTRIBUTION_LINEAGE_E2E=PATH path=${EVENT_PATH} event=${EVENT_NAME} ref=${REF_NAME}`);
 
-assert.equal(BASE_URL, EXPECTED_BASE, 'Real lineage E2E is allowed only against canonical Staging2');
+if (!BASE_URL) {\n  throw new Error('BASE_URL environment variable is required for lineage E2E');\n}\nassert.equal(BASE_URL, EXPECTED_BASE, 'Real lineage E2E is allowed only against canonical Staging2');
 
 const qaToken = randomUUID().replaceAll('-', '');
 const email = `qa-attribution-${qaToken.slice(0, 16)}@example.org`;
@@ -105,7 +105,7 @@ try {
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(nativeFields?.nvx_lead_id || ''))) {
       break;
     }
-    await page.waitForTimeout(250);
+    await delay(250);
   }
 
   assert.ok(nativeFields, 'Canonical HubSpot V4 form must be discoverable after marketing consent');

@@ -33,7 +33,11 @@ jq -e --arg id "$FORM_ID" '
 name="$(jq -r '.name // ""' "$response")"
 portal="$(jq -r '.portalId // ""' "$response")"
 
-if [[ -n "$portal" && -n "$EXPECTED_PORTAL" && "$portal" != "$EXPECTED_PORTAL" ]]; then
+if [[ -z "$portal" ]]; then
+  echo "HUBSPOT_FORM_GATE=FAIL reason=portal_not_returned_by_api" >&2
+  exit 1
+fi
+if [[ -n "$EXPECTED_PORTAL" && "$portal" != "$EXPECTED_PORTAL" ]]; then
   echo "HUBSPOT_FORM_GATE=FAIL portal=$portal expected=$EXPECTED_PORTAL" >&2
   exit 1
 fi

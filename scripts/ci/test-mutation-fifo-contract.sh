@@ -126,7 +126,7 @@ set +e
 env "${common_env[@]}" GITHUB_RUN_ATTEMPT=2 TEST_SCENARIO=pass bash "$SUBJECT" >"$after_rerun" 2>&1
 rerun_rc=$?
 set -e
-[[ "$rerun_rc" -ne 0 ]]
+[[ "$rerun_rc" -eq 1 ]]
 grep -Fq 'reason=rerun_forbidden' "$after_rerun"
 grep -Fq 'action=start_new_run' "$after_rerun"
 
@@ -136,7 +136,7 @@ set +e
 env "${common_env[@]}" GITHUB_RUN_ATTEMPT=1 MUTATION_WAIT_MAX_SECONDS=1 TEST_SCENARIO=blocked bash "$SUBJECT" >"$blocked_log" 2>&1
 blocked_rc=$?
 set -e
-[[ "$blocked_rc" -ne 0 ]]
+[[ "$blocked_rc" -eq 1 ]]
 grep -Fq 'MUTATION_FIFO=FAIL reason=wait_timeout' "$blocked_log"
 grep -Fq 'MUTATION_FIFO_BLOCKER run_id=41' "$blocked_log"
 

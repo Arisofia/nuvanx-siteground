@@ -113,7 +113,7 @@ async function validateHubSpotIframe(url) {
         }
       }
     } catch (bboxError) {
-      issues.push('Failed to check iframe bounding box');
+      issues.push(`Failed to check iframe bounding box: ${bboxError instanceof Error ? bboxError.message : String(bboxError)}`);
     }
 
     // Check if form intersects viewport
@@ -140,7 +140,7 @@ async function validateHubSpotIframe(url) {
     }
 
     // Check for duplicate loaders
-    const loaderRegex = /loading|loader|spinner/gi;
+    const loaderRegex = /\bhs-form-iframe-load\b|data-hubspot-form-loading/gi;
     const loaderMatches = html.match(loaderRegex);
     checks.duplicateLoader = loaderMatches && loaderMatches.length > 1;
 
@@ -179,7 +179,7 @@ async function validateHubSpotIframe(url) {
       checks,
     };
   } catch (error) {
-    runAgentBrowser(['close']);
+    try { runAgentBrowser(['close']); } catch { /* ignore close error */ }
     throw error;
   }
 }

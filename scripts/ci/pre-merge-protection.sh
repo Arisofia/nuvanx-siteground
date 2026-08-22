@@ -33,17 +33,17 @@ CHECKS_FAILED=0
 # Function to run a check
 run_check() {
   local check_name="$1"
-  local check_command="$2"
+  shift
   
   echo "Running: ${check_name}..."
   
-  if eval "${check_command}" > /dev/null 2>&1; then
+  if \"$@\" > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} ${check_name}: PASS"
-    ((CHECKS_PASSED++))
+    CHECKS_PASSED=$((CHECKS_PASSED + 1))
     return 0
   else
     echo -e "${RED}✗${NC} ${check_name}: FAIL"
-    ((CHECKS_FAILED++))
+    CHECKS_FAILED=$((CHECKS_FAILED + 1))
     OVERALL_STATUS=1
     return 1
   fi
@@ -75,7 +75,7 @@ fi
 # === 4. Security/Secrets ===
 echo ""
 echo "=== SECURITY/SECRETS ==="
-run_check "No secrets in code" "! git grep -i 'password\|api_key\|secret' -- '*.php' '*.js' '*.mjs' ':!node_modules/' ':!vendor/'"
+run_check "No secrets in code" bash -c '! git grep -i "password|api_key|secret" -- "*.php" "*.js" "*.mjs" ":!node_modules/" ":!vendor/"; rc=$?; [ $rc -eq 1 ]'|run_check "No secrets in code" bash -c '! git grep -i "password|api_key|secret" -- "*.php" "*.js" "*.mjs" ":!node_modules/" ":!vendor/"; rc=$?; [ $rc -eq 1 ]'|run_check "No secrets in code" bash -c '! git grep -i "password|api_key|secret" -- "*.php" "*.js" "*.mjs" ":!node_modules/" ":!vendor/"; rc=$?; [ $rc -eq 1 ]'
 run_check "No hardcoded credentials" "! git grep -E '(AKIA|sk-|token)' -- '*.php' '*.js' '*.mjs' ':!node_modules/' ':!vendor/'"
 
 # === 5. Theme Hygiene ===

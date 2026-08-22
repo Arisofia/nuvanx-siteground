@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const execFileAsync = promisify(execFile);
 import { DEFAULT_ROUTES } from './shared-routes.mjs';
 
 const SSH_BIN = '/usr/bin/ssh';
@@ -14,10 +17,12 @@ function assertConfig(host, sha, alias) {
 }
 
 function assertRoute(route) {
+  if (typeof route !== 'string' || !route.startsWith('/')) throw new Error(`Invalid route: ${route}`);
+  // Only allow alphanumeric, dash, dot, slash
   if (!/^[A-Za-z0-9_./-]+$/.test(route)) throw new Error(`Route contains unsupported characters: ${route}`);
 }
 
-function fetchOriginHtml(route, host, alias) {
+async function fetchOriginHtml(route, host, alias) {
   assertRoute(route);
   const remoteScript = [
     'set -Eeuo pipefail',
@@ -25,25 +30,22 @@ function fetchOriginHtml(route, host, alias) {
     // SECURITY NOTE: -k is used because --resolve points to 127.0.0.1 which invalidates the cert.
     // This is acceptable in controlled staging environment with manual DNS resolution.
     // For production deployments, proper TLS verification would be required.
-    'curl -kS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Single-JSONLD-Contract/1.0\' -w "\nNVX_HTTP_STATUS:%{http_code}\n" "$url"',
+    'curl -kS -L --max-redirs 5 --max-time 45 --resolve "${EXPECTED_HOST}:443:127.0.0.1" -H \'Cache-Control: no-cache\' -H \'Pragma: no-cache\' -H \'Accept: text/html,application/xhtml+xml\' -A \'Mozilla/5.0 NUVANX-Single-JSONLD-Contract/1.0\' -w "\\nNVX_HTTP_STATUS:%{http_code}\\n" "$url"',
   ].join('\n');
   const remoteCommand = `EXPECTED_HOST='${host}' ROUTE='${route}' bash -se`;
-  const result = spawnSync(
+  const { stdout } = await execFileAsync(
     SSH_BIN,
     ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', '-o', 'ConnectionAttempts=1', '--', alias, remoteCommand],
-    { input: remoteScript, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 },
+    { input: remoteScript, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 }
   );
-  if (result.error || result.status !== 0) {
-    throw new Error(`Origin fetch failed for ${route}: ${(result.stderr || result.error?.message || `exit ${result.status}`).trim()}`);
-  }
-  const stdout = result.stdout || '';
-  const statusMatch = stdout.match(/NVX_HTTP_STATUS:(\d+)/);
-  const httpStatus = statusMatch ? parseInt(statusMatch[1], 10) : 0;
+
+  const httpStatusMatch = stdout.match(/NVX_HTTP_STATUS:(\d{3})/);
+  const httpStatus = httpStatusMatch ? parseInt(httpStatusMatch[1], 10) : 0;
   if (httpStatus !== 200) {
     throw new Error(`Origin fetch failed for ${route}: expected HTTP 200, got ${httpStatus}`);
   }
   const markerIndex = stdout.lastIndexOf('NVX_HTTP_STATUS:');
-  return markerIndex > 0 ? stdout.slice(0, markerIndex).trim() : stdout;
+  return markerIndex >= 0 ? stdout.slice(0, markerIndex).trim() : stdout;
 }
 
 function deploySha(html) {

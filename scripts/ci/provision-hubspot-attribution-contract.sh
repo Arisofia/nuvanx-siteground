@@ -24,7 +24,7 @@ trap 'rm -rf "$work"' EXIT
 request() {
   local method="$1" url="$2" output="$3" body="${4:-}"
   local args=(
-    --silent --show-error --connect-timeout 10 --max-time 45
+    --silent --show-error --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 45
     --request "$method"
     --output "$output"
     --write-out '%{http_code}'

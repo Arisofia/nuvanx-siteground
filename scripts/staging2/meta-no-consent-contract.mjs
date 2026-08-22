@@ -95,7 +95,7 @@ for (const route of routes) {
     const cookies = setCookieValues(response.headers);
     row.status = response.status;
     row.finalUrl = response.url;
-    row.bytes = Buffer.byteLength(html);
+    row.bytes = new TextEncoder().encode(html).byteLength;
     row.setCookieCount = cookies.length;
     row.deploySha = extractDeploySha(html);
 

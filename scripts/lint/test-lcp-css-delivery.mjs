@@ -450,6 +450,15 @@ for (const file of [
     `bridal protocol must ship ${file} as WebP`,
   );
 }
+for (const file of [
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-280.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-383.webp',
+]) {
+  assert.ok(
+    !fs.existsSync(`wp-content/themes/nuvanx-medical/assets/images/responsive/${file}`),
+    `retired bridal mood-collage must not ship ${file}`,
+  );
+}
 const bridalPhp = fs.readFileSync(
   'wp-content/themes/nuvanx-medical/inc/nvx-bridal-page.php',
   'utf8',

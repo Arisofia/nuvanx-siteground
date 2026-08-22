@@ -71,14 +71,17 @@ $valoracion_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx
 $valoracion_css = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css' );
 if ( ! str_contains( $valoracion_php, 'Valoración médica estética en Madrid' )
 	|| ! str_contains( $valoracion_php, 'Valoración médica en Madrid de 15 a 30 minutos' )
+	|| ! str_contains( $valoracion_php, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_php, 'Recuperación en 48h' )
 	|| ! str_contains( $valoracion_php, 'function nvx_valoracion_schema_graph' )
 	|| ! str_contains( $valoracion_php, 'MedicalWebPage' )
 	|| ! str_contains( $valoracion_php, 'id="nvx-valoracion-lead"' )
 	|| ! str_contains( $valoracion_php, 'nvx_clinical_authority_byline_markup' ) ) {
-	$fail( 'valoracion landing must expose H1, initial answer, Rivera byline and MedicalWebPage schema' );
+	$fail( 'valoracion landing must expose H1, RSA message match, Rivera byline and MedicalWebPage schema' );
 }
 
 if ( ! str_contains( $valoracion_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
+	|| ! str_contains( $valoracion_css, '.nvx-valoracion-hero__proof' )
 	|| ! str_contains( $valoracion_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
 	$fail( 'valoracion mobile ATF rules must compact the hero and surface the form' );
 }

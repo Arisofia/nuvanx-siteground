@@ -58,7 +58,7 @@ function nvx_valoracion_direct_form_markup(): string {
 	foreach ( $identity_fields as $field ) {
 		$html .= '<p class="nvx-valoracion-direct-form__field">';
 		$html .= '<label for="nvx-valoracion-' . $field['id'] . '">' . $field['label'] . '</label>';
-		$html .= '<input class="hs-input" id="nvx-valoracion-' . $field['id'] . '" name="' . $field['id'] . '" type="text" autocomplete="' . $field['autocomplete'] . '" maxlength="' . $field['maxlength'] . '" required>';
+		$html .= '<input class="hs-input" id="nvx-valoracion-' . $field['id'] . '" name="' . $field['id'] . '" type="text" autocomplete="' . $field['autocomplete'] . '" minlength="2" maxlength="' . $field['maxlength'] . '" required>';
 		$html .= '</p>';
 	}
 

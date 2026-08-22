@@ -167,7 +167,11 @@ function nvx_valoracion_managed_page_markup(): string {
 	$html .= function_exists( 'nvx_clinical_authority_byline_markup' )
 		? nvx_clinical_authority_byline_markup()
 		: '';
-	$html .= '<p class="nvx-brand-hero__lead" id="nvx-valoracion-lead">' . esc_html__( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__lead" id="nvx-valoracion-lead">' . esc_html__( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin Anestesia General. Recuperación en 48h como reincorporación habitual al trabajo o a la vida social, según el protocolo indicado; el edema y el ejercicio de impacto pueden requerir más días. Sin obligación de procedimiento.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-valoracion-hero__proof" aria-label="' . esc_attr__( 'Condiciones clínicas del protocolo', 'nuvanx-medical' ) . '">';
+	$html .= '<li>' . esc_html__( 'Sin Anestesia General', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Recuperación en 48h (reincorporación habitual, según protocolo)', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
 	$html .= '</div></div></section>';
 
 	// The form is deliberately the first content block after the heading.
@@ -260,7 +264,7 @@ function nvx_valoracion_schema_graph( $graph ) {
 
 	$url         = home_url( '/madrid/valoracion/' );
 	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
-	$description = __( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin obligación de procedimiento.', 'nuvanx-medical' );
+	$description = __( 'Valoración médica en Madrid de 15 a 30 minutos: diagnóstico, indicación y presupuesto documentado antes de tratar. Sin Anestesia General. Recuperación en 48h como reincorporación habitual, según el protocolo indicado. Sin obligación de procedimiento.', 'nuvanx-medical' );
 	$action      = array(
 		'@type'  => 'ReserveAction',
 		'name'   => __( 'Solicitar valoración médica', 'nuvanx-medical' ),

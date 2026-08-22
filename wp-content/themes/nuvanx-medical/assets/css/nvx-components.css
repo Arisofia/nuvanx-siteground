@@ -784,6 +784,33 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   gap: var(--nvx-space-2);
 }
 
+.nvx-valoracion-hero__proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2) var(--nvx-space-5);
+  margin: var(--nvx-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-valoracion-hero__proof li {
+  position: relative;
+  padding-inline-start: 1.15em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.nvx-valoracion-hero__proof li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.55em;
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
 /*
  * Valoración conversion ATF on small screens: H1 + initial answer + form
  * start must remain in the first viewport. Form intro copy is already in
@@ -809,6 +836,11 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
     margin-bottom: 0;
     font-size: var(--nvx-type-small, 0.95rem);
     line-height: 1.45;
+  }
+
+  .nvx-valoracion-hero__proof {
+    margin-top: var(--nvx-space-2);
+    font-size: var(--nvx-type-small, 0.95rem);
   }
 
   .nvx-valoracion-page > .nvx-hubspot-form-section,

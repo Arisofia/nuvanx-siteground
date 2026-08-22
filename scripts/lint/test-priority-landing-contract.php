@@ -69,17 +69,71 @@ if ( str_contains( $blog_meta, '"canonical_path": "/btl-exilite-ipl-madrid/"' )
 
 $valoracion_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/nvx-valoracion-managed-page.php' );
 $valoracion_css = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css' );
+$seo_catalog    = json_decode( (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/seo-metadata.json' ), true );
+$valoracion_desc = is_array( $seo_catalog ) ? (string) ( $seo_catalog['valoracion']['description'] ?? '' ) : '';
+
+// Extraer el lead renderizado para que las frases RSA no se satisfagan solo con la lista de prueba.
+$valoracion_lead = '';
+if ( preg_match( '/id="nvx-valoracion-lead"[^>]*>(.*?)<\/p>/s', $valoracion_php, $lead_m ) ) {
+	$valoracion_lead = $lead_m[1];
+}
+// Extraer la descripción del schema MedicalWebPage.
+$valoracion_schema_desc = '';
+if ( preg_match( "/\\\$description\\s*=\\s*__\\(\\s*'(.*?)'\\s*,\\s*'nuvanx-medical'\\s*\\)/s", $valoracion_php, $desc_m ) ) {
+	$valoracion_schema_desc = $desc_m[1];
+}
+
 if ( ! str_contains( $valoracion_php, 'Valoración médica estética en Madrid' )
-	|| ! str_contains( $valoracion_php, 'Valoración médica en Madrid de 15 a 30 minutos' )
+	|| ! str_contains( $valoracion_lead, 'Valoración médica en Madrid de 15 a 30 minutos' )
+	|| ! str_contains( $valoracion_lead, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_lead, 'Recuperación en 48h' )
+	|| ! str_contains( $valoracion_lead, 'reincorporación habitual' )
+	|| ! str_contains( $valoracion_lead, 'según el protocolo indicado' )
+	|| ! str_contains( $valoracion_schema_desc, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_schema_desc, 'Recuperación en 48h' )
+	|| ! str_contains( $valoracion_schema_desc, 'reincorporación habitual' )
 	|| ! str_contains( $valoracion_php, 'function nvx_valoracion_schema_graph' )
 	|| ! str_contains( $valoracion_php, 'MedicalWebPage' )
 	|| ! str_contains( $valoracion_php, 'id="nvx-valoracion-lead"' )
 	|| ! str_contains( $valoracion_php, 'nvx_clinical_authority_byline_markup' ) ) {
-	$fail( 'valoracion landing must expose H1, initial answer, Rivera byline and MedicalWebPage schema' );
+	$fail( 'valoracion landing must expose H1, RSA message match, Rivera byline and MedicalWebPage schema' );
+}
+if ( '' === $valoracion_desc
+	|| ! str_contains( $valoracion_desc, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_desc, 'Recuperación en 48h' )
+	|| ! str_contains( $valoracion_desc, 'reincorporación habitual' )
+	|| ! str_contains( $valoracion_desc, 'según protocolo' ) ) {
+	$fail( 'valoracion SEO metadata must keep RSA phrases with the 48h reincorporation caveat' );
 }
 
-if ( ! str_contains( $valoracion_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
-	|| ! str_contains( $valoracion_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
+// Aislar el bloque @media (max-width: 48rem) con conteo de llaves balanceadas.
+$mobile_css = '';
+$anchor = strpos( $valoracion_css, '@media (max-width: 48rem)' );
+if ( false !== $anchor ) {
+	$brace_open = strpos( $valoracion_css, '{', $anchor );
+	if ( false !== $brace_open ) {
+		$depth = 0;
+		$len   = strlen( $valoracion_css );
+		for ( $i = $brace_open; $i < $len; $i++ ) {
+			$ch = $valoracion_css[ $i ];
+			if ( '{' === $ch ) {
+				$depth++;
+			} elseif ( '}' === $ch ) {
+				$depth--;
+				if ( 0 === $depth ) {
+					$mobile_css = substr( $valoracion_css, $brace_open + 1, $i - $brace_open - 1 );
+					break;
+				}
+			}
+		}
+	}
+}
+if ( '' === $mobile_css ) {
+	$fail( 'valoracion CSS must contain @media (max-width: 48rem) block' );
+}
+if ( ! str_contains( $mobile_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
+	|| ! str_contains( $mobile_css, '.nvx-valoracion-hero__proof' )
+	|| ! str_contains( $mobile_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
 	$fail( 'valoracion mobile ATF rules must compact the hero and surface the form' );
 }
 

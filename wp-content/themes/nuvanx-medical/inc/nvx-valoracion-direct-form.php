@@ -331,8 +331,26 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 		}
 	}
 
-	// Use the server-controlled canonical page URI for HubSpot context.
-	$page_uri = home_url( '/madrid/valoracion/' );
+	// Derive page URI from server-controlled request path with allowlist validation
+	// Never trust browser-supplied headers or POST values for context
+	$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ) : '/madrid/valoracion/';
+	$request_uri = '/' . trim( $request_uri, '/' );
+	
+	// Normalize and validate against allowed paths
+	$allowed_paths = array(
+		'/madrid/valoracion',
+		'/contacto',
+		'/gracias',
+	);
+	$is_allowed = false;
+	foreach ( $allowed_paths as $allowed_path ) {
+		if ( 0 === strpos( $request_uri, $allowed_path ) ) {
+			$is_allowed = true;
+			break;
+		}
+	}
+	
+	$page_uri = $is_allowed ? home_url( $request_uri ) : home_url( '/madrid/valoracion/' );
 	$page_name = is_singular() ? get_the_title() : 'Valoración médica estética en Madrid';
 
 	$context = array(

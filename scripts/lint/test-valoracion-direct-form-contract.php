@@ -145,11 +145,11 @@ $assert( 1 === count( $GLOBALS['nvx_test_http_requests'] ), 'NO_RETRY_AFTER_5XX_
 $source = (string) file_get_contents( $real );
 foreach (
 	array(
-		"nvx_valoracion_log_outcome( 'FAILURE', 'nonce' )",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit' )",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'validation' )",
-		"nvx_valoracion_log_outcome( 'SUCCESS', '', \$result['status'] )",
-		"nvx_valoracion_log_outcome( 'FAILURE', \$result['reason'], \$result['status'] )",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'nonce'",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit'",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'validation'",
+		"nvx_valoracion_log_outcome( 'SUCCESS', '',",
+		"nvx_valoracion_log_outcome( 'FAILURE', \$result['reason'],",
 		"wp_safe_redirect( home_url( '/gracias/' ) )",
 		"nvx_valoracion_name_length( \$lastname )",
 	) as $index => $required

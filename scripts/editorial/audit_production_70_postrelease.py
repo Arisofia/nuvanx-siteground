@@ -244,15 +244,25 @@ def audit_page(url: str, staging: bool) -> dict[str, Any]:
     }
 
 
+def has_issue(issues: list[str], code: str) -> bool:
+    return any(item == code or item.startswith(code + ":") for item in issues)
+
+
+def canonical_is_ok(page: dict[str, Any]) -> bool:
+    canon = str(page.get("canonical") or "")
+    path = str(page.get("path") or "")
+    return bool(canon) and path_of(canon) == path
+
+
 def summarize(pages: list[dict[str, Any]]) -> dict[str, Any]:
     issue_pages = [p for p in pages if p["issues"]]
     vendor_pages = [p["path"] for p in pages if p["vendor_images"]]
     return {
         "url_count": len(pages),
         "http_200": sum(1 for p in pages if p["http"] == 200),
-        "canonical_ok": sum(1 for p in pages if p["canonical"] and "canonical_mismatch" not in p["issues"] and "canonical_missing" not in p["issues"]),
+        "canonical_ok": sum(1 for p in pages if canonical_is_ok(p)),
         "vendor_image_pages": vendor_pages,
-        "blog_empty_alt": any(p["path"] == "/blog/" and "blog_empty_alt" in p["issues"] for p in pages),
+        "blog_empty_alt": any(p["path"] == "/blog/" and has_issue(p["issues"], "blog_empty_alt") for p in pages),
         "issue_count": sum(len(p["issues"]) for p in pages),
         "failing_paths": [p["path"] for p in issue_pages],
     }

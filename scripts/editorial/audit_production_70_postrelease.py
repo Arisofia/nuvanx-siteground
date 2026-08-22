@@ -45,6 +45,13 @@ EVA_RE = re.compile(r"/eva(?:-|\.|$)|eva\.webp", re.I)
 GALLERY_IMG_RE = re.compile(r"nvx-clinic-gallery__image", re.I)
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def http_error_302(self, req, fp, code, msg, headers):  # noqa: ANN001
+        raise urllib.error.HTTPError(req.full_url, code, msg, headers, fp)
+
+    http_error_301 = http_error_303 = http_error_307 = http_error_308 = http_error_302
+
+
 class ImageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
@@ -64,8 +71,12 @@ class ImageParser(HTMLParser):
 def fetch(url: str, timeout: int = 25) -> tuple[int, dict[str, str], str]:
     ctx = ssl.create_default_context()
     req = urllib.request.Request(url, headers={"User-Agent": "nvx-editorial-70-audit"})
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=ctx),
+        _NoRedirect(),
+    )
     try:
-        with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8", "replace")
             headers = {k.lower(): v for k, v in resp.headers.items()}
             return int(resp.status), headers, body
@@ -160,53 +171,79 @@ def path_of(url: str) -> str:
     return path if path.endswith("/") else path + "/"
 
 
-def audit_page(url: str, staging: bool) -> dict[str, Any]:
-    status, headers, html = fetch(url)
-    parser = ImageParser()
-    try:
-        parser.feed(html)
-    except Exception:
-        pass
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url.strip())
+    scheme = (parsed.scheme or "https").lower()
+    host = (parsed.hostname or "").lower()
+    port = parsed.port
     path = path_of(url)
-    robots_meta = meta_content(html, "robots").lower()
-    x_robots = headers.get("x-robots-tag", "").lower()
-    issues: list[str] = []
-    vendor: list[dict[str, Any]] = []
-    empty_alt: list[dict[str, str]] = []
-    images: list[dict[str, Any]] = []
+    netloc = host
+    if port and port not in (80, 443):
+        netloc = f"{host}:{port}"
+    normalized = f"{scheme}://{netloc}{path}"
+    if parsed.query:
+        normalized += f"?{parsed.query}"
+    return normalized
 
+
+def robots_has(token: str, robots_meta: str, x_robots: str) -> bool:
+    return token in robots_meta or token in x_robots
+
+
+def collect_document_issues(
+    url: str,
+    status: int,
+    html: str,
+    robots_meta: str,
+    x_robots: str,
+    staging: bool,
+) -> tuple[str, list[str]]:
+    issues: list[str] = []
     if status != 200:
         issues.append(f"http_{status}")
 
     canon = canonical(html)
     if not canon:
         issues.append("canonical_missing")
-    elif path_of(canon) != path:
+    elif normalize_url(canon) != normalize_url(url):
         issues.append(f"canonical_mismatch:{canon}")
 
     if staging:
-        if "noindex" not in robots_meta and "noindex" not in x_robots:
+        if not robots_has("noindex", robots_meta, x_robots):
             issues.append("robots_expected_noindex")
-    else:
-        if "noindex" in robots_meta or "noindex" in x_robots:
-            issues.append("robots_expected_index")
+        if not robots_has("nofollow", robots_meta, x_robots):
+            issues.append("robots_expected_nofollow")
+    elif robots_has("noindex", robots_meta, x_robots):
+        issues.append("robots_expected_index")
 
+    return canon, issues
+
+
+def collect_shell_and_co2_issues(path: str, html: str) -> list[str]:
+    issues: list[str] = []
     if re.search(r'class=["\'][^"\']*\bnvx-page-hero\b', html):
         issues.append("nvx-page-hero_class")
-    if re.search(r'class=["\'][^"\']*\bnvx-page-hero\b', html) and re.search(
-        r'class=["\'][^"\']*\bnvx-brand-hero\b', html
-    ):
-        issues.append("mixed_hero_shell")
+        if re.search(r'class=["\'][^"\']*\bnvx-brand-hero\b', html):
+            issues.append("mixed_hero_shell")
 
-    if path.startswith("/laser-co2-fraccionado"):
-        if not CO2_HERO_RE.search(html):
-            issues.append("co2_hero_760_missing")
-        if ABDOMEN_RE.search(html):
-            issues.append("co2_uses_laser_medico_abdomen")
-        if re.search(r"150x150", html) and CO2_HERO_RE.search(html) is None:
-            issues.append("co2_thumbnail_src")
+    if not path.startswith("/laser-co2-fraccionado"):
+        return issues
+    if not CO2_HERO_RE.search(html):
+        issues.append("co2_hero_760_missing")
+    if ABDOMEN_RE.search(html):
+        issues.append("co2_uses_laser_medico_abdomen")
+    if re.search(r"150x150", html) and CO2_HERO_RE.search(html) is None:
+        issues.append("co2_thumbnail_src")
+    return issues
 
+
+def collect_image_issues(path: str, parser: ImageParser) -> tuple[list[dict[str, Any]], list[dict[str, str]], list[dict[str, Any]], list[str]]:
+    vendor: list[dict[str, Any]] = []
+    empty_alt: list[dict[str, str]] = []
+    images: list[dict[str, Any]] = []
+    issues: list[str] = []
     goya = "goya" in path or "salamanca" in path
+
     for node in parser.nodes:
         blob = " ".join(f"{k}={v}" for k, v in node.items() if v)
         src = node.get("src") or node.get("data-src") or node.get("srcset") or ""
@@ -225,6 +262,25 @@ def audit_page(url: str, staging: bool) -> dict[str, Any]:
 
     if parser.gallery_imgs > 4 and ("chamberi" in path or "goya" in path or "salamanca" in path):
         issues.append(f"gallery_over_4:{parser.gallery_imgs}")
+
+    return vendor, empty_alt, images, issues
+
+
+def audit_page(url: str, staging: bool) -> dict[str, Any]:
+    status, headers, html = fetch(url)
+    parser = ImageParser()
+    try:
+        parser.feed(html)
+    except Exception:
+        pass
+    path = path_of(url)
+    robots_meta = meta_content(html, "robots").lower()
+    x_robots = headers.get("x-robots-tag", "").lower()
+
+    canon, issues = collect_document_issues(url, status, html, robots_meta, x_robots, staging)
+    issues.extend(collect_shell_and_co2_issues(path, html))
+    vendor, empty_alt, images, image_issues = collect_image_issues(path, parser)
+    issues.extend(image_issues)
 
     return {
         "url": url,
@@ -250,8 +306,8 @@ def has_issue(issues: list[str], code: str) -> bool:
 
 def canonical_is_ok(page: dict[str, Any]) -> bool:
     canon = str(page.get("canonical") or "")
-    path = str(page.get("path") or "")
-    return bool(canon) and path_of(canon) == path
+    url = str(page.get("url") or "")
+    return bool(canon) and bool(url) and normalize_url(canon) == normalize_url(url)
 
 
 def summarize(pages: list[dict[str, Any]]) -> dict[str, Any]:

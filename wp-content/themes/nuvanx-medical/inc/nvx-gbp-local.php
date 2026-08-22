@@ -139,6 +139,37 @@ function nvx_public_vendor_image_alt_regex(): string {
 }
 
 /**
+ * True when a single image attribute is a vendor packshot/logo signal.
+ */
+function nvx_public_html_vendor_attr_is_blocked( string $attr, string $value ): bool {
+	if ( 'alt' === $attr ) {
+		return (bool) preg_match( nvx_public_vendor_image_alt_regex(), $value );
+	}
+
+	return (bool) preg_match( nvx_public_vendor_image_url_regex(), $value );
+}
+
+/**
+ * True when an img/source attribute string carries a vendor image signal.
+ */
+function nvx_public_html_tag_attrs_are_vendor( string $attrs ): bool {
+	if ( '' === $attrs ) {
+		return false;
+	}
+	if ( ! preg_match_all( '/\b(src|srcset|data-src|data-srcset|data-lazy-src|data-lazy-srcset|data-original|alt)\s*=\s*(["\'])(.*?)\2/iu', $attrs, $hits, PREG_SET_ORDER ) ) {
+		return false;
+	}
+
+	foreach ( $hits as $hit ) {
+		if ( nvx_public_html_vendor_attr_is_blocked( strtolower( (string) $hit[1] ), (string) $hit[3] ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * True when an img/source node (or wrapping markup) carries a vendor image signal.
  */
 function nvx_public_html_is_vendor_image( string $html ): bool {
@@ -147,24 +178,8 @@ function nvx_public_html_is_vendor_image( string $html ): bool {
 	}
 
 	foreach ( $tags[1] as $attrs ) {
-		if ( ! is_string( $attrs ) || '' === $attrs ) {
-			continue;
-		}
-		if ( ! preg_match_all( '/\b(src|srcset|data-src|data-srcset|data-lazy-src|data-lazy-srcset|data-original|alt)\s*=\s*(["\'])(.*?)\2/iu', $attrs, $hits, PREG_SET_ORDER ) ) {
-			continue;
-		}
-		foreach ( $hits as $hit ) {
-			$attr  = strtolower( (string) $hit[1] );
-			$value = (string) $hit[3];
-			if ( 'alt' === $attr ) {
-				if ( preg_match( nvx_public_vendor_image_alt_regex(), $value ) ) {
-					return true;
-				}
-				continue;
-			}
-			if ( preg_match( nvx_public_vendor_image_url_regex(), $value ) ) {
-				return true;
-			}
+		if ( is_string( $attrs ) && nvx_public_html_tag_attrs_are_vendor( $attrs ) ) {
+			return true;
 		}
 	}
 
@@ -185,7 +200,7 @@ function nvx_public_strip_vendor_images( string $content ): string {
 	};
 
 	$updated = preg_replace_callback(
-		'/<picture\b[^>]*>[\s\S]*?<\/picture>/iu',
+		'/<figure\b[^>]*>[\s\S]*?<\/figure>/iu',
 		static function ( array $match ) use ( $omit ): string {
 			return $omit( $match[0] ) ? '' : $match[0];
 		},
@@ -196,7 +211,7 @@ function nvx_public_strip_vendor_images( string $content ): string {
 	}
 
 	$updated = preg_replace_callback(
-		'/<figure\b[^>]*>[\s\S]*?<\/figure>/iu',
+		'/<picture\b[^>]*>[\s\S]*?<\/picture>/iu',
 		static function ( array $match ) use ( $omit ): string {
 			return $omit( $match[0] ) ? '' : $match[0];
 		},

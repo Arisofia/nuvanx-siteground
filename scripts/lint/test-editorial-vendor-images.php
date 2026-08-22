@@ -160,6 +160,12 @@ if ( false === strpos( $stripped, 'Endolift facial y BTL EXION se indican' ) ) {
 	$fail( 'stripper removed technological copy' );
 }
 
+$wrapped = '<figure class="nvx-brand-hero__media"><picture>' . $vendor_img . '</picture><figcaption>Packshot BTL</figcaption></figure>';
+$cleared = nvx_public_strip_vendor_images( $wrapped );
+if ( false !== strpos( $cleared, 'figcaption' ) || false !== strpos( $cleared, '<figure' ) || false !== strpos( $cleared, 'btl-exilite' ) ) {
+	$fail( 'stripper left an empty figure caption after removing a nested vendor picture' );
+}
+
 $vendor_hero = '<figure class="nvx-brand-hero__media">' . $vendor_img . '</figure>';
 $own_hero    = '<figure class="nvx-brand-hero__media"><img src="https://staging2.nuvanx.com/wp-content/uploads/2026/06/nvx-co2-hero-760.webp" alt="NUVANX — Láser CO₂ fraccionado"></figure>';
 if ( '' !== nvx_page_extract_brand_hero_media( $vendor_hero ) ) {
@@ -243,4 +249,4 @@ foreach ( array( 2113, 2432, 2470 ) as $banned_id ) {
 	}
 }
 
-echo 'EDITORIAL_VENDOR_IMAGES=PASS cases=12' . PHP_EOL;
+echo 'EDITORIAL_VENDOR_IMAGES=PASS cases=13' . PHP_EOL;

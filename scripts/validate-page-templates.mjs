@@ -22,7 +22,7 @@
  */
 
 import { execFile } from 'node:child_process';
-import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, existsSync, statSync } from 'fs';
 import { join, dirname, basename } from 'path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'url';
@@ -137,19 +137,28 @@ const SITEMAP_BACKOFF_BASE_MS = 1500;
 
 function templateExists(templatePath) {
   if (!templatePath || templatePath === '' || templatePath === 'default') return true;
-  // WordPress stores templates as relative paths such as templates/page-sede.php.
-  // Normalize that one sanctioned prefix before enforcing filename-only resolution.
-  const templateName = templatePath.startsWith('templates/') ? templatePath.slice('templates/'.length) : templatePath;
+  const hasTemplatesPrefix = templatePath.startsWith('templates/');
+  const templateName = hasTemplatesPrefix ? templatePath.slice('templates/'.length) : templatePath;
+  
   // Security: Reject absolute paths, traversal segments, backslashes, and nested paths.
   if (templateName.includes('..') || templateName.includes('\\') || templateName.startsWith('/') || templateName.includes('/')) {
     return false;
   }
+  
   // Allow only filename characters (alphanumeric, dash, underscore, dot).
-  if (!/^[a-zA-Z0-9._-]+$/.test(templateName)) {
+  // Explicitly reject "." (directory reference)
+  if (templateName === '.' || !/^[a-zA-Z0-9._-]+$/.test(templateName)) {
     return false;
   }
-  if (existsSync(join(TEMPLATES_DIR, templateName))) return true;
-  if (existsSync(join(THEME_ROOT, templateName))) return true;
+  
+  const inTemplatesDir = join(TEMPLATES_DIR, templateName);
+  if (existsSync(inTemplatesDir) && statSync(inTemplatesDir).isFile()) return true;
+  
+  if (!hasTemplatesPrefix) {
+    const inThemeRoot = join(THEME_ROOT, templateName);
+    if (existsSync(inThemeRoot) && statSync(inThemeRoot).isFile()) return true;
+  }
+  
   return false;
 }
 

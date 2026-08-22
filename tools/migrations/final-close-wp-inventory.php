@@ -209,23 +209,32 @@ $report['cron'] = array( 'events' => array(), 'option_meta' => null );
 $cronRaw = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$optionsTable} WHERE option_name = %s", 'cron' ) );
 if ( null !== $cronRaw ) {
     $report['cron']['option_meta'] = nvx_final_close_value_meta( $cronRaw );
-    $cron = @unserialize( $cronRaw, array( 'allowed_classes' => false ) );
-    if ( is_array( $cron ) ) {
-        foreach ( $cron as $timestamp => $hooks ) {
-            if ( ! is_array( $hooks ) || ! ctype_digit( (string) $timestamp ) ) {
-                continue;
-            }
-            foreach ( $hooks as $hook => $instances ) {
-                $report['cron']['events'][] = array(
-                    'next_timestamp_utc' => gmdate( 'c', (int) $timestamp ),
-                    'hook'               => (string) $hook,
-                    'instances'          => is_array( $instances ) ? count( $instances ) : 0,
-                    'categories'         => nvx_final_close_categories( (string) $hook ),
-                );
-            }
-        }
-    } else {
+    
+    // Security: Prevent PHP Object Injection via deserialization.
+    // Explicitly reject Object (O, C) and Reference (R, r) tokens.
+    if ( ! is_string( $cronRaw ) || ! preg_match( '/^a:\d+:\{.*\}$/s', $cronRaw ) ) {
         nvx_final_close_failure( $report, 'cron', 'cron_option_not_serialized_array' );
+    } elseif ( preg_match( '/(?:^|[;{}])(?:[OCRr]:[0-9]+:)/', $cronRaw ) ) {
+        nvx_final_close_failure( $report, 'cron', 'cron_option_contains_objects_or_references' );
+    } else {
+        $cron = @unserialize( $cronRaw, array( 'allowed_classes' => false ) );
+        if ( is_array( $cron ) ) {
+            foreach ( $cron as $timestamp => $hooks ) {
+                if ( ! is_array( $hooks ) || ! ctype_digit( (string) $timestamp ) ) {
+                    continue;
+                }
+                foreach ( $hooks as $hook => $instances ) {
+                    $report['cron']['events'][] = array(
+                        'next_timestamp_utc' => gmdate( 'c', (int) $timestamp ),
+                        'hook'               => (string) $hook,
+                        'instances'          => is_array( $instances ) ? count( $instances ) : 0,
+                        'categories'         => nvx_final_close_categories( (string) $hook ),
+                    );
+                }
+            }
+        } else {
+            nvx_final_close_failure( $report, 'cron', 'cron_option_not_serialized_array' );
+        }
     }
 }
 

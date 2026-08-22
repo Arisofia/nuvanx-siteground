@@ -108,7 +108,7 @@ $markup = nvx_valoracion_direct_form_markup();
 $assert( false !== strpos( $markup, 'id="nvx-valoracion-lastname"' ), 'LASTNAME_FIELD_ID' );
 $assert( false !== strpos( $markup, 'name="lastname"' ), 'LASTNAME_FIELD_NAME' );
 $assert( false !== strpos( $markup, 'autocomplete="family-name"' ), 'LASTNAME_AUTOCOMPLETE' );
-$assert( false !== strpos( $markup, 'name="lastname" type="text" autocomplete="family-name" maxlength="120" required' ), 'LASTNAME_REQUIRED' );
+$assert( false !== strpos( $markup, 'name="lastname" type="text" autocomplete="family-name" minlength="2" maxlength="120" required' ), 'LASTNAME_REQUIRED' );
 
 $assert( 1 === nvx_valoracion_name_length( 'Ñ' ), 'NAME_LENGTH_TILDE' );
 $assert( 1 === nvx_valoracion_name_length( '李' ), 'NAME_LENGTH_CJK' );

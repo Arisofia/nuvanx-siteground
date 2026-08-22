@@ -17,6 +17,10 @@
 
 declare( strict_types = 1 );
 
+const NVX_LITERAL_VALORACION = 'valoración médica';
+const NVX_LITERAL_CONSULTA   = 'consulta médica';
+
+
 /**
  * Plain-string replacements applied to wp_posts fields.
  *
@@ -32,14 +36,14 @@ function nvx_hygiene_str_reps(): array {
     return [
 
         // ── Valoración ───────────────────────────────────────────────────────
-        [ 'from' => 'valoración médica gratuita', 'to' => 'valoración médica'  ],
-        [ 'from' => 'valoración gratuita',        'to' => 'valoración médica'  ],
-        [ 'from' => 'valoración gratis',          'to' => 'valoración médica'  ],
+        [ 'from' => 'valoración médica gratuita', 'to' => NVX_LITERAL_VALORACION  ],
+        [ 'from' => 'valoración gratuita',        'to' => NVX_LITERAL_VALORACION  ],
+        [ 'from' => 'valoración gratis',          'to' => NVX_LITERAL_VALORACION  ],
 
         // ── Consulta ─────────────────────────────────────────────────────────
-        [ 'from' => 'consulta médica gratuita',   'to' => 'consulta médica'    ],
-        [ 'from' => 'consulta gratuita',          'to' => 'consulta médica'    ],
-        [ 'from' => 'consulta gratis',            'to' => 'consulta médica'    ],
+        [ 'from' => 'consulta médica gratuita',   'to' => NVX_LITERAL_CONSULTA    ],
+        [ 'from' => 'consulta gratuita',          'to' => NVX_LITERAL_CONSULTA    ],
+        [ 'from' => 'consulta gratis',            'to' => NVX_LITERAL_CONSULTA    ],
 
         // ── Headline (dot-terminated variant first) ──────────────────────────
         [ 'from' => 'Tu mejor versión empieza aquí.', 'to' => 'Reserva 15–30 min de valoración médica.' ],
@@ -74,7 +78,7 @@ function nvx_hygiene_regex_reps(): array {
         // Handles é/e, ó/o, í/i mixed with HTML entities or incorrect encoding.
         [
             'pattern'     => '\bvaloraci[oó]n\s+m[eé]dica\s+gratu[íi]ta\b',
-            'replacement' => 'valoración médica',
+            'replacement' => NVX_LITERAL_VALORACION,
             'flags'       => 'iu',
         ],
         [

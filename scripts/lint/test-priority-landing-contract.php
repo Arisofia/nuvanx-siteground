@@ -1,4 +1,6 @@
 <?php
+const PROSE_WRAPPER = 'nvx-page__content nvx-prose';
+
 /**
  * Contract: priority Ads landings expose H1, authority, tariff and recovery.
  *
@@ -141,7 +143,7 @@ if ( str_contains( $shell, '$is_exion_btl' ) ) {
 }
 
 if ( ! str_contains( $aesthetic, "nvx_schema_path_matches( \$path, '/medicina-estetica/' )" )
-	|| str_contains( $aesthetic, "entry-content nvx-page__content nvx-prose" ) ) {
+	|| str_contains( $aesthetic, "entry-content " . PROSE_WRAPPER ) ) {
 	$fail( 'aesthetic hub must be path-owned and emit no outer nvx-prose' );
 }
 
@@ -150,12 +152,12 @@ if ( ! str_contains( $governance, 'nvx-aes-section' ) ) {
 }
 
 if ( ! str_contains( $signature, "return 'nvx_signature_phase_pages'" )
-	|| str_contains( $signature, 'nvx-page__content nvx-prose' ) ) {
+	|| str_contains( $signature, PROSE_WRAPPER ) ) {
 	$fail( 'signature pages must declare owner and drop the prose wrapper' );
 }
 
-if ( str_contains( $solutions, 'nvx-page__content nvx-prose' )
-	|| str_contains( $valoracion, 'nvx-page__content nvx-prose' ) ) {
+if ( str_contains( $solutions, PROSE_WRAPPER )
+	|| str_contains( $valoracion, PROSE_WRAPPER ) ) {
 	$fail( 'soluciones and valoracion templates must not emit the conflicting wrapper' );
 }
 

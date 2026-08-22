@@ -1,4 +1,6 @@
 <?php
+const PHYSICIAN_ID = 'https://example.test/#physician';
+
 /** Standalone contract test for final Schema.org semantic governance. */
 
 declare(strict_types=1);
@@ -46,7 +48,7 @@ $graph = array(
 	array(
 		'@type'         => 'BlogPosting',
 		'@id'           => 'https://example.test/post/#article',
-		'reviewedBy'    => array( '@id' => 'https://example.test/#physician' ),
+		'reviewedBy'    => array( '@id' => PHYSICIAN_ID ),
 		'procedureType' => 'Procedimiento médico-estético láser',
 		'about'         => array(
 			'@type'         => 'MedicalProcedure',
@@ -57,7 +59,7 @@ $graph = array(
 		'@type'         => array( 'MedicalProcedure', 'Service' ),
 		'@id'           => 'https://example.test/treatment/#medical-procedure',
 		'procedureType' => 'https://schema.org/PercutaneousProcedure',
-		'performer'     => array( '@id' => 'https://example.test/#physician' ),
+		'performer'     => array( '@id' => PHYSICIAN_ID ),
 	),
 	array(
 		'@type'            => 'MedicalClinic',
@@ -73,7 +75,7 @@ $graph = array(
 	array(
 		'@type'     => 'Event',
 		'@id'       => 'https://example.test/#event',
-		'performer' => array( '@id' => 'https://example.test/#physician' ),
+		'performer' => array( '@id' => PHYSICIAN_ID ),
 	),
 	array(
 		'@type'                => 'MedicalProcedure',

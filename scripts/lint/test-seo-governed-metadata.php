@@ -1,4 +1,7 @@
 <?php
+const BOTOX_REGEX = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+const RINO_URL = 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/' ;
+
 /**
  * Lightweight contract test for governed REST/headless SEO metadata.
  *
@@ -216,7 +219,7 @@ function nvxAdsRouteFailures( string $dataDir, string $pattern ): array {
  */
 function nvxTestGoogleAdsHealthcareCompliance(): void {
     $dataDir = dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/data';
-    $pattern = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $pattern = BOTOX_REGEX;
     $failures = array_merge(
         nvxAdsMetadataFailures( $dataDir, $pattern ),
         nvxAdsRouteFailures( $dataDir, $pattern )
@@ -235,7 +238,7 @@ nvxTestGoogleAdsHealthcareCompliance();
 
 /** Reject restricted terms hidden in valid JSON through Unicode escaping. */
 function nvxAdsAssertUnicodeEscapedTermBlocked(): void {
-    $pattern    = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $pattern    = BOTOX_REGEX;
     $raw        = '{"title":"b\\u00f3tox"}';
     $decoded    = json_decode( $raw, true );
     $normalized = json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
@@ -251,7 +254,7 @@ nvxAdsAssertUnicodeEscapedTermBlocked();
 
 /** Reject restricted slugs that alias through another alias instead of a canonical route. */
 function nvxAdsAssertLegacyAliasChainRejected(): void {
-    $pattern = '/(?:botox|bótox|toxina[[:space:]]+botulínica)/iu';
+    $pattern = BOTOX_REGEX;
     $routes  = array(
         '/neuromoduladores-botox-madrid/' => array( 'route_alias' => '/legacy-neuromoduladores/' ),
         '/legacy-neuromoduladores/'       => array( 'route_alias' => '/neuromoduladores-faciales-madrid/' ),
@@ -294,7 +297,7 @@ function get_post_field( $field, $post_id ) {
 }
 
 function get_permalink( $post_id ) {
-    return 4242 === (int) $post_id ? 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/' : false;
+    return 4242 === (int) $post_id ? RINO_URL : false;
 }
 
 function nvx_aesthetic_treatment_catalog() {
@@ -308,7 +311,7 @@ function nvx_aesthetic_treatment_catalog() {
 }
 
 function wp_parse_url( $url, $component = -1 ) {
-    if ( 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/' === $url ) {
+    if ( RINO_URL === $url ) {
         return array(
             'scheme' => 'https',
             'host'   => 'nuvanx.com',
@@ -323,7 +326,7 @@ $actual   = nvx_seo_governed_metadata_for_post_id( 4242 );
 $expected = array(
     'title'       => 'Rinomodelación Sin Cirugía Madrid | NUVANX',
     'description' => 'Rinomodelación médica sin cirugía en Madrid con ácido hialurónico, valoración individual y criterio anatómico para un resultado natural.',
-    'canonical'   => 'https://nuvanx.com/rinomodelacion-sin-cirugia-madrid/',
+    'canonical'   => RINO_URL,
 );
 
 if ( $actual !== $expected ) {

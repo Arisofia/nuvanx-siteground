@@ -51,7 +51,7 @@ mapfile -t candidates < <(printf '%s' "$response" | jq -rc --arg name "$artifact
 (( ${#candidates[@]} > 0 )) || { echo "STAGING_ACCEPTANCE=FAIL reason=no_artifact sha=$CANDIDATE_SHA" >&2; exit 1; }
 
 for candidate in "${candidates[@]}"; do
-  IFS=$'\t' read -r artifact_id run_id _ <<< "$candidate\
+  IFS=$'\t' read -r artifact_id run_id _ <<< "$candidate"
   [[ "$artifact_id" =~ ^[0-9]{1,20}$ && "$run_id" =~ ^[0-9]{1,20}$ ]] || continue
 
   run=""
@@ -94,7 +94,7 @@ for candidate in "${candidates[@]}"; do
     fi
   fi
 
-  artifact_zip="${RUNNER_TEMP:-$(mktemp -d)}/staging-acceptance-${artifact_id}.zip\
+  artifact_zip="${RUNNER_TEMP:-$(mktemp -d)}/staging-acceptance-${artifact_id}.zip"
   rm -f "$artifact_zip"
   if ! curl -LfsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 180 --max-filesize 157286400 --proto '=https' --proto-redir '=https' "${api_headers[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" -o "$artifact_zip" || \
      ! unzip -tqq "$artifact_zip" >/dev/null 2>&1; then

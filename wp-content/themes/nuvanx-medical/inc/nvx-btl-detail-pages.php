@@ -565,7 +565,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 				'loading' => 'eager',
 			)
 		);
-		if ( is_string( $thumb ) && '' !== $thumb ) {
+		if ( is_string( $thumb ) && '' !== $thumb && ( ! function_exists( 'nvx_public_html_is_vendor_image' ) || ! nvx_public_html_is_vendor_image( $thumb ) ) ) {
 			$media = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
 		}
 	}

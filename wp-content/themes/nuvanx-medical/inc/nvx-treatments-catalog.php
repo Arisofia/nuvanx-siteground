@@ -78,14 +78,11 @@ function nvx_treatments_catalog_data(): array {
  */
 function nvx_treatments_partner_assets(): array {
 	return array(
-		array( 'id' => 892,  'label' => 'DEKA' ),
-		array( 'id' => 3048, 'label' => 'BTL', 'invert' => true ),
 		array( 'id' => 1506, 'label' => 'Teoxane' ),
 		array( 'id' => 905,  'label' => 'Merz Pharma' ),
 		array( 'id' => 898,  'label' => 'Vivacy' ),
 		array( 'id' => 897,  'label' => 'Sculptra' ),
 		array( 'id' => 896,  'label' => 'Radiesse' ),
-		array( 'id' => 894,  'label' => 'Endolift' ),
 		array( 'id' => 893,  'label' => 'Ellansé' ),
 		array( 'id' => 891,  'label' => 'Croma' ),
 		array( 'id' => 889,  'label' => 'Azzalure' ),
@@ -136,8 +133,17 @@ function nvx_treatments_logo_cloud_markup(): string {
 	$html .= '<ul class="nvx-logo-cloud__list" role="list">';
 
 	foreach ( nvx_treatments_partner_assets() as $partner ) {
-		$url = wp_get_attachment_url( (int) $partner['id'] );
+		$attachment_id = (int) $partner['id'];
+		$source_path   = get_attached_file( $attachment_id );
+		if ( ! is_string( $source_path ) || '' === $source_path || ! is_readable( $source_path ) ) {
+			continue;
+		}
+		$url = wp_get_attachment_url( $attachment_id );
 		if ( ! is_string( $url ) || '' === $url ) {
+			continue;
+		}
+		$probe = '<img src="' . esc_url( $url ) . '" alt="' . esc_attr( (string) $partner['label'] ) . '">';
+		if ( function_exists( 'nvx_public_html_is_vendor_image' ) && nvx_public_html_is_vendor_image( $probe ) ) {
 			continue;
 		}
 

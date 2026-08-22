@@ -116,13 +116,13 @@
   function bindLazyMaps(root) {
     var nodes = (root || document).querySelectorAll('[data-nvx-map-src]');
     nodes.forEach(function (el) {
-      if (el.getAttribute('data-nvx-map-bound') === '1') return;
-      el.setAttribute('data-nvx-map-bound', '1');
+      if (el.dataset.nvxMapBound === '1') return;
+      el.dataset.nvxMapBound = '1';
       var button = el.querySelector('.nvx-map-embed__button');
       if (!button) return;
       button.addEventListener('click', function () {
-        var src = el.getAttribute('data-nvx-map-src') || '';
-        var title = el.getAttribute('data-nvx-map-title') || 'Google Maps';
+        var src = el.dataset.nvxMapSrc || '';
+        var title = el.dataset.nvxMapTitle || 'Google Maps';
         if (!src) return;
         var iframe = document.createElement('iframe');
         iframe.src = src;

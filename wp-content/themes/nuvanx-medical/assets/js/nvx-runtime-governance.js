@@ -544,7 +544,7 @@
         const iframe = iframes[i];
         const src = String(iframe.getAttribute('src') || '').trim();
         if (!src || src === 'about:blank') continue;
-        const category = String(iframe.getAttribute('data-category') || '').toLowerCase();
+        const category = String(iframe.dataset.category || '').toLowerCase();
         if (category === 'marketing' && !hasMarketingConsent()) continue;
         try {
           const host = new URL(src, window.location.href).hostname.toLowerCase();
@@ -581,7 +581,7 @@
         const script = scripts[i];
         const type = String(script.getAttribute('type') || 'text/javascript').toLowerCase();
         if (type === 'text/plain') continue;
-        if (String(script.getAttribute('data-category') || '').toLowerCase() === 'marketing' && !hasMarketingConsent()) {
+        if (String(script.dataset.category || '').toLowerCase() === 'marketing' && !hasMarketingConsent()) {
           continue;
         }
         return true;

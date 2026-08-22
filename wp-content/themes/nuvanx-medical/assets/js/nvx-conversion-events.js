@@ -594,7 +594,7 @@
 		var root = legacyFormRoot(formLike);
 		if (!root) return null;
 		var frame = typeof root.closest === 'function' ? root.closest('[data-form-id]') : null;
-		if (frame && String(frame.getAttribute('data-form-id') || '').toLowerCase() !== FORM_ID) return null;
+		if (frame && String(frame.dataset.formId || '').toLowerCase() !== FORM_ID) return null;
 		return root;
 	}
 

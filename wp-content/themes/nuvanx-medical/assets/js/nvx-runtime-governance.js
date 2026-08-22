@@ -35,6 +35,28 @@
     return false;
   }
 
+  function loadHubSpotScript() {
+    const hubspotScriptId = 'nvx-hubspot-main-script';
+    const existing = document.getElementById(hubspotScriptId);
+    if (existing) return Promise.resolve();
+
+    const portalId = String(config.hubspotPortalId || '147416356').replace(/[^0-9]/g, '');
+    if (!portalId) return Promise.resolve();
+
+    return new Promise(function (resolve) {
+      const script = document.createElement('script');
+      script.id = hubspotScriptId;
+      script.src = 'https://js.hs-scripts.com/' + portalId + '.js';
+      script.async = true;
+      script.addEventListener('load', resolve, { once: true });
+      script.addEventListener('error', function () {
+        script.remove();
+        resolve();
+      }, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
   function loadHubSpotGlobalTracking() {
     const trackingScriptId = 'nvx-hubspot-tracking-runtime';
     const existing = document.getElementById(trackingScriptId);
@@ -467,6 +489,9 @@
   function initLazyHubSpot() {
     removeLegacyHubSpotV2Scripts();
     normalizeNativeHubSpotMounts();
+
+    // Load HubSpot main script for form functionality (independent of tracking consent)
+    loadHubSpotScript();
 
     const scriptUrl = resolveHubSpotScriptUrl();
     if (!scriptUrl) return;

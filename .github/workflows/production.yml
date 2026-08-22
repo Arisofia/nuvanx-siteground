@@ -1,6 +1,6 @@
 name: Production
 run-name: >-
-  Production · ${{ github.event_name == 'workflow_run' && 'staging-release-dispatch' || (inputs.deploy && format('{0} · {1}', inputs.release_mode, inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha)) }}
+  Production · ${{ github.event_name == 'workflow_run' && 'staging-release-dispatch' || (inputs.run_ssh_connectivity_probe && format('SSH connectivity probe · {0}', inputs.candidate_sha) || (inputs.deploy && format('{0} · {1}', inputs.release_mode, inputs.candidate_sha) || format('verification · {0}', inputs.candidate_sha))) }}
 
 on:
   # Production is deliberately manual-only. A successful Staging run proves a
@@ -46,6 +46,11 @@ on:
         type: boolean
       run_mu_plugin_forensics:
         description: Extract private MU-plugin forensic evidence in read-only mode. SSH transport exhaustion is reported as unavailable and does not invalidate a successful release.
+        required: true
+        default: false
+        type: boolean
+      run_ssh_connectivity_probe:
+        description: Verify production SSH connectivity only. This mode never performs preflight, payload upload, cutover, audits or runtime mutation.
         required: true
         default: false
         type: boolean
@@ -129,7 +134,7 @@ jobs:
 
   release:
     name: Promote immutable accepted SHA
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.deploy || inputs.run_ssh_connectivity_probe) }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
     outputs:
@@ -227,6 +232,7 @@ jobs:
           echo "PRODUCTION_EXACT_TOOLING=PASS sha=$CANDIDATE_SHA compensating_rollback=enforced identity_contract=pass"
 
       - name: Wait for FIFO environment mutation turn
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -251,7 +257,23 @@ jobs:
           FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: bash scripts/production/configure-siteground-ssh.sh
 
+      - name: Verify production SSH connectivity only
+        if: ${{ inputs.run_ssh_connectivity_probe }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$PROD_ROOT"
+          command -v wp >/dev/null
+          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
+          test "$(wp option get home)" = "$BASE_URL"
+          test "$(wp option get siteurl)" = "$BASE_URL"
+          echo 'PRODUCTION_SSH_CONNECTIVITY=PASS'
+          REMOTE
+
       - name: Verify production preflight
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         run: |
           set -euo pipefail
@@ -271,6 +293,7 @@ jobs:
           REMOTE
 
       - name: Upload exact accepted payload and tooling
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
@@ -314,6 +337,7 @@ jobs:
 
       - name: Execute guarded atomic production cutover
         id: cutover
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
@@ -323,6 +347,7 @@ jobs:
 
       - name: Verify production public boundary and exact disk SHA
         id: production_boundary
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
@@ -350,6 +375,7 @@ jobs:
 
       - name: Verify full production identity chain (4-field verification)
         id: production_identity
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
@@ -362,7 +388,7 @@ jobs:
 
       - name: Run exact-candidate production origin audits
         id: origin_audits
-        if: ${{ inputs.run_post_audits }}
+        if: ${{ !inputs.run_ssh_connectivity_probe && inputs.run_post_audits }}
         shell: bash
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
@@ -398,7 +424,7 @@ jobs:
 
       - name: Compensate failed post-cutover production gate
         id: compensating_rollback
-        if: ${{ always() && steps.cutover.outcome == 'success' && (steps.production_boundary.outcome == 'failure' || steps.production_identity.outcome == 'failure' || steps.origin_audits.outcome == 'failure') }}
+        if: ${{ !inputs.run_ssh_connectivity_probe && always() && steps.cutover.outcome == 'success' && (steps.production_boundary.outcome == 'failure' || steps.production_identity.outcome == 'failure' || steps.origin_audits.outcome == 'failure') }}
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -465,6 +491,7 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'workflow_dispatch' &&
+      !inputs.run_ssh_connectivity_probe &&
       inputs.run_post_audits &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
@@ -701,6 +728,7 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'workflow_dispatch' &&
+      !inputs.run_ssh_connectivity_probe &&
       inputs.run_performance &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-24.04
@@ -807,6 +835,7 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'workflow_dispatch' &&
+      !inputs.run_ssh_connectivity_probe &&
       inputs.run_hubspot_e2e &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
@@ -873,6 +902,7 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'workflow_dispatch' &&
+      !inputs.run_ssh_connectivity_probe &&
       inputs.run_final_close_audit &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
@@ -952,6 +982,7 @@ jobs:
     if: >-
       always() &&
       github.event_name == 'workflow_dispatch' &&
+      !inputs.run_ssh_connectivity_probe &&
       inputs.run_mu_plugin_forensics &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest

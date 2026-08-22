@@ -56,7 +56,8 @@ function nvx_page_extract_brand_hero_media( string $content ): string {
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $matches ) ) {
 		$media = $matches[0];
-	} else {
+	}
+	if ( '' === $media ) {
 		$media = nvx_page_extract_brand_hero_div( $content );
 	}
 

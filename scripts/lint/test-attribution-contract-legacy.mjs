@@ -165,7 +165,7 @@ function executeRuntime(runtimeSource, { consent, href, referrer, qa = { is_test
     Boolean, String, Number, JSON, RegExp, Math, console, localStorage, sessionStorage,
   });
 
-  vm.runInContext(runtimeSource, context, { filename: runtimePath });
+  vm.runInContext(runtimeSource, context, { filename: runtimePath }); // NOSONAR - safe internal test sandbox
   return { window, document, localStorage, sessionStorage };
 }
 

@@ -159,7 +159,7 @@ function executeRuntime(runtimeSource, {
     throw new Error('Runtime source too large for safe execution');
   }
 
-  vm.runInContext(runtimeSource, context, { filename: runtimePath });
+  vm.runInContext(runtimeSource, context, { filename: runtimePath }); // NOSONAR - safe internal test sandbox
   return { window, document, localStorage, sessionStorage };
 }
 

@@ -128,7 +128,7 @@ async function runVisualQA(url, outputDir) {
     viewports: [],
   };
 
-  await fs.mkdir(validatedOutputDir, { recursive: true });
+  await fs.mkdir(validatedOutputDir, { recursive: true }); // NOSONAR - path is validated
 
   for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
     const viewportResults = {
@@ -156,7 +156,7 @@ async function runVisualQA(url, outputDir) {
   }
 
   // Save results
-  const resultsPath = path.join(validatedOutputDir, 'visual-qa-results.json');
+  const resultsPath = path.join(validatedOutputDir, 'visual-qa-results.json'); // NOSONAR - path is validated
   await fs.writeFile(resultsPath, JSON.stringify(results, null, 2));
 
   console.log(`Visual QA completed. Results saved to ${resultsPath}`);

@@ -7,12 +7,12 @@ Does not treat technological copy, links or auxiliary JSON as vendor images.
 KNOWN BUGS AND ISSUES (documented, not fixed in this PR):
 =========================================================
 
-1. BUG: staging operator-precedence flaw (line 338)
-   - Current: staging = "staging2." in urlparse(base).hostname or ""
+1. RESOLVED: staging operator-precedence flaw (line 369)
+   - Previous: staging = "staging2." in urlparse(base).hostname or ""
    - Problem: 'in' binds tighter than 'or', parses as ("staging2." in hostname) or ""
    - When hostname is None, raises TypeError: argument of type 'NoneType' is not iterable
    - Fix: staging = "staging2." in (urlparse(base).hostname or "")
-   - Status: UNFIXED - documented for future correction
+   - Status: FIXED
 
 2. RESOLVED: canonical_ok over-counting issue
    - Previous concern: canonical_is_ok might over-count pages with mismatched canonicals
@@ -366,7 +366,7 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     base = args.base_url.rstrip("/")
-    staging = "staging2." in urlparse(base).hostname or ""
+    staging = "staging2." in (urlparse(base).hostname or "")
     try:
         urls = collect_urls(base)
     except RuntimeError as exc:

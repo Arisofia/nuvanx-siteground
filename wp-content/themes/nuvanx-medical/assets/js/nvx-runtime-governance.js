@@ -787,6 +787,10 @@
     }
 
     syncConversionSurfaces();
+    // Respect persisted consent on first load; later changes use the listeners below.
+    if (hasMarketingConsent()) {
+      loadHubSpotGlobalTracking();
+    }
     document.addEventListener('cmplz_enable_category', function () {
       promise = null;
       loadHubSpotGlobalTracking();

@@ -3,11 +3,13 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { EX_CONFIG, EX_NOT_APPLICABLE, EX_TEMPFAIL } from './siteground-transient-classifier.mjs';
+import { BLOCK_C_RECOVERY_TARGETS } from './block-c-browser-config.mjs';
 import { createSiteGroundOriginVerifier } from './siteground-origin-verifier.mjs';
 import { renderBlockCEvidence, writeEvidenceBundle } from './block-c-evidence.mjs';
 
 const coreScript = fileURLToPath(new URL('./block-c-entrypoint-core.mjs', import.meta.url));
-const homeMobileRecoveryScript = fileURLToPath(new URL('./block-c-home-mobile-recovery.mjs', import.meta.url));
+const targetedVisualRecoveryScript = fileURLToPath(new URL('./block-c-home-mobile-recovery.mjs', import.meta.url));
+const targetedVisualRecoveryTargets = Object.freeze(Object.keys(BLOCK_C_RECOVERY_TARGETS));
 const artifactsDir = fileURLToPath(new URL('./block-c-artifacts/', import.meta.url));
 const resultsPath = path.join(artifactsDir, 'block-c-results.json');
 const matrixPath = path.join(artifactsDir, 'block-c-matrix.md');
@@ -116,33 +118,36 @@ async function runCore() {
   }
 }
 
-async function tryHomeMobileVisualRecovery() {
+async function tryTargetedVisualRecovery(recoveryTarget) {
   let code;
   try {
-    code = await runProcess(homeMobileRecoveryScript, process.env, SUBPROCESS_CONFIG.recoveryTimeoutMs);
+    code = await runProcess(targetedVisualRecoveryScript, {
+      ...process.env,
+      BLOCK_C_RECOVERY_TARGET: recoveryTarget,
+    }, SUBPROCESS_CONFIG.recoveryTimeoutMs);
   } catch (error) {
     if (error instanceof ProcessSignalError) {
-      console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT_SIGNAL signal=${error.signal}`);
-      return { recovered: false, applicable: true, transient: true };
+      console.error(`BLOCK_C_TARGETED_VISUAL_RECOVERY=TRANSIENT_SIGNAL target=${recoveryTarget} signal=${error.signal}`);
+      return { recovered: false, applicable: true, transient: true, recoveryTarget };
     }
     throw error;
   }
 
-  if (code === 0) return { recovered: true, applicable: true, transient: false };
+  if (code === 0) return { recovered: true, applicable: true, transient: false, recoveryTarget };
   if (code === EX_NOT_APPLICABLE) {
-    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=NOT_APPLICABLE wrapper=continue');
-    return { recovered: false, applicable: false, transient: false };
+    console.error(`BLOCK_C_TARGETED_VISUAL_RECOVERY=NOT_APPLICABLE target=${recoveryTarget} wrapper=continue`);
+    return { recovered: false, applicable: false, transient: false, recoveryTarget };
   }
   if (code === EX_TEMPFAIL) {
-    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=TRANSIENT wrapper=continue');
-    return { recovered: false, applicable: true, transient: true };
+    console.error(`BLOCK_C_TARGETED_VISUAL_RECOVERY=TRANSIENT target=${recoveryTarget} wrapper=continue`);
+    return { recovered: false, applicable: true, transient: true, recoveryTarget };
   }
   if (code === EX_CONFIG) {
-    console.error('BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_CONFIG wrapper_exit=78');
-    return { recovered: false, applicable: true, transient: false, realFailure: true, configFailure: true, code };
+    console.error(`BLOCK_C_TARGETED_VISUAL_RECOVERY=FAIL_CONFIG target=${recoveryTarget} wrapper_exit=78`);
+    return { recovered: false, applicable: true, transient: false, realFailure: true, configFailure: true, code, recoveryTarget };
   }
-  console.error(`BLOCK_C_HOME_MOBILE_RECOVERY=FAIL_REAL wrapper_exit=${code}`);
-  return { recovered: false, applicable: true, transient: false, realFailure: true, code };
+  console.error(`BLOCK_C_TARGETED_VISUAL_RECOVERY=FAIL_REAL target=${recoveryTarget} wrapper_exit=${code}`);
+  return { recovered: false, applicable: true, transient: false, realFailure: true, code, recoveryTarget };
 }
 
 function isRecoverableCompletedVisualTransient(result) {
@@ -270,12 +275,16 @@ try {
   if (coreCode !== EX_TEMPFAIL) {
     process.exitCode = coreCode;
   } else {
-    const visualRecovery = await tryHomeMobileVisualRecovery();
+    let visualRecovery = { recovered: false, applicable: false, transient: false, recoveryTarget: '' };
+    for (const recoveryTarget of targetedVisualRecoveryTargets) {
+      visualRecovery = await tryTargetedVisualRecovery(recoveryTarget);
+      if (visualRecovery.recovered || visualRecovery.realFailure) break;
+    }
     if (visualRecovery.recovered) {
-      console.log('BLOCK_C_RESILIENT=PASS_PUBLIC_BROWSER_RECOVERY visual_contract=complete');
+      console.log(`BLOCK_C_RESILIENT=PASS_PUBLIC_BROWSER_RECOVERY target=${visualRecovery.recoveryTarget} visual_contract=complete`);
       process.exitCode = 0;
     } else if (visualRecovery.realFailure) {
-      console.error(`BLOCK_C_RESILIENT=${visualRecovery.configFailure ? 'FAIL_CONFIG' : 'FAIL_REAL'} fallback=public-browser-recovery`);
+      console.error(`BLOCK_C_RESILIENT=${visualRecovery.configFailure ? 'FAIL_CONFIG' : 'FAIL_REAL'} fallback=public-browser-recovery target=${visualRecovery.recoveryTarget}`);
       process.exitCode = visualRecovery.code || 1;
     } else {
       const recovered = await tryExactOriginNetworkRecovery();

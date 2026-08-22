@@ -42,6 +42,11 @@ export const BLOCK_C_RECOVERY_TARGETS = Object.freeze({
     viewportKey: 'mobile-390x844',
     screenshotStem: 'home--mobile-390x844--public-recovery',
   }),
+  homeTablet: Object.freeze({
+    route: '/',
+    viewportKey: 'tablet-1024x768',
+    screenshotStem: 'home--tablet-1024x768--public-recovery',
+  }),
 });
 
 export class BlockCConfigError extends Error {

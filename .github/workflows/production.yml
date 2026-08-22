@@ -24,6 +24,11 @@ on:
         options:
           - release
           - rollback
+      run_ssh_connectivity_probe:
+        description: Verify production SSH connectivity only. This mode never performs preflight, payload upload, cutover, audits or runtime mutation.
+        required: true
+        default: false
+        type: boolean
       run_post_audits:
         description: Run SEO/GEO, Search Console URL Inspection and IndexNow verification/submission.
         required: true
@@ -127,9 +132,63 @@ jobs:
           gh run watch "$child_id" --exit-status
           echo "PRODUCTION_CHAIN=PASS sha=$CANDIDATE_SHA run_id=$child_id"
 
+  ssh_connectivity_probe:
+    name: Verify production SSH connectivity (read-only)
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.deploy && inputs.run_ssh_connectivity_probe }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out production transport tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate read-only probe candidate
+        shell: bash
+        env:
+          REQUESTED_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          candidate="$(printf '%s' "$REQUESTED_SHA" | tr -d '[:space:]')"
+          [[ "$candidate" =~ ^[0-9a-f]{40}$ ]] || { echo 'candidate_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
+          git fetch --no-tags origin master
+          test "$candidate" = "$(git rev-parse origin/master)"
+          echo "CANDIDATE_SHA=$candidate" >> "$GITHUB_ENV"
+          echo "PRODUCTION_SSH_PROBE=ARMED sha=$candidate mode=read_only"
+
+      - name: Configure and probe strict production SSH
+        shell: bash
+        env:
+          NVX_SSH_ALIAS: nvx-prod-probe
+          NVX_SSH_KEY_BASENAME: prod_probe_key
+          PRIMARY_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PRIMARY_PORT: ${{ secrets.PROD_SSH_PORT }}
+          PRIMARY_USER: ${{ secrets.PROD_SSH_USER }}
+          PRIMARY_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PRIMARY_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          FALLBACK_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          FALLBACK_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          FALLBACK_USER: ${{ secrets.STAGING2_SSH_USER }}
+          FALLBACK_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          FALLBACK_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: bash scripts/production/configure-siteground-ssh.sh
+
+      - name: Confirm read-only probe scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "PRODUCTION_SSH_PROBE=PASS sha=$CANDIDATE_SHA mutation=none"
+
+      - name: Cleanup probe identities
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_probe_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"
+
   release:
     name: Promote immutable accepted SHA
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy && !inputs.run_ssh_connectivity_probe }}
     runs-on: ubuntu-latest
     timeout-minutes: 105
     outputs:
@@ -466,6 +525,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.run_post_audits &&
+      !inputs.run_ssh_connectivity_probe &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -702,6 +762,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.run_performance &&
+      !inputs.run_ssh_connectivity_probe &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -808,6 +869,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.run_hubspot_e2e &&
+      !inputs.run_ssh_connectivity_probe &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -874,6 +936,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.run_final_close_audit &&
+      !inputs.run_ssh_connectivity_probe &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -953,6 +1016,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.run_mu_plugin_forensics &&
+      !inputs.run_ssh_connectivity_probe &&
       (needs.release.result == 'success' || inputs.deploy == false)
     runs-on: ubuntu-latest
     timeout-minutes: 30

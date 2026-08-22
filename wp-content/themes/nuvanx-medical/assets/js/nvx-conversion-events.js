@@ -88,7 +88,7 @@
 		var finish = function () {
 			if (finished || !navigatesAway) return;
 			finished = true;
-			window.location = url;
+			window.location = url; // NOSONAR - intentional post-conversion navigation; url is a validated WhatsApp/phone href from the DOM element
 		};
 
 		whenGtagReady(function () {
@@ -218,18 +218,18 @@
 	window.addEventListener('hs-form-event:on-submission:success', function (event) {
 		var detail = event && event.detail ? event.detail : {};
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit === 'function') {
-			try { window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId); } catch (_error) {}
+			try { window.NUVANXGoogleAttributionLegacy.onBeforeFormSubmit(null, detail.formId); } catch (_error) { /* non-fatal attribution hook */ }
 		}
 		var convId = '';
 		if (window.HubSpotFormsV4 && typeof window.HubSpotFormsV4.getFormFromEvent === 'function') {
 			try {
 				var successfulForm = window.HubSpotFormsV4.getFormFromEvent(event);
 				if (successfulForm && typeof successfulForm.getConversionId === 'function') convId = successfulForm.getConversionId() || '';
-			} catch (_error) {}
+			} catch (_error) { /* non-fatal attribution hook */ }
 		}
 		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event', convId);
 		if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormSubmitted === 'function') {
-			try { window.NUVANXGoogleAttributionLegacy.onFormSubmitted(null, detail.formId); } catch (_error) {}
+			try { window.NUVANXGoogleAttributionLegacy.onFormSubmitted(null, detail.formId); } catch (_error) { /* non-fatal attribution hook */ }
 		}
 	});
 
@@ -373,7 +373,7 @@
 					try {
 						form.setFieldValue(fieldName, value);
 						modified = true;
-					} catch (_error) {}
+					} catch (_error) { /* non-fatal field-sync */ }
 				});
 			});
 		});
@@ -386,7 +386,7 @@
 		if (!window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getForms !== 'function') return;
 		try {
 			(window.HubSpotFormsV4.getForms() || []).forEach(function (form) { populateHubSpotClickFields(form); });
-		} catch (_error) {}
+		} catch (_error) { /* non-fatal */ }
 	}
 
 	window.addEventListener('hs-form-event:on-ready', function (event) {
@@ -399,9 +399,9 @@
 				populateHubSpotClickFields(form);
 			}
 			if (window.NUVANXGoogleAttributionLegacy && typeof window.NUVANXGoogleAttributionLegacy.onFormReady === 'function') {
-				try { window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId); } catch (_error) {}
+				try { window.NUVANXGoogleAttributionLegacy.onFormReady(form, detail.formId); } catch (_error) { /* non-fatal attribution hook */ }
 			}
-		} catch (_error) {}
+		} catch (_error) { /* non-fatal */ }
 	});
 
 	if (!syncOwnsCanonicalHubSpotFields()) {

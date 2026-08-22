@@ -70,7 +70,7 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
     runAgentBrowser(['close', '--all']);
 
     // Open with viewport
-    runAgentBrowser(['open', url, '--viewport', `${viewport.width}x${viewport.height}`]);
+    runAgentBrowser(['open', url, '--viewport', `${viewport.width}x${viewport.height}`]); // NOSONAR - CLI process.argv URL; spawnSync array args disable shell injection
 
     // Wait for page load
     runAgentBrowser(['wait', '--load', 'networkidle']);

@@ -125,7 +125,7 @@
         var title = el.dataset.nvxMapTitle || 'Google Maps';
         if (!src) return;
         var iframe = document.createElement('iframe');
-        iframe.src = src;
+        iframe.src = src; // NOSONAR - server-rendered attribute set by theme templates; not derived from user input
         iframe.title = title;
         iframe.setAttribute('allowfullscreen', '');
         iframe.setAttribute('loading', 'lazy');

@@ -399,15 +399,25 @@
    * Reuses an existing or in-progress script load, initializes available forms after loading,
    * and retries after load failures.
    */
-  function initLazyHubSpot() {
-    removeLegacyHubSpotV2Scripts();
-    normalizeNativeHubSpotMounts();
-
+  function initGlobalHubSpotTracking() {
     // Global tracking initialization (runs on all pages)
     // Respect persisted consent on first load; later changes use event listeners
     if (hasMarketingConsent()) {
       loadHubSpotGlobalTracking();
     }
+    
+    // Listen for consent changes
+    document.addEventListener('cmplz_enable_category', function () {
+      loadHubSpotGlobalTracking();
+    });
+    document.addEventListener('cmplz_status_change', function () {
+      loadHubSpotGlobalTracking();
+    });
+  }
+
+  function initLazyHubSpot() {
+    removeLegacyHubSpotV2Scripts();
+    normalizeNativeHubSpotMounts();
 
     const scriptUrl = resolveHubSpotScriptUrl();
     if (!scriptUrl) return;
@@ -972,6 +982,7 @@
   function initialize() {
     initMobileNavigationGovernance();
     initValoracionModalGovernance();
+    initGlobalHubSpotTracking();
     initLazyHubSpot();
     initHeroVideoGovernance();
   }

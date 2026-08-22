@@ -322,17 +322,8 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 		}
 	}
 
-	// Validate and normalize pageUri context with strict allowlist
-	$current_url = wp_get_referer();
-	if ( ! $current_url ) {
-		$current_url = home_url( '/madrid/valoracion/' );
-	}
-	$parsed_url = wp_parse_url( $current_url );
-	$allowed_hosts = array( 'nuvanx.com', 'www.nuvanx.com' );
-	$host = isset( $parsed_url['host'] ) ? strtolower( $parsed_url['host'] ) : '';
-	$is_allowed = in_array( $host, $allowed_hosts, true );
-
-	$page_uri = $is_allowed ? $current_url : home_url( '/madrid/valoracion/' );
+	// Use the server-controlled canonical page URI for HubSpot context.
+	$page_uri = home_url( '/madrid/valoracion/' );
 	$page_name = is_singular() ? get_the_title() : 'Valoración médica estética en Madrid';
 
 	$context = array(

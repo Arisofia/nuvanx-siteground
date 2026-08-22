@@ -71,8 +71,8 @@ for (const match of locMatches) {
   }
 }
 
-const missingIndexable = [...expectedIndexable].filter((path) => !sitemapPaths.has(path)).sort();
-const presentNoindex = [...expectedNoindex].filter((path) => sitemapPaths.has(path)).sort();
+const missingIndexable = [...expectedIndexable].filter((path) => !sitemapPaths.has(path)).sort((a, b) => a.localeCompare(b));
+const presentNoindex = [...expectedNoindex].filter((path) => sitemapPaths.has(path)).sort((a, b) => a.localeCompare(b));
 
 console.log(`SITEMAP_MANIFEST_TOTAL=${manifest.length}`);
 console.log(`SITEMAP_INDEXABLE_EXPECTED=${expectedIndexable.size}`);

@@ -110,7 +110,7 @@ try {
 
   assert.ok(nativeFields, 'Canonical HubSpot V4 form must be discoverable after marketing consent');
   const browserLeadId = String(nativeFields.nvx_lead_id || '').toLowerCase();
-  const fieldNames = Object.keys(nativeFields).sort();
+  const fieldNames = Object.keys(nativeFields).sort((a, b) => a.localeCompare(b));
   console.log(
     `ATTRIBUTION_LINEAGE_DIAGNOSTIC sync_changed=${nativeSyncChanged ? 'true' : 'false'} lead_field_present=${fieldNames.includes('nvx_lead_id') ? 'true' : 'false'} lead_value_type=${Array.isArray(nativeFields.nvx_lead_id) ? 'array' : typeof nativeFields.nvx_lead_id} managed_fields_present=${['nvx_is_test_lead', 'nvx_test_run_id', 'nvx_utm_source', 'nvx_google_click_id'].filter((name) => fieldNames.includes(name)).join(',') || 'none'}`
   );

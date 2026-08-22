@@ -104,7 +104,7 @@ function summarizeJsonLdBlock(block, index) {
         schemaTypes(node['@type']).forEach((type) => graphTypes.add(type));
         if (typeof node['@id'] === 'string' && graphIds.length < 30) graphIds.push(node['@id']);
       }
-      summary.graphTypes = [...graphTypes].sort();
+      summary.graphTypes = [...graphTypes].sort((a, b) => a.localeCompare(b));
       summary.graphIds = graphIds;
     }
   } catch (error) {

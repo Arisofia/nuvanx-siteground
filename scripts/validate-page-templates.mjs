@@ -137,6 +137,18 @@ const SITEMAP_BACKOFF_BASE_MS = 1500;
 
 function templateExists(templatePath) {
   if (!templatePath || templatePath === '' || templatePath === 'default') return true;
+  
+  // Security: Validate templatePath to prevent directory traversal
+  // Reject absolute paths, .. segments, and unsafe characters
+  if (templatePath.includes('..') || templatePath.includes('\\') || templatePath.startsWith('/')) {
+    return false;
+  }
+  
+  // Allow only filename characters (alphanumeric, dash, underscore, dot)
+  if (!/^[a-zA-Z0-9._-]+$/.test(templatePath)) {
+    return false;
+  }
+  
   if (existsSync(join(TEMPLATES_DIR, templatePath))) return true;
   if (existsSync(join(THEME_ROOT, templatePath))) return true;
   return false;

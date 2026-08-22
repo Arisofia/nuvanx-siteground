@@ -51,7 +51,7 @@ function nvx_page_extract_brand_hero_div( string $content ): string {
 	return '';
 }
 
-/** Preserve the existing canonical hero media slot when rebuilding a page. */
+/** Preserve the existing canonical hero media slot when rebuilding a page, omitting vendor hero media. */
 function nvx_page_extract_brand_hero_media( string $content ): string {
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $matches ) ) {

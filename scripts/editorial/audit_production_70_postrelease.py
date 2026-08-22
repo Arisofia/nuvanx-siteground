@@ -276,6 +276,8 @@ def main() -> int:
     if len(urls) != 70:
         print(f"COUNT_MISMATCH expected=70 got={len(urls)}", file=sys.stderr)
         return 2
+    if summary["issue_count"] != 0:
+        return 1
     return 0
 
 

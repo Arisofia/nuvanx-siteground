@@ -8,8 +8,10 @@ Does not treat technological copy, links or auxiliary JSON as vendor images.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import re
+import socket
 import ssl
 import sys
 import urllib.error
@@ -71,7 +73,14 @@ def fetch(url: str, timeout: int = 25) -> tuple[int, dict[str, str], str]:
         body = exc.read().decode("utf-8", "replace") if exc.fp else ""
         headers = {k.lower(): v for k, v in (exc.headers.items() if exc.headers else [])}
         return int(exc.code), headers, body
-    except (urllib.error.URLError, TimeoutError, OSError, ssl.SSLError) as exc:
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        socket.timeout,
+        OSError,
+        ssl.SSLError,
+        http.client.IncompleteRead,
+    ) as exc:
         return 0, {"x-nvx-fetch-error": str(exc)[:300]}, ""
 
 
@@ -95,9 +104,10 @@ def collect_urls(base_url: str) -> list[str]:
     host = urlparse(origin).hostname or ""
     seen: list[str] = []
     for name in ("page-sitemap.xml", "post-sitemap.xml"):
-        status, _, xml = fetch(f"{origin}/{name}")
+        status, headers, xml = fetch(f"{origin}/{name}")
         if status != 200:
-            raise RuntimeError(f"sitemap {name} HTTP {status}")
+            reason = headers.get("x-nvx-fetch-error") or f"HTTP {status}"
+            raise RuntimeError(f"sitemap {name} {reason}")
         for url in sitemap_locs(xml, host):
             if url not in seen:
                 seen.append(url)

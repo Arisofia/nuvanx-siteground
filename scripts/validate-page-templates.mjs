@@ -137,20 +137,19 @@ const SITEMAP_BACKOFF_BASE_MS = 1500;
 
 function templateExists(templatePath) {
   if (!templatePath || templatePath === '' || templatePath === 'default') return true;
-  
-  // Security: Validate templatePath to prevent directory traversal
-  // Reject absolute paths, .. segments, and unsafe characters
-  if (templatePath.includes('..') || templatePath.includes('\\') || templatePath.startsWith('/')) {
+  // WordPress stores templates as relative paths such as templates/page-sede.php.
+  // Normalize that one sanctioned prefix before enforcing filename-only resolution.
+  const templateName = templatePath.startsWith('templates/') ? templatePath.slice('templates/'.length) : templatePath;
+  // Security: Reject absolute paths, traversal segments, backslashes, and nested paths.
+  if (templateName.includes('..') || templateName.includes('\\') || templateName.startsWith('/') || templateName.includes('/')) {
     return false;
   }
-  
-  // Allow only filename characters (alphanumeric, dash, underscore, dot)
-  if (!/^[a-zA-Z0-9._-]+$/.test(templatePath)) {
+  // Allow only filename characters (alphanumeric, dash, underscore, dot).
+  if (!/^[a-zA-Z0-9._-]+$/.test(templateName)) {
     return false;
   }
-  
-  if (existsSync(join(TEMPLATES_DIR, templatePath))) return true;
-  if (existsSync(join(THEME_ROOT, templatePath))) return true;
+  if (existsSync(join(TEMPLATES_DIR, templateName))) return true;
+  if (existsSync(join(THEME_ROOT, templateName))) return true;
   return false;
 }
 
@@ -420,7 +419,7 @@ async function validateTemplates() {
       if (template && !templateExists(template)) {
         templateErrors.push(`Page ${page.id} (${page.slug}): template file missing: ${template}`);
       } else if (template) {
-        console.log(`✅ Page ${page.id} (${page.slug}): templates/${template} exists`);
+        console.log(`✅ Page ${page.id} (${page.slug}): ${template} exists`);
       }
     }
 

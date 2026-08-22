@@ -37,7 +37,7 @@ function nvx_valoracion_direct_form_markup(): string {
 	$html .= '<div class="nvx-hp" aria-hidden="true"><label>' . esc_html__( 'Empresa', 'nuvanx-medical' ) . '<input type="text" name="nvx_company" tabindex="-1" autocomplete="off"></label></div>';
 
 	if ( $error ) {
-		$html .= '<p class="nvx-valoracion-direct-form__error" role="alert">' . esc_html__( 'No hemos podido enviar la solicitud. Revisa los datos o contáctanos por WhatsApp o teléfono.', 'nuvanx-medical' ) . '</p>';
+		$html .= '<p class="nvx-valoracion-direct-form__error" role="alert" tabindex="-1">' . esc_html__( 'No se envió la solicitud. Revisa que hayas completado nombre, apellidos, teléfono, email, el motivo de consulta y la aceptación de privacidad.', 'nuvanx-medical' ) . '</p>';
 	}
 
 	$identity_fields = array(
@@ -64,7 +64,7 @@ function nvx_valoracion_direct_form_markup(): string {
 
 	$html .= '<p class="nvx-valoracion-direct-form__field">';
 	$html .= '<label for="nvx-valoracion-phone">' . esc_html__( 'Teléfono', 'nuvanx-medical' ) . '</label>';
-	$html .= '<input class="hs-input" id="nvx-valoracion-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" required>';
+	$html .= '<input class="hs-input" id="nvx-valoracion-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" minlength="7" maxlength="20" required>';
 	$html .= '</p>';
 
 	$html .= '<p class="nvx-valoracion-direct-form__field">';
@@ -74,7 +74,7 @@ function nvx_valoracion_direct_form_markup(): string {
 
 	$html .= '<p class="nvx-valoracion-direct-form__field">';
 	$html .= '<label for="nvx-valoracion-message">' . esc_html__( 'Qué quieres valorar', 'nuvanx-medical' ) . '</label>';
-	$html .= '<textarea class="hs-input" id="nvx-valoracion-message" name="message" rows="4" maxlength="2000" required></textarea>';
+	$html .= '<textarea class="hs-input" id="nvx-valoracion-message" name="message" rows="4" minlength="10" maxlength="2000" required></textarea>';
 	$html .= '</p>';
 
 	$html .= '<p class="nvx-valoracion-direct-form__consent">';
@@ -249,7 +249,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 
 	$honeypot = isset( $_POST['nvx_company'] ) ? trim( (string) wp_unslash( $_POST['nvx_company'] ) ) : '';
 	if ( '' !== $honeypot ) {
-		wp_safe_redirect( home_url( '/gracias/' ) );
+		wp_safe_redirect( $fail );
 		exit;
 	}
 

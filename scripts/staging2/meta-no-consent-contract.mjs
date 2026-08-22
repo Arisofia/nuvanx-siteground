@@ -85,7 +85,10 @@ async function fetchOriginAfterChallenge(url) {
     `&& rm -f __nvx_headers.txt`
   ].join(' ');
 
-  const { stdout } = await execFileAsync('ssh', ['-n', originSshAlias, remoteCommand], {
+  if (!new Set(['nvx-staging2', 'nvx-staging2-pr']).has(originSshAlias)) {
+    throw new Error(`ORIGIN_SSH_ALIAS must be one of: nvx-staging2, nvx-staging2-pr.`);
+  }
+  const { stdout } = await execFileAsync('ssh', ['-n', '--', originSshAlias, remoteCommand], {
     encoding: 'utf8',
     maxBuffer: 8 * 1024 * 1024,
     timeout: 45000,

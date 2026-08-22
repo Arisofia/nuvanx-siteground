@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 const PROSE_WRAPPER = 'nvx-page__content nvx-prose';
 
 /**
@@ -6,8 +8,6 @@ const PROSE_WRAPPER = 'nvx-page__content nvx-prose';
  *
  * @package nuvanx-medical
  */
-
-declare(strict_types=1);
 
 $root = dirname( __DIR__, 2 );
 $fail = static function ( string $message ): void {

@@ -444,12 +444,19 @@ for (const file of [
   'Espalda-novias-480.webp',
   'Espalda-novias-768.webp',
   'Espalda-novias-941.webp',
-  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-280.webp',
-  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-383.webp',
 ]) {
   assert.ok(
     fs.existsSync(`wp-content/themes/nuvanx-medical/assets/images/responsive/${file}`),
     `bridal protocol must ship ${file} as WebP`,
+  );
+}
+for (const file of [
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-280.webp',
+  'Protocolo-Endolift-Thermage-Morpheus8-ultherapy-383.webp',
+]) {
+  assert.ok(
+    !fs.existsSync(`wp-content/themes/nuvanx-medical/assets/images/responsive/${file}`),
+    `retired bridal mood-collage must not ship ${file}`,
   );
 }
 const bridalPhp = fs.readFileSync(
@@ -486,10 +493,10 @@ assert.match(
   /Espalda-novias\.png/,
   'bridal gallery must use the back upload stem',
 );
-assert.match(
+assert.doesNotMatch(
   bridalPhp,
-  /Protocolo-Endolift-Thermage-Morpheus8-ultherapy\.png/,
-  'bridal studio must use the mood-collage upload stem',
+  /Protocolo-Endolift-Thermage-Morpheus8-ultherapy/,
+  'bridal studio must not reintroduce the unapproved mood-collage',
 );
 assert.doesNotMatch(
   bridalPhp,

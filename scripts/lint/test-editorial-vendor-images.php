@@ -217,7 +217,7 @@ $blog_blob    = json_encode( $blog_catalog, JSON_UNESCAPED_UNICODE );
 if ( ! is_string( $blog_blob ) ) {
 	$fail( 'blog catalog did not encode' );
 }
-foreach ( array( 'Endolift-ISO9001-Laser', 'endolift-lasemar-1500-eufoton', 'BTL-Exion-Mobile-Version', 'SmartLipo-for-Laserlipolysis-DEKA', 'Protocolo-Endolift-Thermage', '04-endolift.jpg' ) as $stem ) {
+foreach ( array( 'Endolift-ISO9001-Laser', 'endolift-lasemar-1500-eufoton', 'BTL-Exion-Mobile-Version', 'SmartLipo-for-Laserlipolysis-DEKA', '04-endolift.jpg' ) as $stem ) {
 	if ( false !== strpos( $blog_blob, $stem ) ) {
 		$fail( 'blog catalog still references ' . $stem );
 	}

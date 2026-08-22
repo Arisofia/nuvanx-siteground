@@ -332,6 +332,17 @@
       }
     };
     window.nvxCloseValoracionModal = closeModal;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('valoracion') === 'error') {
+      openModal(null);
+      const errorMessage = modal ? modal.querySelector('.nvx-valoracion-direct-form__error') : null;
+      if (errorMessage && typeof errorMessage.focus === 'function') {
+        window.setTimeout(function () {
+          errorMessage.focus();
+        }, 50);
+      }
+    }
   }
 
   /**

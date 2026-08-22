@@ -35,17 +35,3 @@ This means these two records must not appear in the published WordPress page inv
 
 **Important:** Exit 0 does not always mean "content is clean". Callers must grep for the status string to determine actual audit state. This is intentional to allow migratable issues to pass pre-cutover checks while still being fixed by the shared migration.
 
-## `nvx-cms-content-cleanup.php`
-
-Removes residual legacy CMS blocks/claims from WordPress `post_content`. The active theme still contains narrow `TODO(legacy-guard)` compatibility paths conditioned on this migration, so the script is intentionally retained.
-
-Required retirement sequence:
-
-1. `php tools/migrations/nvx-cms-content-cleanup.php --self-test`
-2. read-only Staging2 scan with `wp eval "require 'tools/migrations/nvx-cms-content-cleanup.php';"`
-3. backed-up/authorized Staging2 apply if dirty, followed by `dirty=0`
-4. backed-up/authorized production apply if dirty, followed by `dirty=0`
-5. normal acceptance remains green
-6. remove matching compatibility guards and this migration script in a separate reviewed change
-
-Never promote a release solely because a migration process exited with code 0; the canonical Staging acceptance and exact-SHA evidence remain mandatory.

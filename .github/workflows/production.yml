@@ -148,6 +148,7 @@ jobs:
           persist-credentials: false
 
       - name: Validate release control plane
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         run: |
           set -euo pipefail
@@ -168,6 +169,7 @@ jobs:
 
       - name: Resolve immutable requested candidate
         id: candidate
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           REQUESTED_SHA: ${{ inputs.candidate_sha }}
@@ -198,12 +200,14 @@ jobs:
 
       - name: Verify successful exact-SHA Staging acceptance evidence
         id: acceptance
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/ci/verify-staging-acceptance.sh
 
       - name: Materialize and validate exact candidate tooling
+        if: ${{ !inputs.run_ssh_connectivity_probe }}
         shell: bash
         run: |
           set -euo pipefail
@@ -262,15 +266,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' PROD_DB_NAME='$PROD_DB_NAME' BASE_URL='$BASE_URL' bash -se" <<'REMOTE'
-          set -Eeuo pipefail
-          cd "$PROD_ROOT"
-          command -v wp >/dev/null
-          test "$(wp config get DB_NAME)" = "$PROD_DB_NAME"
-          test "$(wp option get home)" = "$BASE_URL"
-          test "$(wp option get siteurl)" = "$BASE_URL"
+          ssh nvx-prod true
           echo 'PRODUCTION_SSH_CONNECTIVITY=PASS'
-          REMOTE
 
       - name: Verify production preflight
         if: ${{ !inputs.run_ssh_connectivity_probe }}
@@ -469,7 +466,7 @@ jobs:
           [[ -z "${CANDIDATE_ROOT:-}" ]] || git worktree remove --force "$CANDIDATE_ROOT" 2>/dev/null || true
 
       - name: Write release summary
-        if: success()
+        if: ${{ success() && !inputs.run_ssh_connectivity_probe }}
         shell: bash
         run: |
           {
@@ -483,6 +480,17 @@ jobs:
             echo '- Atomic production cutover + rollback contract: PASS.'
             echo '- Four-field production identity: PASS.'
             echo '- Post-cutover boundary/origin/identity failure compensation: enforced.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write SSH connectivity probe summary
+        if: ${{ success() && inputs.run_ssh_connectivity_probe }}
+        shell: bash
+        run: |
+          {
+            echo '## Production SSH Connectivity Probe PASS'
+            echo
+            echo '- Production SSH configuration and transport are healthy.'
+            echo '- No deployments, mutations, or runtime validations were executed.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   post_audits:

@@ -71,12 +71,27 @@ $valoracion_php = (string) file_get_contents( $root . '/wp-content/themes/nuvanx
 $valoracion_css = (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css' );
 $seo_catalog    = json_decode( (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/seo-metadata.json' ), true );
 $valoracion_desc = is_array( $seo_catalog ) ? (string) ( $seo_catalog['valoracion']['description'] ?? '' ) : '';
+
+// Extract the rendered hero lead so RSA phrases can't be satisfied by the proof list alone.
+$valoracion_lead = '';
+if ( preg_match( '/id="nvx-valoracion-lead"[^>]*>(.*?)<\/p>/s', $valoracion_php, $lead_m ) ) {
+	$valoracion_lead = $lead_m[1];
+}
+// Extract the MedicalWebPage schema description assignment.
+$valoracion_schema_desc = '';
+if ( preg_match( '/\$description\s*=\s*__\(\s*\'(.*?)\'\s*,\s*\'nuvanx-medical\'\s*\)/s', $valoracion_php, $desc_m ) ) {
+	$valoracion_schema_desc = $desc_m[1];
+}
+
 if ( ! str_contains( $valoracion_php, 'Valoración médica estética en Madrid' )
-	|| ! str_contains( $valoracion_php, 'Valoración médica en Madrid de 15 a 30 minutos' )
-	|| ! str_contains( $valoracion_php, 'Sin Anestesia General' )
-	|| ! str_contains( $valoracion_php, 'Recuperación en 48h' )
-	|| ! str_contains( $valoracion_php, 'reincorporación habitual' )
-	|| ! str_contains( $valoracion_php, 'según el protocolo indicado' )
+	|| ! str_contains( $valoracion_lead, 'Valoración médica en Madrid de 15 a 30 minutos' )
+	|| ! str_contains( $valoracion_lead, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_lead, 'Recuperación en 48h' )
+	|| ! str_contains( $valoracion_lead, 'reincorporación habitual' )
+	|| ! str_contains( $valoracion_lead, 'según el protocolo indicado' )
+	|| ! str_contains( $valoracion_schema_desc, 'Sin Anestesia General' )
+	|| ! str_contains( $valoracion_schema_desc, 'Recuperación en 48h' )
+	|| ! str_contains( $valoracion_schema_desc, 'reincorporación habitual' )
 	|| ! str_contains( $valoracion_php, 'function nvx_valoracion_schema_graph' )
 	|| ! str_contains( $valoracion_php, 'MedicalWebPage' )
 	|| ! str_contains( $valoracion_php, 'id="nvx-valoracion-lead"' )
@@ -86,7 +101,8 @@ if ( ! str_contains( $valoracion_php, 'Valoración médica estética en Madrid' 
 if ( '' === $valoracion_desc
 	|| ! str_contains( $valoracion_desc, 'Sin Anestesia General' )
 	|| ! str_contains( $valoracion_desc, 'Recuperación en 48h' )
-	|| ! str_contains( $valoracion_desc, 'reincorporación habitual' ) ) {
+	|| ! str_contains( $valoracion_desc, 'reincorporación habitual' )
+	|| ! str_contains( $valoracion_desc, 'según protocolo' ) ) {
 	$fail( 'valoracion SEO metadata must keep RSA phrases with the 48h reincorporation caveat' );
 }
 

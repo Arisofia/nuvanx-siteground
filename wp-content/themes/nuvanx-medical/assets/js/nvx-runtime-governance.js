@@ -403,6 +403,12 @@
     removeLegacyHubSpotV2Scripts();
     normalizeNativeHubSpotMounts();
 
+    // Global tracking initialization (runs on all pages)
+    // Respect persisted consent on first load; later changes use event listeners
+    if (hasMarketingConsent()) {
+      loadHubSpotGlobalTracking();
+    }
+
     const scriptUrl = resolveHubSpotScriptUrl();
     if (!scriptUrl) return;
 
@@ -545,6 +551,52 @@
       return false;
     }
 
+    // Load HubSpot global tracking script consent-aware
+    // This runs on all pages, not just form pages
+    function loadHubSpotGlobalTracking() {
+      // Load HubSpot global tracking script (js.hs-scripts.com/147416356.js)
+      // Only when marketing consent is granted and only once
+      if (!hasMarketingConsent()) {
+        // Remove tracking script if consent is revoked
+        const trackingScriptId = 'nvx-hubspot-tracking-runtime';
+        const existing = document.getElementById(trackingScriptId);
+        if (existing) {
+          existing.remove();
+          // Note: HubSpot doesn't provide a direct opt-out API for client-side tracking
+          // Once loaded, the tracking script remains active. This is a limitation
+          // of client-side opt-out mechanisms. For proper opt-out, page reload is required.
+        }
+        return Promise.resolve();
+      }
+
+      const trackingScriptId = 'nvx-hubspot-tracking-runtime';
+      const existing = document.getElementById(trackingScriptId);
+      if (existing) {
+        return Promise.resolve();
+      }
+
+      const portalId = config.hubspotPortalId || '147416356';
+      const trackingUrl = 'https://js.hs-scripts.com/' + portalId + '.js';
+
+      return new Promise(function (resolve, reject) {
+        const script = document.createElement('script');
+        script.id = trackingScriptId;
+        script.src = trackingUrl;
+        script.async = true;
+        script.addEventListener('load', function () {
+          script.dataset.nvxLoaded = '1';
+          resolve();
+        }, { once: true });
+        script.addEventListener('error', function () {
+          script.remove();
+          // Global tracking failure should not block form loading
+          console.warn('HubSpot global tracking script failed to load');
+          resolve();
+        }, { once: true });
+        document.head.appendChild(script);
+      });
+    }
+
     function isHubSpotIframe(ifr) {
       if (!ifr || ifr.tagName !== 'IFRAME') return false;
       if (ifr.classList.contains('hs-form-iframe') || Boolean(ifr.closest('.hs-form-frame'))) {
@@ -613,6 +665,15 @@
       // Load HubSpot global tracking script (js.hs-scripts.com/147416356.js)
       // Only when marketing consent is granted and only once
       if (!hasMarketingConsent()) {
+        // Remove tracking script if consent is revoked
+        const trackingScriptId = 'nvx-hubspot-tracking-runtime';
+        const existing = document.getElementById(trackingScriptId);
+        if (existing) {
+          existing.remove();
+          // Note: HubSpot doesn't provide a direct opt-out API for client-side tracking
+          // Once loaded, the tracking script remains active. This is a limitation
+          // of client-side opt-out mechanisms. For proper opt-out, page reload is required.
+        }
         return Promise.resolve();
       }
 
@@ -621,28 +682,6 @@
       if (existing) {
         return Promise.resolve();
       }
-
-      const portalId = config.hubspotPortalId || '147416356';
-      const trackingUrl = 'https://js.hs-scripts.com/' + portalId + '.js';
-
-      return new Promise(function (resolve, reject) {
-        const script = document.createElement('script');
-        script.id = trackingScriptId;
-        script.src = trackingUrl;
-        script.async = true;
-        script.addEventListener('load', function () {
-          script.dataset.nvxLoaded = '1';
-          resolve();
-        }, { once: true });
-        script.addEventListener('error', function () {
-          script.remove();
-          // Global tracking failure should not block form loading
-          console.warn('HubSpot global tracking script failed to load');
-          resolve();
-        }, { once: true });
-        document.head.appendChild(script);
-      });
-    }
 
     function loadHubSpot() {
       // The legacy v2 factory created window.hbspt.forms, but the new portal embed
@@ -787,21 +826,12 @@
     }
 
     syncConversionSurfaces();
-    // Respect persisted consent on first load; later changes use the listeners below.
-    if (hasMarketingConsent()) {
-      loadHubSpotGlobalTracking();
-    }
+    // Load global tracking on consent events (runs on all pages)
     document.addEventListener('cmplz_enable_category', function () {
-      promise = null;
       loadHubSpotGlobalTracking();
-      loadHubSpot();
-      syncConversionSurfaces();
     });
     document.addEventListener('cmplz_status_change', function () {
-      promise = null;
       loadHubSpotGlobalTracking();
-      loadHubSpot();
-      syncConversionSurfaces();
     });
     window.addEventListener('hs-form-event:on-ready', markHubSpotReady);
     window.addEventListener('message', function (event) {

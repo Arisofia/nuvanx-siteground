@@ -185,11 +185,20 @@ function nvx_valoracion_append_field( array &$fields, string $name, string $valu
 
 /**
  * Whether this request has explicit marketing consent for attribution data.
+ *
+ * Derives consent from server-verifiable Complianz state, not browser POST value.
+ * The POST field is only informational; actual consent authorization comes from
+ * the server-side consent management system.
  */
 function nvx_valoracion_has_marketing_consent(): bool {
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- called only from the nonce-validated direct-form flow.
-	$value = isset( $_POST['nvx_marketing_consent'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nvx_marketing_consent'] ) ) : '';
-	return '1' === $value;
+	// Check Complianz consent state server-side
+	if ( function_exists( 'cmplz_has_consent' ) ) {
+		return cmplz_has_consent( 'marketing' ) === true;
+	}
+
+	// Fallback: check if consent cookie exists and is granted
+	$consent_cookie = isset( $_COOKIE['cmplz_marketing'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['cmplz_marketing'] ) ) : '';
+	return 'allow' === $consent_cookie;
 }
 
 /**
@@ -349,6 +358,7 @@ function nvx_valoracion_maybe_handle_direct_submit(): void {
 		? nvx_hubspot_secure_form_id()
 		: ( defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? (string) NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c' );
 	$qa_context = array(
+		'portal_id' => $portal,
 		'form_id' => $form,
 		'pageUri_hash' => substr( md5( $page_uri ), 0, 8 ),
 		'consent' => $marketing_consent ? 'granted' : 'denied',

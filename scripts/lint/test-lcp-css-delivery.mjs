@@ -425,10 +425,10 @@ assert.match(
   /'Espalda-novias'\s*=>\s*array\(\s*941,\s*1672\s*\)/,
   'bridal back intrinsic size must be catalogued',
 );
-assert.match(
+assert.doesNotMatch(
   helpers,
-  /'Protocolo-Endolift-Thermage-Morpheus8-ultherapy'\s*=>\s*array\(\s*383,\s*558\s*\)/,
-  'bridal mood-collage intrinsic size must be catalogued',
+  /'Protocolo-Endolift-Thermage-Morpheus8-ultherapy'/,
+  'retired bridal mood-collage must not be in intrinsic-size catalog',
 );
 for (const file of [
   'Box-Clinica-Novias-480.webp',

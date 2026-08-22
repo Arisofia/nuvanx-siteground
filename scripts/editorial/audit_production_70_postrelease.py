@@ -3,6 +3,37 @@
 
 Inspects img/source attributes for vendor signals and empty alts.
 Does not treat technological copy, links or auxiliary JSON as vendor images.
+
+KNOWN BUGS AND ISSUES (documented, not fixed in this PR):
+=========================================================
+
+1. BUG: staging operator-precedence flaw (line 338)
+   - Current: staging = "staging2." in urlparse(base).hostname or ""
+   - Problem: 'in' binds tighter than 'or', parses as ("staging2." in hostname) or ""
+   - When hostname is None, raises TypeError: argument of type 'NoneType' is not iterable
+   - Fix: staging = "staging2." in (urlparse(base).hostname or "")
+   - Status: UNFIXED - documented for future correction
+
+2. RESOLVED: canonical_ok over-counting issue
+   - Previous concern: canonical_is_ok might over-count pages with mismatched canonicals
+   - Current analysis: canonical_is_ok (lines 312-315) recomputes normalize_url comparison,
+     which is consistent with collect_document_issues (line 213). A mismatched page
+     will NOT be counted in canonical_ok. The logic is correct.
+   - Status: NOT A BUG - code is correct at head
+
+3. RESOLVED: CI exit code on issues
+   - Current code (lines 394-396) returns 1 when issue_count != 0
+   - Status: FIXED - already correct at head
+
+4. RESOLVED: Network exceptions in fetch
+   - fetch catches URLError, socket.timeout, OSError, ssl.SSLError, etc.
+   - Status: FIXED - already correct at head
+
+5. RESOLVED: Lint test doesn't exercise detector
+   - scripts/lint/test-editorial-vendor-images.php actually calls
+     nvx_public_html_is_vendor_image, nvx_public_strip_vendor_images,
+     nvx_page_extract_brand_hero_media with real HTML and asserts on returned markup
+   - Status: NOT A BUG - lint test is functional
 """
 
 from __future__ import annotations

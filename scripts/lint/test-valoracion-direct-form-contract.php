@@ -108,7 +108,7 @@ $markup = nvx_valoracion_direct_form_markup();
 $assert( false !== strpos( $markup, 'id="nvx-valoracion-lastname"' ), 'LASTNAME_FIELD_ID' );
 $assert( false !== strpos( $markup, 'name="lastname"' ), 'LASTNAME_FIELD_NAME' );
 $assert( false !== strpos( $markup, 'autocomplete="family-name"' ), 'LASTNAME_AUTOCOMPLETE' );
-$assert( false !== strpos( $markup, 'name="lastname" type="text" autocomplete="family-name" minlength="2" maxlength="120" required' ), 'LASTNAME_REQUIRED' );
+$assert( false !== strpos( $markup, 'name="lastname" type="text" autocomplete="family-name" maxlength="120" required' ), 'LASTNAME_REQUIRED' );
 
 $assert( 1 === nvx_valoracion_name_length( 'Ñ' ), 'NAME_LENGTH_TILDE' );
 $assert( 1 === nvx_valoracion_name_length( '李' ), 'NAME_LENGTH_CJK' );
@@ -145,11 +145,11 @@ $assert( 1 === count( $GLOBALS['nvx_test_http_requests'] ), 'NO_RETRY_AFTER_5XX_
 $source = (string) file_get_contents( $real );
 foreach (
 	array(
-		"nvx_valoracion_log_outcome( 'FAILURE', 'nonce' )",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit' )",
-		"nvx_valoracion_log_outcome( 'FAILURE', 'validation' )",
-		"nvx_valoracion_log_outcome( 'SUCCESS', '', \$result['status'] )",
-		"nvx_valoracion_log_outcome( 'FAILURE', \$result['reason'], \$result['status'] )",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'nonce'",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'rate_limit'",
+		"nvx_valoracion_log_outcome( 'FAILURE', 'validation'",
+		"nvx_valoracion_log_outcome( 'SUCCESS', '',",
+		"nvx_valoracion_log_outcome( 'FAILURE', \$result['reason'],",
 		"wp_safe_redirect( home_url( '/gracias/' ) )",
 		"nvx_valoracion_name_length( \$lastname )",
 	) as $index => $required

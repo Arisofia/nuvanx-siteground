@@ -10,6 +10,9 @@
  * @package nuvanx-medical
  */
 
+const NVX_AUTHENTIC_PHOTO_ALT_CONSULTATION = 'Consulta médica personalizada en NUVANX';
+const NVX_AUTHENTIC_PHOTO_CAPTION_VALORACION = 'Valoración médica';
+
 /**
  * @return array<string,array{eyebrow:string,title:string,images:array<int,array{id:int,alt:string,caption:string}>}>
  */
@@ -28,7 +31,7 @@ function nvx_authentic_page_photo_registry(): array {
 			'title'   => 'La tecnología forma parte del acto médico',
 			'images'  => array(
 				array( 'id' => 2472, 'alt' => 'Tecnología de energía en una sesión clínica NUVANX', 'caption' => 'Tecnología facial' ),
-				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración médica' ),
+				array( 'id' => 2892, 'alt' => NVX_AUTHENTIC_PHOTO_ALT_CONSULTATION, 'caption' => NVX_AUTHENTIC_PHOTO_CAPTION_VALORACION ),
 			),
 		),
 		'medicina-estetica-laser' => array(
@@ -36,7 +39,7 @@ function nvx_authentic_page_photo_registry(): array {
 			'title'   => 'Tecnología real, indicada de forma individual',
 			'images'  => array(
 				array( 'id' => 2472, 'alt' => 'Procedimiento facial con tecnología de energía NUVANX', 'caption' => 'Láser y energía' ),
-				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración médica' ),
+				array( 'id' => 2892, 'alt' => NVX_AUTHENTIC_PHOTO_ALT_CONSULTATION, 'caption' => NVX_AUTHENTIC_PHOTO_CAPTION_VALORACION ),
 			),
 		),
 		'medicina-estetica' => array(
@@ -69,14 +72,14 @@ function nvx_authentic_page_photo_registry(): array {
 			'eyebrow' => 'Planificación',
 			'title'   => 'La planificación es tan importante como la tecnología',
 			'images'  => array(
-				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Valoración previa' ),
+				array( 'id' => 2892, 'alt' => NVX_AUTHENTIC_PHOTO_ALT_CONSULTATION, 'caption' => 'Valoración previa' ),
 			),
 		),
 		'papada-definicion-mandibular-madrid' => array(
 			'eyebrow' => 'Diagnóstico facial',
 			'title'   => 'El abordaje se define en consulta',
 			'images'  => array(
-				array( 'id' => 2892, 'alt' => 'Consulta médica personalizada en NUVANX', 'caption' => 'Plan individualizado' ),
+				array( 'id' => 2892, 'alt' => NVX_AUTHENTIC_PHOTO_ALT_CONSULTATION, 'caption' => 'Plan individualizado' ),
 			),
 		),
 		'endolaser-corporal-grasa-localizada' => array(
@@ -85,7 +88,7 @@ function nvx_authentic_page_photo_registry(): array {
 			'images'  => array(
 				array( 'id' => 2115, 'alt' => 'Procedimiento corporal láser realizado en NUVANX', 'caption' => 'Procedimiento corporal' ),
 				array( 'id' => 2109, 'alt' => 'Tecnología corporal utilizada en una sesión NUVANX', 'caption' => 'Tecnología en uso' ),
-				array( 'id' => 2471, 'alt' => 'Valoración corporal personalizada previa a un tratamiento', 'caption' => 'Valoración médica' ),
+				array( 'id' => 2471, 'alt' => 'Valoración corporal personalizada previa a un tratamiento', 'caption' => NVX_AUTHENTIC_PHOTO_CAPTION_VALORACION ),
 			),
 		),
 		'remodelacion-corporal-laser-madrid' => array(

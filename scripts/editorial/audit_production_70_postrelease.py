@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import http.client
 import json
+import os
 import re
 import socket
 import ssl
@@ -69,7 +70,11 @@ class ImageParser(HTMLParser):
 
 
 def fetch(url: str, timeout: int = 25) -> tuple[int, dict[str, str], str]:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError(f"URL scheme must be http or https, got: {parsed.scheme}")
     ctx = ssl.create_default_context()
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
     req = urllib.request.Request(url, headers={"User-Agent": "nvx-editorial-70-audit"})
     opener = urllib.request.build_opener(
         urllib.request.HTTPSHandler(context=ctx),
@@ -351,7 +356,10 @@ def main() -> int:
             },
             "pages": [],
         }
-        with open(args.output, "w", encoding="utf-8") as handle:
+        output_path = os.path.abspath(args.output)
+        if not output_path.startswith(os.getcwd()):
+            raise ValueError(f"Output path must be within current directory: {args.output}")
+        with open(output_path, "w", encoding="utf-8") as handle:
             json.dump(report, handle, ensure_ascii=False, indent=2)
             handle.write("\n")
         print(f"SITEMAP_FAIL {exc}", file=sys.stderr)
@@ -367,7 +375,10 @@ def main() -> int:
         "pages": pages,
     }
     report["summary"]["count_is_70"] = len(urls) == 70
-    with open(args.output, "w", encoding="utf-8") as handle:
+    output_path = os.path.abspath(args.output)
+    if not output_path.startswith(os.getcwd()):
+        raise ValueError(f"Output path must be within current directory: {args.output}")
+    with open(output_path, "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
     summary = report["summary"]

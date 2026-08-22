@@ -90,9 +90,16 @@ if ( '' === $valoracion_desc
 	$fail( 'valoracion SEO metadata must keep RSA phrases with the 48h reincorporation caveat' );
 }
 
-if ( ! str_contains( $valoracion_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
-	|| ! str_contains( $valoracion_css, '.nvx-valoracion-hero__proof' )
-	|| ! str_contains( $valoracion_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
+// Extract mobile media query block (max-width: 48rem) and validate selectors within it
+$mobile_media_pattern = '/@media[^{]*\(max-width:\s*48rem[^{]*\{([\s\S]*?)\}\s*(?=@media|\z)/';
+$mobile_match = preg_match( $mobile_media_pattern, $valoracion_css, $mobile_matches );
+if ( 1 !== $mobile_match ) {
+	$fail( 'valoracion CSS must contain @media (max-width: 48rem) block' );
+}
+$mobile_css = $mobile_matches[1] ?? '';
+if ( ! str_contains( $mobile_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
+	|| ! str_contains( $mobile_css, '.nvx-valoracion-hero__proof' )
+	|| ! str_contains( $mobile_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
 	$fail( 'valoracion mobile ATF rules must compact the hero and surface the form' );
 }
 

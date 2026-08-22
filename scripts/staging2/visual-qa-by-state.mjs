@@ -84,13 +84,9 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
         runAgentBrowser(['wait', 2000]);
         break;
       case 'consent_accepted':
-        runAgentBrowser(['snapshot', '-i']);
-        // Would need to find and click accept button
-        break;
       case 'menu_open':
-        runAgentBrowser(['snapshot', '-i']);
-        // Would need to find and click menu button
-        break;
+      case 'modal_open':
+        return { success: false, error: `state '${stateName}' not yet implemented`, skipped: true };
       case 'hubspot_loaded':
         runAgentBrowser(['scroll', 'down', 1000]);
         runAgentBrowser(['wait', '--text', 'HubSpot']);
@@ -99,10 +95,7 @@ async function testViewportState(url, viewportName, viewport, stateName, outputD
         runAgentBrowser(['scroll', 'down', 1000]);
         runAgentBrowser(['wait', 2000]);
         break;
-      case 'modal_open':
-        runAgentBrowser(['snapshot', '-i']);
-        // Would need to trigger modal
-        break;
+      
     }
 
     // Take screenshot
@@ -160,6 +153,16 @@ async function runVisualQA(url, outputDir) {
   await fs.writeFile(resultsPath, JSON.stringify(results, null, 2));
 
   console.log(`Visual QA completed. Results saved to ${resultsPath}`);
+  
+  const anyFailed = results.viewports.some(vp =>
+    vp.states.some(s => !s.success && !s.skipped)
+  );
+  if (anyFailed) {
+    console.error('VISUAL_QA=FAIL some states failed');
+    process.exitCode = 1;
+  } else {
+    console.log('VISUAL_QA=PASS');
+  }
   return results;
 }
 
@@ -167,6 +170,16 @@ async function runVisualQA(url, outputDir) {
 const url = process.argv[2];
 if (!url) {
   console.error('Usage: node visual-qa-by-state.mjs <url>');
+  process.exit(1);
+}
+try {
+  const parsedUrl = new URL(url);
+  if (!['https:', 'http:'].includes(parsedUrl.protocol)) {
+    console.error('Usage: URL must use https:// or http://');
+    process.exit(1);
+  }
+} catch {
+  console.error(`Invalid URL: ${url}`);
   process.exit(1);
 }
 

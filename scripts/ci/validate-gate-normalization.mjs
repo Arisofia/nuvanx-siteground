@@ -10,7 +10,6 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 
 const CONFIG_PATH = '.github/workflows/gate-normalization-config.json';
 
@@ -57,25 +56,27 @@ async function validateWorkflowGateCoverage(workflowName, config) {
 
 async function compareWorkflowCoverage(config) {
   const issues = [];
-  const coverage = {};
+  const allGateSets = {};
 
   for (const [workflowName, workflowConfig] of Object.entries(config.workflows)) {
-    coverage[workflowName] = workflowConfig.required_gates.length;
+    allGateSets[workflowName] = new Set(workflowConfig.required_gates);
   }
 
-  const coverages = Object.values(coverage);
-  const uniqueCoverages = [...new Set(coverages)];
+  const workflowNames = Object.keys(allGateSets);
+  if (workflowNames.length < 2) return { valid: true, issues, coverage: {} };
 
-  if (uniqueCoverages.length > 1) {
-    issues.push(`Workflows have different gate coverage: ${JSON.stringify(coverage)}`);
-    issues.push('This violates the "same_coverage" rule');
+  const referenceGates = allGateSets[workflowNames[0]];
+  for (const name of workflowNames.slice(1)) {
+    const diff = [...referenceGates].filter(g => !allGateSets[name].has(g));
+    const extra = [...allGateSets[name]].filter(g => !referenceGates.has(g));
+    if (diff.length > 0) issues.push(`${name} is missing gates: ${diff.join(', ')}`);
+    if (extra.length > 0) issues.push(`${name} has extra gates not in ${workflowNames[0]}: ${extra.join(', ')}`);
   }
 
-  return {
-    valid: issues.length === 0,
-    issues,
-    coverage,
-  };
+  const coverage = Object.fromEntries(
+    Object.entries(allGateSets).map(([k, v]) => [k, v.size])
+  );
+  return { valid: issues.length === 0, issues, coverage };
 }
 
 async function main() {

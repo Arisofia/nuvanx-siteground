@@ -20,7 +20,14 @@ if (EVENT_PATH === EXECUTION_PATHS.UNSUPPORTED_EVENT) {
 
 console.log(`ATTRIBUTION_LINEAGE_E2E=PATH path=${EVENT_PATH} event=${EVENT_NAME} ref=${REF_NAME}`);
 
-if (!BASE_URL) {\n  throw new Error('BASE_URL environment variable is required for lineage E2E');\n}\nassert.equal(BASE_URL, EXPECTED_BASE, 'Real lineage E2E is allowed only against canonical Staging2');
+if (!BASE_URL) {
+  throw new Error('BASE_URL environment variable is required for lineage E2E');
+}
+assert.equal(
+  BASE_URL,
+  EXPECTED_BASE,
+  'Real lineage E2E is allowed only against canonical Staging2'
+);
 
 const qaToken = randomUUID().replaceAll('-', '');
 const email = `qa-attribution-${qaToken.slice(0, 16)}@example.org`;

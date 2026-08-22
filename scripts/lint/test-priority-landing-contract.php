@@ -72,14 +72,14 @@ $valoracion_css = (string) file_get_contents( $root . '/wp-content/themes/nuvanx
 $seo_catalog    = json_decode( (string) file_get_contents( $root . '/wp-content/themes/nuvanx-medical/inc/data/seo-metadata.json' ), true );
 $valoracion_desc = is_array( $seo_catalog ) ? (string) ( $seo_catalog['valoracion']['description'] ?? '' ) : '';
 
-// Extract the rendered hero lead so RSA phrases can't be satisfied by the proof list alone.
+// Extraer el lead renderizado para que las frases RSA no se satisfagan solo con la lista de prueba.
 $valoracion_lead = '';
 if ( preg_match( '/id="nvx-valoracion-lead"[^>]*>(.*?)<\/p>/s', $valoracion_php, $lead_m ) ) {
 	$valoracion_lead = $lead_m[1];
 }
-// Extract the MedicalWebPage schema description assignment.
+// Extraer la descripción del schema MedicalWebPage.
 $valoracion_schema_desc = '';
-if ( preg_match( '/\$description\s*=\s*__\(\s*\'(.*?)\'\s*,\s*\'nuvanx-medical\'\s*\)/s', $valoracion_php, $desc_m ) ) {
+if ( preg_match( "/\\\$description\\s*=\\s*__\\(\\s*'(.*?)'\\s*,\\s*'nuvanx-medical'\\s*\\)/s", $valoracion_php, $desc_m ) ) {
 	$valoracion_schema_desc = $desc_m[1];
 }
 
@@ -106,13 +106,31 @@ if ( '' === $valoracion_desc
 	$fail( 'valoracion SEO metadata must keep RSA phrases with the 48h reincorporation caveat' );
 }
 
-// Extract mobile media query block (max-width: 48rem) and validate selectors within it
-$mobile_media_pattern = '/@media[^{]*\(max-width:\s*48rem[^{]*\{([\s\S]*?)\}\s*(?=@media|\z)/';
-$mobile_match = preg_match( $mobile_media_pattern, $valoracion_css, $mobile_matches );
-if ( 1 !== $mobile_match ) {
+// Aislar el bloque @media (max-width: 48rem) con conteo de llaves balanceadas.
+$mobile_css = '';
+$anchor = strpos( $valoracion_css, '@media (max-width: 48rem)' );
+if ( false !== $anchor ) {
+	$brace_open = strpos( $valoracion_css, '{', $anchor );
+	if ( false !== $brace_open ) {
+		$depth = 0;
+		$len   = strlen( $valoracion_css );
+		for ( $i = $brace_open; $i < $len; $i++ ) {
+			$ch = $valoracion_css[ $i ];
+			if ( '{' === $ch ) {
+				$depth++;
+			} elseif ( '}' === $ch ) {
+				$depth--;
+				if ( 0 === $depth ) {
+					$mobile_css = substr( $valoracion_css, $brace_open + 1, $i - $brace_open - 1 );
+					break;
+				}
+			}
+		}
+	}
+}
+if ( '' === $mobile_css ) {
 	$fail( 'valoracion CSS must contain @media (max-width: 48rem) block' );
 }
-$mobile_css = $mobile_matches[1] ?? '';
 if ( ! str_contains( $mobile_css, '.nvx-valoracion-hero .nvx-brand-hero__copy' )
 	|| ! str_contains( $mobile_css, '.nvx-valoracion-hero__proof' )
 	|| ! str_contains( $mobile_css, '.nvx-valoracion-page .nvx-hs-native-section' ) ) {
